@@ -1,7 +1,16 @@
 import React from "react";
+import { View, StyleSheet } from "react-native";
+import StackNavigator from "./StackNavigator";
 
-const App = () => {
-  return <div></div>;
-};
+export default function App() {
+  return <StackNavigator />;
+}
 
-export default App;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F9FAFB",
+  },
+});
