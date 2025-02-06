@@ -1,6 +1,6 @@
 const districts = [
   { label: "Select District", value: "" }, // Placeholder for selection
-  { label: "Srikakulam", value: "Srikakulam" },
+  { label: "Srikakulam", value: "Srikakulam", code: "01" },
   { label: "Parvathipuram_Manyam", value: "Parvathipuram Manyam" },
   { label: "Vizianagaram", value: "Vizianagaram" },
   { label: "Visakhapatnam", value: "Visakhapatnam" },
@@ -320,3 +320,20 @@ const constituenciesByDistrict = {
     { label: "Thamballapalle", value: "Thamballapalle" },
   ],
 };
+
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import StackNavigator from "./StackNavigator";
+
+export default function App() {
+  return <StackNavigator />;
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F9FAFB",
+  },
+});

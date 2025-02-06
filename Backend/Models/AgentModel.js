@@ -39,7 +39,10 @@ const AgentScheme = new mongoose.Schema({
   },
   ReferralCode: {
     type: String,
-    required: true,
+    // required: true,
+  },
+  RefferedBy: {
+    type: String,
   },
 });
 

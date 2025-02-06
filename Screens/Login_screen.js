@@ -8,6 +8,8 @@ import {
   Image,
   SafeAreaView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -15,12 +17,55 @@ import { useNavigation } from "@react-navigation/native";
 export default function Login_screen() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigation = useNavigation();
+
+  const handleLogin = async () => {
+    if (!mobileNumber || !password) {
+      setErrorMessage("Please enter both mobile number and password.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        "http://192.168.101.105:3000/agent/AgentLogin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            MobileNumber: mobileNumber,
+            Password: password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        // Navigate to the home screen or dashboard on successful login
+        navigation.navigate("Home");
+      } else {
+        setErrorMessage(
+          data.message || "Mobile number or password is incorrect."
+        );
+      }
+    } catch (error) {
+      setErrorMessage("An error occurred. Please try again.");
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        {/* Render the left section only if the platform is not Android */}
         {Platform.OS !== "android" && (
           <View style={styles.leftSection}>
             <Image
@@ -51,6 +96,10 @@ export default function Login_screen() {
           <Text style={styles.welcomeText}>
             Welcome back! Log in to your account.
           </Text>
+
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
 
           <Text style={styles.label}>Mobile Number</Text>
           <View style={styles.inputContainer}>
@@ -89,11 +138,21 @@ export default function Login_screen() {
           </View>
 
           <View style={styles.actionContainer}>
-            <TouchableOpacity style={styles.loginButton}>
-              <Text style={styles.loginButtonText}>Login</Text>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.loginButtonText}>
+                {loading ? "Logging in..." : "Login"}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            {loading && <ActivityIndicator size="small" color="#E82E5F" />}
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Forgetpassword")}
+            >
               <Text style={styles.forgotPassword}>Forgot your Password?</Text>
             </TouchableOpacity>
           </View>
@@ -237,5 +296,12 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     color: "#E82E5F",
+  },
+  errorText: {
+    fontFamily: "Cairo",
+    fontSize: 14,
+    color: "red",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });

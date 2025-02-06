@@ -4,29 +4,34 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Login_screen from "./Screens/Login_screen";
 import RegisterScreen from "./Screens/Register_screen";
+import Admin_panel from "./Screens/Admin_panel";
+import ForgotPassword from "./Screens/ForgetPassword";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Login"
           component={Login_screen}
           options={{ headerShown: false }}
-        />
+        /> */}
         <Stack.Screen
           name="Register"
           component={RegisterScreen}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen name="Home" component={HomeScreen} />
-
-        <Stack.Screen name="Friends" component={FriendsScreen} />
-
-        <Stack.Screen name="Chats" component={ChatsScreen} />
-
-        <Stack.Screen name="Messages" component={ChatMessagesScreen} /> */}
+        <Stack.Screen
+          name="Home"
+          component={Admin_panel}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Forgetpassword"
+          component={ForgotPassword}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

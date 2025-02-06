@@ -4,20 +4,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Platform,
-  FlatList,
   StatusBar,
   Dimensions,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-const Register_screen = () => {
+const Add_Agent = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -144,7 +143,6 @@ const Register_screen = () => {
       if (response.ok) {
         const result = await response.json();
         Alert.alert("Success", "Registration successful!");
-        console.log(referenceId);
       } else if (response.status === 400) {
         const errorData = await response.json();
         Alert.alert("Error", "Mobile number already exists.");
@@ -165,9 +163,9 @@ const Register_screen = () => {
 
   const renderHeader = () => (
     <View style={styles.card}>
-      <Image source={require("../assets/logo.png")} style={styles.logo} />
-      <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
-      <Text style={styles.title}>REGISTER AS AN AGENT</Text>
+      <View style={styles.register_main}>
+        <Text style={styles.register_text}>Register Wealth Associate</Text>
+      </View>
 
       {responseStatus === 400 && (
         <Text style={styles.errorText}>Mobile number already exists.</Text>
@@ -448,7 +446,6 @@ const Register_screen = () => {
                   setShowExpertiseList(false);
                   setShowExperienceList(false);
                 }}
-                defaultValue="WA0000000001"
               />
               <MaterialIcons
                 name="card-giftcard"
@@ -469,7 +466,11 @@ const Register_screen = () => {
         >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} disabled={isLoading}>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          disabled={isLoading}
+          onPress={closeModal}
+        >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -482,28 +483,21 @@ const Register_screen = () => {
         />
       )}
 
-      <TouchableOpacity style={styles.loginText}>
+      {/* <TouchableOpacity style={styles.loginText}>
         <Text>
           Already have an account?{" "}
           <Text style={styles.loginLink}>Login here</Text>
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
-
-  // const renderFooter = () => (
-  //   <View style={styles.footer}>
-  //     <Text style={styles.footerText}>Footer Content</Text>
-  //   </View>
-  // );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={[]} // Empty data array since we are using ListHeaderComponent and ListFooterComponent
+        data={[]}
+        renderItem={null}
         ListHeaderComponent={renderHeader}
-        // ListFooterComponent={renderFooter}
-        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.scrollContainer}
       />
       <StatusBar style="auto" />
@@ -515,7 +509,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-    width: "100vw",
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollContainer: {
     justifyContent: "center",
@@ -524,7 +519,7 @@ const styles = StyleSheet.create({
   card: {
     display: "flex",
     justifyContent: "center",
-    width: Platform.OS === "web" ? (width > 1024 ? "60vw" : "80%") : "100%",
+    width: Platform.OS === "web" ? (width > 1024 ? "100%" : "80%") : "80%",
     backgroundColor: "#FFFFFF",
     padding: Platform.OS === "web" ? 20 : 5,
     borderRadius: 25,
@@ -536,7 +531,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: Platform.OS === "web" ? 0 : 1,
     borderColor: Platform.OS === "web" ? "transparent" : "#ccc",
-    marginTop: Platform.OS === "web" ? "5%" : "0",
+    marginTop: Platform.OS === "web" ? "10%" : "0",
+  },
+  register_main: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E82E5F",
+    width: Platform.OS === "web" ? "100%" : 300,
+    height: 40,
+    borderRadius: 20,
+  },
+  register_text: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    fontSize: 20,
+    color: "#ccc",
   },
   webInputWrapper: {
     width: "100%",
@@ -553,14 +565,14 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: Platform.OS === "android" ? "100%" : "30%",
     position: "relative",
-    zIndex: 1, // Ensure the input container has a zIndex
+    zIndex: 1,
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1, // Ensure the input wrapper has a zIndex
+    zIndex: 1,
   },
   input: {
-    width: Platform.OS === "android" ? 250 : "100%",
+    width: Platform.OS === "android" ? 250 : "200px",
     height: 47,
     backgroundColor: "#FFF",
     borderRadius: 10,
@@ -625,7 +637,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: "absolute",
-    bottom: "100%", // Position the dropdown above the input
+    bottom: "100%",
     left: 0,
     right: 0,
     zIndex: 1000,
@@ -633,9 +645,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 5, // Add space between the dropdown and input
+    marginBottom: 5,
   },
-
   list: {
     maxHeight: 150,
   },
@@ -646,4 +657,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register_screen;
+export default Add_Agent;

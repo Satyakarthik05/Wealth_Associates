@@ -17,8 +17,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Agent_Right from "./Agent_Right";
 import Add_Agent from "./Add_Agent";
-import Register_screen from "./Register_screen";
-// import Agent_Right from "./Agent_Right";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -210,13 +208,22 @@ const Admin_panel = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Add_Agent closeModal={closeModal} />
-
-            {/* <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={closeModal}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity> */}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={closeModal}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.submitButton]}
+                onPress={() => {
+                  closeModal();
+                }}
+              >
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -336,14 +343,19 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: Platform.OS === "web" ? "65%" : "100%",
+    width: Platform.OS === "web" ? "65%" : "90%", // Adjusted for Android
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
-    maxHeight: Platform.OS === "web" ? "80%" : "90%",
-    height: 900,
+    maxHeight: Platform.OS === "web" ? "80%" : "90%", // Adjusted for Android
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
   },
   button: {
+    flex: 1,
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
@@ -351,7 +363,9 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: "#ccc",
-    marginTop: 10,
+  },
+  submitButton: {
+    backgroundColor: "#E91E63",
   },
   buttonText: {
     color: "#fff",
