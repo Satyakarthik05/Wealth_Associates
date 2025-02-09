@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,11 +16,12 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-const Register_screen = () => {
+const Add_Agent = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -40,6 +41,8 @@ const Register_screen = () => {
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [showExperienceList, setShowExperienceList] = useState(false);
+  const [Details, setDetails] = useState({});
+
   const mobileRef = useRef(null);
   const emailRef = useRef(null);
   const districtRef = useRef(null);
@@ -94,6 +97,39 @@ const Register_screen = () => {
     item.name.toLowerCase().includes(experienceSearch.toLowerCase())
   );
 
+  const getDetails = async () => {
+    try {
+      // Await the token retrieval from AsyncStorage
+      const token = await AsyncStorage.getItem("authToken");
+
+      // Make the fetch request
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "", // Fallback to an empty string if token is null
+        },
+      });
+
+      // Parse the response
+      const newDetails = await response.json();
+
+      // Update state with the details
+      setDetails(newDetails);
+      console.log(Details);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+  useEffect(() => {
+    if (Details.MyRefferalCode) {
+      setReferralCode(Details.MyRefferalCode); // Pre-fill the referralCode state
+    }
+  }, [Details]);
+
   const handleRegister = async () => {
     if (
       !fullname ||
@@ -127,7 +163,7 @@ const Register_screen = () => {
       Locations: location,
       Expertise: expertise,
       Experience: experience,
-      ReferredBy: referralCode || "WA0000000001",
+      ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
       Password: "Wealth",
       MyRefferalCode: referenceId,
     };
@@ -146,7 +182,6 @@ const Register_screen = () => {
       if (response.ok) {
         const result = await response.json();
         Alert.alert("Success", "Registration successful!");
-        navigation.navigate("Login");
       } else if (response.status === 400) {
         const errorData = await response.json();
         Alert.alert("Error", "Mobile number already exists.");
@@ -169,10 +204,9 @@ const Register_screen = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
-          <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
-          <Text style={styles.title}>REGISTER AS AN AGENT</Text>
-
+          <View style={styles.register_main}>
+            <Text style={styles.register_text}>Register Wealth Associate</Text>
+          </View>
           {responseStatus === 400 && (
             <Text style={styles.errorText}>Mobile number already exists.</Text>
           )}
@@ -454,7 +488,8 @@ const Register_screen = () => {
                       setShowExpertiseList(false);
                       setShowExperienceList(false);
                     }}
-                    defaultValue="WA0000000001"
+                    // defaultValue="WA0000000001"
+                    value={referralCode}
                   />
                   <MaterialIcons
                     name="card-giftcard"
@@ -475,7 +510,11 @@ const Register_screen = () => {
             >
               <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              disabled={isLoading}
+              onPress={closeModal}
+            >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -510,14 +549,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 20,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+  },
+  register_main: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E82E5F",
+    width: Platform.OS === "web" ? "100%" : 260,
+    height: 40,
+    borderRadius: 20,
+  },
+  register_text: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    fontSize: 20,
+    color: "#ccc",
   },
   card: {
     display: "flex",
     justifyContent: "center",
-    width: Platform.OS === "web" ? (width > 1024 ? "60%" : "80%") : "90%",
-    marginTop: Platform.OS === "web" ? "3%" : 0,
+    width: Platform.OS === "web" ? (width > 1024 ? "100%" : "100%") : "90%",
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 25,
@@ -538,9 +597,8 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   scrollView: {
-    maxHeight: 200, // Adjust this height as per your UI
+    maxHeight: 200,
   },
-
   inputRow: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
@@ -549,11 +607,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: Platform.OS === "android" ? "100%" : "30%",
     position: "relative",
-    zIndex: 1, // Ensure the input container has a zIndex
+    zIndex: 1,
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1, // Ensure the input wrapper has a zIndex
+    zIndex: 1,
   },
   input: {
     width: "100%",
@@ -621,7 +679,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: "absolute",
-    bottom: "100%", // Position the dropdown above the input
+    bottom: "100%",
     left: 0,
     right: 0,
     zIndex: 1000,
@@ -629,9 +687,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 5, // Add space between the dropdown and input
+    marginBottom: 5,
   },
-
   list: {
     maxHeight: 150,
   },
@@ -642,4 +699,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register_screen;
+export default Add_Agent;

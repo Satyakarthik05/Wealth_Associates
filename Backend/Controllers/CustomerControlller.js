@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const AgentSchema = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const CustomerSchema = require("../Models/Customer");
 
 secret = "Wealth@123";
 
@@ -44,23 +45,21 @@ const sendSMS = async (
   }
 };
 
-const AgentSign = async (req, res) => {
+const CustomerSign = async (req, res) => {
   const {
     FullName,
     MobileNumber,
-    Email,
     District,
     Contituency,
     Locations,
-    Expertise,
-    Experience,
-    ReferredBy, // Use the ReferredBy value directly from the request
+    Occupation,
+    ReferredBy,
     MyRefferalCode,
   } = req.body;
 
   try {
-    const existingAgent = await AgentSchema.findOne({ MobileNumber });
-    if (existingAgent) {
+    const existingCustomer = await CustomerSchema.findOne({ MobileNumber });
+    if (existingCustomer) {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
 
@@ -71,16 +70,14 @@ const AgentSign = async (req, res) => {
     // Use the ReferredBy value from the request, or default to "WA0000000001" if empty
     const finalReferredBy = ReferredBy || "WA0000000001";
 
-    const newAgent = new AgentSchema({
+    const newCustomer = new CustomerSchema({
       FullName,
       MobileNumber,
       Password,
-      Email,
       District,
       Contituency,
       Locations,
-      Expertise,
-      Experience,
+      Occupation,
       ReferredBy: finalReferredBy, // Use the finalReferredBy value
       MyRefferalCode: refferedby,
     });
@@ -99,9 +96,9 @@ const AgentSign = async (req, res) => {
       smsResponse = "SMS sending failed";
     }
 
-    await newAgent.save();
+    await newCustomer.save();
     res.status(200).json({
-      message: "Registration successful",
+      message: " Customer Registration successful",
       smsResponse,
     });
   } catch (error) {
@@ -110,7 +107,7 @@ const AgentSign = async (req, res) => {
   }
 };
 
-const fetchReferredAgents = async (req, res) => {
+const fetchReferredCustomers = async (req, res) => {
   try {
     // Find the authenticated agent
     const authenticatedAgent = await AgentSchema.findById(req.AgentId);
@@ -122,7 +119,7 @@ const fetchReferredAgents = async (req, res) => {
     const myReferralCode = authenticatedAgent.MyRefferalCode;
 
     // Fetch all agents whose ReferredBy matches the authenticated agent's MyRefferalCode
-    const referredAgents = await AgentSchema.find({
+    const referredAgents = await CustomerSchema.find({
       ReferredBy: myReferralCode,
     });
 
@@ -134,77 +131,4 @@ const fetchReferredAgents = async (req, res) => {
   }
 };
 
-const ForgetPassword = async (req, res) => {
-  const { MobileNo } = req.body;
-  try {
-    const Agent = await AgentSchema.findOne({ MobileNumber: MobileNo });
-
-    if (Agent) {
-      const OTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-      Agent.Otp = OTP;
-      Agent.otpExpiresAt = Date.now() + 10 * 60 * 1000;
-      await Agent.save();
-      try {
-        const smsResponse = await sendSMS(MobileNo, OTP);
-        return res.status(200).json({
-          message: "OTP sent successfully and stored in the database",
-          smsResponse,
-        });
-      } catch (smsError) {
-        console.error("Failed to send SMS:", smsError.message);
-        return res.status(500).json({
-          message:
-            "Failed to send OTP. Please check the mobile number or try again later.",
-          error: smsError.message,
-        });
-      }
-    } else {
-      return res.status(404).json({ message: "Mobile number not found" });
-    }
-  } catch (dbError) {
-    console.error("Database error:", dbError.message);
-    return res
-      .status(500)
-      .json({ message: "Database error", error: dbError.message });
-  }
-};
-
-const AgentLogin = async (req, res) => {
-  const { MobileNumber, Password } = req.body;
-
-  try {
-    const Agents = await AgentSchema.findOne({
-      MobileNumber: MobileNumber,
-      Password: Password,
-    });
-    if (!Agents) {
-      return res
-        .status(400)
-        .json({ message: "Invalid MobileNumber or Password" });
-    }
-
-    const token = await jwt.sign({ AgentId: Agents._id }, secret, {
-      expiresIn: "1h",
-    });
-
-    res.status(200).json({ message: "Login Successful", token });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const getAgent = async (req, res) => {
-  try {
-    const agentDetails = await AgentSchema.findById(req.AgentId);
-    if (!agentDetails) {
-      return res.status(200).json({ message: "Agent not found" });
-    } else {
-      res.status(200).json(agentDetails);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-module.exports = { AgentSign, AgentLogin, getAgent, fetchReferredAgents };
+module.exports = { CustomerSign, fetchReferredCustomers };

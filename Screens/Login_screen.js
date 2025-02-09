@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login_screen() {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -31,24 +33,23 @@ export default function Login_screen() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(
-        "http://192.168.101.105:3000/agent/AgentLogin",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            MobileNumber: mobileNumber,
-            Password: password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/agent/AgentLogin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          MobileNumber: mobileNumber,
+          Password: password,
+        }),
+      });
 
       const data = await response.json();
 
       if (response.status === 200) {
-        // Navigate to the home screen or dashboard on successful login
+        const token = data.token; // Assuming the token is in the 'token' field
+        await AsyncStorage.setItem("authToken", token); // Store the token in AsyncStorage
+        console.log("Token stored in AsyncStorage:", token);
         navigation.navigate("Home");
       } else {
         setErrorMessage(

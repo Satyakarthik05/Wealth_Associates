@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const AgentScheme = new mongoose.Schema({
+const CustomerSchema = new mongoose.Schema({
   FullName: {
     type: String,
     required: true,
@@ -10,10 +10,6 @@ const AgentScheme = new mongoose.Schema({
     required: true,
   },
   Password: {
-    type: String,
-    required: true,
-  },
-  Email: {
     type: String,
     required: true,
   },
@@ -29,11 +25,7 @@ const AgentScheme = new mongoose.Schema({
     type: String,
     required: true,
   },
-  Expertise: {
-    type: String,
-    required: true,
-  },
-  Experience: {
+  Occupation: {
     type: String,
     required: true,
   },
@@ -48,5 +40,5 @@ const AgentScheme = new mongoose.Schema({
   },
 });
 
-const Agent = mongoose.model("Agent_Wealth_Associate", AgentScheme);
-module.exports = Agent;
+const Customer = mongoose.model("Customers", CustomerSchema);
+module.exports = Customer;

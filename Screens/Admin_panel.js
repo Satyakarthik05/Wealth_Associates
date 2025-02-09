@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import {
   View,
@@ -14,11 +14,25 @@ import {
   Modal,
   Dimensions,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl";
 import { Ionicons } from "@expo/vector-icons";
-import Agent_Right from "./Agent_Right";
-import Add_Agent from "./Add_Agent";
-import Register_screen from "./Register_screen";
-// import Agent_Right from "./Agent_Right";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomModal from "../Components/CustomModal";
+
+//importing components
+import Agent_Right from "../Screens/Agent/Agent_Right";
+import Add_Agent from "../Screens/Agent/Add_Agent";
+import ViewAgents from "../Screens/Agent/ViewAgents";
+import RegisterExecute from "../Screens/Customer/Regicus";
+import ViewCustomers from "../Screens/Customer/View_customers";
+import RequestProperty from "../Screens/Properties/RequestProperty";
+import MyPostedProperties from "../Screens/Properties/ViewPostedProperties";
+import RequestedProperties from "../Screens/Properties/ViewRequestedProperties";
+import ViewAllProperties from "../Screens/Properties/ViewAllProperties";
+import ExpertPanel from "../Screens/ExpertPanel/Expert_panel";
+import ViewSkilledLabours from "../Screens/SkilledLabour/ViewSkilledLabours";
+import RequestedExpert from "../Screens/ExpertPanel/Requested_expert";
+import PostProperty from "./Properties/PostProperty";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -37,33 +51,29 @@ const menuItems = [
   {
     title: "Properties",
     icon: "home-outline",
-    subItems: ["Add Property", "View Properties"],
+    subItems: [
+      "Post Property",
+      "Request Property",
+      "View Posted Properties",
+      "View Requested Properties",
+      "View All Properties",
+    ],
   },
-  { title: "Expert Panel", icon: "cog-outline", subItems: ["Consult Experts"] },
   {
-    title: "Referrals",
-    icon: "share-social-outline",
-    subItems: ["Send Referral", "View Referrals"],
+    title: "Expert Panel",
+    icon: "cog-outline",
+    subItems: ["View Expert Panel", "Request Expert Panel"],
   },
-  {
-    title: "NRI Club",
-    icon: "people-circle-outline",
-    subItems: ["Join Club", "Club Events"],
-  },
+
   {
     title: "Core Clients",
     icon: "business-outline",
-    subItems: ["VIP Clients"],
+    subItems: ["View Core Clients", "View Core Projects"],
   },
   {
     title: "Skilled Club",
     icon: "trophy-outline",
-    subItems: ["Skilled Members"],
-  },
-  {
-    title: "Master Data",
-    icon: "folder-outline",
-    subItems: ["Data Management"],
+    subItems: ["Register Skilled Labour", "View Skilled Labour"],
   },
 ];
 
@@ -72,9 +82,25 @@ const Admin_panel = () => {
     Platform.OS !== "android"
   );
   const [expandedItems, setExpandedItems] = useState({});
+  const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);
+  const [isViewAgentVisible, setIsViewAgentVisible] = useState(false);
+  const [isRequestPropertyVisible, setIsRequestPropertyVisible] =
+    useState(false);
+  const [isPostedPropertiesVisible, setIsPostedPropertiesVisible] =
+    useState(false);
+  const [isRequestedPropertiesVisible, setIsRequestedPropertiesVisible] =
+    useState(false);
+  const [addPost, setAddPost] = useState(false);
+  const [isAllPropertiesVisible, setIsAllPropertiesVisible] = useState(false);
+  const [isViewCustomersModalVisible, setIsViewCustomersModalVisible] =
+    useState(false);
+  const [isExpertPanelVisible, setIsExpertPanelVisible] = useState(false);
+  const [isRegiCusVisible, setIsRegiCusVisible] = useState(false);
+  const [isViewSkilledLabourVisible, setIsViewSkilledLabourVisible] =
+    useState(false);
+  const [isRequestExpertVisible, setIsRequestExpertVisible] = useState(false);
   const [selectedSubItem, setSelectedSubItem] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [Details, setDetails] = useState({});
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -90,9 +116,47 @@ const Admin_panel = () => {
   };
 
   const handleSubItemClick = (subItem) => {
-    setSelectedSubItem(subItem);
+    setIsAddAgentVisible(false);
+    setIsViewAgentVisible(false);
+    setIsRequestPropertyVisible(false);
+    setIsPostedPropertiesVisible(false);
+    setIsRequestedPropertiesVisible(false);
+    setIsAllPropertiesVisible(false);
+    setIsViewCustomersModalVisible(false);
+    setIsExpertPanelVisible(false);
+    setIsRegiCusVisible(false);
+    setIsViewSkilledLabourVisible(false);
+    setIsRequestExpertVisible(false);
+    setAddPost(false);
+
+    if (Platform.OS === "android") {
+      setIsSidebarExpanded(false);
+    }
+
     if (subItem === "Register Agent") {
-      setIsModalVisible(true);
+      setIsAddAgentVisible(true);
+    } else if (subItem === "View Agents") {
+      setIsViewAgentVisible(true);
+    } else if (subItem === "Request Property") {
+      setIsRequestPropertyVisible(true);
+    } else if (subItem === "View Posted Properties") {
+      setIsPostedPropertiesVisible(true);
+    } else if (subItem === "View Requested Properties") {
+      setIsRequestedPropertiesVisible(true);
+    } else if (subItem === "View All Properties") {
+      setIsAllPropertiesVisible(true);
+    } else if (subItem === "View Customers") {
+      setIsViewCustomersModalVisible(true);
+    } else if (subItem === "View Expert Panel") {
+      setIsExpertPanelVisible(true);
+    } else if (subItem === "Add Customer") {
+      setIsRegiCusVisible(true);
+    } else if (subItem === "View Skilled Labour") {
+      setIsViewSkilledLabourVisible(true);
+    } else if (subItem === "Register Skilled Labour") {
+      setIsRequestExpertVisible(true);
+    } else if (subItem === "Post Property") {
+      setAddPost(true);
     }
   };
 
@@ -101,8 +165,58 @@ const Admin_panel = () => {
   };
 
   const closeModal = () => {
-    setIsModalVisible(false);
+    setIsAddAgentVisible(false);
+    setIsRequestPropertyVisible(false);
+    setIsPostedPropertiesVisible(false);
+    setIsRequestedPropertiesVisible(false);
+    setIsAllPropertiesVisible(false);
+    setIsViewCustomersModalVisible(false);
+    setIsExpertPanelVisible(false);
+    setIsViewAgentVisible(false);
+    setIsRegiCusVisible(false);
+    setIsViewSkilledLabourVisible(false);
+    setIsRequestExpertVisible(false);
+    setAddPost(false);
   };
+
+  const renderContent = () => {
+    if (isPostedPropertiesVisible) return <MyPostedProperties />;
+    if (isRequestedPropertiesVisible) return <RequestedProperties />;
+    if (isAllPropertiesVisible) return <ViewAllProperties />;
+    if (isViewCustomersModalVisible) return <ViewCustomers />;
+    if (isExpertPanelVisible) return <ExpertPanel />;
+    if (isViewAgentVisible) return <ViewAgents />;
+    if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
+    return <Agent_Right />; // Default component
+  };
+
+  const getDetails = async () => {
+    try {
+      // Await the token retrieval from AsyncStorage
+      const token = await AsyncStorage.getItem("authToken");
+
+      // Make the fetch request
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "", // Fallback to an empty string if token is null
+        },
+      });
+
+      // Parse the response
+      const newDetails = await response.json();
+
+      // Update state with the details
+      setDetails(newDetails);
+      console.log(Details);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -116,7 +230,10 @@ const Admin_panel = () => {
         <Image source={require("../assets/logo.png")} style={styles.logo} />
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
-            <Image source={require("../assets/logo.png")} style={styles.icon} />
+            <Image
+              source={require("../assets/usflag.png")}
+              style={styles.icon}
+            />
             <Text style={styles.language}>English</Text>
             <Ionicons name="moon-outline" size={24} color="#000" />
             <Ionicons name="notifications-outline" size={24} color="#000" />
@@ -183,7 +300,22 @@ const Admin_panel = () => {
         <View style={styles.contentArea}>
           <View style={styles.container}>
             <ScrollView>
-              <Agent_Right />
+              <View style={styles.userContent}>
+                <Text style={styles.usersContentText}>
+                  Welcome Back:
+                  <Text style={{ color: "#E82E5F" }}>
+                    {" "}
+                    {Details.FullName ? Details.FullName : "yourname"}
+                  </Text>
+                </Text>
+                <Text style={styles.usersContentText}>
+                  YourReferralcode:
+                  <Text style={{ color: "#E82E5F" }}>
+                    {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
+                  </Text>
+                </Text>
+                {renderContent()}
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -200,26 +332,26 @@ const Admin_panel = () => {
         </TouchableOpacity>
       )}
 
-      {/* Modal for Register Agent */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeModal}
+      <CustomModal
+        isVisible={isAddAgentVisible}
+        closeModal={closeModal}
+        style={styles.modalOverlay}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Add_Agent closeModal={closeModal} />
+        <Add_Agent closeModal={closeModal} style={styles.modalContent} />
+      </CustomModal>
 
-            {/* <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={closeModal}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity> */}
-          </View>
-        </View>
-      </Modal>
+      <CustomModal isVisible={isRequestPropertyVisible} closeModal={closeModal}>
+        <RequestProperty closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRegiCusVisible} closeModal={closeModal}>
+        <RegisterExecute closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRequestExpertVisible} closeModal={closeModal}>
+        <RequestedExpert closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={addPost} closeModal={closeModal}>
+        <PostProperty closeModal={closeModal} />
+      </CustomModal>
     </View>
   );
 };
@@ -333,11 +465,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    // backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: Platform.OS === "web" ? "65%" : "100%",
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
+    backgroundColor: "transparent",
     borderRadius: 10,
     padding: 20,
     maxHeight: Platform.OS === "web" ? "80%" : "90%",
@@ -356,6 +489,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  userContent: {
+    backgroundColor: "#fff",
+    display: "flex",
+    flexDirection: Platform === "web" ? "row" : "column",
+  },
+  usersContentText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    // color: "#E82E5F",
   },
 });
 

@@ -1,161 +1,169 @@
-import { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Image,
-  useWindowDimensions,
+  Platform,
 } from "react-native";
 
-const ForgotPassword = () => {
-  const [mobileNumber, setMobileNumber] = useState("");
-  const { width } = useWindowDimensions();
-  const isDesktop = width > 768;
-
-  const handleGetOTP = () => {
-    alert("OTP Sent to " + mobileNumber);
-  };
-
-  const handleCancel = () => {
-    alert("Cancelled");
-  };
-
+export default function ForgotPassword() {
   return (
-    <View style={[styles.container, isDesktop && styles.desktopContainer]}>
-      <Image
-        source={require("../assets/forgot-password-.png")} // Replace with actual image path
-        style={[styles.image, isDesktop && styles.desktopImage]}
-      />
-      <View style={[styles.content, isDesktop && styles.desktopContent]}>
-        <Image
-          source={require("../assets/forgot-password-.png")} // Replace with your logo URL
-          style={styles.logo}
-        />
-        <Text style={styles.logoText}>Wealth Associates</Text>
-        <Text style={styles.subtitle}>Your Trusted Property Consultant</Text>
-        <Text style={styles.title}>Forgot Password</Text>
-        <Text style={styles.label}>Mobile Number</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. 9063392872"
-            keyboardType="phone-pad"
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
+    <View style={styles.container}>
+      <View style={styles.card}>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
           />
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.otpButton} onPress={handleGetOTP}>
-            <Text style={styles.otpButtonText}>Get OTP</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
+
+        <View
+          style={
+            Platform.OS === "web"
+              ? styles.webContentContainer
+              : styles.contentContainer
+          }
+        >
+          {/* Illustration */}
+          <Image
+            source={require("../assets/forgot_password.png")}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+
+          {/* Form */}
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Forgot Password</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Mobile Number</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="phone-pad"
+                placeholder="Ex: 9063392872"
+              />
+            </View>
+
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity style={styles.getOtpButton}>
+                <Text style={styles.getOtpButtonText}>Get OTP</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f8f8",
-    padding: 40,
+    backgroundColor: "#f8f9fa",
+    padding: 16,
   },
-  desktopContainer: {
-    flexDirection: "row", // Align items side by side for desktop
-    alignItems: "center",
-  },
-  image: {
-    width: 300,
-    height: 300,
-    resizeMode: "contain",
-    marginBottom: 20,
-  },
-  desktopImage: {
-    marginRight: 40, // Space between image and form
-  },
-  content: {
+  card: {
     width: "100%",
-    alignItems: "center",
+    maxWidth: 800,
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    padding: 16,
+    elevation: 5,
+    height: "80%",
   },
-  desktopContent: {
-    width: "50%",
-    alignItems: "flex-start",
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 16,
   },
   logo: {
-    width: 120,
-    height: 120,
-    resizeMode: "contain",
-    marginBottom: 10,
+    width: 100,
+    height: 80,
   },
-  logoText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    textAlign: "center",
+  contentContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#777",
-    marginBottom: 20,
-    textAlign: "center",
+  webContentContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  illustration: {
+    width: Platform.OS === "web" ? 350 : 300,
+    height: Platform.OS === "web" ? 400 : 200,
+    marginBottom: Platform.OS === "web" ? 0 : 16,
+  },
+  formContainer: {
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 10,
+    elevation: 3,
+    height: "auto",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#212529",
+    marginBottom: 16,
     textAlign: "center",
+  },
+  inputGroup: {
+    marginBottom: 16,
+    width: "100%",
   },
   label: {
     fontSize: 14,
+    color: "#6c757d",
     marginBottom: 8,
   },
-  inputContainer: {
-    width: "100%",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 15,
-  },
   input: {
-    fontSize: 14,
+    height: 40,
+    borderColor: "#ced4da",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    backgroundColor: "#f8f9fa",
   },
-  buttonContainer: {
+  buttonGroup: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
+    marginTop: 16,
   },
-  otpButton: {
-    backgroundColor: "#E91E63",
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: "center",
-    marginRight: 10,
+  getOtpButton: {
+    backgroundColor: "#ee3b7b",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
-  otpButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+  getOtpButtonText: {
+    color: "#ffffff",
+    fontWeight: "600",
   },
   cancelButton: {
-    backgroundColor: "#333",
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: "center",
+    backgroundColor: "#ced4da",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   cancelButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: "#495057",
+    fontWeight: "600",
   },
 });
-
-export default ForgotPassword;

@@ -25,18 +25,18 @@ const actionButtons = [
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../assets/Logo Final 1.png"),
+    logo: require("../../assets/Logo Final 1.png"),
   },
 ];
 
 const coreProjects = [
-  { name: "Bay Town", logo: require("../assets/Main-Logo (1) 1.png") },
-  { name: "Icon", logo: require("../assets/Meenakshi-Icon-Blac (2) 1.png") },
+  { name: "Bay Town", logo: require("../../assets/Main-Logo (1) 1.png") },
+  { name: "Icon", logo: require("../../assets/Meenakshi-Icon-Blac (2) 1.png") },
   {
     name: "Surya Avenue",
-    logo: require("../assets/Surya Avenue Logo[1] 1.png"),
+    logo: require("../../assets/Surya Avenue Logo[1] 1.png"),
   },
-  { name: "The Park Vue", logo: require("../assets/Logo 1.png") },
+  { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
 ];
 
 const properties = new Array(4).fill({
@@ -44,7 +44,7 @@ const properties = new Array(4).fill({
   propertyType: "Independent House",
   location: "Vijayawada",
   budget: "₹ 5,00,000",
-  image: require("../assets/SW_FleetHouse_44_JackHobhouse 1.png"),
+  image: require("../../assets/SW_FleetHouse_44_JackHobhouse 1.png"),
 });
 
 const Agent_Right = () => {
@@ -67,7 +67,6 @@ const Agent_Right = () => {
         ))}
       </View>
 
-      {/* Core Clients */}
       <Text style={styles.sectionTitle}>Core Clients</Text>
       <View style={styles.cardContainer}>
         {coreClients.map((client, index) => (
