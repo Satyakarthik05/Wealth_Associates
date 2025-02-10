@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,15 +11,33 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import CustomModal from "../../Components/CustomModal"; // Ensure this path is correct
+import PostProperty from "../Properties/PostProperty"; // Ensure this path is correct
+import RequestProperty from "../Properties/RequestProperty"; // Create this component
+import AddClubMember from "../Customer/Regicus"; // Create this component
+import RequestExpert from "../ExpertPanel/Requested_expert"; // Create this component
 
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const actionButtons = [
-  { title: "Post a Property", subtext: "(Free)", icon: "home" },
-  { title: "Request a Property", icon: "home-search" },
-  { title: "Add a Club Member", icon: "account-plus" },
-  { title: "Request Expert", icon: "account-check" },
+  {
+    title: "Post a Property",
+    subtext: "(Free)",
+    icon: "home",
+    component: PostProperty,
+  },
+  {
+    title: "Request a Property",
+    icon: "home-search",
+    component: RequestProperty,
+  },
+  {
+    title: "Add a customer",
+    icon: "account-plus",
+    component: AddClubMember,
+  },
+  { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
 
 const coreClients = [
@@ -48,12 +66,31 @@ const properties = new Array(4).fill({
 });
 
 const Agent_Right = () => {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState(null);
+
+  const handleActionButtonClick = (btn) => {
+    const ModalComponent = btn.component;
+    setModalContent(
+      <ModalComponent title={btn.title} closeModal={closeModal} />
+    );
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Action Buttons */}
       <View style={styles.actionContainer}>
         {actionButtons.map((btn, index) => (
-          <TouchableOpacity key={index} style={styles.actionButton}>
+          <TouchableOpacity
+            key={index}
+            style={styles.actionButton}
+            onPress={() => handleActionButtonClick(btn)}
+          >
             <View style={styles.iconCircle}>
               <Icon
                 name={btn.icon}
@@ -67,6 +104,12 @@ const Agent_Right = () => {
         ))}
       </View>
 
+      {/* Render the CustomModal */}
+      <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
+        {modalContent}
+      </CustomModal>
+
+      {/* Rest of the component code remains the same */}
       <Text style={styles.sectionTitle}>Core Clients</Text>
       <View style={styles.cardContainer}>
         {coreClients.map((client, index) => (
@@ -185,14 +228,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   card: {
-    width: isWeb ? 200 : 150, // Fixed width for horizontal scrolling
+    width: isWeb ? 200 : 150,
     height: 80,
     backgroundColor: "#fff",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
-    marginRight: 10, // Add margin between cards
+    marginRight: 10,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
@@ -214,9 +257,9 @@ const styles = StyleSheet.create({
     height: Platform.OS === "web" ? 40 : 50,
     backgroundColor: "#fff",
     marginTop: Platform.OS === "web" ? "auto" : 30,
-    borderWidth: Platform.OS === "android" ? 1 : 0, // Add border for Android
+    borderWidth: Platform.OS === "android" ? 1 : 0,
     borderColor: "black",
-    borderRadius: Platform.OS === "android" ? 5 : 0, // Add border radius for Android
+    borderRadius: Platform.OS === "android" ? 5 : 0,
   },
   propertyScroll: { marginVertical: 10 },
   propertyCard: {
@@ -261,6 +304,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginVertical: 10,
     color: "gray",
+  },
+
+  // Modal Content Styles
+  modalContent: {
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    width: "80%",
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
   },
 });
 

@@ -249,7 +249,31 @@ const Admin_panel = () => {
 
       {/* Top Navbar */}
       <View style={styles.navbar}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <TouchableOpacity
+          onPress={() => {
+            // Reset all modal states
+            setIsAddAgentVisible(false);
+            setIsViewAgentVisible(false);
+            setIsRequestPropertyVisible(false);
+            setIsPostedPropertiesVisible(false);
+            setIsRequestedPropertiesVisible(false);
+            setIsAllPropertiesVisible(false);
+            setIsViewCustomersModalVisible(false);
+            setIsExpertPanelVisible(false);
+            setIsRegiCusVisible(false);
+            setIsViewSkilledLabourVisible(false);
+            setIsRequestExpertVisible(false);
+            setAddPost(false);
+            setCoreClients(false);
+            setCoreProjects(false);
+            setisRsSkill(false);
+
+            // Set the default view to Agent_Right
+            setSelectedSubItem(null);
+          }}
+        >
+          <Image source={require("../assets/logo.png")} style={styles.logo} />
+        </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
             <Image

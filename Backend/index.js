@@ -5,6 +5,7 @@ const cors = require("cors");
 const AgentRouter = require("./Routes/AgentRoutes");
 const CustomerRoutes = require("./Routes/CustomerRoutes");
 const propertyRoutes = require("./Routes/PostPropertyRoutes");
+const RequestProperty = require("./Routes/RequestPropertyRoute");
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ mongoose
 app.use("/agent", AgentRouter);
 app.use("/customer", CustomerRoutes);
 app.use("/properties", propertyRoutes);
+app.use("/requestProperty", RequestProperty);
 
 app.listen(3000, () => {
   console.log("server is running successfully");

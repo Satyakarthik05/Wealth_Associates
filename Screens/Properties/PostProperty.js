@@ -10,6 +10,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { Button } from "react-native-paper";
@@ -17,7 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import imageCompression from "browser-image-compression";
 import { API_URL } from "../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import MaterialIcons for the camera icon
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -29,6 +30,7 @@ const PostProperty = ({ closeModal }) => {
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
+  const [loading, setLoading] = useState(false); // New loading state
 
   const getDetails = async () => {
     try {
@@ -41,7 +43,7 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileNumber); // Ensure this is correct
+      setPostedBy(newDetails.MobileNumber);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
@@ -51,9 +53,6 @@ const PostProperty = ({ closeModal }) => {
   useEffect(() => {
     getDetails();
   }, []);
-  useEffect(() => {
-    console.log("PostedBy:", PostedBy); // Debugging statement
-  }, [PostedBy]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -74,6 +73,7 @@ const PostProperty = ({ closeModal }) => {
 
   const handlePost = async () => {
     if (validateForm()) {
+      setLoading(true); // Start loading
       try {
         let response;
         if (Platform.OS === "web") {
@@ -84,14 +84,13 @@ const PostProperty = ({ closeModal }) => {
           formData.append("location", location);
           formData.append("price", price);
           formData.append("photo", file);
-          formData.append("PostedBy", PostedBy); // Ensure this is correct
+          formData.append("PostedBy", PostedBy);
 
           response = await fetch(`${API_URL}/properties/addProperty`, {
             method: "POST",
             body: formData,
           });
         } else {
-          console.log(PostedBy);
           const formData = new FormData();
           formData.append("propertyType", propertyType);
           formData.append("location", location);
@@ -101,7 +100,7 @@ const PostProperty = ({ closeModal }) => {
             name: "photo.jpg",
             type: "image/jpeg",
           });
-          formData.append("PostedBy", PostedBy); // Ensure this is correct
+          formData.append("PostedBy", PostedBy);
 
           response = await fetch(`${API_URL}/properties/addProperty`, {
             method: "POST",
@@ -122,6 +121,8 @@ const PostProperty = ({ closeModal }) => {
       } catch (error) {
         console.error("Error posting property:", error);
         alert("An error occurred while posting the property.");
+      } finally {
+        setLoading(false); // Stop loading
       }
     }
   };
@@ -196,6 +197,7 @@ const PostProperty = ({ closeModal }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0} // Adjust keyboard offset
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Post a Property</Text>
@@ -266,13 +268,28 @@ const PostProperty = ({ closeModal }) => {
           />
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.postButton} onPress={handlePost}>
-              <Text style={styles.postButtonText}>Post</Text>
+            <TouchableOpacity
+              style={[styles.postButton, loading && styles.disabledButton]}
+              onPress={handlePost}
+              disabled={loading} // Disable button when loading
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.postButtonText}>Post</Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
+          {loading && (
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              size="large"
+              color="#D81B60"
+            />
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -388,6 +405,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorText: { color: "red", fontSize: 12, marginTop: -8, marginBottom: 10 },
+  disabledButton: {
+    backgroundColor: "#ccc", // Disabled button color
+  },
+  loadingIndicator: {
+    marginTop: 20,
+    alignSelf: "center",
+  },
 });
 
 export default PostProperty;

@@ -1,9 +1,77 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../../data/ApiUrl";
 
 const RequestedPropertyForm = ({ closeModal }) => {
+  const [propertyTitle, setPropertyTitle] = useState("");
   const [propertyType, setPropertyType] = useState("");
+  const [location, setLocation] = useState("");
+  const [budget, setBudget] = useState("");
+  const [Details, setDetails] = useState({});
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      const newDetails = await response.json();
+      setDetails(newDetails);
+      console.log(Details);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!propertyTitle || !propertyType || !location || !budget) {
+      Alert.alert("Error", "Please fill all the fields.");
+      return;
+    }
+
+    const requestData = {
+      propertyTitle,
+      propertyType,
+      location,
+      Budget: budget,
+      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+    };
+
+    try {
+      const response = await fetch(
+        `${API_URL}/requestProperty/requestProperty`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", result.message);
+        closeModal(); // Close the modal after successful submission
+      } else {
+        Alert.alert("Error", result.message || "Failed to request property.");
+      }
+    } catch (error) {
+      console.error("Error submitting request:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -11,7 +79,12 @@ const RequestedPropertyForm = ({ closeModal }) => {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Property Title</Text>
-        <TextInput style={styles.input} placeholder="Ex. Need 10 acres land" />
+        <TextInput
+          style={styles.input}
+          placeholder="Ex. Need 10 acres land"
+          value={propertyTitle}
+          onChangeText={setPropertyTitle}
+        />
       </View>
 
       <View style={styles.inputContainer}>
@@ -22,7 +95,6 @@ const RequestedPropertyForm = ({ closeModal }) => {
             onValueChange={(itemValue) => setPropertyType(itemValue)}
             style={styles.picker}
           >
-            <Text style={styles.label}>--Select Type--</Text>
             <Picker.Item label="-- Select Type --" value="" />
             <Picker.Item label="Residential" value="residential" />
             <Picker.Item label="Commercial" value="commercial" />
@@ -33,7 +105,12 @@ const RequestedPropertyForm = ({ closeModal }) => {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Location</Text>
-        <TextInput style={styles.input} placeholder="Ex. Vijayawada" />
+        <TextInput
+          style={styles.input}
+          placeholder="Ex. Vijayawada"
+          value={location}
+          onChangeText={setLocation}
+        />
       </View>
 
       <View style={styles.inputContainer}>
@@ -42,11 +119,13 @@ const RequestedPropertyForm = ({ closeModal }) => {
           style={styles.input}
           placeholder="Ex. 50,00,000"
           keyboardType="numeric"
+          value={budget}
+          onChangeText={setBudget}
         />
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.postButton}>
+        <TouchableOpacity style={styles.postButton} onPress={handleSubmit}>
           <Text style={styles.postButtonText}>Post</Text>
         </TouchableOpacity>
 
@@ -71,7 +150,6 @@ const styles = {
     elevation: 5,
     borderWidth: 0.5,
     borderColor: "black",
-    // marginTop: "20%",
   },
   header: {
     fontSize: 18,
@@ -106,20 +184,19 @@ const styles = {
     borderRadius: 25,
     backgroundColor: "#fff",
     overflow: "hidden",
-    height: 55, // Increase height slightly for proper text visibility
+    height: 55,
     justifyContent: "center",
-    paddingHorizontal: 10, // Ensures text has enough space
+    paddingHorizontal: 10,
   },
   picker: {
-    height: 55, // Matches container height
+    height: 55,
     width: "100%",
     borderWidth: 0,
     backgroundColor: "transparent",
-    fontSize: 16, // Adjust font size to fit properly
-    textAlignVertical: "center", // Ensures text is centered (Android fix)
-    paddingBottom: 6, // Extra padding to prevent text from cutting off
+    fontSize: 16,
+    textAlignVertical: "center",
+    paddingBottom: 6,
   },
-
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
