@@ -14,7 +14,7 @@ const StackNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        {/* <Stack.Screen
+        <Stack.Screen
           name="Login"
           component={Login_screen}
           options={{ headerShown: false }}
@@ -23,13 +23,13 @@ const StackNavigator = () => {
           name="Register"
           component={RegisterScreen}
           options={{ headerShown: false }}
-        /> */}
+        />
         <Stack.Screen
           name="Home"
           component={Admin_panel}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
+        <Stack.Screen
           name="Forgetpassword"
           component={ForgotPassword}
           options={{ headerShown: false }}
@@ -43,7 +43,7 @@ const StackNavigator = () => {
           name="newpassword"
           component={New_Password}
           options={{ headerShown: false }}
-        /> */}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
