@@ -33,6 +33,9 @@ import ExpertPanel from "../Screens/ExpertPanel/Expert_panel";
 import ViewSkilledLabours from "../Screens/SkilledLabour/ViewSkilledLabours";
 import RequestedExpert from "../Screens/ExpertPanel/Requested_expert";
 import PostProperty from "./Properties/PostProperty";
+import Core_Clients from "./coreClients/Core_Clients";
+import Core_Projects from "./coreClients/Core_Projects";
+import Rskill from "../Screens/SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -100,6 +103,9 @@ const Admin_panel = () => {
     useState(false);
   const [isRequestExpertVisible, setIsRequestExpertVisible] = useState(false);
   const [selectedSubItem, setSelectedSubItem] = useState(null);
+  const [coreClients, setCoreClients] = useState(false);
+  const [coreProjects, setCoreProjects] = useState(false);
+  const [isRskill, setisRsSkill] = useState(false);
   const [Details, setDetails] = useState({});
 
   const toggleSidebar = () => {
@@ -132,6 +138,9 @@ const Admin_panel = () => {
     setIsViewSkilledLabourVisible(false);
     setIsRequestExpertVisible(false);
     setAddPost(false);
+    setCoreClients(false);
+    setCoreProjects(false);
+    setisRsSkill(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -157,10 +166,16 @@ const Admin_panel = () => {
       setIsRegiCusVisible(true);
     } else if (subItem === "View Skilled Labour") {
       setIsViewSkilledLabourVisible(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Request Expert Panel") {
       setIsRequestExpertVisible(true);
     } else if (subItem === "Post Property") {
       setAddPost(true);
+    } else if (subItem === "View Core Clients") {
+      setCoreClients(true);
+    } else if (subItem === "View Core Projects") {
+      setCoreProjects(true);
+    } else if (subItem === "Register Skilled Labour") {
+      setisRsSkill(true);
     }
   };
 
@@ -181,6 +196,7 @@ const Admin_panel = () => {
     setIsViewSkilledLabourVisible(false);
     setIsRequestExpertVisible(false);
     setAddPost(false);
+    setisRsSkill(false);
   };
 
   const renderContent = () => {
@@ -191,7 +207,9 @@ const Admin_panel = () => {
     if (isExpertPanelVisible) return <ExpertPanel />;
     if (isViewAgentVisible) return <ViewAgents />;
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
-    return <Agent_Right />; // Default component
+    if (coreClients) return <Core_Clients />;
+    if (coreProjects) return <Core_Projects />;
+    return <Agent_Right />;
   };
 
   const getDetails = async () => {
@@ -355,6 +373,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={addPost} closeModal={closeModal}>
         <PostProperty closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRskill} closeModal={closeModal}>
+        <Rskill closeModal={closeModal} />
       </CustomModal>
     </View>
   );

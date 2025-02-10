@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
@@ -59,8 +60,8 @@ const RequestedExpert = ({ closeModal }) => {
 const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
-    width: 340,
-    marginLeft: 50,
+    width: Platform.OS === "android" ? "100%" : "40%",
+    marginLeft: 20,
     // height: 360,
     borderRadius: 15,
     padding: 15,
@@ -94,9 +95,10 @@ const styles = StyleSheet.create({
     width: "100%",
     overflow: "hidden",
     marginTop: 5,
+    height: Platform.OS === "android" ? 50 : "auto",
   },
   picker: {
-    height: 40,
+    height: 50,
     backgroundColor: "white",
   },
   textArea: {

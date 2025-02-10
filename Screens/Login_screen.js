@@ -21,6 +21,7 @@ export default function Login_screen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
   const navigation = useNavigation();
 
   const handleLogin = async () => {
@@ -128,14 +129,24 @@ export default function Login_screen() {
               placeholderTextColor="rgba(25, 25, 25, 0.5)"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
             />
-            <Icon
-              name="lock-closed-outline"
-              size={20}
-              color="red"
-              style={styles.icon}
-            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Icon
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                size={20}
+                color="red"
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+            {/* <View>
+              <Icon
+                name="lock-closed-outline"
+                size={20}
+                color="red"
+                style={styles.icon}
+              />
+            </View> */}
           </View>
 
           <View style={styles.actionContainer}>
