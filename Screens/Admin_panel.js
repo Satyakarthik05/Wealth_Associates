@@ -33,6 +33,7 @@ import ExpertPanel from "../Screens/ExpertPanel/Expert_panel";
 import ViewSkilledLabours from "../Screens/SkilledLabour/ViewSkilledLabours";
 import RequestedExpert from "../Screens/ExpertPanel/Requested_expert";
 import PostProperty from "./Properties/PostProperty";
+import Rskill from "./SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -99,9 +100,9 @@ const Admin_panel = () => {
   const [isViewSkilledLabourVisible, setIsViewSkilledLabourVisible] =
     useState(false);
   const [isRequestExpertVisible, setIsRequestExpertVisible] = useState(false);
-  const [selectedSubItem, setSelectedSubItem] = useState(null);
+  // const [selectedSubItem, setSelectedSubItem] = useState(null);
   const [Details, setDetails] = useState({});
-
+  const [isRskillVisible, setIsRskillVisible] = useState(false);
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);
@@ -132,6 +133,7 @@ const Admin_panel = () => {
     setIsViewSkilledLabourVisible(false);
     setIsRequestExpertVisible(false);
     setAddPost(false);
+    setIsRskillVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -157,10 +159,12 @@ const Admin_panel = () => {
       setIsRegiCusVisible(true);
     } else if (subItem === "View Skilled Labour") {
       setIsViewSkilledLabourVisible(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Request Expert Panel") {
       setIsRequestExpertVisible(true);
     } else if (subItem === "Post Property") {
       setAddPost(true);
+    }else if (subItem === "Register Skilled Labour"){
+      setIsRskillVisible(true);
     }
   };
 
@@ -181,6 +185,7 @@ const Admin_panel = () => {
     setIsViewSkilledLabourVisible(false);
     setIsRequestExpertVisible(false);
     setAddPost(false);
+    setIsRskillVisible(false);
   };
 
   const renderContent = () => {
@@ -355,6 +360,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={addPost} closeModal={closeModal}>
         <PostProperty closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRskillVisible} closeModal={closeModal}>
+        <Rskill closeModal={closeModal} />
       </CustomModal>
     </View>
   );
