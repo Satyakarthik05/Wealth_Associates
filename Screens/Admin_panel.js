@@ -113,6 +113,10 @@ const Admin_panel = () => {
       ...prev,
       [title]: !prev[title],
     }));
+
+    if (Platform.OS === "android" && !isSidebarExpanded) {
+      setIsSidebarExpanded(true);
+    }
   };
 
   const handleSubItemClick = (subItem) => {

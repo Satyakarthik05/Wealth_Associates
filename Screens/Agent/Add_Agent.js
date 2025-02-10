@@ -526,16 +526,6 @@ const Add_Agent = ({ closeModal }) => {
               style={styles.loadingIndicator}
             />
           )}
-
-          <TouchableOpacity
-            style={styles.loginText}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text>
-              Already have an account?{" "}
-              <Text style={styles.loginLink}>Login here</Text>
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
       <StatusBar style="auto" />
