@@ -107,7 +107,7 @@ const Admin_panel = () => {
   const [coreProjects, setCoreProjects] = useState(false);
   const [isRskill, setisRsSkill] = useState(false);
   const [Details, setDetails] = useState({});
-
+  const [isRskillVisible, setIsRskillVisible] = useState(false);
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);

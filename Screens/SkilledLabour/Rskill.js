@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
-const Rskill = ({ closeModal }) => {
+const Rskill = ({closeModal}) => {
   const [fullName, setFullName] = useState("");
   const [skill, setSkill] = useState("");
   const [location, setLocation] = useState("");
@@ -74,7 +74,10 @@ const Rskill = ({ closeModal }) => {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={closeModal}
+          >
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
