@@ -124,7 +124,7 @@ export default function Login_screen() {
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              placeholder=""
+              placeholder="Enter Your Password"
               placeholderTextColor="rgba(25, 25, 25, 0.5)"
               value={password}
               onChangeText={setPassword}

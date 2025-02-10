@@ -2,20 +2,22 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   Image,
-  StyleSheet,
   ActivityIndicator,
-  Dimensions,
+  StyleSheet,
   Platform,
+  Dimensions,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import { API_URL } from "../../data/ApiUrl";
 
-const { width } = Dimensions.get("window");
-const numColumns = width > 800 ? 4 : 1; // Mobile: Single column, Web: 4 columns
+const { width } = Dimensions.get("window"); // Get screen width for responsiveness
 
-const MyPostedProperties = () => {
+const ViewPostedProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState("");
 
   useEffect(() => {
     fetchProperties();
@@ -23,137 +25,144 @@ const MyPostedProperties = () => {
 
   const fetchProperties = async () => {
     try {
-      setLoading(true);
-      // Simulating API call delay for better UI experience
-      setTimeout(() => {
-        setProperties([
-          {
-            id: "1",
-            title: "Individual House for Sale",
-            type: "Independent House",
-            location: "Vijayawada",
-            budget: "₹50,00,000",
-            image: require("../../assets/house.png"), // Corrected local image loading
-          },
-          {
-            id: "2",
-            title: "Luxury Villa for Sale",
-            type: "Villa",
-            location: "Hyderabad",
-            budget: "₹1,20,00,000",
-            image: require("../../assets/house.png"), // Corrected local image loading
-          },
-        ]);
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem("authToken");
+
+      if (!token) {
+        console.warn("No token found in AsyncStorage.");
         setLoading(false);
-      }, 2000); // Simulated delay (2 seconds)
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
+        method: "GET",
+        headers: {
+          token: `${token}`, // Include the token in the headers
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data && Array.isArray(data) && data.length > 0) {
+        setProperties(data);
+      } else {
+        console.warn("API returned empty data.");
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+    } finally {
       setLoading(false);
     }
   };
 
-  const renderPropertyCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
-      <View style={styles.approvedBadge}>
-        <Text style={styles.badgeText}>✔ Approved</Text>
-      </View>
-      <View style={styles.details}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.text}>Property Type: {item.type}</Text>
-        <Text style={styles.text}>Location: {item.location}</Text>
-        <Text style={styles.text}>Budget: {item.budget}</Text>
+  const handleFilterChange = (value) => {
+    setSelectedFilter(value);
+    if (value === "highToLow") {
+      setProperties([...properties].sort((a, b) => b.price - a.price));
+    } else if (value === "lowToHigh") {
+      setProperties([...properties].sort((a, b) => a.price - b.price));
+    } else {
+      fetchProperties(); // Reset to original data
+    }
+  };
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={styles.heading}>My Properties</Text>
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Sort by:</Text>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={selectedFilter}
+            onValueChange={handleFilterChange}
+            style={styles.picker}
+          >
+            <Picker.Item label="-- Select Filter --" value="" />
+            <Picker.Item label="Price: Low to High" value="lowToHigh" />
+            <Picker.Item label="Price: High to Low" value="highToLow" />
+          </Picker>
+        </View>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>My Posted Properties</Text>
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e91e63" />
-          <Text style={styles.loadingText}>Fetching properties...</Text>
-        </View>
+        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
       ) : (
-        <FlatList
-          data={properties}
-          renderItem={renderPropertyCard}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={numColumns}
-          contentContainerStyle={styles.grid}
-        />
+        <View style={styles.grid}>
+          {renderHeader()}
+          {properties.map((item) => {
+            const imageUri = item.photo
+              ? { uri: `${API_URL}${item.photo}` } // Adjusted to concatenate the `photo` path
+              : require("../../assets/logo.png"); // Local fallback image
+
+            return (
+              <View key={item._id} style={styles.card}>
+                <Image source={imageUri} style={styles.image} />
+                <View style={styles.details}>
+                  <Text style={styles.title}>{item.propertyType}</Text>
+                  <Text style={styles.info}>Location: {item.location}</Text>
+                  <Text style={styles.budget}>
+                    ₹ {parseInt(item.price).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // padding: 20,
-    width: "90%",
-    backgroundColor: "#f8f8f8",
+  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 15 },
+  headerContainer: { marginBottom: 10 },
+  header: {
+    flexDirection: Platform.OS === "android" ? "column" : "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
-  heading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "left",
-  },
-  grid: {
-    alignItems: "center",
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    overflow: "hidden",
+  heading: { fontSize: 22, fontWeight: "bold", textAlign: "left" },
+  filterContainer: { flexDirection: "row", alignItems: "center" },
+  filterLabel: { fontSize: 16, marginRight: 5 },
+  pickerWrapper: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
     elevation: 3,
-    margin: 8,
-    width: Platform === "android" ? width / numColumns - 20 : 230,
+    height: Platform.OS === "android" ? 50 : 40,
   },
-  image: {
-    width: "100%",
-    height: 120,
-    resizeMode: "cover",
-  },
-  approvedBadge: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "#4CAF50",
-    borderRadius: 15,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  details: {
-    padding: 10,
-  },
-  title: {
+  picker: {
+    height: "100%",
+    width: 180,
     fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 5,
   },
-  text: {
-    fontSize: 12,
-    color: "#666",
+  loader: { marginTop: 50 },
+  grid: { justifyContent: "space-between" },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    margin: 10,
+    width: Platform.OS === "web" ? "25%" : "100%",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+    position: "relative",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#888",
-  },
+  image: { width: "100%", height: 150, borderRadius: 8 },
+  details: { marginTop: 10 },
+  title: { fontSize: 16, fontWeight: "bold" },
+  info: { fontSize: 14, color: "#555" },
+  budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
 });
 
-export default MyPostedProperties;
+export default ViewPostedProperties;

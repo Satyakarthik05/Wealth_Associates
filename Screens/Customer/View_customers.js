@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  FlatList,
   Text,
   Image,
   StyleSheet,
@@ -51,30 +50,6 @@ export default function ViewCustomers() {
     fetchCustomers();
   }, []);
 
-  const renderCustomerCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={require("../../assets/man.png")} style={styles.avatar} />
-      <View style={styles.infoContainer}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>: {item.FullName}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Mobile Number</Text>
-          <Text style={styles.value}>: {item.MobileNumber}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Occupation</Text>
-          <Text style={styles.value}>: {item.Occupation}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Referral Code</Text>
-          <Text style={styles.value}>: {item.MyRefferalCode}</Text>
-        </View>
-      </View>
-    </View>
-  );
-
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -85,23 +60,39 @@ export default function ViewCustomers() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={customers}
-        keyExtractor={(item) => item._id}
-        numColumns={width > 600 ? 3 : 1}
-        columnWrapperStyle={width > 600 ? styles.columnWrapper : null}
-        renderItem={renderCustomerCard}
-        contentContainerStyle={styles.gridContainer}
-        ListHeaderComponent={() => (
-          <Text style={styles.heading}>My Customers</Text>
+      <Text style={styles.heading}>My Customers</Text>
+      <View style={styles.gridContainer}>
+        {customers.length > 0 ? (
+          customers.map((item) => (
+            <View key={item._id} style={styles.card}>
+              <Image
+                source={require("../../assets/man.png")}
+                style={styles.avatar}
+              />
+              <View style={styles.infoContainer}>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Name</Text>
+                  <Text style={styles.value}>: {item.FullName}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Mobile Number</Text>
+                  <Text style={styles.value}>: {item.MobileNumber}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Occupation</Text>
+                  <Text style={styles.value}>: {item.Occupation}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Referral Code</Text>
+                  <Text style={styles.value}>: {item.MyRefferalCode}</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.noCustomersText}>No customers found.</Text>
         )}
-        ListFooterComponent={() =>
-          customers.length === 0 && (
-            <Text style={styles.noCustomersText}>No customers found.</Text>
-          )
-        }
-        nestedScrollEnabled={true} // Prevents conflict with parent scroll views
-      />
+      </View>
     </View>
   );
 }
@@ -127,13 +118,10 @@ const styles = StyleSheet.create({
   gridContainer: {
     paddingBottom: 20,
   },
-  columnWrapper: {
-    justifyContent: "space-between",
-  },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "30%" : "100%", // Fixed width for cards
+    width: width > 600 ? "30%" : "100%",
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   Image,
   StyleSheet,
   ActivityIndicator,
   Dimensions,
   Platform,
+  ScrollView,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -33,7 +33,7 @@ const RequestedProperties = () => {
             type: "Independent House",
             location: "Vijayawada",
             budget: "₹50,00,000",
-            image: require("../../assets/house.png"), // Corrected local image loading
+            image: require("../../assets/house.png"),
           },
           {
             id: "2",
@@ -41,7 +41,7 @@ const RequestedProperties = () => {
             type: "Villa",
             location: "Hyderabad",
             budget: "₹1,20,00,000",
-            image: require("../../assets/house.png"), // Corrected local image loading
+            image: require("../../assets/house.png"),
           },
         ]);
         setLoading(false);
@@ -52,23 +52,8 @@ const RequestedProperties = () => {
     }
   };
 
-  const renderPropertyCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
-      <View style={styles.approvedBadge}>
-        <Text style={styles.badgeText}>✔ Approved</Text>
-      </View>
-      <View style={styles.details}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.text}>Property Type: {item.type}</Text>
-        <Text style={styles.text}>Location: {item.location}</Text>
-        <Text style={styles.text}>Budget: {item.budget}</Text>
-      </View>
-    </View>
-  );
-
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Requested Properties</Text>
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -76,23 +61,31 @@ const RequestedProperties = () => {
           <Text style={styles.loadingText}>Fetching properties...</Text>
         </View>
       ) : (
-        <FlatList
-          data={properties}
-          renderItem={renderPropertyCard}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={numColumns}
-          contentContainerStyle={styles.grid}
-        />
+        <View style={styles.grid}>
+          {properties.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <Image source={item.image} style={styles.image} />
+              <View style={styles.approvedBadge}>
+                <Text style={styles.badgeText}>✔ Approved</Text>
+              </View>
+              <View style={styles.details}>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.text}>Property Type: {item.type}</Text>
+                <Text style={styles.text}>Location: {item.location}</Text>
+                <Text style={styles.text}>Budget: {item.budget}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    // padding: 20,
-    width: "90%",
+    flexGrow: 1,
+    padding: 20,
     backgroundColor: "#f8f8f8",
     alignItems: "center",
   },
@@ -103,7 +96,9 @@ const styles = StyleSheet.create({
     textAlign: "left",
   },
   grid: {
-    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   card: {
     backgroundColor: "white",
@@ -111,7 +106,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     elevation: 3,
     margin: 8,
-    width: Platform === "android" ? width / numColumns - 20 : 230,
+    width: Platform.OS === "android" ? width / numColumns - 100 : 230,
   },
   image: {
     width: "100%",

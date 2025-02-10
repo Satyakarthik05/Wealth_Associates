@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,87 +13,63 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { Button } from "react-native-paper";
-import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import imageCompression from "browser-image-compression";
 import { API_URL } from "../../data/ApiUrl";
+import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import MaterialIcons for the camera icon
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const PostProperty = ({ closeModal }) => {
   const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [photo, setPhoto] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [Details, setDetails] = useState({});
+  const [PostedBy, setPostedBy] = useState("");
 
-  const selectImageFromGallery = async () => {
+  const getDetails = async () => {
     try {
-      if (Platform.OS !== "web") {
-        const permissionResult =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissionResult.status !== "granted") {
-          alert("Permission is required to upload a photo.");
-          return;
-        }
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-        });
-
-        if (!result.canceled) {
-          setPhoto(result.assets[0].uri);
-        }
-      } else {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.onchange = async (event) => {
-          const file = event.target.files[0];
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPhoto(reader.result);
-          };
-          reader.readAsDataURL(file);
-        };
-        input.click();
-      }
-    } catch (error) {
-      console.error("Error selecting image from gallery:", error);
-    }
-  };
-
-  const takePhotoWithCamera = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestCameraPermissionsAsync();
-      if (permissionResult.status !== "granted") {
-        alert("Permission is required to use the camera.");
-        return;
-      }
-
-      let result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
       });
 
-      if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
-      }
+      const newDetails = await response.json();
+      setPostedBy(newDetails.MobileNumber); // Ensure this is correct
+      setDetails(newDetails);
     } catch (error) {
-      console.error("Error taking photo with camera:", error);
+      console.error("Error fetching agent details:", error);
     }
   };
 
-  const removeImage = () => {
-    setPhoto(null);
-  };
+  useEffect(() => {
+    getDetails();
+  }, []);
+  useEffect(() => {
+    console.log("PostedBy:", PostedBy); // Debugging statement
+  }, [PostedBy]);
 
   const validateForm = () => {
-    if (!propertyType || !location || !price || !photo) {
-      alert("Validation Error: Please fill all fields and upload a photo.");
-      return false;
-    }
-    return true;
+    const newErrors = {};
+    if (!propertyType)
+      newErrors.propertyType = "Please select a property type.";
+    if (!location) newErrors.location = "Location is required.";
+    if (!price) newErrors.price = "Price is required.";
+    if (!photo) newErrors.photo = "Please upload a photo.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const blobToFile = async (blobUrl, fileName) => {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new File([blob], fileName, { type: blob.type });
   };
 
   const handlePost = async () => {
@@ -101,21 +77,21 @@ const PostProperty = ({ closeModal }) => {
       try {
         let response;
         if (Platform.OS === "web") {
-          // Web sends JSON with Base64 image
+          const file = await blobToFile(photo, "photo.jpg");
+
+          const formData = new FormData();
+          formData.append("propertyType", propertyType);
+          formData.append("location", location);
+          formData.append("price", price);
+          formData.append("photo", file);
+          formData.append("PostedBy", PostedBy); // Ensure this is correct
+
           response = await fetch(`${API_URL}/properties/addProperty`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              propertyType,
-              location,
-              price,
-              photo, // This will be Base64 from the web
-            }),
+            body: formData,
           });
         } else {
-          // For mobile (FormData)
+          console.log(PostedBy);
           const formData = new FormData();
           formData.append("propertyType", propertyType);
           formData.append("location", location);
@@ -125,8 +101,7 @@ const PostProperty = ({ closeModal }) => {
             name: "photo.jpg",
             type: "image/jpeg",
           });
-
-          console.log(formData);
+          formData.append("PostedBy", PostedBy); // Ensure this is correct
 
           response = await fetch(`${API_URL}/properties/addProperty`, {
             method: "POST",
@@ -151,66 +126,126 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  const selectImageFromGallery = async () => {
+    try {
+      if (Platform.OS !== "web") {
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to upload a photo.");
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled) {
+          setPhoto(result.assets[0].uri);
+        }
+      } else {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = async (event) => {
+          const file = event.target.files[0];
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 800,
+            useWebWorker: true,
+          };
+          const compressedFile = await imageCompression(file, options);
+          const blobUrl = URL.createObjectURL(compressedFile);
+          setPhoto(blobUrl);
+        };
+        input.click();
+      }
+    } catch (error) {
+      console.error("Error selecting image from gallery:", error);
+    }
+  };
+
+  const takePhotoWithCamera = async () => {
+    try {
+      if (Platform.OS !== "web") {
+        const permissionResult =
+          await ImagePicker.requestCameraPermissionsAsync();
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to use the camera.");
+          return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled) {
+          setPhoto(result.assets[0].uri);
+        }
+      } else {
+        alert("Camera functionality is not supported on the web.");
+      }
+    } catch (error) {
+      console.error("Error taking photo with camera:", error);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Post a Property</Text>
-        </View>
+        <Text style={styles.title}>Post a Property</Text>
         <View style={styles.formContainer}>
           <Text style={styles.label}>Upload Photo</Text>
           <View style={styles.uploadSection}>
             {photo ? (
-              <>
+              <View>
                 <Image source={{ uri: photo }} style={styles.uploadedImage} />
-                <TouchableOpacity
-                  onPress={removeImage}
+                <Button
+                  mode="outlined"
                   style={styles.removeButton}
+                  onPress={() => setPhoto(null)}
                 >
-                  <Text style={styles.removeText}>Remove</Text>
-                </TouchableOpacity>
-              </>
+                  Remove
+                </Button>
+              </View>
             ) : (
-              <View style={styles.uploadButtonsContainer}>
+              <View style={styles.uploadOptions}>
                 <TouchableOpacity
+                  style={styles.uploadPlaceholder}
                   onPress={selectImageFromGallery}
-                  style={styles.uploadButton}
                 >
-                  <FontAwesome5
-                    name="cloud-upload-alt"
-                    size={20}
-                    color="#333"
-                  />
-                  <Text style={styles.uploadText}> Gallery</Text>
+                  <Text style={styles.uploadPlaceholderText}>Gallery</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
+                  style={styles.uploadPlaceholder}
                   onPress={takePhotoWithCamera}
-                  style={styles.uploadButton}
                 >
-                  <FontAwesome5 name="camera" size={20} color="#333" />
-                  <Text style={styles.uploadText}> Camera</Text>
+                  <MaterialIcons name="camera-alt" size={24} color="#555" />
+                  <Text style={styles.uploadPlaceholderText}>Camera</Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
+          {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
           <Text style={styles.label}>Property Type</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={propertyType}
-              onValueChange={(itemValue) => setPropertyType(itemValue)}
-              style={styles.propertyPicker}
-            >
-              <Picker.Item label="-- Select Type --" value="" />
-              <Picker.Item label="Apartment" value="Apartment" />
-              <Picker.Item label="House" value="House" />
-              <Picker.Item label="Land" value="Land" />
-              <Picker.Item label="Other" value="Other" />
-            </Picker>
-          </View>
+          <Picker
+            selectedValue={propertyType}
+            onValueChange={(value) => setPropertyType(value)}
+            style={styles.picker}
+          >
+            <Picker.Item label="-- Select Type --" value="" />
+            <Picker.Item label="Apartment" value="Apartment" />
+            <Picker.Item label="House" value="House" />
+            <Picker.Item label="Land" value="Land" />
+          </Picker>
+          {errors.propertyType && (
+            <Text style={styles.errorText}>{errors.propertyType}</Text>
+          )}
           <Text style={styles.label}>Location</Text>
           <TextInput
             style={styles.input}
@@ -218,6 +253,9 @@ const PostProperty = ({ closeModal }) => {
             value={location}
             onChangeText={setLocation}
           />
+          {errors.location && (
+            <Text style={styles.errorText}>{errors.location}</Text>
+          )}
           <Text style={styles.label}>Price</Text>
           <TextInput
             style={styles.input}
@@ -226,21 +264,14 @@ const PostProperty = ({ closeModal }) => {
             value={price}
             onChangeText={setPrice}
           />
+          {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
           <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              style={styles.postButton}
-              onPress={handlePost}
-            >
-              Post
-            </Button>
-            <Button
-              mode="contained"
-              style={styles.cancelButton}
-              onPress={closeModal}
-            >
-              Cancel
-            </Button>
+            <TouchableOpacity style={styles.postButton} onPress={handlePost}>
+              <Text style={styles.postButtonText}>Post</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -252,105 +283,111 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    width: Platform.OS === "android" ? "90%" : "40%",
+    borderRadius: 30,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    width: Platform.OS === "web" ? "25vw" : "100%",
-    alignSelf: "center",
-  },
-  header: {
-    backgroundColor: "#ff3366",
-    paddingVertical: 10,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
+  scrollContainer: { flexGrow: 1, padding: 20 },
   title: {
-    fontSize: 20,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#fff",
+    marginBottom: 20,
+    color: "#ccc",
+    backgroundColor: "#D81B60",
+    width: "100%",
+    borderRadius: 20,
+    height: 40,
+    display: "flex",
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    padding: 5,
+  formContainer: {
+    marginBottom: 20,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
+  label: { fontSize: 16, marginBottom: 8, color: "#555" },
   input: {
-    borderWidth: 2,
-    borderColor: "black",
-    borderRadius: 40,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
     padding: 10,
-    fontSize: 16,
-    marginBottom: 15,
+    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
   },
+  picker: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: "#f9f9f9",
+    height: Platform.OS === "android" ? "" : 40,
+  },
+  uploadSection: { alignItems: "center", marginBottom: 20 },
+  uploadedImageContainer: {
+    alignItems: "center",
+  },
+  uploadedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  uploadOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  uploadPlaceholder: {
+    width: 100,
+    height: 100,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+  },
+  uploadPlaceholderText: { fontSize: 12, color: "#555", marginTop: 5 },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
   },
   postButton: {
-    backgroundColor: "#ff3366",
-    borderRadius: 15,
     flex: 1,
     marginRight: 10,
+    backgroundColor: "#D81B60",
+    borderRadius: 6,
+    paddingVertical: 12,
   },
-  formContainer: {
-    padding: 20,
-  },
-  cancelButton: {
-    backgroundColor: "#000",
-    borderRadius: 15,
-    flex: 1,
-    marginLeft: 10,
-  },
-  uploadSection: {
-    alignItems: "center",
-    marginBottom: 10,
-    minHeight: width * 0.4,
-  },
-  uploadedImage: {
-    width: 250, // Fixed width
-    height: 150, // Fixed height
-    borderRadius: 10,
-    resizeMode: "cover",
-  },
-  removeButton: {
-    marginTop: 5,
-    backgroundColor: "black",
-    padding: 5,
-    borderRadius: 5,
-  },
-  removeText: {
+  postButtonText: {
     color: "#fff",
+    textAlign: "center",
+    fontSize: 16,
     fontWeight: "bold",
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginBottom: 15,
+  cancelButton: {
+    flex: 1,
+    marginLeft: 10,
+    backgroundColor: "#000",
+    borderRadius: 6,
+    paddingVertical: 12,
   },
-  propertyPicker: {
-    height: Platform.OS === "android" ? "" : 40,
+  cancelButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  uploadButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  uploadButton: {
-    alignItems: "center",
-    backgroundColor: "#ddd",
-    padding: 10,
-    borderRadius: 10,
-    margin: 5,
-  },
-  uploadText: {
-    marginTop: 5,
-    color: "#333",
-  },
+  errorText: { color: "red", fontSize: 12, marginTop: -8, marginBottom: 10 },
 });
 
 export default PostProperty;

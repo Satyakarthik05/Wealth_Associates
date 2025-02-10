@@ -2,7 +2,6 @@ import React from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Image,
   useWindowDimensions,
@@ -75,27 +74,23 @@ const ExpertPanel = () => {
   const { width } = useWindowDimensions();
 
   // Dynamic columns based on screen width
-  const numColumns = width > 600 ? 4 : width > 400 ? 3 : 2;
+  const numColumns = width > 600 ? 4 : width > 300 ? 3 : 2;
   const spacing = 8;
   const itemSize = (width - spacing * (numColumns + 1)) / numColumns;
 
   return (
     <View style={styles.mainContainer}>
       <Text style={styles.header}>Expert Panel</Text>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        numColumns={numColumns}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item }) => (
-          <View style={[styles.item, { width: itemSize }]}>
+      <View style={styles.listContainer}>
+        {data.map((item) => (
+          <View key={item.id} style={[styles.item, { width: itemSize }]}>
             <View style={styles.iconContainer}>
               <Image source={{ uri: item.icon }} style={styles.icon} />
             </View>
             <Text style={styles.text}>{item.title}</Text>
           </View>
-        )}
-      />
+        ))}
+      </View>
     </View>
   );
 };
@@ -104,8 +99,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    // padding: 16,
-    // alignItems: "center",
   },
   header: {
     fontSize: 22,
@@ -114,7 +107,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listContainer: {
-    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   item: {
     alignItems: "center",
