@@ -30,8 +30,9 @@ const PostProperty = ({ closeModal }) => {
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
 
+  // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -54,6 +55,7 @@ const PostProperty = ({ closeModal }) => {
     getDetails();
   }, []);
 
+  // Validate form inputs
   const validateForm = () => {
     const newErrors = {};
     if (!propertyType)
@@ -65,15 +67,17 @@ const PostProperty = ({ closeModal }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Convert blob URL to file (for web)
   const blobToFile = async (blobUrl, fileName) => {
     const response = await fetch(blobUrl);
     const blob = await response.blob();
     return new File([blob], fileName, { type: blob.type });
   };
 
+  // Handle property posting
   const handlePost = async () => {
     if (validateForm()) {
-      setLoading(true); // Start loading
+      setLoading(true);
       try {
         let response;
         if (Platform.OS === "web") {
@@ -122,45 +126,28 @@ const PostProperty = ({ closeModal }) => {
         console.error("Error posting property:", error);
         alert("An error occurred while posting the property.");
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     }
   };
 
   const selectImageFromGallery = async () => {
     try {
-      if (Platform.OS !== "web") {
-        const permissionResult =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissionResult.status !== "granted") {
-          alert("Permission is required to upload a photo.");
-          return;
-        }
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-        });
+      if (permissionResult.status !== "granted") {
+        alert("Permission is required to upload a photo.");
+        return;
+      }
 
-        if (!result.canceled) {
-          setPhoto(result.assets[0].uri);
-        }
-      } else {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.onchange = async (event) => {
-          const file = event.target.files[0];
-          const options = {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 800,
-            useWebWorker: true,
-          };
-          const compressedFile = await imageCompression(file, options);
-          const blobUrl = URL.createObjectURL(compressedFile);
-          setPhoto(blobUrl);
-        };
-        input.click();
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct option
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
@@ -178,11 +165,11 @@ const PostProperty = ({ closeModal }) => {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ImagePicker.MediaType.Images, // Updated here
           quality: 1,
         });
 
-        if (!result.canceled) {
+        if (!result.canceled && result.assets && result.assets.length > 0) {
           setPhoto(result.assets[0].uri);
         }
       } else {
@@ -197,7 +184,7 @@ const PostProperty = ({ closeModal }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0} // Adjust keyboard offset
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Post a Property</Text>
@@ -271,7 +258,7 @@ const PostProperty = ({ closeModal }) => {
             <TouchableOpacity
               style={[styles.postButton, loading && styles.disabledButton]}
               onPress={handlePost}
-              disabled={loading} // Disable button when loading
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
@@ -296,6 +283,7 @@ const PostProperty = ({ closeModal }) => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,

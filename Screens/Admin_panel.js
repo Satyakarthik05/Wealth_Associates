@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 60,
     resizeMode: "contain",
-    marginLeft: Platform.OS === "web" ? "0px" : "17%",
+    marginLeft: Platform.OS === "web" ? "0px" : "28%",
   },
   sear_icons: {
     display: "flex",
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 15,
-    marginRight: 5,
+    // marginRight: 5,
   },
   language: {
     marginRight: 10,
