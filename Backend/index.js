@@ -44,6 +44,10 @@ app.use("/customer", CustomerRoutes);
 app.use("/properties", propertyRoutes);
 app.use("/requestProperty", RequestProperty);
 
+app.get("/serverCheck", (req, res) => {
+  res.send("Hello Welcome to my wealthAssociat server");
+});
+
 app.listen(3000, () => {
   console.log("server is running successfully");
 });
