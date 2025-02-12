@@ -114,7 +114,7 @@ const CustomerSign = async (req, res) => {
 
 const fetchReferredCustomers = async (req, res) => {
   try {
-    const authenticatedAgent = await AgentSchema.findById(req.AgentId);
+    const authenticatedAgent = await Agent.findById(req.AgentId);
     if (!authenticatedAgent) {
       return res.status(404).json({ error: "Authenticated agent not found" });
     }
