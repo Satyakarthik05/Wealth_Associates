@@ -20,7 +20,7 @@ const sendSMS = async (
       UserName: process.env.SMS_API_USERNAME || "wealthassociates",
       APIKey: process.env.SMS_API_KEY || "88F40D9F-0172-4D25-9CF5-5823211E67E7",
       MobileNo: MobileNumber,
-      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${FullName}\nPassword: ${Password}\nReferred By: ${ReferralCode}\n your referral Code :${refferedby}\nFor Any Query - 7796356789`,
+      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${MobileNumber}\nPassword: ${Password}\nReferral code: ${ReferralCode}\nFor Any Query - 7796356789`,
       SenderName: process.env.SMS_SENDER_NAME || "WTHASC",
       TemplateId: process.env.SMS_TEMPLATE_ID || "1707173279362715516",
       MType: 1,
@@ -54,7 +54,7 @@ const AgentSign = async (req, res) => {
     Locations,
     Expertise,
     Experience,
-    ReferredBy, // Use the ReferredBy value directly from the request
+    ReferredBy,
     MyRefferalCode,
   } = req.body;
 

@@ -759,6 +759,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
   },
+  logo: {
+    width: Platform.OS === "android" ? 200 : 200,
+    height: Platform.OS === "android" ? 200 : 200,
+  },
   icon: {
     position: "absolute",
     right: 10,
