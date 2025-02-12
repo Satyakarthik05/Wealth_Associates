@@ -8,9 +8,9 @@ const sendSMS = async (MobileNumber, OTP) => {
       UserName: "wealthassociates",
       APIKey: "88F40D9F-0172-4D25-9CF5-5823211E67E7",
       MobileNo: `+91${MobileNumber}`,
-      Message: `Your OTP for password recovery is: ${OTP}\nThis OTP is valid for 10 minutes.\nFor Any Query - 7796356789`,
+      Message: `Your OTP for password recovery is: ${OTP}\nThis OTP is valid for 10 minutes.\nFor Any Query - 7796356789 Walth Associates`,
       SenderName: "WTHASC",
-      TemplateId: "1707173279362715516",
+      TemplateId: "1707173933584753849",
       MType: 1,
     };
 
@@ -53,7 +53,7 @@ const ForgetPassword = async (req, res) => {
       console.log("Generated OTP:", OTP);
 
       Agent.Otp = OTP;
-      Agent.otpExpiresAt = Date.now() + 10 * 60 * 1000; // Expires in 10 minutes
+      Agent.otpExpiresAt = Date.now() + 10 * 60 * 1000;
       await Agent.save();
       console.log("OTP saved in the database");
 

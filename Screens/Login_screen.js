@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-// import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login_screen() {
@@ -34,19 +34,16 @@ export default function Login_screen() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(
-        "http://ec2-13-201-40-209.ap-south-1.compute.amazonaws.com:3000/agent/AgentLogin",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            MobileNumber: mobileNumber,
-            Password: password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/agent/AgentLogin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          MobileNumber: mobileNumber,
+          Password: password,
+        }),
+      });
 
       const data = await response.json();
 

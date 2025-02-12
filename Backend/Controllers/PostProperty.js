@@ -9,7 +9,9 @@ const createProperty = async (req, res) => {
     console.log("PostedBy in request:", PostedBy);
 
     if (!PostedBy) {
-      return res.status(400).json({ message: "PostedBy is required." });
+      return res
+        .status(400)
+        .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
     let photoPath = null;
@@ -20,15 +22,28 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
+    // Check if the agent exists using PostedBy (MobileNumber)
+    const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found." });
+    }
+
+    // Create the new property
     const newProperty = new Property({
       propertyType,
       location,
       price,
       photo: photoPath,
-      PostedBy,
+      PostedBy: agent.MobileNumber, // Ensure it's stored correctly
     });
 
     await newProperty.save();
+
+    // Update the agent's PostedPropertys field by pushing the new property ID
+    agent.PostedPropertys.push(newProperty._id);
+    await agent.save();
+
     res
       .status(200)
       .json({ message: "Property added successfully", newProperty });

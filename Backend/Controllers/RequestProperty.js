@@ -1,28 +1,47 @@
-const requestProperty = require("../Models/RequestProperty");
-const AgentSchema = require("../Models/AgentModel");
+const Agent = require("../Models/AgentModel");
+const RequestProperty = require("../Models/RequestProperty"); // Ensure you import the correct model
 
 const PropertyRequest = async (req, res) => {
-  const { propertyTitle, propertyType, location, Budget, PostedBy } = req.body;
   try {
-    const newrequestProperty = new requestProperty({
+    const { propertyTitle, propertyType, location, Budget, PostedBy } =
+      req.body;
+
+    if (!PostedBy) {
+      return res
+        .status(400)
+        .json({ message: "PostedBy (MobileNumber) is required." });
+    }
+
+    // Find the agent using MobileNumber
+    const agent = await Agent.findOne({ MobileNumber: PostedBy });
+
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found." });
+    }
+
+    // Create the new requested property
+    const newRequestProperty = new RequestProperty({
       propertyTitle,
       propertyType,
       location,
       Budget,
-      PostedBy,
+      PostedBy: agent.MobileNumber,
     });
 
-    if (newrequestProperty) {
-      await newrequestProperty.save();
-      res
-        .status(200)
-        .json({
-          message: "Requested property Successfully",
-          newrequestProperty,
-        });
-    } else {
-      res.status(400).json({ message: "Failed to Request property" });
+    await newRequestProperty.save();
+
+    // Ensure RequestdPropertys is an array before pushing
+    if (!Array.isArray(agent.RequestdPropertys)) {
+      agent.RequestdPropertys = [];
     }
+
+    agent.RequestdPropertys.push(newRequestProperty._id);
+    await agent.save();
+
+    res.status(200).json({
+      message: "Requested property successfully",
+      newRequestProperty,
+    });
   } catch (error) {
     console.error("Error while requesting property:", error);
     res.status(500).json({ message: "Internal Server Error", error });

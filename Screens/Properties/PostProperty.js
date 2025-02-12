@@ -106,13 +106,16 @@ const PostProperty = ({ closeModal }) => {
           });
           formData.append("PostedBy", PostedBy);
 
-          response = await fetch(`${API_URL}/properties/addProperty`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          response = await fetch(
+            "http://localhost:3000/properties/addProperty`",
+            {
+              method: "POST",
+              body: formData,
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
         }
 
         const result = await response.json();
