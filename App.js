@@ -8,6 +8,7 @@ import Admin_panel from "./Screens/Admin_panel";
 import ForgotPassword from "./Screens/ForgetPassword";
 import OTPVerification from "./Screens/OtpVerification";
 import New_Password from "./Screens/New_Password";
+import Agent_Profile from "./Screens/Agent/Agent_Profile";
 
 const Stack = createStackNavigator(); // Use createStackNavigator instead of createNativeStackNavigator
 

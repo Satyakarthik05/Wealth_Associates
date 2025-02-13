@@ -18,6 +18,7 @@ import { API_URL } from "../data/ApiUrl";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
+import { useNavigation } from "@react-navigation/native";
 
 //importing components
 import Agent_Right from "../Screens/Agent/Agent_Right";
@@ -36,6 +37,7 @@ import PostProperty from "./Properties/PostProperty";
 import Core_Clients from "./coreClients/Core_Clients";
 import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
+import Agent_Profile from "./Agent/Agent_Profile";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -81,6 +83,7 @@ const menuItems = [
 ];
 
 const Admin_panel = () => {
+  const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
     Platform.OS !== "android"
   );
@@ -108,6 +111,7 @@ const Admin_panel = () => {
   const [isRskill, setisRsSkill] = useState(false);
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
+  const [isAgentProfile, setIsAgentProfile] = useState(false);
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);
@@ -209,6 +213,8 @@ const Admin_panel = () => {
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
+    if (isAgentProfile) return <Agent_Profile />;
+
     return <Agent_Right />;
   };
 
@@ -267,6 +273,7 @@ const Admin_panel = () => {
             setCoreClients(false);
             setCoreProjects(false);
             setisRsSkill(false);
+            setIsAgentProfile(false);
 
             // Set the default view to Agent_Right
             setSelectedSubItem(null);
@@ -283,7 +290,14 @@ const Admin_panel = () => {
             <Text style={styles.language}>English</Text>
             <Ionicons name="moon-outline" size={24} color="#000" />
             <Ionicons name="notifications-outline" size={24} color="#000" />
-            <Ionicons name="person-circle-outline" size={30} color="#000" />
+            <Ionicons
+              name="person-circle-outline"
+              size={30}
+              color="#000"
+              onPress={() => {
+                setIsAgentProfile(true);
+              }}
+            />
           </View>
         </View>
       </View>
