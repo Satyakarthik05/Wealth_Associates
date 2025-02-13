@@ -51,6 +51,7 @@ export default function Login_screen() {
         const token = data.token; // Assuming the token is in the 'token' field
         await AsyncStorage.setItem("authToken", token); // Store the token in AsyncStorage
         console.log("Token stored in AsyncStorage:", token);
+
         navigation.navigate("Home");
       } else {
         setErrorMessage(

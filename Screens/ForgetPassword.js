@@ -112,7 +112,10 @@ export default function ForgotPassword() {
                   <Text style={styles.getOtpButtonText}>Get OTP</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.cancelButton}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  // onPress={navigation.navigate("Login")}
+                >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>

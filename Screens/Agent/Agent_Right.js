@@ -19,8 +19,10 @@ import AddClubMember from "../Customer/Regicus"; // Create this component
 import RequestExpert from "../ExpertPanel/Requested_expert"; // Create this component
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
+import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import the RequestedProperties component
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const actionButtons = [
@@ -59,13 +61,70 @@ const coreProjects = [
   },
   { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
 ];
+const numColumns = width > 800 ? 4 : 1;
 
 const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation(); // Initialize navigation
+  const navigation = useNavigation();
+  const [propertiess, setPropertiess] = useState([]);
+  // const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPropertiess();
+  }, []);
+
+  const fetchPropertiess = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
+        setLoading(false);
+        return;
+      }
+      const response = await fetch(
+        `${API_URL}/requestProperty/myrequestedPropertys`,
+        {
+          method: "GET",
+          headers: {
+            token: `${token}` || "",
+          },
+        }
+      );
+      const data = await response.json();
+      const formattedProperties = data.map((item) => ({
+        id: item._id,
+        title: item.propertyTitle,
+        type: item.propertyType,
+        location: item.location,
+        budget: `₹${item.Budget.toLocaleString()}`,
+        image: getImageByPropertyType(item.propertyType),
+      }));
+      setPropertiess(formattedProperties);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      setLoading(false);
+    }
+  };
+
+  const getImageByPropertyType = (propertyType) => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return require("../../assets/Land.jpg");
+      case "residential":
+        return require("../../assets/residntial.jpg");
+      case "commercial":
+        return require("../../assets/commercial.jpg");
+      case "villa":
+        return require("../../assets/villa.jpg");
+      default:
+        return require("../../assets/house.png");
+    }
+  }; // Initialize navigation
 
   useEffect(() => {
     fetchProperties();
@@ -109,7 +168,10 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const secondRowProperties = properties.slice(5, 10);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Action Buttons */}
       <View style={styles.actionContainer}>
         {actionButtons.map((btn, index) => (
@@ -166,6 +228,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             />
           </View>
         ))}
+      </ScrollView>
+
+      {/* Requested Properties */}
+      {/* Requested Properties */}
+      <Text style={styles.sectionTitle}>Requested Properties</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.requestedPropertiesContainer}
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#e91e63" />
+            <Text style={styles.loadingText}>Fetching properties...</Text>
+          </View>
+        ) : (
+          <View style={styles.requestedPropertiesRow}>
+            {propertiess.map((item) => (
+              <View key={item.id} style={styles.requestcard}>
+                <Image source={item.image} style={styles.images} />
+                <View style={styles.approvedBadge}>
+                  <Text style={styles.badgeText}>✔ Approved</Text>
+                </View>
+                <View style={styles.details}>
+                  <Text style={styles.title}>{item.title}</Text>
+                  <Text style={styles.text}>Property Type: {item.type}</Text>
+                  <Text style={styles.text}>Location: {item.location}</Text>
+                  <Text style={styles.text}>Budget: {item.budget}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {/* Properties */}
@@ -256,7 +351,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 10 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  contentContainer: { padding: 10, paddingBottom: isWeb ? height * 0.1 : 10 }, // Add paddingBottom for web
 
   // Action Buttons
   actionContainer: {
@@ -387,8 +483,82 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: "gray",
   },
+  // Requested Properties Container
+  requestedPropertiesContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
 
-  // Loader
+  // Requested Properties Row
+  requestedPropertiesRow: {
+    flexDirection: "row",
+  },
+
+  // Request Card
+  requestcard: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    overflow: "hidden",
+    elevation: 3,
+    margin: 8,
+    width: Platform.OS === "android" ? 250 : 230, // Adjust width as needed
+  },
+
+  // Images
+  images: {
+    width: "100%",
+    height: 120,
+    resizeMode: "cover",
+  },
+
+  // Approved Badge
+  approvedBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "green",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+
+  // Badge Text
+  badgeText: {
+    color: "#fff",
+    fontSize: 12,
+  },
+
+  // Details
+  details: {
+    padding: 10,
+  },
+
+  // Title
+  title: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+
+  // Text
+  text: {
+    fontSize: 12,
+    color: "#666",
+  },
+
+  // Loading Container
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // Loading Text
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#e91e63",
+  },
   loader: { marginTop: 50 },
 });
 

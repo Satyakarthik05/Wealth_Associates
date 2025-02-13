@@ -51,16 +51,13 @@ const PropertyRequest = async (req, res) => {
 const GetMyRequestedPropertys = async (req, res) => {
   try {
     // Find the authenticated agent using AgentId
-    const authenticatedAgent = await AgentSchema.findById(req.AgentId);
+    const authenticatedAgent = await Agent.findById(req.AgentId);
     if (!authenticatedAgent) {
       return res.status(404).json({ error: "Authenticated agent not found" });
     }
 
-    // Retrieve the MobileNumber (used as PostedBy) of the authenticated agent
     const PostedBy = authenticatedAgent.MobileNumber;
-
-    // Fetch all properties where PostedBy matches the authenticated agent's MobileNumber
-    const MyPosts = await requestProperty.find({ PostedBy });
+    const MyPosts = await RequestProperty.find({ PostedBy });
 
     // If no posts are found, return an empty array
     if (!MyPosts || MyPosts.length === 0) {
@@ -69,7 +66,6 @@ const GetMyRequestedPropertys = async (req, res) => {
         .json({ message: "No properties found", MyPosts: [] });
     }
 
-    // Return the found properties
     res.status(200).json(MyPosts);
   } catch (error) {
     console.error("Error fetching properties:", error.message);

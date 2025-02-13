@@ -134,42 +134,6 @@ const fetchReferredAgents = async (req, res) => {
   }
 };
 
-const ForgetPassword = async (req, res) => {
-  const { MobileNo } = req.body;
-  try {
-    const Agent = await AgentSchema.findOne({ MobileNumber: MobileNo });
-
-    if (Agent) {
-      const OTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-      Agent.Otp = OTP;
-      Agent.otpExpiresAt = Date.now() + 10 * 60 * 1000;
-      await Agent.save();
-      try {
-        const smsResponse = await sendSMS(MobileNo, OTP);
-        return res.status(200).json({
-          message: "OTP sent successfully and stored in the database",
-          smsResponse,
-        });
-      } catch (smsError) {
-        console.error("Failed to send SMS:", smsError.message);
-        return res.status(500).json({
-          message:
-            "Failed to send OTP. Please check the mobile number or try again later.",
-          error: smsError.message,
-        });
-      }
-    } else {
-      return res.status(404).json({ message: "Mobile number not found" });
-    }
-  } catch (dbError) {
-    console.error("Database error:", dbError.message);
-    return res
-      .status(500)
-      .json({ message: "Database error", error: dbError.message });
-  }
-};
-
 const AgentLogin = async (req, res) => {
   const { MobileNumber, Password } = req.body;
 
@@ -185,7 +149,7 @@ const AgentLogin = async (req, res) => {
     }
 
     const token = await jwt.sign({ AgentId: Agents._id }, secret, {
-      expiresIn: "1h",
+      expiresIn: "30d",
     });
 
     res.status(200).json({ message: "Login Successful", token });
@@ -207,4 +171,36 @@ const getAgent = async (req, res) => {
   }
 };
 
-module.exports = { AgentSign, AgentLogin, getAgent, fetchReferredAgents };
+const updateAgentDetails = async (req, res) => {
+  const { MobileNumber, FullName, Email, Locations, Expertise, Experience } =
+    req.body;
+
+  try {
+    const existingAgent = await AgentSchema.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Email = Email || existingAgent.Email;
+    existingAgent.Locations = Locations || existingAgent.Locations;
+    existingAgent.Expertise = Expertise || existingAgent.Expertise;
+    existingAgent.Experience = Experience || existingAgent.Experience;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Agent details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  AgentSign,
+  AgentLogin,
+  getAgent,
+  fetchReferredAgents,
+  updateAgentDetails,
+};

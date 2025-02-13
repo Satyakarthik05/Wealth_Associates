@@ -303,6 +303,21 @@ const Admin_panel = () => {
               color="#000"
               onPress={() => {
                 setIsAgentProfile(true);
+                setIsAddAgentVisible(false);
+                setIsViewAgentVisible(false);
+                setIsRequestPropertyVisible(false);
+                setIsPostedPropertiesVisible(false);
+                setIsRequestedPropertiesVisible(false);
+                setIsAllPropertiesVisible(false);
+                setIsViewCustomersModalVisible(false);
+                setIsExpertPanelVisible(false);
+                setIsRegiCusVisible(false);
+                setIsViewSkilledLabourVisible(false);
+                setIsRequestExpertVisible(false);
+                setAddPost(false);
+                setCoreClients(false);
+                setCoreProjects(false);
+                setisRsSkill(false);
               }}
             />
           </View>

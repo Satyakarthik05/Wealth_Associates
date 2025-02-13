@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Add_Agent from "./Add_Agent";
 import Modify_Deatils from "./Modify_Details";
 import CustomModal from "../../Components/CustomModal";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -26,6 +27,7 @@ const Agent_Profile = () => {
   const [Details, setDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     getDetails();
@@ -49,6 +51,11 @@ const Agent_Profile = () => {
     }
   };
 
+  const LogOut = async () => {
+    const token = await AsyncStorage.removeItem("authToken");
+    navigation.navigate("Login");
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
@@ -69,7 +76,7 @@ const Agent_Profile = () => {
               <Text style={styles.profileName}>{Details.name}</Text>
             </View>
             <View style={styles.profileCard}>
-              <Text style={styles.sectionTitle}>My Profile</Text>
+              {/* <Text style={styles.sectionTitle}>My Profile</Text> */}
               <View style={styles.profileForm}>
                 {profileFields.map(({ label, icon, key }) => (
                   <CustomInput
@@ -77,6 +84,7 @@ const Agent_Profile = () => {
                     label={label}
                     icon={icon}
                     value={Details[key]}
+                    labelStyle={styles.label}
                   />
                 ))}
               </View>
@@ -87,7 +95,7 @@ const Agent_Profile = () => {
                 >
                   <Text style={styles.buttonText}>Edit Profile</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton}>
+                <TouchableOpacity style={styles.cancelButton} onPress={LogOut}>
                   <Text style={styles.buttonTexts}>Logout </Text>
                 </TouchableOpacity>
               </View>
@@ -134,6 +142,11 @@ const CustomInput = ({ label, icon, value }) => (
 );
 
 const styles = StyleSheet.create({
+  agentProfileText: {
+    fontWeight: 600,
+    fontSize: 20,
+    marginBottom: 10,
+  },
   scrollContainer: {
     flexGrow: 1,
   },
@@ -149,6 +162,8 @@ const styles = StyleSheet.create({
     flexWrap: Platform.OS === "web" ? "wrap" : "nowrap",
     justifyContent: Platform.OS === "web" ? "space-between" : "flex-start",
     width: "100%",
+    fontWeight: 600,
+    fontSize: 16,
   },
   inputWrapper: {
     width: Platform.OS === "web" ? "30%" : "100%",
@@ -217,6 +232,9 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
+  },
+  label: {
+    fontSize: 40,
   },
 });
 

@@ -8,6 +8,7 @@ const app = express.Router();
 app.post("/AgentRegister", AgentController.AgentSign);
 app.post("/AgentLogin", AgentController.AgentLogin);
 app.get("/AgentDetails", verifyAgentToken, AgentController.getAgent);
+app.post("/updateAgentDetails", AgentController.updateAgentDetails);
 app.get("/myAgents", verifyAgentToken, AgentController.fetchReferredAgents);
 app.post("/ForgetPassword", ForgetPassword.ForgetPassword);
 app.post("/VerifyOtp", ForgetPassword.VerifyOtp);

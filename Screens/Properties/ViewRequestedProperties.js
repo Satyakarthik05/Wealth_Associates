@@ -9,9 +9,11 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
-const numColumns = width > 800 ? 4 : 1; // Mobile: Single column, Web: 4 columns
+import { API_URL } from "../../data/ApiUrl";
+const numColumns = width > 800 ? 4 : 1;
 
 const RequestedProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -24,31 +26,50 @@ const RequestedProperties = () => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      // Simulating API call delay for better UI experience
-      setTimeout(() => {
-        setProperties([
-          {
-            id: "1",
-            title: "Individual House for Sale",
-            type: "Independent House",
-            location: "Vijayawada",
-            budget: "₹50,00,000",
-            image: require("../../assets/house.png"),
-          },
-          {
-            id: "2",
-            title: "Luxury Villa for Sale",
-            type: "Villa",
-            location: "Hyderabad",
-            budget: "₹1,20,00,000",
-            image: require("../../assets/house.png"),
-          },
-        ]);
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
         setLoading(false);
-      }, 2000); // Simulated delay (2 seconds)
+        return;
+      }
+      const response = await fetch(
+        `${API_URL}/requestProperty/myrequestedPropertys`,
+        {
+          method: "GET",
+          headers: {
+            token: `${token}` || "",
+          },
+        }
+      );
+      const data = await response.json();
+      const formattedProperties = data.map((item) => ({
+        id: item._id,
+        title: item.propertyTitle,
+        type: item.propertyType,
+        location: item.location,
+        budget: `₹${item.Budget.toLocaleString()}`,
+        image: getImageByPropertyType(item.propertyType),
+      }));
+      setProperties(formattedProperties);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
       setLoading(false);
+    }
+  };
+
+  const getImageByPropertyType = (propertyType) => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return require("../../assets/Land.jpg");
+      case "residential":
+        return require("../../assets/residntial.jpg");
+      case "commercial":
+        return require("../../assets/commercial.jpg");
+      case "villa":
+        return require("../../assets/villa.jpg");
+      default:
+        return require("../../assets/house.png");
     }
   };
 
