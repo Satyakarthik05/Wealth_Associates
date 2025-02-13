@@ -7,8 +7,8 @@ const sendSMS = async (MobileNumber, OTP) => {
     const params = {
       UserName: "wealthassociates",
       APIKey: "88F40D9F-0172-4D25-9CF5-5823211E67E7",
-      MobileNo: `+91${MobileNumber}`,
-      Message: `Your OTP for password recovery is: ${OTP}\nThis OTP is valid for 10 minutes.\nFor Any Query - 7796356789 Walth Associates`,
+      MobileNo: `${MobileNumber}`,
+      Message: `Your OTP for password recovery is: ${OTP} This OTP is valid for 10 minutes. For Any Query - 7796356789 Wealth Associates`,
       SenderName: "WTHASC",
       TemplateId: "1707173933584753849",
       MType: 1,
