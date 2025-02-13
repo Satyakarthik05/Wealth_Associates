@@ -86,7 +86,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         return;
       }
       const response = await fetch(
-        `${API_URL}/requestProperty/myrequestedPropertys`,
+        `${API_URL}/requestProperty/getallrequestProperty`,
         {
           method: "GET",
           headers: {

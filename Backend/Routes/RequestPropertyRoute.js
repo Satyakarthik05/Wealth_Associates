@@ -5,6 +5,7 @@ const verifyAgentToken = require("../middleWares/VerifyAgentToken");
 const app = express.Router();
 
 app.post("/requestProperty", RequestProperty.PropertyRequest);
+app.get("/getallrequestProperty", RequestProperty.GetRequsestedPropertys);
 app.get(
   "/myrequestedPropertys",
   verifyAgentToken,
