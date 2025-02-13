@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,25 +9,64 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { API_URL } from "../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const navigation = useNavigation();
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    const fetchMobileNumber = async () => {
+      try {
+        const number = await AsyncStorage.getItem("MobileNumber");
+        if (number) {
+          setMobileNumber(number);
+        }
+      } catch (error) {
+        console.error("Error retrieving mobile number:", error);
+      }
+    };
+    fetchMobileNumber();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!mobileNumber) {
+      Alert.alert("Error", "Mobile number not found!");
+      return;
+    }
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters long");
-      return;
+
+    try {
+      const response = await fetch(`${API_URL}/agent/updatepassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobileNumber, newPassword: password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", data.message);
+        navigation.navigate("Login");
+      } else {
+        Alert.alert("Error", data.message);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong. Please try again later.");
+      console.error("Reset Password Error:", error);
     }
-    Alert.alert("Success", "Password has been reset successfully!");
   };
 
   return (

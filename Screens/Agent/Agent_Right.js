@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -16,6 +17,8 @@ import PostProperty from "../Properties/PostProperty"; // Ensure this path is co
 import RequestProperty from "../Properties/RequestProperty"; // Create this component
 import AddClubMember from "../Customer/Regicus"; // Create this component
 import RequestExpert from "../ExpertPanel/Requested_expert"; // Create this component
+import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -57,17 +60,32 @@ const coreProjects = [
   { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
 ];
 
-const properties = new Array(4).fill({
-  title: "Individual House for Sale",
-  propertyType: "Independent House",
-  location: "Vijayawada",
-  budget: "₹ 5,00,000",
-  image: require("../../assets/SW_FleetHouse_44_JackHobhouse 1.png"),
-});
-
-const Agent_Right = () => {
+const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation(); // Initialize navigation
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      const response = await fetch(`${API_URL}/properties/getallPropertys`);
+      const data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        setProperties(data.slice(-10)); // Fetch last 10 properties
+      } else {
+        console.warn("API returned empty data.");
+      }
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleActionButtonClick = (btn) => {
     const ModalComponent = btn.component;
@@ -80,6 +98,15 @@ const Agent_Right = () => {
   const closeModal = () => {
     setModalVisible(false);
   };
+
+  const handleViewAllProperties = () => {
+    onViewAllPropertiesClick(); // Call the callback function
+    // navigation.navigate("ViewAllProperties");
+  };
+
+  // Split properties into two rows
+  const firstRowProperties = properties.slice(0, 5);
+  const secondRowProperties = properties.slice(5, 10);
 
   return (
     <ScrollView style={styles.container}>
@@ -109,7 +136,7 @@ const Agent_Right = () => {
         {modalContent}
       </CustomModal>
 
-      {/* Rest of the component code remains the same */}
+      {/* Core Clients */}
       <Text style={styles.sectionTitle}>Core Clients</Text>
       <View style={styles.cardContainer}>
         {coreClients.map((client, index) => (
@@ -144,33 +171,83 @@ const Agent_Right = () => {
       {/* Properties */}
       <View style={styles.propertiesHeader}>
         <Text style={styles.sectionTitle}>Properties</Text>
-        <Picker style={styles.picker}>
-          <Picker.Item label="Select Filter" value="" />
-        </Picker>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.propertyScroll}
+      {loading ? (
+        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
+      ) : (
+        <>
+          {/* First Row of Properties */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.propertyScroll}
+          >
+            {firstRowProperties.map((property, index) => {
+              const imageUri = property.photo
+                ? { uri: `${API_URL}${property.photo}` }
+                : require("../../assets/logo.png");
+
+              return (
+                <View key={index} style={styles.propertyCard}>
+                  <Image source={imageUri} style={styles.propertyImage} />
+                  <View style={styles.approvedBadge}>
+                    <Text style={styles.badgeText}>Approved</Text>
+                  </View>
+                  <Text style={styles.propertyTitle}>
+                    {property.propertyType}
+                  </Text>
+                  <Text style={styles.propertyInfo}>
+                    Location: {property.location}
+                  </Text>
+                  <Text style={styles.propertyBudget}>
+                    ₹ {parseInt(property.price).toLocaleString()}
+                  </Text>
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* Second Row of Properties */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.propertyScroll}
+          >
+            {secondRowProperties.map((property, index) => {
+              const imageUri = property.photo
+                ? { uri: `${API_URL}${property.photo}` }
+                : require("../../assets/logo.png");
+
+              return (
+                <View key={index} style={styles.propertyCard}>
+                  <Image source={imageUri} style={styles.propertyImage} />
+                  <View style={styles.approvedBadge}>
+                    <Text style={styles.badgeText}>Approved</Text>
+                  </View>
+                  <Text style={styles.propertyTitle}>
+                    {property.propertyType}
+                  </Text>
+                  <Text style={styles.propertyInfo}>
+                    Location: {property.location}
+                  </Text>
+                  <Text style={styles.propertyBudget}>
+                    ₹ {parseInt(property.price).toLocaleString()}
+                  </Text>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </>
+      )}
+
+      {/* View All Properties Button */}
+      <TouchableOpacity
+        style={styles.viewAllButton}
+        onPress={handleViewAllProperties}
       >
-        {properties.map((property, index) => (
-          <View key={index} style={styles.propertyCard}>
-            <Image source={property.image} style={styles.propertyImage} />
-            <View style={styles.approvedBadge}>
-              <Text style={styles.badgeText}>Approved</Text>
-            </View>
-            <Text style={styles.propertyTitle}>{property.title}</Text>
-            <Text style={styles.propertyInfo}>
-              Property Type: {property.propertyType}
-            </Text>
-            <Text style={styles.propertyInfo}>
-              Location: {property.location}
-            </Text>
-            <Text style={styles.propertyBudget}>Budget: {property.budget}</Text>
-          </View>
-        ))}
-      </ScrollView>
+        <Text style={styles.viewAllButtonText}>View All Properties</Text>
+      </TouchableOpacity>
 
       {/* Version Info */}
       <Text style={styles.version}>Version : 1.0.0.2025</Text>
@@ -252,15 +329,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  picker: {
-    width: 150,
-    height: Platform.OS === "web" ? 40 : 50,
-    backgroundColor: "#fff",
-    marginTop: Platform.OS === "web" ? "auto" : 30,
-    borderWidth: Platform.OS === "android" ? 1 : 0,
-    borderColor: "black",
-    borderRadius: Platform.OS === "android" ? 5 : 0,
-  },
   propertyScroll: { marginVertical: 10 },
   propertyCard: {
     width: isWeb ? 250 : 180,
@@ -298,6 +366,20 @@ const styles = StyleSheet.create({
     color: "green",
   },
 
+  // View All Button
+  viewAllButton: {
+    backgroundColor: "#E82E5F",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  viewAllButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
   // Version Info
   version: {
     textAlign: "center",
@@ -306,19 +388,8 @@ const styles = StyleSheet.create({
     color: "gray",
   },
 
-  // Modal Content Styles
-  modalContent: {
-    padding: 20,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    width: "80%",
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
+  // Loader
+  loader: { marginTop: 50 },
 });
 
 export default Agent_Right;

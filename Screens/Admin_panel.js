@@ -129,6 +129,11 @@ const Admin_panel = () => {
     }
   };
 
+  const handleViewAllPropertiesClick = () => {
+    setIsAllPropertiesVisible(true);
+    setSelectedSubItem("View All Properties");
+  };
+
   const handleSubItemClick = (subItem) => {
     setIsAddAgentVisible(false);
     setIsViewAgentVisible(false);
@@ -215,7 +220,9 @@ const Admin_panel = () => {
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
 
-    return <Agent_Right />;
+    return (
+      <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
+    );
   };
 
   const getDetails = async () => {
@@ -283,16 +290,16 @@ const Admin_panel = () => {
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
-            <Image
+            {/* <Image
               source={require("../assets/usflag.png")}
               style={styles.icon}
-            />
-            <Text style={styles.language}>English</Text>
-            <Ionicons name="moon-outline" size={24} color="#000" />
-            <Ionicons name="notifications-outline" size={24} color="#000" />
+            /> */}
+            {/* <Text style={styles.language}>English</Text> */}
+            <Ionicons name="moon-outline" size={20} color="#000" />
+            <Ionicons name="notifications-outline" size={20} color="#000" />
             <Ionicons
               name="person-circle-outline"
-              size={30}
+              size={20}
               color="#000"
               onPress={() => {
                 setIsAgentProfile(true);
@@ -323,7 +330,7 @@ const Admin_panel = () => {
                   style={styles.menuItem}
                   onPress={() => toggleMenuItem(item.title)}
                 >
-                  <Ionicons name={item.icon} size={24} color="#555" />
+                  <Ionicons name={item.icon} size={18} color="#555" />
                   {isSidebarExpanded && (
                     <Text style={styles.menuText}>{item.title}</Text>
                   )}
@@ -353,7 +360,7 @@ const Admin_panel = () => {
               </View>
             )}
           />
-          <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
+          {/* <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text> */}
         </View>
 
         {/* Main Content Area */}
@@ -429,7 +436,7 @@ const styles = StyleSheet.create({
   navbar: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: 8,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderColor: "#ddd",
@@ -450,7 +457,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: Platform.OS === "web" ? 0 : "10%",
-    gap: Platform.OS === "web" ? "10px" : 0,
+    gap: Platform.OS === "web" ? "10px" : 10,
+    marginLeft: Platform.OS === "android" ? -15 : "0",
   },
   icon: {
     width: 20,
@@ -477,14 +485,14 @@ const styles = StyleSheet.create({
     width: 250,
   },
   collapsedSidebar: {
-    width: 70,
+    width: 50,
     alignItems: "center",
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     justifyContent: "space-between",
   },
   menuText: {

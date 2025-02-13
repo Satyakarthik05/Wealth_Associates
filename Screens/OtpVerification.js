@@ -9,13 +9,34 @@ import {
   Image,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const OTP = () => {
   const [otp, setOtp] = useState(Array(4).fill(""));
   const [timer, setTimer] = useState(30);
   const [otpSubmitted, setOtpSubmitted] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
   const inputRefs = useRef([]);
+  const navigation = useNavigation();
 
+  // Fetch mobile number from AsyncStorage
+  useEffect(() => {
+    const fetchMobileNumber = async () => {
+      try {
+        const storedMobileNumber = await AsyncStorage.getItem("MobileNumber");
+        if (storedMobileNumber) {
+          setMobileNumber(storedMobileNumber);
+        }
+      } catch (error) {
+        console.error("Error fetching mobile number from AsyncStorage:", error);
+      }
+    };
+    fetchMobileNumber();
+  }, []);
+
+  // Timer logic
   useEffect(() => {
     if (timer === 0) return;
     const interval = setInterval(() => {
@@ -41,12 +62,48 @@ const OTP = () => {
     }
   };
 
-  const verifyOTP = () => {
-    const otpCode = otp.join("");
-    if (otpCode.length === 4) {
-      Alert.alert("OTP Verified", `Entered OTP: ${otpCode}`);
-      setOtpSubmitted(true);
+  const verifyOTP = async () => {
+    const otpCode = otp.join("").replace(/\D/g, "").trim(); // Ensure only numbers and remove spaces
+
+    console.log("OTP State:", otp);
+    console.log("Joined OTP:", otpCode);
+    console.log("OTP Length:", otpCode.length);
+    console.log("Mobile Number:", mobileNumber);
+
+    if (
+      otp.every((digit) => digit.trim() !== "") &&
+      otpCode.length === 4 &&
+      mobileNumber
+    ) {
+      try {
+        const response = await fetch(`${API_URL}/agent/VerifyOtp`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ mobileNumber, otp: otpCode }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          Alert.alert("OTP Verified", "Your OTP is correct.");
+          navigation.navigate("newpassword");
+          setOtpSubmitted(true);
+        } else {
+          Alert.alert("Invalid OTP", "Please enter the correct OTP.");
+        }
+      } catch (error) {
+        console.error("Error verifying OTP:", error);
+        Alert.alert("Error", "An error occurred while verifying OTP.");
+      }
     } else {
+      console.log("Validation Failed:", {
+        otpCode,
+        isOtpFilled: otp.every((digit) => digit.trim() !== ""),
+        isLengthValid: otpCode.length === 4,
+        isMobilePresent: !!mobileNumber,
+      });
+
       Alert.alert("Invalid OTP", "Please enter a 4-digit OTP.");
     }
   };
@@ -57,6 +114,9 @@ const OTP = () => {
     setOtpSubmitted(false);
     Alert.alert("OTP Resent", "A new OTP has been sent to your mobile.");
   };
+  useEffect(() => {
+    console.log("Updated OTP:", otp.join(""));
+  }, [otp]);
 
   return (
     <View style={styles.container}>
@@ -124,7 +184,6 @@ const OTP = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // display: "flex",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f9f9f9",
@@ -135,7 +194,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 50,
     width: Platform.OS === "web" ? "60%" : "90%",
-    // maxWidth: 400,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -143,16 +201,15 @@ const styles = StyleSheet.create({
     elevation: 5,
     alignItems: "center",
   },
-
   logo: {
     width: 120,
-    height: 50,
+    height: 100,
     resizeMode: "contain",
     marginBottom: 20,
   },
   logos: {
-    width: Platform.OS === "web" ? "300px" : 300,
-    height: Platform.OS === "web" ? "400px" : 300,
+    width: Platform.OS === "web" ? "300px" : 250,
+    height: Platform.OS === "web" ? "400px" : 200,
   },
   header: {
     fontSize: 20,

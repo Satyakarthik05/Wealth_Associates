@@ -29,9 +29,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 mongoose
-  .connect(
-    "mongodb+srv://satyakarthikvelivela:Satya123@wealthassociate.7ath7.mongodb.net/WealthAssociates"
-  )
+  .connect("mongodb://localhost:27017/")
   .then(() => console.log("mongodb Connected Successfully"))
   .catch((error) => console.error());
 
