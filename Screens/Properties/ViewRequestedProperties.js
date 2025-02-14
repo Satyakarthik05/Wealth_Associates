@@ -42,7 +42,7 @@ const RequestedProperties = () => {
         }
       );
       const data = await response.json();
-      const formattedProperties = data.map((item) => ({
+      const formattedProperties = [...data].reverse().map((item) => ({
         id: item._id,
         title: item.propertyTitle,
         type: item.propertyType,
@@ -83,7 +83,7 @@ const RequestedProperties = () => {
         </View>
       ) : (
         <View style={styles.grid}>
-          {properties.map((item) => (
+          {[...properties].reverse.map((item) => (
             <View key={item.id} style={styles.card}>
               <Image source={item.image} style={styles.image} />
               <View style={styles.approvedBadge}>

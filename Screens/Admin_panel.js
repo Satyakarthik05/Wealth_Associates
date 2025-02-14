@@ -38,6 +38,7 @@ import Core_Clients from "./coreClients/Core_Clients";
 import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
 import Agent_Profile from "./Agent/Agent_Profile";
+import Modify_Deatils from "./Agent/Modify_Details";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -117,6 +118,16 @@ const Admin_panel = () => {
       setIsSidebarExpanded((prev) => !prev);
     }
   };
+
+  const [refreshKey, setRefreshKey] = useState(0); // State to force refresh
+
+  const handleDetailsUpdated = () => {
+    setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
+    getDetails(); // Re-fetch details from the API
+  };
+  useEffect(() => {
+    getDetails();
+  }, [refreshKey]);
 
   const toggleMenuItem = (title) => {
     setExpandedItems((prev) => ({
@@ -286,7 +297,7 @@ const Admin_panel = () => {
             setSelectedSubItem(null);
           }}
         >
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
+          <Image source={require("../assets/logo.jpg")} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
@@ -379,7 +390,7 @@ const Admin_panel = () => {
         </View>
 
         {/* Main Content Area */}
-        <View style={styles.contentArea}>
+        <View style={styles.contentArea} key={refreshKey}>
           <View style={styles.container}>
             <ScrollView>
               <View style={styles.userContent}>
@@ -456,6 +467,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#ddd",
     justifyContent: "space-between",
+    marginTop: -10,
   },
   logo: {
     width: 100,
@@ -536,8 +548,8 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     position: "absolute",
-    top: 25,
-    left: 20,
+    top: 18,
+    left: 10,
     zIndex: 1000,
     backgroundColor: "#fff",
     padding: 10,

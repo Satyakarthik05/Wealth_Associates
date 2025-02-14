@@ -72,11 +72,10 @@ export default function Login_screen() {
         {Platform.OS !== "android" && (
           <View style={styles.leftSection}>
             <Image
-              source={require("../assets/logo.png")}
+              source={require("../assets/logo2.png")}
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
           </View>
         )}
 
@@ -90,11 +89,12 @@ export default function Login_screen() {
             source={
               Platform.OS === "android"
                 ? require("../assets/logo.png")
-                : require("../assets/logo2.png")
+                : require("../assets/logo.png")
             }
             style={styles.illustration}
             resizeMode="contain"
           />
+          <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
 
           <Text style={styles.welcomeText}>
             Welcome back! Log in to your account.
@@ -140,14 +140,6 @@ export default function Login_screen() {
                 style={styles.icon}
               />
             </TouchableOpacity>
-            {/* <View>
-              <Icon
-                name="lock-closed-outline"
-                size={20}
-                color="red"
-                style={styles.icon}
-              />
-            </View> */}
           </View>
 
           <View style={styles.actionContainer}>
@@ -157,11 +149,14 @@ export default function Login_screen() {
               disabled={loading}
             >
               <Text style={styles.loginButtonText}>
-                {loading ? "Logging in..." : "Login"}
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  "Login"
+                )}
               </Text>
             </TouchableOpacity>
-
-            {loading && <ActivityIndicator size="small" color="#E82E5F" />}
+            {/* {loading && } */}
 
             <TouchableOpacity
               onPress={() => navigation.navigate("Forgetpassword")}
@@ -223,9 +218,10 @@ const styles = StyleSheet.create({
     height: 169,
   },
   tagline: {
-    marginTop: 20,
+    marginTop: -35,
+    marginBottom: 20,
     fontFamily: "Cairo",
-    fontSize: 16,
+    fontSize: 10,
     color: "#000000",
     textAlign: "center",
   },
@@ -240,6 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#E82E5F",
     marginBottom: 20,
+    textAlign: "center",
   },
   label: {
     fontFamily: "Cairo",
@@ -286,20 +283,21 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 20,
   },
   loginButtonText: {
     color: "#FFFFFF",
     fontFamily: "Cairo",
     fontSize: 16,
+    alignItems: "center",
   },
   forgotPassword: {
     color: "#E82E5F",
     fontFamily: "Cairo",
     fontSize: 16,
+    marginTop: 20,
   },
   signupContainer: {
-    marginTop: 30,
+    marginTop: 10,
     alignItems: "center",
   },
   signupText: {

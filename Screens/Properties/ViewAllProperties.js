@@ -75,7 +75,7 @@ const ViewAllProperties = () => {
           </View>
 
           <View style={styles.grid}>
-            {properties.map((item) => {
+            {[...properties].reverse().map((item) => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
                 : require("../../assets/logo.png");

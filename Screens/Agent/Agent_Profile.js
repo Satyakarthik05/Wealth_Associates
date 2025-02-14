@@ -22,7 +22,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
-const Agent_Profile = () => {
+const Agent_Profile = ({ onDetailsUpdates }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [Details, setDetails] = useState({});
   const [loading, setLoading] = useState(true);
@@ -32,6 +32,10 @@ const Agent_Profile = () => {
   useEffect(() => {
     getDetails();
   }, []);
+
+  const handleDetailsUpdate = () => {
+    getDetails(); // Fetch the updated details
+  };
 
   const getDetails = async () => {
     try {
@@ -105,7 +109,10 @@ const Agent_Profile = () => {
               isVisible={modalVisible}
               closeModal={() => setModalVisible(false)}
             >
-              <Modify_Deatils closeModal={() => setModalVisible(false)} />
+              <Modify_Deatils
+                closeModal={() => setModalVisible(false)}
+                onDetailsUpdate={handleDetailsUpdate}
+              />
             </CustomModal>
           </>
         )}

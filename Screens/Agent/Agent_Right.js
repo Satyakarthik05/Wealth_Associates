@@ -246,7 +246,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           </View>
         ) : (
           <View style={styles.requestedPropertiesRow}>
-            {propertiess.map((item) => (
+            {[...propertiess].reverse().map((item) => (
               <View key={item.id} style={styles.requestcard}>
                 <Image source={item.image} style={styles.images} />
                 <View style={styles.approvedBadge}>
@@ -279,7 +279,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             showsHorizontalScrollIndicator={false}
             style={styles.propertyScroll}
           >
-            {firstRowProperties.map((property, index) => {
+            {[...firstRowProperties].reverse().map((property, index) => {
               const imageUri = property.photo
                 ? { uri: `${API_URL}${property.photo}` }
                 : require("../../assets/logo.png");

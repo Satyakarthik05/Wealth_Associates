@@ -7,7 +7,7 @@
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/play_store_512.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     "android": {
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/play_store_512.png",
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
@@ -29,7 +29,7 @@
       "package": "com.satyakarthik.app"
     },
     "web": {
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/icon-512.png"
     },
     "extra": {
       "eas": {

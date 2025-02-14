@@ -98,7 +98,7 @@ const ViewPostedProperties = () => {
       ) : (
         <View style={styles.grid}>
           {renderHeader()}
-          {properties.map((item) => {
+          {[...properties].reverse().map((item) => {
             const imageUri = item.photo
               ? { uri: `${API_URL}${item.photo}` } // Adjusted to concatenate the `photo` path
               : require("../../assets/logo.png"); // Local fallback image

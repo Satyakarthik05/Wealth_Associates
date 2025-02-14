@@ -18,7 +18,7 @@ import { API_URL } from "../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
-const Modify_Deatils = ({ closeModal }) => {
+const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -132,7 +132,8 @@ const Modify_Deatils = ({ closeModal }) => {
         Alert.alert("Success", "Details Updated successfully!");
         setIsMobileEditable(false); // Disable mobile number field
         closeModal();
-        getDetails();
+        onDetailsUpdate();
+        onDetailsUpdated();
       } else if (response.status === 400) {
         Alert.alert("Error", "Unable to Update details.");
       } else {
