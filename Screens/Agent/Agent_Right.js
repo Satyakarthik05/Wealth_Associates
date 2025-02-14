@@ -135,7 +135,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getallPropertys`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10)); // Fetch last 10 properties
+        setProperties(data.slice(-10));
+        fetchPropertiess(); // Fetch last 10 properties
       } else {
         console.warn("API returned empty data.");
       }
