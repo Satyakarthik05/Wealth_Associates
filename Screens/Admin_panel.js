@@ -554,6 +554,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
+    height: "100vh",
   },
   toggleButton: {
     position: "absolute",
