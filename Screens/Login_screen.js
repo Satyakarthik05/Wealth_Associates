@@ -9,12 +9,14 @@ import {
   SafeAreaView,
   Platform,
   ActivityIndicator,
+  BackHandler,
   Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Login_screen() {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -65,6 +67,22 @@ export default function Login_screen() {
       setLoading(false);
     }
   };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; // Prevent navigating back
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

@@ -83,7 +83,7 @@ const RequestedProperties = () => {
         </View>
       ) : (
         <View style={styles.grid}>
-          {[...properties].reverse.map((item) => (
+          {[...properties].reverse().map((item) => (
             <View key={item.id} style={styles.card}>
               <Image source={item.image} style={styles.image} />
               <View style={styles.approvedBadge}>
