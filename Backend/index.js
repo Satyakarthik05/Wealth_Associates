@@ -8,6 +8,7 @@ const propertyRoutes = require("./Routes/PostPropertyRoutes");
 const RequestProperty = require("./Routes/RequestPropertyRoute");
 const fs = require("fs");
 const https = require("https");
+const District = require("./Models/Districts"); // Ensure the correct path
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -49,6 +50,20 @@ app.use("/requestProperty", RequestProperty);
 
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
+});
+
+app.post("/adddistricts", District.insertDataIfEmpty);
+
+// API to get districts
+app.get("/districts", async (req, res) => {
+  try {
+    const districts = await District.District.find();
+    res.json(districts);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching districts", error: error.message });
+  }
 });
 
 https.createServer(options, app).listen(443, () => {
