@@ -8,13 +8,14 @@ import Admin_panel from "./Screens/Admin_panel";
 import ForgotPassword from "./Screens/ForgetPassword";
 import OTPVerification from "./Screens/OtpVerification";
 import New_Password from "./Screens/New_Password";
+import AdminDashboard from "./Admin_Pan/AdminDashboard";
 
 const StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Login"
           component={Login_screen}
           options={{ headerShown: false }}
@@ -23,13 +24,13 @@ const StackNavigator = () => {
           name="Register"
           component={RegisterScreen}
           options={{ headerShown: false }}
-        />
+        /> */}
         <Stack.Screen
           name="Home"
-          component={Admin_panel}
+          component={AdminDashboard}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Forgetpassword"
           component={ForgotPassword}
           options={{ headerShown: false }}
@@ -43,7 +44,7 @@ const StackNavigator = () => {
           name="newpassword"
           component={New_Password}
           options={{ headerShown: false }}
-        />
+        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
