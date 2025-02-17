@@ -10,6 +10,7 @@ import ForgotPassword from "./Screens/ForgetPassword";
 import OTPVerification from "./Screens/OtpVerification";
 import New_Password from "./Screens/New_Password";
 import Agent_Profile from "./Screens/Agent/Agent_Profile";
+import StartingScreen from "./StartingScreen";
 
 const Stack = createStackNavigator();
 
@@ -45,6 +46,11 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen
+          name="Starting Screen"
+          component={StartingScreen}
+          options={{ headerShown: false }}
+        />
         {isLoggedIn ? (
           // If logged in, show the Home screen
           <Stack.Screen

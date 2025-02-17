@@ -352,8 +352,16 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  contentContainer: { padding: 10, paddingBottom: isWeb ? height * 0.1 : 10 }, // Add paddingBottom for web
+  container: {
+    // minHeight: "100vh", // Ensure it takes full screen height
+    padding: 20,
+  },
+  contentContainer: {
+    scrollView: {
+      flex: 1,
+      backgroundColor: "#fff", // Ensure background color
+    },
+  }, // Add paddingBottom for web
 
   // Action Buttons
   actionContainer: {

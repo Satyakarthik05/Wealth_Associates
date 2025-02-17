@@ -57,7 +57,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
 
   const LogOut = async () => {
     const token = await AsyncStorage.removeItem("authToken");
-    navigation.navigate("Login");
+    navigation.navigate("Starting Screen");
   };
 
   return (
