@@ -100,6 +100,24 @@ const AgentSign = async (req, res) => {
     }
 
     await newAgent.save();
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/786e00dc-fb5a-4bf1-aaa3-7525277c8bf1/leads",
+        {
+          params: {
+            name: FullName,
+            mobile: MobileNumber,
+            email: Email,
+            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
+          },
+        }
+      );
+
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+    }
+
     res.status(200).json({
       message: "Registration successful",
       smsResponse,
