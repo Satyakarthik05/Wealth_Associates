@@ -1,5 +1,6 @@
 const Agent = require("../Models/AgentModel");
-const RequestProperty = require("../Models/RequestProperty"); // Ensure you import the correct model
+const RequestProperty = require("../Models/RequestProperty");
+const axios = require("axios");
 
 const PropertyRequest = async (req, res) => {
   try {
@@ -37,6 +38,25 @@ const PropertyRequest = async (req, res) => {
 
     agent.RequestdPropertys.push(newRequestProperty._id);
     await agent.save();
+
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/e811c9e8-53b4-457f-8c09-e4511b22c584/leads", // Use environment variable for API URL
+        {
+          params: {
+            name: agent.FullName,
+            mobile: agent.MobileNumber,
+            email: agent.Email || "wealthassociation.com@gmail.com",
+            detail1: `PropertyType:${propertyType},Location:${location},Budget:${Budget}`,
+          },
+        }
+      );
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+      // Optionally, return an error response if the API call is critical
+      // return res.status(500).json({ message: "Failed to call call center API", error: error.message });
+    }
 
     res.status(200).json({
       message: "Requested property successfully",

@@ -287,7 +287,6 @@ const Register_screen = () => {
     if (
       !fullname ||
       !mobile ||
-      !email ||
       !district ||
       !constituency ||
       !location ||
@@ -310,7 +309,7 @@ const Register_screen = () => {
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email,
+      Email: email || "wealthassociate.com@gmail.com",
       District: district,
       Contituency: constituency,
       Locations: location,
@@ -704,6 +703,14 @@ const Register_screen = () => {
             <Text>
               Already have an account?{" "}
               <Text style={styles.loginLink}>Login here</Text>
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ marginTop: 5 }}
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+          >
+            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+              Privacy Policy
             </Text>
           </TouchableOpacity>
         </View>

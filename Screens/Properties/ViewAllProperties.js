@@ -67,8 +67,8 @@ const ViewAllProperties = () => {
                   style={styles.picker}
                 >
                   <Picker.Item label="-- Select Filter --" value="" />
-                  <Picker.Item label="Price: Low to High" value="lowToHigh" />
-                  <Picker.Item label="Price: High to Low" value="highToLow" />
+                  <Picker.Item label="Price: High to Low" value="lowToHigh" />
+                  <Picker.Item label="Price: Low to High" value="highToLow" />
                 </Picker>
               </View>
             </View>
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     margin: 10,
-    width: Platform.OS === "web" ? "45%" : "100%",
+    width: Platform.OS === "web" ? "30%" : "100%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,

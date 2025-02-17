@@ -133,7 +133,7 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
         setIsMobileEditable(false); // Disable mobile number field
         closeModal();
         onDetailsUpdate();
-        onDetailsUpdated();
+        if (onDetailsUpdated) onDetailsUpdated(); // Check if the function exists before calling
       } else if (response.status === 400) {
         Alert.alert("Error", "Unable to Update details.");
       } else {

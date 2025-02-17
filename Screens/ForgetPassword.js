@@ -112,12 +112,12 @@ export default function ForgotPassword() {
                   <Text style={styles.getOtpButtonText}>Get OTP</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.cancelButton}
                   // onPress={navigation.navigate("Login")}
                 >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               {loading && (
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: 16,
   },
   getOtpButton: {

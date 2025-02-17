@@ -232,7 +232,16 @@ const Admin_panel = () => {
     if (isAgentProfile) return <Agent_Profile />;
 
     return (
-      <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
+      <ScrollView
+        style={[styles.container, isWeb ? { overflow: "scroll" } : null]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          isWeb ? { flexGrow: 1 } : null,
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
+      </ScrollView>
     );
   };
 
@@ -297,7 +306,7 @@ const Admin_panel = () => {
             setSelectedSubItem(null);
           }}
         >
-          <Image source={require("../assets/logo.jpg")} style={styles.logo} />
+          <Image source={require("../assets/logo.png")} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
@@ -545,6 +554,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
+    height: "100vh",
   },
   toggleButton: {
     position: "absolute",

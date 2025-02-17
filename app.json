@@ -7,7 +7,7 @@
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/play_store_512.png",
+      "image": "./assets/app_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     "android": {
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/play_store_512.png",
+        "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
@@ -26,7 +26,7 @@
       "WRITE_EXTERNAL_STORAGE",
       "INTERNET"
     ],
-      "package": "com.satyakarthik.app"
+      "package": "com.wealthassociates.app"
     },
     "web": {
       "favicon": "./assets/icon-512.png"
