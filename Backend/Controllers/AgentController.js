@@ -20,7 +20,7 @@ const sendSMS = async (
       UserName: process.env.SMS_API_USERNAME || "wealthassociates",
       APIKey: process.env.SMS_API_KEY || "88F40D9F-0172-4D25-9CF5-5823211E67E7",
       MobileNo: MobileNumber,
-      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${FullName}\nPassword: ${Password}\nReferred By: ${ReferralCode}\n your referral Code :${refferedby}\nFor Any Query - 7796356789`,
+      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${MobileNumber}\nPassword: ${Password}\nReferral code: ${ReferralCode}\nFor Any Query - 7796356789`,
       SenderName: process.env.SMS_SENDER_NAME || "WTHASC",
       TemplateId: process.env.SMS_TEMPLATE_ID || "1707173279362715516",
       MType: 1,
@@ -54,7 +54,7 @@ const AgentSign = async (req, res) => {
     Locations,
     Expertise,
     Experience,
-    ReferredBy, // Use the ReferredBy value directly from the request
+    ReferredBy,
     MyRefferalCode,
   } = req.body;
 
@@ -100,6 +100,24 @@ const AgentSign = async (req, res) => {
     }
 
     await newAgent.save();
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/786e00dc-fb5a-4bf1-aaa3-7525277c8bf1/leads",
+        {
+          params: {
+            name: FullName,
+            mobile: MobileNumber,
+            email: Email,
+            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
+          },
+        }
+      );
+
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+    }
+
     res.status(200).json({
       message: "Registration successful",
       smsResponse,
@@ -134,42 +152,6 @@ const fetchReferredAgents = async (req, res) => {
   }
 };
 
-const ForgetPassword = async (req, res) => {
-  const { MobileNo } = req.body;
-  try {
-    const Agent = await AgentSchema.findOne({ MobileNumber: MobileNo });
-
-    if (Agent) {
-      const OTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-      Agent.Otp = OTP;
-      Agent.otpExpiresAt = Date.now() + 10 * 60 * 1000;
-      await Agent.save();
-      try {
-        const smsResponse = await sendSMS(MobileNo, OTP);
-        return res.status(200).json({
-          message: "OTP sent successfully and stored in the database",
-          smsResponse,
-        });
-      } catch (smsError) {
-        console.error("Failed to send SMS:", smsError.message);
-        return res.status(500).json({
-          message:
-            "Failed to send OTP. Please check the mobile number or try again later.",
-          error: smsError.message,
-        });
-      }
-    } else {
-      return res.status(404).json({ message: "Mobile number not found" });
-    }
-  } catch (dbError) {
-    console.error("Database error:", dbError.message);
-    return res
-      .status(500)
-      .json({ message: "Database error", error: dbError.message });
-  }
-};
-
 const AgentLogin = async (req, res) => {
   const { MobileNumber, Password } = req.body;
 
@@ -185,7 +167,7 @@ const AgentLogin = async (req, res) => {
     }
 
     const token = await jwt.sign({ AgentId: Agents._id }, secret, {
-      expiresIn: "1h",
+      expiresIn: "30d",
     });
 
     res.status(200).json({ message: "Login Successful", token });
@@ -207,4 +189,36 @@ const getAgent = async (req, res) => {
   }
 };
 
-module.exports = { AgentSign, AgentLogin, getAgent, fetchReferredAgents };
+const updateAgentDetails = async (req, res) => {
+  const { MobileNumber, FullName, Email, Locations, Expertise, Experience } =
+    req.body;
+
+  try {
+    const existingAgent = await AgentSchema.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Email = Email || existingAgent.Email;
+    existingAgent.Locations = Locations || existingAgent.Locations;
+    existingAgent.Expertise = Expertise || existingAgent.Expertise;
+    existingAgent.Experience = Experience || existingAgent.Experience;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Agent details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  AgentSign,
+  AgentLogin,
+  getAgent,
+  fetchReferredAgents,
+  updateAgentDetails,
+};

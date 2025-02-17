@@ -287,7 +287,6 @@ const Register_screen = () => {
     if (
       !fullname ||
       !mobile ||
-      !email ||
       !district ||
       !constituency ||
       !location ||
@@ -310,7 +309,7 @@ const Register_screen = () => {
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email,
+      Email: email || "wealthassociate.com@gmail.com",
       District: district,
       Contituency: constituency,
       Locations: location,
@@ -356,7 +355,10 @@ const Register_screen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        nestedScrollEnabled={true}
+      >
         <View style={styles.card}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
           <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
@@ -379,6 +381,12 @@ const Register_screen = () => {
                     onChangeText={setFullname}
                     returnKeyType="next"
                     onSubmitEditing={() => mobileRef.current.focus()}
+                    onFocus={() => {
+                      setShowDistrictList(false);
+                      setShowConstituencyList(false);
+                      setShowExpertiseList(false);
+                      setShowExperienceList(false);
+                    }}
                   />
                   <FontAwesome
                     name="user"
@@ -456,13 +464,22 @@ const Register_screen = () => {
                     value={districtSearch}
                     onChangeText={(text) => {
                       setDistrictSearch(text);
+                      setShowConstituencyList(false);
                       setShowDistrictList(true);
                     }}
-                    onFocus={() => setShowDistrictList(true)}
+                    onFocus={() => {
+                      setShowDistrictList(true);
+                      setShowConstituencyList(false);
+                      setShowExpertiseList(false);
+                      setShowExperienceList(false);
+                    }}
                   />
                   {showDistrictList && (
                     <View style={styles.dropdownContainer}>
-                      <ScrollView style={styles.scrollView}>
+                      <ScrollView
+                        style={styles.scrollView}
+                        scrollEnabled={true}
+                      >
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
                             key={item.name}
@@ -500,6 +517,9 @@ const Register_screen = () => {
                     onFocus={() => {
                       setShowConstituencyList(true);
                       setShowDistrictList(false);
+                      setShowDistrictList(false);
+                      // setShowConstituencyList(false);
+                      setShowExpertiseList(false);
                     }}
                   />
                   {showConstituencyList && (
@@ -516,7 +536,6 @@ const Register_screen = () => {
                             }}
                             onFocus={() => {
                               setShowExperienceList(true);
-                              setShowDistrictList(false);
                             }}
                           >
                             <Text>{item.name}</Text>
@@ -686,6 +705,14 @@ const Register_screen = () => {
               <Text style={styles.loginLink}>Login here</Text>
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={{ marginTop: 5 }}
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+          >
+            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+              Privacy Policy
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       <StatusBar style="auto" />
@@ -716,6 +743,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     alignItems: "center",
+    margin: 20,
+    marginTop: 20,
     borderWidth: Platform.OS === "web" ? 0 : 1,
     borderColor: Platform.OS === "web" ? "transparent" : "#ccc",
   },
@@ -759,6 +788,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
   },
+  logo: {
+    width: Platform.OS === "android" ? 200 : 200,
+    height: Platform.OS === "android" ? 200 : 200,
+  },
   icon: {
     position: "absolute",
     right: 10,
@@ -798,6 +831,7 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontWeight: "bold",
+    color: "#e82e5f",
   },
   loadingIndicator: {
     marginTop: 20,
@@ -829,15 +863,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
-
-  // list: {
-  //   maxHeight: 150,
-  // },
-  // listItem: {
-  //   padding: 10,
-  //   borderBottomWidth: 1,
-  //   borderBottomColor: "#ccc",
-  // },
+  tagline: {
+    marginTop: -30,
+    marginBottom: 15,
+  },
+  title: {
+    fontWeight: 700,
+    fontSize: 23,
+    marginBottom: -10,
+  },
 });
 
 export default Register_screen;

@@ -156,27 +156,24 @@ const PostProperty = ({ closeModal }) => {
 
   const takePhotoWithCamera = async () => {
     try {
-      if (Platform.OS !== "web") {
-        const permissionResult =
-          await ImagePicker.requestCameraPermissionsAsync();
-        if (permissionResult.status !== "granted") {
-          alert("Permission is required to use the camera.");
-          return;
-        }
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
-        const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaType.Images, // Updated here
-          quality: 1,
-        });
+      if (status !== "granted") {
+        alert("Camera permission is required to take a photo.");
+        return;
+      }
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          setPhoto(result.assets[0].uri);
-        }
-      } else {
-        alert("Camera functionality is not supported on the web.");
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct property
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error taking photo with camera:", error);
+      console.error("Error opening camera:", error);
     }
   };
 

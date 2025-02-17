@@ -1,19 +1,13 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const AgentSchema = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const Agent = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
 
 secret = "Wealth@123";
 
-const sendSMS = async (
-  MobileNumber,
-  FullName,
-  Password,
-  ReferralCode,
-  refferedby
-) => {
+const sendSMS = async (MobileNumber, Password, refferedby) => {
   try {
     const apiUrl =
       process.env.SMS_API_URL || "http://bulksms.astinsoft.com/api/v2/sms/Send";
@@ -21,7 +15,7 @@ const sendSMS = async (
       UserName: process.env.SMS_API_USERNAME || "wealthassociates",
       APIKey: process.env.SMS_API_KEY || "88F40D9F-0172-4D25-9CF5-5823211E67E7",
       MobileNo: MobileNumber,
-      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${FullName}\nPassword: ${Password}\nReferred By: ${ReferralCode}\n your referral Code :${refferedby}\nFor Any Query - 7796356789`,
+      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${MobileNumber}\nPassword: ${Password}\nReferral code: ${refferedby}\nFor Any Query - 7796356789`,
       SenderName: process.env.SMS_SENDER_NAME || "WTHASC",
       TemplateId: process.env.SMS_TEMPLATE_ID || "1707173279362715516",
       MType: 1,
@@ -67,7 +61,6 @@ const CustomerSign = async (req, res) => {
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
 
-    // Use the ReferredBy value from the request, or default to "WA0000000001" if empty
     const finalReferredBy = ReferredBy || "WA0000000001";
 
     const newCustomer = new CustomerSchema({
@@ -78,7 +71,7 @@ const CustomerSign = async (req, res) => {
       Contituency,
       Locations,
       Occupation,
-      ReferredBy: finalReferredBy, // Use the finalReferredBy value
+      ReferredBy: finalReferredBy,
       MyRefferalCode: refferedby,
     });
 
@@ -97,8 +90,37 @@ const CustomerSign = async (req, res) => {
     }
 
     await newCustomer.save();
+
+    const agent = await Agent.findOne({ MyRefferalCode: ReferredBy });
+
+    if (agent) {
+      if (!Array.isArray(agent.MyCustomers)) {
+        agent.MyCustomers = [];
+      }
+
+      agent.MyCustomers.push(newCustomer._id);
+      await agent.save();
+    }
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/9e7ab9c6-ae34-428a-9820-81a8009aa6c9/leads",
+        {
+          params: {
+            name: FullName,
+            mobile: MobileNumber,
+            email: "wealthassociation.com@gmail.com",
+            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
+          },
+        }
+      );
+
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+    }
+
     res.status(200).json({
-      message: " Customer Registration successful",
+      message: "Customer Registration successful",
       smsResponse,
     });
   } catch (error) {
@@ -109,21 +131,17 @@ const CustomerSign = async (req, res) => {
 
 const fetchReferredCustomers = async (req, res) => {
   try {
-    // Find the authenticated agent
-    const authenticatedAgent = await AgentSchema.findById(req.AgentId);
+    const authenticatedAgent = await Agent.findById(req.AgentId);
     if (!authenticatedAgent) {
       return res.status(404).json({ error: "Authenticated agent not found" });
     }
 
-    // Retrieve the MyRefferalCode of the authenticated agent
     const myReferralCode = authenticatedAgent.MyRefferalCode;
 
-    // Fetch all agents whose ReferredBy matches the authenticated agent's MyRefferalCode
     const referredAgents = await CustomerSchema.find({
       ReferredBy: myReferralCode,
     });
 
-    // Return the result
     res.status(200).json({ message: "Your Agents", referredAgents });
   } catch (error) {
     console.error("Error fetching referred agents:", error.message);

@@ -98,6 +98,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
             <Picker.Item label="-- Select Type --" value="" />
             <Picker.Item label="Residential" value="residential" />
             <Picker.Item label="Commercial" value="commercial" />
+            <Picker.Item label="Villa" value="Villa" />
             <Picker.Item label="Land" value="land" />
           </Picker>
         </View>

@@ -46,6 +46,24 @@ const AgentScheme = new mongoose.Schema({
   Otp: {
     type: String,
   },
+  PostedPropertys: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+    },
+  ],
+  RequestdPropertys: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RequestProperty",
+    },
+  ],
+  MyCustomers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customers",
+    },
+  ],
 });
 
 const Agent = mongoose.model("Agent_Wealth_Associate", AgentScheme);

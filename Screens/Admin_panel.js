@@ -18,6 +18,7 @@ import { API_URL } from "../data/ApiUrl";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
+import { useNavigation } from "@react-navigation/native";
 
 //importing components
 import Agent_Right from "../Screens/Agent/Agent_Right";
@@ -36,6 +37,8 @@ import PostProperty from "./Properties/PostProperty";
 import Core_Clients from "./coreClients/Core_Clients";
 import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
+import Agent_Profile from "./Agent/Agent_Profile";
+import Modify_Deatils from "./Agent/Modify_Details";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -81,6 +84,7 @@ const menuItems = [
 ];
 
 const Admin_panel = () => {
+  const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
     Platform.OS !== "android"
   );
@@ -108,11 +112,22 @@ const Admin_panel = () => {
   const [isRskill, setisRsSkill] = useState(false);
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
+  const [isAgentProfile, setIsAgentProfile] = useState(false);
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);
     }
   };
+
+  const [refreshKey, setRefreshKey] = useState(0); // State to force refresh
+
+  const handleDetailsUpdated = () => {
+    setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
+    getDetails(); // Re-fetch details from the API
+  };
+  useEffect(() => {
+    getDetails();
+  }, [refreshKey]);
 
   const toggleMenuItem = (title) => {
     setExpandedItems((prev) => ({
@@ -123,6 +138,11 @@ const Admin_panel = () => {
     if (Platform.OS === "android" && !isSidebarExpanded) {
       setIsSidebarExpanded(true);
     }
+  };
+
+  const handleViewAllPropertiesClick = () => {
+    setIsAllPropertiesVisible(true);
+    setSelectedSubItem("View All Properties");
   };
 
   const handleSubItemClick = (subItem) => {
@@ -209,7 +229,20 @@ const Admin_panel = () => {
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
-    return <Agent_Right />;
+    if (isAgentProfile) return <Agent_Profile />;
+
+    return (
+      <ScrollView
+        style={[styles.container, isWeb ? { overflow: "scroll" } : null]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          isWeb ? { flexGrow: 1 } : null,
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
+      </ScrollView>
+    );
   };
 
   const getDetails = async () => {
@@ -267,6 +300,7 @@ const Admin_panel = () => {
             setCoreClients(false);
             setCoreProjects(false);
             setisRsSkill(false);
+            setIsAgentProfile(false);
 
             // Set the default view to Agent_Right
             setSelectedSubItem(null);
@@ -276,14 +310,36 @@ const Admin_panel = () => {
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
-            <Image
+            {/* <Image
               source={require("../assets/usflag.png")}
               style={styles.icon}
+            /> */}
+            {/* <Text style={styles.language}>English</Text> */}
+            <Ionicons name="moon-outline" size={20} color="#000" />
+            <Ionicons name="notifications-outline" size={20} color="#000" />
+            <Ionicons
+              name="person-circle-outline"
+              size={20}
+              color="#000"
+              onPress={() => {
+                setIsAgentProfile(true);
+                setIsAddAgentVisible(false);
+                setIsViewAgentVisible(false);
+                setIsRequestPropertyVisible(false);
+                setIsPostedPropertiesVisible(false);
+                setIsRequestedPropertiesVisible(false);
+                setIsAllPropertiesVisible(false);
+                setIsViewCustomersModalVisible(false);
+                setIsExpertPanelVisible(false);
+                setIsRegiCusVisible(false);
+                setIsViewSkilledLabourVisible(false);
+                setIsRequestExpertVisible(false);
+                setAddPost(false);
+                setCoreClients(false);
+                setCoreProjects(false);
+                setisRsSkill(false);
+              }}
             />
-            <Text style={styles.language}>English</Text>
-            <Ionicons name="moon-outline" size={24} color="#000" />
-            <Ionicons name="notifications-outline" size={24} color="#000" />
-            <Ionicons name="person-circle-outline" size={30} color="#000" />
           </View>
         </View>
       </View>
@@ -309,7 +365,7 @@ const Admin_panel = () => {
                   style={styles.menuItem}
                   onPress={() => toggleMenuItem(item.title)}
                 >
-                  <Ionicons name={item.icon} size={24} color="#555" />
+                  <Ionicons name={item.icon} size={18} color="#555" />
                   {isSidebarExpanded && (
                     <Text style={styles.menuText}>{item.title}</Text>
                   )}
@@ -339,11 +395,11 @@ const Admin_panel = () => {
               </View>
             )}
           />
-          <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
+          {/* <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text> */}
         </View>
 
         {/* Main Content Area */}
-        <View style={styles.contentArea}>
+        <View style={styles.contentArea} key={refreshKey}>
           <View style={styles.container}>
             <ScrollView>
               <View style={styles.userContent}>
@@ -415,11 +471,12 @@ const styles = StyleSheet.create({
   navbar: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: 8,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderColor: "#ddd",
     justifyContent: "space-between",
+    marginTop: -10,
   },
   logo: {
     width: 100,
@@ -436,7 +493,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: Platform.OS === "web" ? 0 : "10%",
-    gap: Platform.OS === "web" ? "10px" : 0,
+    gap: Platform.OS === "web" ? "10px" : 10,
+    marginLeft: Platform.OS === "android" ? -15 : "0",
   },
   icon: {
     width: 20,
@@ -463,14 +521,14 @@ const styles = StyleSheet.create({
     width: 250,
   },
   collapsedSidebar: {
-    width: 70,
+    width: 50,
     alignItems: "center",
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     justifyContent: "space-between",
   },
   menuText: {
@@ -496,11 +554,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
+    height: "100vh",
   },
   toggleButton: {
     position: "absolute",
-    top: 25,
-    left: 20,
+    top: 18,
+    left: 10,
     zIndex: 1000,
     backgroundColor: "#fff",
     padding: 10,
