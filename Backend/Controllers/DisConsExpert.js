@@ -3,6 +3,7 @@ const {
   Constituency,
   Expertise,
   Occupation,
+  PropertyType,
 } = require("../Models/Districts");
 
 const district = async (req, res) => {
@@ -48,4 +49,21 @@ const Occupations = async (req, res) => {
   }
 };
 
-module.exports = { district, constituency, Expertis, Occupations };
+const PropertyTypes = async (req, res) => {
+  try {
+    const districts = await PropertyType.find();
+    res.json(districts);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching districts", error: error.message });
+  }
+};
+
+module.exports = {
+  district,
+  constituency,
+  Expertis,
+  Occupations,
+  PropertyTypes,
+};

@@ -28,6 +28,13 @@ const OccupationSchema = new mongoose.Schema({
 
 const Occupation = mongoose.model("Occupatiopons", OccupationSchema);
 
+const PropertyTypeSchema = new mongoose.Schema({
+  name: String,
+  code: String,
+});
+
+const PropertyType = mongoose.model("PropertyTypes", PropertyTypeSchema);
+
 // const insertDataIfEmpty = async () => {
 //   try {
 //     const count = await District.countDocuments();
@@ -47,4 +54,5 @@ module.exports = {
   Constituency,
   Expertise,
   Occupation,
+  PropertyType,
 };

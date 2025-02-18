@@ -29,8 +29,16 @@ const PostProperty = ({ closeModal }) => {
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
   const [loading, setLoading] = useState(false);
-  const [propertyTypes, setPropertyTypes] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  // const [propertyTypes, setPropertyTypes] = useState([]);
+  const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
+  const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
+
+  const propertyTypes = [
+    { name: "villas", code: "01" },
+    { name: "Commersial", code: "02" },
+    { name: "Land", code: "03" },
+    { name: "House", code: "04" },
+  ];
 
   // Fetch agent details
   const getDetails = async () => {
@@ -51,7 +59,7 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Fetch property types
+  // Fetch property types from backend
   const fetchPropertyTypes = async () => {
     try {
       const response = await fetch(`${API_URL}/properties/propertyTypes`);
@@ -66,6 +74,11 @@ const PostProperty = ({ closeModal }) => {
     getDetails();
     fetchPropertyTypes();
   }, []);
+
+  // Filter property types based on search input
+  const filteredPropertyTypes = propertyTypes.filter((item) =>
+    item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
 
   // Validate form inputs
   const validateForm = () => {
@@ -224,27 +237,33 @@ const PostProperty = ({ closeModal }) => {
           </View>
           {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
           <Text style={styles.label}>Property Type</Text>
-          <View>
+          <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Select Property Type"
-              value={propertyType}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setShowDropdown(false)}
-              editable={false}
+              placeholder="Search Property Type"
+              placeholderTextColor="rgba(25, 25, 25, 0.5)"
+              value={propertyTypeSearch}
+              onChangeText={(text) => {
+                setPropertyTypeSearch(text);
+                setShowPropertyTypeList(true);
+              }}
+              onFocus={() => {
+                setShowPropertyTypeList(true);
+              }}
             />
-            {showDropdown && (
-              <View style={styles.dropdown}>
-                {propertyTypes.map((type, index) => (
+            {showPropertyTypeList && (
+              <View style={styles.dropdownContainer}>
+                {filteredPropertyTypes.map((item) => (
                   <TouchableOpacity
-                    key={index}
-                    style={styles.dropdownItem}
+                    key={item.code}
+                    style={styles.listItem}
                     onPress={() => {
-                      setPropertyType(type);
-                      setShowDropdown(false);
+                      setPropertyType(item.name);
+                      setPropertyTypeSearch(item.name);
+                      setShowPropertyTypeList(false);
                     }}
                   >
-                    <Text>{type}</Text>
+                    <Text>{item.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -345,24 +364,30 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
   },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    marginTop: 5,
-    maxHeight: 150,
-    overflow: "hidden",
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
   },
-  dropdownItem: {
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+    maxHeight: 200,
+    overflow: "scroll",
+  },
+  listItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    backgroundColor: "#f9f9f9",
+    borderBottomColor: "#ccc",
   },
   uploadSection: { alignItems: "center", marginBottom: 20 },
-  uploadedImageContainer: {
-    alignItems: "center",
-  },
   uploadedImage: {
     width: 100,
     height: 100,

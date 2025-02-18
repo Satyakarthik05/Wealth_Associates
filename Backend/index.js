@@ -50,6 +50,24 @@ app.use("/properties", propertyRoutes);
 app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);
 
+const propertyTypes = [
+  { name: "Apartment", code: "01" },
+  { name: "Residential Properties", code: "02" },
+  { name: "Commercial Properties", code: "02" },
+  { name: "Land", code: "03" },
+  { name: "House", code: "04" },
+];
+
+const insertDataIfEmpty = async () => {
+  const count = await District.PropertyType.countDocuments();
+  if (count === 0) {
+    await District.PropertyType.insertMany(propertyTypes);
+    console.log("Districts added to DB");
+  }
+};
+
+app.post("/sendPro", insertDataIfEmpty);
+
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
