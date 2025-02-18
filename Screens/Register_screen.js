@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -40,40 +40,41 @@ const Register_screen = () => {
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [showExperienceList, setShowExperienceList] = useState(false);
+  const [districts, setDistricts] = useState([]);
   const mobileRef = useRef(null);
   const emailRef = useRef(null);
   const districtRef = useRef(null);
 
   const navigation = useNavigation();
 
-  const districts = [
-    { name: "Select District", code: "" },
-    { name: "Araku", code: "01" },
-    { name: "Srikakulam", code: "02" },
-    { name: "Vizianagaram", code: "03" },
-    { name: "Visakhapatnam", code: "04" },
-    { name: "Anakapalli", code: "05" },
-    { name: "Kakinada", code: "06" },
-    { name: "Amalapuram", code: "07" },
-    { name: "Rajahmundry", code: "08" },
-    { name: "Narasapuram", code: "09" },
-    { name: "Eluru", code: "10" },
-    { name: "Machilipatnam", code: "11" },
-    { name: "Vijayawada", code: "12" },
-    { name: "Guntur", code: "13" },
-    { name: "Narasaraopet", code: "14" },
-    { name: "Bapatla", code: "15" },
-    { name: "Ongole", code: "16" },
-    { name: "Nandyal", code: "17" },
-    { name: "Kurnool", code: "18" },
-    { name: "Anantapur", vacode: "19" },
-    { name: "Hindupur", vcode: "20" },
-    { name: "Kadapa", code: "21" },
-    { name: "Nellore", code: "22" },
-    { name: "Tirupati", code: "23" },
-    { name: "Rajampet", code: "24" },
-    { name: "Chittoor", code: "25" },
-  ];
+  // const districts = [
+  //   { name: "Select District", code: "" },
+  //   { name: "Araku", code: "01" },
+  //   { name: "Srikakulam", code: "02" },
+  //   { name: "Vizianagaram", code: "03" },
+  //   { name: "Visakhapatnam", code: "04" },
+  //   { name: "Anakapalli", code: "05" },
+  //   { name: "Kakinada", code: "06" },
+  //   { name: "Amalapuram", code: "07" },
+  //   { name: "Rajahmundry", code: "08" },
+  //   { name: "Narasapuram", code: "09" },
+  //   { name: "Eluru", code: "10" },
+  //   { name: "Machilipatnam", code: "11" },
+  //   { name: "Vijayawada", code: "12" },
+  //   { name: "Guntur", code: "13" },
+  //   { name: "Narasaraopet", code: "14" },
+  //   { name: "Bapatla", code: "15" },
+  //   { name: "Ongole", code: "16" },
+  //   { name: "Nandyal", code: "17" },
+  //   { name: "Kurnool", code: "18" },
+  //   { name: "Anantapur", vacode: "19" },
+  //   { name: "Hindupur", vcode: "20" },
+  //   { name: "Kadapa", code: "21" },
+  //   { name: "Nellore", code: "22" },
+  //   { name: "Tirupati", code: "23" },
+  //   { name: "Rajampet", code: "24" },
+  //   { name: "Chittoor", code: "25" },
+  // ];
 
   const constituencies = [
     { name: "ICHCHAPURAM", code: "001" },
@@ -283,6 +284,16 @@ const Register_screen = () => {
     item.name.toLowerCase().includes(experienceSearch.toLowerCase())
   );
 
+  const fetchDistricts = async () => {
+    try {
+      const response = await fetch("https://wealthassociate.in/districts");
+      const data = await response.json();
+      setDistricts(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
+
   const handleRegister = async () => {
     if (
       !fullname ||
@@ -352,6 +363,10 @@ const Register_screen = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDistricts();
+  }, []);
 
   return (
     <View style={styles.container}>

@@ -12,10 +12,8 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import imageCompression from "browser-image-compression";
 import { API_URL } from "../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,6 +29,8 @@ const PostProperty = ({ closeModal }) => {
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
   const [loading, setLoading] = useState(false);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Fetch agent details
   const getDetails = async () => {
@@ -51,8 +51,20 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Fetch property types
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/properties/propertyTypes`);
+      const data = await response.json();
+      setPropertyTypes(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
+    fetchPropertyTypes();
   }, []);
 
   // Validate form inputs
@@ -65,13 +77,6 @@ const PostProperty = ({ closeModal }) => {
     if (!photo) newErrors.photo = "Please upload a photo.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Convert blob URL to file (for web)
-  const blobToFile = async (blobUrl, fileName) => {
-    const response = await fetch(blobUrl);
-    const blob = await response.blob();
-    return new File([blob], fileName, { type: blob.type });
   };
 
   // Handle property posting
@@ -142,7 +147,7 @@ const PostProperty = ({ closeModal }) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct option
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
 
@@ -164,7 +169,7 @@ const PostProperty = ({ closeModal }) => {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct property
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1,
       });
@@ -219,16 +224,32 @@ const PostProperty = ({ closeModal }) => {
           </View>
           {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
           <Text style={styles.label}>Property Type</Text>
-          <Picker
-            selectedValue={propertyType}
-            onValueChange={(value) => setPropertyType(value)}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Type --" value="" />
-            <Picker.Item label="Apartment" value="Apartment" />
-            <Picker.Item label="House" value="House" />
-            <Picker.Item label="Land" value="Land" />
-          </Picker>
+          <View>
+            <TextInput
+              style={styles.input}
+              placeholder="Select Property Type"
+              value={propertyType}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setShowDropdown(false)}
+              editable={false}
+            />
+            {showDropdown && (
+              <View style={styles.dropdown}>
+                {propertyTypes.map((type, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setPropertyType(type);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    <Text>{type}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.propertyType && (
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
@@ -324,13 +345,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
   },
-  picker: {
+  dropdown: {
     borderWidth: 1,
     borderColor: "#ddd",
-    marginBottom: 10,
-    borderRadius: 10,
+    borderRadius: 8,
+    marginTop: 5,
+    maxHeight: 150,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
     backgroundColor: "#f9f9f9",
-    height: Platform.OS === "android" ? "" : 40,
   },
   uploadSection: { alignItems: "center", marginBottom: 20 },
   uploadedImageContainer: {
@@ -391,7 +418,7 @@ const styles = StyleSheet.create({
   },
   errorText: { color: "red", fontSize: 12, marginTop: -8, marginBottom: 10 },
   disabledButton: {
-    backgroundColor: "#ccc", // Disabled button color
+    backgroundColor: "#ccc",
   },
   loadingIndicator: {
     marginTop: 20,
