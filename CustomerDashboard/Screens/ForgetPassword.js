@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -62,7 +62,7 @@ export default function ForgotPassword() {
         <View style={styles.card}>
           <View style={styles.logoContainer}>
             <Image
-              source={require("../assets/logo.png")}
+              source={require("../../assets/logo.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -76,7 +76,7 @@ export default function ForgotPassword() {
             }
           >
             <Image
-              source={require("../assets/forgot_password.png")}
+              source={require("../../assets/forgot_password.png")}
               style={styles.illustration}
               resizeMode="contain"
             />

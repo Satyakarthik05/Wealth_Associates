@@ -12,13 +12,13 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import CustomModal from "../../Components/CustomModal";
+import CustomModal from "../../../Components/CustomModal";
 import PostProperty from "../Properties/PostProperty";
 import RequestProperty from "../Properties/RequestProperty";
 import AddClubMember from "../Customer/Regicus";
 import RequestExpert from "../ExpertPanel/Requested_expert";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -48,18 +48,21 @@ const actionButtons = [
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../../assets/Logo Final 1.png"),
+    logo: require("../../../assets/Logo Final 1.png"),
   },
 ];
 
 const coreProjects = [
-  { name: "Bay Town", logo: require("../../assets/Main-Logo (1) 1.png") },
-  { name: "Icon", logo: require("../../assets/Meenakshi-Icon-Blac (2) 1.png") },
+  { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
+  {
+    name: "Icon",
+    logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
+  },
   {
     name: "Surya Avenue",
-    logo: require("../../assets/Surya Avenue Logo[1] 1.png"),
+    logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
   },
-  { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
+  { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
 ];
 const numColumns = width > 800 ? 4 : 1;
 
@@ -113,15 +116,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../assets/Land.jpg");
+        return require("../../../assets/Land.jpg");
       case "residential":
-        return require("../../assets/residntial.jpg");
+        return require("../../../assets/residntial.jpg");
       case "commercial":
-        return require("../../assets/commercial.jpg");
+        return require("../../../assets/commercial.jpg");
       case "villa":
-        return require("../../assets/villa.jpg");
+        return require("../../../assets/villa.jpg");
       default:
-        return require("../../assets/house.png");
+        return require("../../../assets/house.png");
     }
   };
 
@@ -283,7 +286,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {[...firstRowProperties].reverse().map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : require("../../../assets/logo.png");
 
                 return (
                   <View key={index} style={styles.propertyCard}>
@@ -314,7 +317,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {[...secondRowProperties].reverse().map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : require("../../../assets/logo.png");
 
                 return (
                   <View key={index} style={styles.propertyCard}>

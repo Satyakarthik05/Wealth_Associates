@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window"); // Get screen width for responsiveness
 
@@ -101,7 +101,7 @@ const ViewPostedProperties = () => {
           {[...properties].reverse().map((item) => {
             const imageUri = item.photo
               ? { uri: `${API_URL}${item.photo}` } // Adjusted to concatenate the `photo` path
-              : require("../../assets/logo.png"); // Local fallback image
+              : require("../../../assets/logo.png"); // Local fallback image
 
             return (
               <View key={item._id} style={styles.card}>

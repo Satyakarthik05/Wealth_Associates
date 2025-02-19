@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -63,7 +63,7 @@ export default function ViewAgents() {
           agents.map((agent) => (
             <View key={agent._id} style={styles.agentCard}>
               <Image
-                source={require("../../assets/man.png")}
+                source={require("../../../assets/man.png")}
                 style={styles.agentImage}
               />
               <View style={styles.agentDetails}>

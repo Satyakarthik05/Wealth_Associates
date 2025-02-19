@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
