@@ -29,16 +29,16 @@ const PostProperty = ({ closeModal }) => {
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
   const [loading, setLoading] = useState(false);
-  // const [propertyTypes, setPropertyTypes] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
 
-  const propertyTypes = [
-    { name: "villas", code: "01" },
-    { name: "Commersial", code: "02" },
-    { name: "Land", code: "03" },
-    { name: "House", code: "04" },
-  ];
+  // const propertyTypes = [
+  //   { name: "villas", code: "01" },
+  //   { name: "Commersial", code: "02" },
+  //   { name: "Land", code: "03" },
+  //   { name: "House", code: "04" },
+  // ];
 
   // Fetch agent details
   const getDetails = async () => {
@@ -62,7 +62,7 @@ const PostProperty = ({ closeModal }) => {
   // Fetch property types from backend
   const fetchPropertyTypes = async () => {
     try {
-      const response = await fetch(`${API_URL}/properties/propertyTypes`);
+      const response = await fetch(`${API_URL}/discons/propertytype`);
       const data = await response.json();
       setPropertyTypes(data);
     } catch (error) {
