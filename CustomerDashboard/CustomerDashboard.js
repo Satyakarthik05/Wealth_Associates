@@ -105,6 +105,11 @@ export default function CustomerDashboard() {
             component={PrivacyPolicy}
             options={{ headerShown: true }}
           />
+          <Stack.Screen
+            name="Starting Screen"
+            component={StartingScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
