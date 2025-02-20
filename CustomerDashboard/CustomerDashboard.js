@@ -13,6 +13,7 @@ import Agent_Profile from "./Screens/Agent/Agent_Profile";
 import PrivacyPolicy from "./Screens/PrivacyPolicy";
 import StartingScreen from "../StartingScreen";
 import { NavigationIndependentTree } from "@react-navigation/native";
+import App from "../App";
 // import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 
 const Stack = createStackNavigator();
@@ -106,8 +107,8 @@ export default function CustomerDashboard() {
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name="Starting Screen"
-            component={StartingScreen}
+            name="App"
+            component={App}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

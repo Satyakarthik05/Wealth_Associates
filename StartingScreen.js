@@ -18,6 +18,7 @@ import CoreMemberIcon from "./assets/core-member-icon.png";
 import ReferralIcon from "./assets/referral-icon.png";
 import WealthAssociatesLogo from "./assets/logo.png";
 import { useNavigation } from "@react-navigation/native";
+import CoreDashboard from "./CoreDashboard/CoreDashboard";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -60,11 +61,7 @@ const StartingScreen = () => {
 
               <TouchableOpacity
                 style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() =>
-                  Alert.alert(
-                    "Only Agent login available This feature is under Development"
-                  )
-                }
+                onPress={() => navigation.navigate("CoreDashboard")}
               >
                 <Text style={styles.buttonText}>Core Member login</Text>
                 <Image source={CoreMemberIcon} style={styles.buttonIcon} />
