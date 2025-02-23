@@ -111,6 +111,11 @@ export default function CoreDashboard() {
             component={App}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="Starting Screen"
+            component={StartingScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
