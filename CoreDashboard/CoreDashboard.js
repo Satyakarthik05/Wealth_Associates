@@ -56,7 +56,7 @@ export default function CoreDashboard() {
             component={StartingScreen}
             options={{ headerShown: false }}
           /> */}
-          {isLoggedIn ? (
+          {/*{isLoggedIn ? (
             // If logged in, show the Home screen
             <Stack.Screen
               name="Homes"
@@ -70,13 +70,13 @@ export default function CoreDashboard() {
               component={Login_screen}
               options={{ headerShown: false }}
             />
-          )}
+          )}*/}
           {/* <Stack.Screen
           name="Register"
           component={RegisterScreen}
           options={{ headerShown: false }}
         /> */}
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
             options={{ headerShown: false }}
@@ -95,7 +95,7 @@ export default function CoreDashboard() {
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="Home"
             component={Admin_panel}

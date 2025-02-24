@@ -45,16 +45,16 @@ const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const menuItems = [
-  {
-    title: "Agents",
-    icon: "person-add-outline",
-    subItems: ["Register Agent", "View Agents"],
-  },
-  {
-    title: "Customers",
-    icon: "people-outline",
-    subItems: ["Add Customer", "View Customers"],
-  },
+  // {
+  //   title: "Agents",
+  //   icon: "person-add-outline",
+  //   subItems: ["Register Agent", "View Agents"],
+  // },
+  // {
+  //   title: "Customers",
+  //   icon: "people-outline",
+  //   subItems: ["Add Customer", "View Customers"],
+  // },
   {
     title: "Properties",
     icon: "home-outline",
