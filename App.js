@@ -14,6 +14,7 @@ import PrivacyPolicy from "./Screens/PrivacyPolicy";
 import StartingScreen from "./StartingScreen";
 import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
+import CoreDashboard from "./CoreDashboard/CoreDashboard";
 
 const Stack = createStackNavigator();
 
@@ -103,6 +104,11 @@ export default function App() {
           <Stack.Screen
             name="CustomerDashboard"
             component={CustomerDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CoreDashboard"
+            component={CoreDashboard}
             options={{ headerShown: false }}
           />
           <Stack.Screen
