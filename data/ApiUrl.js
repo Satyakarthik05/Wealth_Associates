@@ -1,1 +1,1 @@
-export const API_URL = "https://wealthassociate.in";
+export const API_URL = "https://localhost:443";

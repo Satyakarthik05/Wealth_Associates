@@ -40,6 +40,7 @@ import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
 import Agent_Profile from "./Agent/Agent_Profile";
 import Modify_Deatils from "./Agent/Modify_Details";
+import ExpertDetails from "./ExpertPanel/ExpertDetails";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -113,6 +114,7 @@ const Admin_panel = () => {
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
+  const [isExperDetails, setIsExpertDetails] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -146,6 +148,10 @@ const Admin_panel = () => {
     setIsAllPropertiesVisible(true);
     setSelectedSubItem("View All Properties");
   };
+  const handleExpertDetails = () => {
+    setIsExpertDetails(true);
+    setSelectedSubItem("expert details");
+  };
 
   const handleSubItemClick = (subItem) => {
     setIsAddAgentVisible(false);
@@ -163,6 +169,7 @@ const Admin_panel = () => {
     setCoreClients(false);
     setCoreProjects(false);
     setisRsSkill(false);
+    setIsExpertDetails(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -198,6 +205,8 @@ const Admin_panel = () => {
       setCoreProjects(true);
     } else if (subItem === "Register Skilled Labour") {
       setisRsSkill(true);
+    } else if (subItem === "expert details") {
+      setIsExpertDetails(true);
     }
   };
 
@@ -226,24 +235,26 @@ const Admin_panel = () => {
     if (isRequestedPropertiesVisible) return <RequestedProperties />;
     if (isAllPropertiesVisible) return <ViewAllProperties />;
     if (isViewCustomersModalVisible) return <ViewCustomers />;
-    if (isExpertPanelVisible) return <ExpertPanel />;
+    if (isExpertPanelVisible)
+      return <ExpertPanel onPress={handleExpertDetails} />;
     if (isViewAgentVisible) return <ViewAgents />;
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
+    if (isExperDetails) return <ExpertDetails />;
 
     return (
-      <ScrollView
-        style={[styles.container, isWeb ? { overflow: "scroll" } : null]}
-        contentContainerStyle={[
-          styles.contentContainer,
-          isWeb ? { flexGrow: 1 } : null,
-        ]}
+      <View
+        style={[styles.container]}
+        // contentContainerStyle={[
+        //   styles.contentContainer,
+        //   isWeb ? { flexGrow: 1 } : null,
+        // ]}
         keyboardShouldPersistTaps="handled"
       >
         <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
-      </ScrollView>
+      </View>
     );
   };
 

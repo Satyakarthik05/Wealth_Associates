@@ -5,7 +5,9 @@ import {
   StyleSheet,
   Image,
   useWindowDimensions,
+  TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const data = [
   {
@@ -70,8 +72,9 @@ const data = [
   },
 ];
 
-const ExpertPanel = () => {
+const ExpertPanel = ({ handleExpertDetails }) => {
   const { width } = useWindowDimensions();
+  const navigation = useNavigation(); // Hook for navigation
 
   // Dynamic columns based on screen width
   const numColumns = width > 600 ? 4 : width > 300 ? 3 : 2;
@@ -83,12 +86,16 @@ const ExpertPanel = () => {
       <Text style={styles.header}>Expert Panel</Text>
       <View style={styles.listContainer}>
         {data.map((item) => (
-          <View key={item.id} style={[styles.item, { width: itemSize }]}>
+          <TouchableOpacity
+            key={item.id}
+            style={[styles.item, { width: itemSize }]}
+            onPress={() => (handleExpertDetails, { expertType: item.title })} // Navigate on press
+          >
             <View style={styles.iconContainer}>
               <Image source={{ uri: item.icon }} style={styles.icon} />
             </View>
             <Text style={styles.text}>{item.title}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -99,6 +106,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+    padding: 16,
   },
   header: {
     fontSize: 22,

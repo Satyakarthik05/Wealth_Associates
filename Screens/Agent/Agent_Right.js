@@ -167,8 +167,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
+      <View
+        // style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Action Buttons */}
@@ -348,7 +348,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
         {/* Version Info */}
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    ...(isWeb && { height: "auto", overflow: "scroll" }),
+    ...(isWeb && { height: "auto" }),
   },
   scrollView: {
     flex: 1,

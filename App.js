@@ -15,6 +15,7 @@ import StartingScreen from "./StartingScreen";
 import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
+import ExpertDetails from "./Screens/ExpertPanel/ExpertDetails";
 
 const Stack = createStackNavigator();
 
@@ -51,7 +52,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
             options={{ headerShown: false }}
@@ -70,8 +71,8 @@ export default function App() {
               component={Login_screen}
               options={{ headerShown: false }}
             />
-          )}
-          <Stack.Screen
+          )} */}
+          {/* <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{ headerShown: false }}
@@ -95,7 +96,7 @@ export default function App() {
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="Home"
             component={Admin_panel}
@@ -116,6 +117,7 @@ export default function App() {
             component={PrivacyPolicy}
             options={{ headerShown: true }}
           />
+          <Stack.Screen name="ExpertDetails" component={ExpertDetails} />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
