@@ -15,42 +15,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width } = Dimensions.get("window");
 
 export default function ViewAgents() {
-  const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("Token not found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/agent/myAgents`, {
-          method: "GET",
-          headers: {
-            token: `${token}` || "", // Fallback to an empty string if token is null
-          },
-        });
-
-        const data = await response.json();
-
-        if (data && Array.isArray(data.referredAgents)) {
-          setAgents(data.referredAgents);
-        } else {
-          setAgents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching agents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAgents();
-  }, []);
+  const [agents, setAgents] = useState([
+    {
+      _id: "1",
+      FullName: "John Doe",
+      District: "New York",
+      Contituency: "Brooklyn",
+      MyRefferalCode: "REF1234",
+    },
+    {
+      _id: "2",
+      FullName: "Jane Smith",
+      District: "Los Angeles",
+      Contituency: "Hollywood",
+      MyRefferalCode: "REF5678",
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,7 +44,7 @@ export default function ViewAgents() {
           agents.map((agent) => (
             <View key={agent._id} style={styles.agentCard}>
               <Image
-                // source={require("../../assets/man.png")}
+                source={require("../Admin_Pan/assets/man.png")}
                 style={styles.agentImage}
               />
               <View style={styles.agentDetails}>

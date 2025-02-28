@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
@@ -13,42 +14,23 @@ import { API_URL } from "../data/ApiUrl";
 const { width } = Dimensions.get("window");
 
 export default function ViewCustomers() {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("Token not found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/customer/myCustomers`, {
-          method: "GET",
-          headers: {
-            token: `${token}` || "",
-          },
-        });
-
-        const data = await response.json();
-
-        if (data && Array.isArray(data.referredAgents)) {
-          setCustomers(data.referredAgents);
-        } else {
-          setCustomers([]);
-        }
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCustomers();
-  }, []);
+  const [customers, setCustomers] = useState([
+    {
+      _id: "1",
+      FullName: "Alice Johnson",
+      MobileNumber: "1234567890",
+      Occupation: "Software Engineer",
+      MyRefferalCode: "CUST1234",
+    },
+    {
+      _id: "2",
+      FullName: "Bob Smith",
+      MobileNumber: "0987654321",
+      Occupation: "Doctor",
+      MyRefferalCode: "CUST5678",
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
 
   if (loading) {
     return (
@@ -61,7 +43,7 @@ export default function ViewCustomers() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>My Customers</Text>
-      <View style={styles.gridContainer}>
+      <View style={Platform.OS === "web" ? styles.gridContainerWeb : styles.gridContainer}>
         {customers.length > 0 ? (
           customers.map((item) => (
             <View key={item._id} style={styles.card}>
@@ -116,6 +98,12 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   gridContainer: {
+    paddingBottom: 20,
+  },
+  gridContainerWeb: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
     paddingBottom: 20,
   },
   card: {

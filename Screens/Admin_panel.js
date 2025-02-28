@@ -602,6 +602,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
+    height:"auto"
   },
   usersContentText: {
     fontSize: 16,
