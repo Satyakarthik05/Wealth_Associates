@@ -80,7 +80,7 @@ const menuItems = [
     ],
   },
   {
-    title: "Expert Panel",
+      title: "Expert Panel",
     icon: "cog-outline",
     subItems: ["Add Expert Panel", "View Expert Panel","Expert Panel Requests" ],
   },
@@ -99,11 +99,16 @@ const menuItems = [
     icon: "business-outline",
     subItems: ["Add Core Clients","Add Core Projects","View Core Clients", "View Core Projects"],
   },
-  {
+ {
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: ["Register Skilled Labour", "View Skilled Labour"],
   },
+  {
+    title: "Investors",
+  icon: "business-outline",
+  subItems: ["Add Investor", "View Ivestors"],
+},
   {
     title: "Master Data",
     icon: "settings-outline", // ⚙️ Represents data/configuration
