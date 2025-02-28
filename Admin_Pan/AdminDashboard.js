@@ -45,7 +45,12 @@ const menuItems = [
   {
     title: "Agents",
     icon: "person-outline",
-    subItems: ["Register Regional Wealth Associate", "Register Executive Wealth Associate", "Register Wealth Associate" ,"View Agents"],
+    subItems: [
+      "Register Regional Wealth Associate",
+      "Register Executive Wealth Associate",
+      "Register Wealth Associate",
+      "View Agents",
+    ],
   },
   {
     title: "Customers",
@@ -66,7 +71,11 @@ const menuItems = [
   {
     title: "Expert Panel",
     icon: "cog-outline",
-    subItems: ["Add Expert Panel", "View Expert Panel","Expert Panel Requests" ],
+    subItems: [
+      "Add Expert Panel",
+      "View Expert Panel",
+      "Expert Panel Requests",
+    ],
   },
   {
     title: "Referrals",
@@ -81,7 +90,12 @@ const menuItems = [
   {
     title: "Core Clients",
     icon: "business-outline",
-    subItems: ["Add Core Clients","Add Core Projects","View Core Clients", "View Core Projects"],
+    subItems: [
+      "Add Core Clients",
+      "Add Core Projects",
+      "View Core Clients",
+      "View Core Projects",
+    ],
   },
   {
     title: "Skilled Club",
@@ -91,7 +105,8 @@ const menuItems = [
   {
     title: "Master Data",
     icon: "settings-outline", // ⚙️ Represents data/configuration
-    subItems: ["Add User",
+    subItems: [
+      "Add User",
       "Add Roles",
       "Add Districts",
       "Add Constituencies",
@@ -100,7 +115,7 @@ const menuItems = [
       "Add Property Type",
       "Add Expert Types",
       "Add Countries",
-      "Add Skill"
+      "Add Skill",
     ],
   },
 ];
@@ -116,11 +131,12 @@ const AdminDashboard = () => {
   const [isWealVisible, setIsWealVisible] = useState(false);
   const [isRegionalVisible, setIsRegionalVisible] = useState(false);
   const [isViewAgentVisible, setIsViewAgentVisible] = useState(false);
-  const [isPostedPropertiesVisible, setIsPostedPropertiesVisible] = useState(false);
+  const [isPostedPropertiesVisible, setIsPostedPropertiesVisible] =
+    useState(false);
   const [isRequestVisible, setIsRequestVisible] = useState(false);
   const [isViewpostVisible, setIsViewpostVisible] = useState(false);
   const [isViewReqVisible, setIsViewReqVisible] = useState(false);
-  const [isAllPropVisible,setIsAllPropVisible] = useState(false);
+  const [isAllPropVisible, setIsAllPropVisible] = useState(false);
   const [isAddExpertVisible, setIsAddExpertVisible] = useState(false);
   const [isRegSkillVisible, setIsRegSkillVisible] = useState(false);
   const [isViewSkillVisible, setIsViewSkillVisible] = useState(false);
@@ -162,43 +178,42 @@ const AdminDashboard = () => {
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
 
-
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
     }
-    if (subItem === "View Customers"){
-        setIsViewCustVisible(true);
-    } else if (subItem === "Add Customer"){
-        setIsAddCustVisible(true);
-    } else if (subItem === "Register Executive Wealth Associate"){
-        setIsExecuteVisible(true);
-    } else if (subItem === "Register Wealth Associate"){
-        setIsWealVisible(true);
-    } else if (subItem === "Register Regional Wealth Associate"){
-        setIsRegionalVisible(true);
+    if (subItem === "View Customers") {
+      setIsViewCustVisible(true);
+    } else if (subItem === "Add Customer") {
+      setIsAddCustVisible(true);
+    } else if (subItem === "Register Executive Wealth Associate") {
+      setIsExecuteVisible(true);
+    } else if (subItem === "Register Wealth Associate") {
+      setIsWealVisible(true);
+    } else if (subItem === "Register Regional Wealth Associate") {
+      setIsRegionalVisible(true);
     } else if (subItem === "View Agents") {
-          setIsViewAgentVisible(true);
+      setIsViewAgentVisible(true);
     } else if (subItem === "Post Property") {
-          setIsPostedPropertiesVisible(true);
-    } else if (subItem === "Request Property"){
-        setIsRequestVisible(true);
-    }else if (subItem === "View Posted Properties"){
-        setIsViewpostVisible(true);
-    }else if (subItem === "View Requested Properties"){
+      setIsPostedPropertiesVisible(true);
+    } else if (subItem === "Request Property") {
+      setIsRequestVisible(true);
+    } else if (subItem === "View Posted Properties") {
+      setIsViewpostVisible(true);
+    } else if (subItem === "View Requested Properties") {
       setIsViewReqVisible(true);
-  }else if (subItem === "View All Properties"){
-    setIsAllPropVisible(true);
-  } else if (subItem === "View Expert Panel"){
-    setIsAddExpertVisible(true);
-  }  else if (subItem === "Register Skilled Labour"){
-    setIsRegSkillVisible(true);
-  }  else if (subItem === "View Skilled Labour"){
-    setIsViewSkillVisible(true);
-  }  else if (subItem === "View Core Clients"){
-    setIsViewClientVisible(true);
-  }  else if (subItem === "View Core Projects"){
-    setIsViewCoreProVisible(true);
-  } 
+    } else if (subItem === "View All Properties") {
+      setIsAllPropVisible(true);
+    } else if (subItem === "View Expert Panel") {
+      setIsAddExpertVisible(true);
+    } else if (subItem === "Register Skilled Labour") {
+      setIsRegSkillVisible(true);
+    } else if (subItem === "View Skilled Labour") {
+      setIsViewSkillVisible(true);
+    } else if (subItem === "View Core Clients") {
+      setIsViewClientVisible(true);
+    } else if (subItem === "View Core Projects") {
+      setIsViewCoreProVisible(true);
+    }
   };
 
   const handleSearch = (text) => {
@@ -225,16 +240,16 @@ const AdminDashboard = () => {
   };
 
   const renderContent = () => {
-    if (isViewCustVisible) return <ViewCustomers/>
-    if (isAddExpertVisible) return <ExpertPanel/>
+    if (isViewCustVisible) return <ViewCustomers />;
+    if (isAddExpertVisible) return <ExpertPanel />;
     if (isViewAgentVisible) return <ViewAgents />;
-    if (isViewpostVisible) return <ViewPostedProperties/>
-    if (isViewReqVisible) return <RequestedProperties/>
-    if (isAllPropVisible) return <ViewAllProperties/>
-    if(isViewSkillVisible) return <ViewSkilledLabours/>
-    if(isViewClientVisible) return <Core_Clients/>
-    if(isViewCoreProVisible) return <Core_Projects/>
-    return <Dashboard/>;
+    if (isViewpostVisible) return <ViewPostedProperties />;
+    if (isViewReqVisible) return <RequestedProperties />;
+    if (isAllPropVisible) return <ViewAllProperties />;
+    if (isViewSkillVisible) return <ViewSkilledLabours />;
+    if (isViewClientVisible) return <Core_Clients />;
+    if (isViewCoreProVisible) return <Core_Projects />;
+    return <Dashboard />;
   };
 
   //   const getDetails = async () => {
@@ -319,7 +334,7 @@ const AdminDashboard = () => {
                       name={
                         expandedItems[item.title]
                           ? "chevron-up-outline"
-                          : "chevron-down-outline"
+                          : "chevron-down-out              line"
                       }
                       size={16}
                       color="#555"
@@ -390,7 +405,10 @@ const AdminDashboard = () => {
       <CustomModal isVisible={isRegionalVisible} closeModal={closeModal}>
         <RegisterEx closeModal={closeModal} />
       </CustomModal>
-      <CustomModal isVisible={isPostedPropertiesVisible} closeModal={closeModal}>
+      <CustomModal
+        isVisible={isPostedPropertiesVisible}
+        closeModal={closeModal}
+      >
         <PostProperty closeModal={closeModal} />
       </CustomModal>
       <CustomModal isVisible={isRequestVisible} closeModal={closeModal}>
