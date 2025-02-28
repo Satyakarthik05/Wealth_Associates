@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import React from "react";
 import {
   View,
@@ -13,14 +13,15 @@ import {
   ScrollView,
   Modal,
   Dimensions,
+  PanResponder,
 } from "react-native";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CustomModal from "../Components/CustomModal";
+import CustomModal from "../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
 
-//importing components
+// Importing components
 import Agent_Right from "../Screens/Agent/Agent_Right";
 import Add_Agent from "../Screens/Agent/Add_Agent";
 import ViewAgents from "../Screens/Agent/ViewAgents";
@@ -44,16 +45,16 @@ const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const menuItems = [
-  {
-    title: "Agents",
-    icon: "person-add-outline",
-    subItems: ["Register Agent", "View Agents"],
-  },
-  {
-    title: "Customers",
-    icon: "people-outline",
-    subItems: ["Add Customer", "View Customers"],
-  },
+  // {
+  //   title: "Agents",
+  //   icon: "person-add-outline",
+  //   subItems: ["Register Agent", "View Agents"],
+  // },
+  // {
+  //   title: "Customers",
+  //   icon: "people-outline",
+  //   subItems: ["Add Customer", "View Customers"],
+  // },
   {
     title: "Properties",
     icon: "home-outline",
@@ -70,7 +71,6 @@ const menuItems = [
     icon: "cog-outline",
     subItems: ["View Expert Panel", "Request Expert Panel"],
   },
-
   {
     title: "Core Clients",
     icon: "business-outline",
@@ -113,6 +113,7 @@ const Admin_panel = () => {
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
+
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);
@@ -125,6 +126,7 @@ const Admin_panel = () => {
     setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
     getDetails(); // Re-fetch details from the API
   };
+
   useEffect(() => {
     getDetails();
   }, [refreshKey]);
@@ -247,21 +249,14 @@ const Admin_panel = () => {
 
   const getDetails = async () => {
     try {
-      // Await the token retrieval from AsyncStorage
       const token = await AsyncStorage.getItem("authToken");
-
-      // Make the fetch request
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
-          token: `${token}` || "", // Fallback to an empty string if token is null
+          token: `${token}` || "",
         },
       });
-
-      // Parse the response
       const newDetails = await response.json();
-
-      // Update state with the details
       setDetails(newDetails);
       console.log(Details);
     } catch (error) {
@@ -273,18 +268,27 @@ const Admin_panel = () => {
     getDetails();
   }, []);
 
+  // PanResponder for swipe-to-close functionality
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx < -50) {
+          setIsSidebarExpanded(false);
+        }
+      },
+    })
+  ).current;
+
   return (
     <View style={styles.container}>
-      {/* Status Bar Adjustment for Android */}
       {Platform.OS === "android" && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
-      {/* Top Navbar */}
       <View style={styles.navbar}>
         <TouchableOpacity
           onPress={() => {
-            // Reset all modal states
             setIsAddAgentVisible(false);
             setIsViewAgentVisible(false);
             setIsRequestPropertyVisible(false);
@@ -301,20 +305,16 @@ const Admin_panel = () => {
             setCoreProjects(false);
             setisRsSkill(false);
             setIsAgentProfile(false);
-
-            // Set the default view to Agent_Right
             setSelectedSubItem(null);
           }}
         >
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+          />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
-            {/* <Image
-              source={require("../assets/usflag.png")}
-              style={styles.icon}
-            /> */}
-            {/* <Text style={styles.language}>English</Text> */}
             <Ionicons name="moon-outline" size={20} color="#000" />
             <Ionicons name="notifications-outline" size={20} color="#000" />
             <Ionicons
@@ -344,9 +344,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {/* Main Layout */}
       <View style={styles.mainContent}>
-        {/* Sidebar */}
         <View
           style={[
             styles.sidebar,
@@ -355,6 +353,7 @@ const Admin_panel = () => {
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
           ]}
+          {...panResponder.panHandlers} // Attach PanResponder to the sidebar
         >
           <FlatList
             data={menuItems}
@@ -395,10 +394,8 @@ const Admin_panel = () => {
               </View>
             )}
           />
-          {/* <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text> */}
         </View>
 
-        {/* Main Content Area */}
         <View style={styles.contentArea} key={refreshKey}>
           <View style={styles.container}>
             <ScrollView>
@@ -423,7 +420,6 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {/* Toggle Button for Sidebar (Android Only) */}
       {Platform.OS === "android" && (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons

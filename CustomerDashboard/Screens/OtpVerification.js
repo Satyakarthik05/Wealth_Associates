@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
 
 const OTP = () => {
@@ -121,11 +121,11 @@ const OTP = () => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={require("../../assets/logo.png")} style={styles.logo} />
         <View style={styles.main}>
           <View>
             <Image
-              source={require("../assets/forgot_password.png")}
+              source={require("../../assets/forgot_password.png")}
               style={styles.logos}
             />
           </View>

@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ResetPassword() {
@@ -74,7 +74,7 @@ export default function ResetPassword() {
       <View style={styles.card}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../assets/logo.png")}
+            source={require("../../assets/logo.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -82,7 +82,7 @@ export default function ResetPassword() {
 
         <View style={styles.contentContainer}>
           <Image
-            source={require("../assets/forgot_password.png")}
+            source={require("../../assets/forgot_password.png")}
             style={styles.illustration}
             resizeMode="contain"
           />

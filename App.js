@@ -12,8 +12,9 @@ import New_Password from "./Screens/New_Password";
 import Agent_Profile from "./Screens/Agent/Agent_Profile";
 import PrivacyPolicy from "./Screens/PrivacyPolicy";
 import StartingScreen from "./StartingScreen";
-import LoginAdmin from "./Adminscreen/LoginAdmin";
-import AdminDashboard from "./Admin_Pan/AdminDashboard";
+import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
+import { NavigationIndependentTree } from "@react-navigation/native";
+import CoreDashboard from "./CoreDashboard/CoreDashboard";
 
 const Stack = createStackNavigator();
 
@@ -47,75 +48,77 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>{/*
-        <Stack.Screen
-          name="Starting Screen"
-          component={StartingScreen}
-          options={{ headerShown: false }}
-        />
-        {isLoggedIn ? (
-          // If logged in, show the Home screen
+    <NavigationIndependentTree>
+      <NavigationContainer>
+        <Stack.Navigator>
           <Stack.Screen
-            name="Homes"
-            component={Admin_panel}
+            name="Starting Screen"
+            component={StartingScreen}
             options={{ headerShown: false }}
           />
-        ) : (
-          // If not logged in, show the Login screen
+          {isLoggedIn ? (
+            // If logged in, show the Home screen
+            <Stack.Screen
+              name="Homes"
+              component={Admin_panel}
+              options={{ headerShown: false }}
+            />
+          ) : (
+            // If not logged in, show the Login screen
+            <Stack.Screen
+              name="Logins"
+              component={Login_screen}
+              options={{ headerShown: false }}
+            />
+          )}
           <Stack.Screen
-            name="Logins"
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Forgetpassword"
+            component={ForgotPassword}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="otpscreen"
+            component={OTPVerification}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="newpassword"
+            component={New_Password}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
           />
-        )}
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Forgetpassword"
-          component={ForgotPassword}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="otpscreen"
-          component={OTPVerification}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="newpassword"
-          component={New_Password}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={Login_screen}
-          options={{ headerShown: false }}
-        />*/}
-        {/* <Stack.Screen
-          name="Home"
-          component={Admin_panel}
-          options={{ headerShown: false }}
-        /> */}
-        <Stack.Screen
-            name="Logins"
-            component={LoginAdmin}
+          <Stack.Screen
+            name="Home"
+            component={Admin_panel}
             options={{ headerShown: false }}
           />
-        <Stack.Screen
-          name="Admin"
-          component={AdminDashboard}
-          options={{ headerShown: false }}
-        />
-        {/* <Stack.Screen
-          name="PrivacyPolicy"
-          component={PrivacyPolicy}
-          options={{ headerShown: true }}
-        /> */}
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen
+            name="CustomerDashboard"
+            component={CustomerDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CoreDashboard"
+            component={CoreDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PrivacyPolicy"
+            component={PrivacyPolicy}
+            options={{ headerShown: true }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }
 

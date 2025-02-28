@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -78,7 +78,7 @@ const ViewAllProperties = () => {
             {[...properties].reverse().map((item) => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
-                : require("../../assets/logo.png");
+                : require("../../../assets/logo.png");
 
               return (
                 <View key={item._id} style={styles.card}>

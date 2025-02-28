@@ -13,12 +13,13 @@ import {
   Platform,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Add_Agent from "./Add_Agent";
 import Modify_Deatils from "./Modify_Details";
-import CustomModal from "../../Components/CustomModal";
+import CustomModal from "../../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
+// import App from "../../../App";
 
 const { width } = Dimensions.get("window");
 
@@ -57,7 +58,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
 
   const LogOut = async () => {
     const token = await AsyncStorage.removeItem("authToken");
-    navigation.navigate("Starting Screen");
+    navigation.navigate("App");
   };
 
   return (
@@ -74,7 +75,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
           <>
             <View style={styles.profileHeader}>
               <Image
-                source={require("../../assets/man2.png")}
+                source={require("../../../assets/man2.png")}
                 style={styles.avatar}
               />
               <Text style={styles.profileName}>{Details.name}</Text>

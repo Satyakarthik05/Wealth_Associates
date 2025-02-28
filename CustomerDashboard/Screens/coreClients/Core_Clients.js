@@ -16,7 +16,7 @@ const isWeb = Platform.OS === "web";
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../../assets/Logo Final 1.png"),
+    logo: require("../../../assets/Logo Final 1.png"),
   },
 ];
 

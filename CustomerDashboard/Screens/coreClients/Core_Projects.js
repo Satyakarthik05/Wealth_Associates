@@ -14,13 +14,16 @@ const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const coreProjects = [
-  { name: "Bay Town", logo: require("../../assets/Main-Logo (1) 1.png") },
-  { name: "Icon", logo: require("../../assets/Meenakshi-Icon-Blac (2) 1.png") },
+  { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
+  {
+    name: "Icon",
+    logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
+  },
   {
     name: "Surya Avenue",
-    logo: require("../../assets/Surya Avenue Logo[1] 1.png"),
+    logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
   },
-  { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
+  { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
 ];
 
 const Core_Projects = () => {

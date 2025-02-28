@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { Alert } from "react-native";
 
 // Icons - you'll need to add these to your project
 import AgentIcon from "./assets/agent-icon.png";
@@ -17,6 +18,7 @@ import CoreMemberIcon from "./assets/core-member-icon.png";
 import ReferralIcon from "./assets/referral-icon.png";
 import WealthAssociatesLogo from "./assets/logo.png";
 import { useNavigation } from "@react-navigation/native";
+import CoreDashboard from "./CoreDashboard/CoreDashboard";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -51,7 +53,7 @@ const StartingScreen = () => {
 
               <TouchableOpacity
                 style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => console.log("Customer Login pressed")}
+                onPress={() => navigation.navigate("CustomerDashboard")}
               >
                 <Text style={styles.buttonText}>Customer login</Text>
                 <Image source={CustomerIcon} style={styles.buttonIcon} />
@@ -59,7 +61,7 @@ const StartingScreen = () => {
 
               <TouchableOpacity
                 style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => console.log("Core Member Login pressed")}
+                onPress={() => navigation.navigate("CoreDashboard")}
               >
                 <Text style={styles.buttonText}>Core Member login</Text>
                 <Image source={CoreMemberIcon} style={styles.buttonIcon} />
@@ -67,7 +69,11 @@ const StartingScreen = () => {
 
               <TouchableOpacity
                 style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => console.log("Referral Login pressed")}
+                onPress={() =>
+                  Alert.alert(
+                    "Only Agent login available This feature is under Development"
+                  )
+                }
               >
                 <Text style={styles.buttonText}>Referral login</Text>
                 <Image source={ReferralIcon} style={styles.buttonIcon} />

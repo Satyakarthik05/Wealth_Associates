@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 const numColumns = width > 800 ? 4 : 1;
 
 const RequestedProperties = () => {
@@ -61,15 +61,15 @@ const RequestedProperties = () => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../assets/Land.jpg");
+        return require("../../../assets/Land.jpg");
       case "residential":
-        return require("../../assets/residntial.jpg");
+        return require("../../../assets/residntial.jpg");
       case "commercial":
-        return require("../../assets/commercial.jpg");
+        return require("../../../assets/commercial.jpg");
       case "villa":
-        return require("../../assets/villa.jpg");
+        return require("../../../assets/villa.jpg");
       default:
-        return require("../../assets/house.png");
+        return require("../../../assets/house.png");
     }
   };
 

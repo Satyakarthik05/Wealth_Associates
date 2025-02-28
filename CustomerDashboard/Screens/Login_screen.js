@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -67,22 +67,22 @@ export default function Login_screen() {
       setLoading(false);
     }
   };
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        Alert.alert("Exit App", "Are you sure you want to exit?", [
-          { text: "Cancel", style: "cancel" },
-          { text: "Exit", onPress: () => BackHandler.exitApp() },
-        ]);
-        return true; // Prevent navigating back
-      };
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const onBackPress = () => {
+  //       Alert.alert("Exit App", "Are you sure you want to exit?", [
+  //         { text: "Cancel", style: "cancel" },
+  //         { text: "Exit", onPress: () => BackHandler.exitApp() },
+  //       ]);
+  //       return true; // Prevent navigating back
+  //     };
 
-      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+  //     BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-      return () =>
-        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-    }, [])
-  );
+  //     return () =>
+  //       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  //   }, [])
+  // );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -90,7 +90,7 @@ export default function Login_screen() {
         {Platform.OS !== "android" && (
           <View style={styles.leftSection}>
             <Image
-              source={require("../assets/logo2.png")}
+              source={require("../../assets/logo2.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -106,8 +106,8 @@ export default function Login_screen() {
           <Image
             source={
               Platform.OS === "android"
-                ? require("../assets/logo.png")
-                : require("../assets/logo.png")
+                ? require("../../assets/logo.png")
+                : require("../../assets/logo.png")
             }
             style={styles.illustration}
             resizeMode="contain"
@@ -183,7 +183,7 @@ export default function Login_screen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.signupContainer}
             onPress={() => navigation.navigate("Register")}
           >
@@ -191,7 +191,7 @@ export default function Login_screen() {
               Don't have an account?{" "}
               <Text style={styles.signupLink}>Sign up here</Text>
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
