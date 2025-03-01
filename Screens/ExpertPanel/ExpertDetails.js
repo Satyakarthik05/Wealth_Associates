@@ -1,3 +1,11 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 const ExpertDetails = ({ expertType }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);

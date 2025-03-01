@@ -115,6 +115,7 @@ const Admin_panel = () => {
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
   const [isExperDetails, setIsExpertDetails] = useState(false);
+  const [expertType,setExpertType] = useState(null)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -148,9 +149,10 @@ const Admin_panel = () => {
     setIsAllPropertiesVisible(true);
     setSelectedSubItem("View All Properties");
   };
-  const handleExpertDetails = () => {
+  const handleExpertDetails = (expertType) => {
     setIsExpertDetails(true);
     setSelectedSubItem("expert details");
+    setExpertType(expertType); // Add this line to store the expertType
   };
 
   const handleSubItemClick = (subItem) => {
@@ -242,7 +244,7 @@ const Admin_panel = () => {
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
-    if (isExperDetails) return <ExpertDetails />;
+    if (isExperDetails) return <ExpertDetails expertType={expertType} />;
 
     return (
       <View
@@ -606,7 +608,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
-    height:"auto"
+    height: "auto",
   },
   usersContentText: {
     fontSize: 16,

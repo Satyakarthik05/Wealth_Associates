@@ -72,7 +72,7 @@ const data = [
   },
 ];
 
-const ExpertPanel = ({ handleExpertDetails }) => {
+const ExpertPanel = ({ onPress}) => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation(); // Hook for navigation
 
@@ -89,7 +89,7 @@ const ExpertPanel = ({ handleExpertDetails }) => {
           <TouchableOpacity
             key={item.id}
             style={[styles.item, { width: itemSize }]}
-            onPress={() => (handleExpertDetails, { expertType: item.title })} // Navigate on press
+            onPress={() => onPress(item.title)} // Navigate on press
           >
             <View style={styles.iconContainer}>
               <Image source={{ uri: item.icon }} style={styles.icon} />
