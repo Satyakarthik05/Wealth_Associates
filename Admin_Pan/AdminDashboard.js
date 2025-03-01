@@ -174,6 +174,7 @@ const AdminDashboard = () => {
   const [isAddCoreVisible, setIsAddCoreVisible] = useState(false);
   const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [activeComponent, setActiveComponent] = useState("A");
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {

@@ -5,12 +5,18 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-const ExpertDetails = ({ expertType }) => {
+import { API_URL } from "../../data/ApiUrl";
+
+const ExpertDetails = ({ expertType, onSwitch }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!expertType) return;
+
     fetch(`${API_URL}/expertPanel/getexpert/${expertType}`)
       .then((response) => response.json())
       .then((data) => {
@@ -19,15 +25,22 @@ const ExpertDetails = ({ expertType }) => {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
+        setError("Failed to fetch experts. Please try again later.");
         setLoading(false);
       });
   }, [expertType]);
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => onSwitch(null)}>
+        <Text style={styles.backButton}>Back</Text>
+      </TouchableOpacity>
       <Text style={styles.header}>{expertType} Experts</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
       ) : experts.length > 0 ? (
         <FlatList
           data={experts}
@@ -58,11 +71,8 @@ const ExpertDetails = ({ expertType }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 16,
-  },
+  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
+  backButton: { fontSize: 16, color: "blue", marginBottom: 10 },
   header: {
     fontSize: 22,
     fontWeight: "bold",
@@ -76,20 +86,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 3,
   },
-  expertName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  expertDetails: {
-    fontSize: 14,
-    color: "#666",
-  },
+  expertName: { fontSize: 18, fontWeight: "bold" },
+  expertDetails: { fontSize: 14, color: "#666" },
   noExperts: {
     textAlign: "center",
     fontSize: 16,
     color: "#666",
     marginTop: 20,
   },
+  errorText: { textAlign: "center", fontSize: 16, color: "red", marginTop: 20 },
 });
 
 export default ExpertDetails;

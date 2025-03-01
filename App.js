@@ -16,6 +16,7 @@ import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
+import { StatusBar } from "expo-status-bar";
 
 const Stack = createStackNavigator();
 
@@ -52,6 +53,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
+
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
