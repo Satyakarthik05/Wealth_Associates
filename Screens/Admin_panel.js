@@ -70,7 +70,7 @@ const menuItems = [
   {
     title: "Expert Panel",
     icon: "cog-outline",
-    subItems: ["View Expert Panel", "Request Expert Panel", "ExpertDetails"],
+    subItems: ["View Expert Panel", "Request Expert Panel"],
   },
   {
     title: "Core Clients",

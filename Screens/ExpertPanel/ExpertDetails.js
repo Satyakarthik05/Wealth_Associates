@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  Image,
+  Platform,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 
@@ -13,6 +15,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   useEffect(() => {
     if (!expertType) return;
@@ -42,25 +45,35 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : experts.length > 0 ? (
-        <FlatList
-          data={experts}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <View style={styles.expertCard}>
+        <ScrollView contentContainerStyle={styles.cardContainer}>
+          {experts.map((item, index) => (
+            <TouchableOpacity
+              key={item._id}
+              style={[
+                styles.expertCard,
+                selectedIndex === index && styles.selectedCard,
+              ]}
+              onPress={() => setSelectedIndex(index)}
+            >
+              <Image
+                source={require("../../assets/man.png")}
+                style={styles.profileImage}
+              />
               <Text style={styles.expertName}>{item.Name}</Text>
               <Text style={styles.expertDetails}>
-                Qualification: {item.Qualification}
+                <Text style={styles.label}>Qualification:</Text>{" "}
+                {item.Qualification}
               </Text>
               <Text style={styles.expertDetails}>
-                Experience: {item.Experience} years
+                <Text style={styles.label}>Experience:</Text> {item.Experience}{" "}
+                Years
               </Text>
               <Text style={styles.expertDetails}>
-                Location: {item.Locations}
+                <Text style={styles.label}>Location:</Text> {item.Locations}
               </Text>
-              <Text style={styles.expertDetails}>Mobile: {item.Mobile}</Text>
-            </View>
-          )}
-        />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       ) : (
         <Text style={styles.noExperts}>
           No experts found for this category.
@@ -79,15 +92,32 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: "center",
   },
-  expertCard: {
-    padding: 12,
-    marginVertical: 8,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 10,
-    elevation: 3,
+  cardContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
-  expertName: { fontSize: 18, fontWeight: "bold" },
-  expertDetails: { fontSize: 14, color: "#666" },
+  expertCard: {
+    width: Platform.OS === "web" ? "30%" : "60%",
+    backgroundColor: "#fff",
+    padding: 16,
+    margin: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: "#007bff",
+  },
+  profileImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 10 },
+  expertName: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
+  expertDetails: { fontSize: 14, color: "#555", textAlign: "center" },
+  label: { fontWeight: "bold", color: "#333" },
   noExperts: {
     textAlign: "center",
     fontSize: 16,
