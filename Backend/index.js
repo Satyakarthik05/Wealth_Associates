@@ -11,12 +11,14 @@ const fs = require("fs");
 const https = require("https");
 const DisConsExpert = require("./Routes/DisConsExpRoutes");
 const District = require("./Models/Districts");
-const ExpertRouter = require("./Routes/ExpertRoute");
+const ExpertRoutes = require("./Routes/ExpertRoutes");
+const NriRoutes = require("./Routes/NriRoute");
+const SkillRoutes = require("./Routes/SkillRoutes");
 
-// const options = {
-//   key: fs.readFileSync("privatekey.pem"),
-//   cert: fs.readFileSync("certificate.pem"),
-// };
+const options = {
+  key: fs.readFileSync("privatekey.pem"),
+  cert: fs.readFileSync("certificate.pem"),
+};
 
 const app = express();
 app.use(express.json());
@@ -52,7 +54,6 @@ app.use("/core", CoreRoutes);
 app.use("/properties", propertyRoutes);
 app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);
-app.use("/expertPanel", ExpertRouter);
 
 const propertyTypes = [
   { name: "Apartment", code: "01" },

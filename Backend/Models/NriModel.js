@@ -1,32 +1,32 @@
 const mongoose = require("mongoose");
 
-const AddExpertSchema = new mongoose.Schema({
+const AddNriSchema = new mongoose.Schema({
     Name:{
         type: String,
         required: true,
     },
-    Qualification:{
+    Country:{
         type: String,
         required: true,
     },
-    Experience:{
+    Locality:{
         type: String,
         required: true,
     },
-    Location:{
+    Occupation:{
         type: String,
         required: true,
     },
-    Mobile:{
+    MobileIN:{
         type: String,
         required: true,
     },
-    ExpertType:{
+    MobileCountryNo:{
         type: String,
         required: true,
 
     },
 });
 
-const AddExpert = mongoose.model("Experts", AddExpertSchema);
-module.exports = AddExpert;
+const AddNri = mongoose.model("Nri", AddNriSchema);
+module.exports = AddNri;
