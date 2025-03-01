@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const AgentRouter = require("./Routes/AgentRoutes");
 const CustomerRoutes = require("./Routes/CustomerRoutes");
+const CoreRoutes = require("./Routes/CoreRoutes");
 const propertyRoutes = require("./Routes/PostPropertyRoutes");
 const RequestProperty = require("./Routes/RequestPropertyRoute");
 const fs = require("fs");
@@ -46,6 +47,7 @@ mongoose
 
 app.use("/agent", AgentRouter);
 app.use("/customer", CustomerRoutes);
+app.use("/core", CoreRoutes);
 app.use("/properties", propertyRoutes);
 app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);

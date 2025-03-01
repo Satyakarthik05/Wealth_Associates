@@ -27,10 +27,7 @@ export default function Login_screen() {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    if (
-      mobileNumber === "jarijaripadda" &&
-      password === "nenuenthakastapadda"
-    ) {
+    if (mobileNumber === "1234567890" && password === "1234") {
       await AsyncStorage.setItem("authToken", "dummy_token");
       navigation.navigate("Admin"); // Redirects to Dashboard after login
     } else {
