@@ -40,6 +40,8 @@ import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
 import Agent_Profile from "./Agent/Agent_Profile";
 import Modify_Deatils from "./Agent/Modify_Details";
+import ExpertDetails from "./ExpertPanel/ExpertDetails";
+import ExpertRoute from "./ExpertPanel/ExpertRoute";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -86,7 +88,7 @@ const menuItems = [
 const Admin_panel = () => {
   const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    Platform.OS !== "android"
+    Platform.OS !== "android" && Platform.OS !== "ios"
   );
   const [expandedItems, setExpandedItems] = useState({});
   const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);
@@ -113,9 +115,11 @@ const Admin_panel = () => {
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
+  const [isExperDetails, setIsExpertDetails] = useState(false);
+  const [expertType, setExpertType] = useState(null);
 
   const toggleSidebar = () => {
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded((prev) => !prev);
     }
   };
@@ -137,7 +141,10 @@ const Admin_panel = () => {
       [title]: !prev[title],
     }));
 
-    if (Platform.OS === "android" && !isSidebarExpanded) {
+    if (
+      (Platform.OS === "android" || Platform.OS === "ios") &&
+      !isSidebarExpanded
+    ) {
       setIsSidebarExpanded(true);
     }
   };
@@ -145,6 +152,11 @@ const Admin_panel = () => {
   const handleViewAllPropertiesClick = () => {
     setIsAllPropertiesVisible(true);
     setSelectedSubItem("View All Properties");
+  };
+  const handleExpertDetails = (expertType) => {
+    setIsExpertDetails(true);
+    setSelectedSubItem("expert details");
+    setExpertType(expertType); // Add this line to store the expertType
   };
 
   const handleSubItemClick = (subItem) => {
@@ -163,8 +175,9 @@ const Admin_panel = () => {
     setCoreClients(false);
     setCoreProjects(false);
     setisRsSkill(false);
+    setIsExpertDetails(false);
 
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
     }
 
@@ -198,6 +211,8 @@ const Admin_panel = () => {
       setCoreProjects(true);
     } else if (subItem === "Register Skilled Labour") {
       setisRsSkill(true);
+    } else if (subItem === "expert details") {
+      setIsExpertDetails(true);
     }
   };
 
@@ -226,24 +241,25 @@ const Admin_panel = () => {
     if (isRequestedPropertiesVisible) return <RequestedProperties />;
     if (isAllPropertiesVisible) return <ViewAllProperties />;
     if (isViewCustomersModalVisible) return <ViewCustomers />;
-    if (isExpertPanelVisible) return <ExpertPanel />;
+    if (isExpertPanelVisible) return <ExpertRoute />;
     if (isViewAgentVisible) return <ViewAgents />;
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
+    if (isExperDetails) return <ExpertDetails expertType={expertType} />;
 
     return (
-      <ScrollView
-        style={[styles.container, isWeb ? { overflow: "scroll" } : null]}
-        contentContainerStyle={[
-          styles.contentContainer,
-          isWeb ? { flexGrow: 1 } : null,
-        ]}
+      <View
+        style={[styles.container]}
+        // contentContainerStyle={[
+        //   styles.contentContainer,
+        //   isWeb ? { flexGrow: 1 } : null,
+        // ]}
         keyboardShouldPersistTaps="handled"
       >
         <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
-      </ScrollView>
+      </View>
     );
   };
 
@@ -282,7 +298,7 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {Platform.OS === "android" && (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
@@ -345,7 +361,7 @@ const Admin_panel = () => {
         <View
           style={[
             styles.sidebar,
-            Platform.OS === "android" &&
+            (Platform.OS === "android" || Platform.OS === "ios") &&
               (isSidebarExpanded
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
@@ -417,7 +433,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {Platform.OS === "android" && (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons
             name={isSidebarExpanded ? "close-circle-outline" : "menu-outline"}
@@ -459,7 +475,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" ? 0 : StatusBar.currentHeight,
+    paddingTop:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? 0
+        : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",
@@ -487,7 +506,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: Platform.OS === "web" ? 0 : "10%",
     gap: Platform.OS === "web" ? "10px" : 10,
-    marginLeft: Platform.OS === "android" ? -15 : "0",
+    marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? -15 : "0",
   },
   icon: {
     width: 20,
@@ -507,7 +526,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRightWidth: 1,
     borderColor: "#ddd",
-    width: Platform.OS === "android" ? 300 : 250,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 300 : 250,
     ...(Platform.OS === "web" && { minHeight: "100vh" }),
   },
   expandedSidebar: {
@@ -595,7 +614,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
-    height:"auto"
+    height: "auto",
   },
   usersContentText: {
     fontSize: 16,

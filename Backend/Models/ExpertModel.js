@@ -1,32 +1,14 @@
 const mongoose = require("mongoose");
 
-const AddExpertSchema = new mongoose.Schema({
-    Name:{
-        type: String,
-        required: true,
-    },
-    Qualification:{
-        type: String,
-        required: true,
-    },
-    Experience:{
-        type: String,
-        required: true,
-    },
-    Location:{
-        type: String,
-        required: true,
-    },
-    Mobile:{
-        type: String,
-        required: true,
-    },
-    ExpertType:{
-        type: String,
-        required: true,
-
-    },
+const expertSchema = new mongoose.Schema({
+  Name: { type: String, require: true },
+  Experttype: { type: String, require: true },
+  Qualification: { type: String, require: true },
+  Experience: { type: String, require: true },
+  Locations: { type: String, require: true },
+  Mobile: { type: String, require: true },
 });
 
-const AddExpert = mongoose.model("Experts", AddExpertSchema);
-module.exports = AddExpert;
+const expert = new mongoose.model("expertpanel", expertSchema);
+
+module.exports = expert;
