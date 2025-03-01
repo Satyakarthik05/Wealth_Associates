@@ -23,7 +23,7 @@ const sendSMS = async (MobileNumber, Password, refferedby) => {
 
     const response = await axios.get(apiUrl, { params });
 
-    if (
+    if ( 
       response.data &&
       response.data.toLowerCase().includes("sms sent successfully")
     ) {
@@ -79,9 +79,9 @@ const CustomerSign = async (req, res) => {
     try {
       smsResponse = await sendSMS(
         MobileNumber,
-        FullName,
+        // FullName,
         Password,
-        finalReferredBy,
+        // finalReferredBy,
         refferedby
       );
     } catch (error) {
@@ -149,4 +149,44 @@ const fetchReferredCustomers = async (req, res) => {
   }
 };
 
-module.exports = { CustomerSign, fetchReferredCustomers };
+
+
+
+const customerLogin =async(req,res)=> {
+  const {MobileNumber,Password}=req.body
+
+  try {
+    const customer = await CustomerSchema.findOne({
+      MobileNumber: MobileNumber,
+      Password: Password,
+    });
+    if (!customer) {
+      return res
+        .status(400)
+        .json({ message: "Invalid MobileNumber or Password" });
+    }
+
+    const token = await jwt.sign({ CustomerId: customer._id }, secret, {
+      expiresIn: "30d",
+    });
+
+    res.status(200).json({ message: "Login Successful", token });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const getCustomer = async (req, res) => {
+  try {
+    const customerDetails = await CustomerSchema.findById(req.CustomerId);
+    if (!customerDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(customerDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = { CustomerSign, fetchReferredCustomers,customerLogin,getCustomer };
