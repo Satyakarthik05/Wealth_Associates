@@ -94,7 +94,7 @@ export default function Login_screen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        {Platform.OS !== "android" && (
+        {(Platform.OS !== "android" && Platform.OS !== "ios" )&& (
           <View style={styles.leftSection}>
             <Image
               source={require("../assets/logo2.png")}
@@ -107,12 +107,14 @@ export default function Login_screen() {
         <View
           style={[
             styles.rightSection,
-            Platform.OS === "android" ? { flex: 1 } : null,
+            Platform.OS === "android" || Platform.OS === "ios"
+              ? { flex: 1 }
+              : null,
           ]}
         >
           <Image
             source={
-              Platform.OS === "android"
+              Platform.OS === "android" || Platform.OS === "ios"
                 ? require("../assets/logo.png")
                 : require("../assets/logo.png")
             }
