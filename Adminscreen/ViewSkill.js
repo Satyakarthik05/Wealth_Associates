@@ -40,7 +40,7 @@ export default function ViewSkilledLabours() {
       skill: "Painter",
       mobile: "9063392872",
       location: "Vijayawada",
-    //   avatar: require("../../assets/man.png"),
+      avatar: require("../Admin_Pan/assets/man.png"),
     },
     {
       id: "dummy2",
@@ -48,7 +48,7 @@ export default function ViewSkilledLabours() {
       skill: "Plumber",
       mobile: "7896541230",
       location: "Guntur",
-    //   avatar: require("../../assets/man.png"),
+      avatar: require("../Admin_Pan/assets/man.png"),
     },
   ];
 

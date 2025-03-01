@@ -37,6 +37,22 @@ import Rskill from "../Adminscreen/RegSkill";
 import ViewSkilledLabours from "../Adminscreen/ViewSkill";
 import Core_Clients from "../Adminscreen/ViewCoreCli";
 import Core_Projects from "../Adminscreen/ViewCorePro";
+import AddExpertPan from "../Adminscreen/AddExpert";
+import AddRoleModal from "../Adminscreen/AddRole";
+import AddDistrictModal from "../Adminscreen/AddDistrict";
+import AddNRIMember from "../Adminscreen/AddNri";
+import ExpertList from "../Adminscreen/ExpertReq";
+import AddConstiModal from "../Adminscreen/AddConst";
+import AddOccuModal from "../Adminscreen/AddOccu";
+import AddUserForm from "../Adminscreen/AddUser";
+import AddExpertiseModal from "../Adminscreen/AddExpertise";
+import AddProTypeModal from "../Adminscreen/AddPropType";
+import AddExperTypeModal from "../Adminscreen/AddExpertType";
+import AddCountryModal from "../Adminscreen/AddCountry";
+import AddSkillModal from "../Adminscreen/AddSkill";
+import AddCoreClientForm from "../Adminscreen/AddCoreClient";
+import AddCoreProjectForm from "../Adminscreen/AddCoreProj";
+import ViewNri from "../Adminscreen/ViewNri";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -126,6 +142,22 @@ const AdminDashboard = () => {
   const [isViewSkillVisible, setIsViewSkillVisible] = useState(false);
   const [isViewClientVisible, setIsViewClientVisible] = useState(false);
   const [isViewCoreProVisible, setIsViewCoreProVisible] = useState(false);
+  const [isAddExpertPanelVisible, setIsAddExpertPanelVisible] = useState(false);
+  const [isAddRoleVisible, setIsAddRoleVisible] = useState(false);
+  const [isAddDisVisible, setIsAddDisVisible] = useState(false);
+  const [isAddNriVisible, setIsAddNriVisible] = useState(false);
+  const [isExpertReqVisible, setIsExpertReqVisible] = useState(false);
+  const [isAddConsVisible, setIsAddConsVisible] = useState(false);
+  const [isAddOccuVisible, setIsAddOccuVisible] = useState(false);
+  const [isAddUseVisible, setIsAddUseVisible] = useState(false);
+  const [isAddExpertiseVisible, setIsAddExpertiseVisible] = useState(false);
+  const [isAddProTypeVisible, setIsAddProTypeVisible] = useState(false);
+  const [isAddExperTypeVisible, setIsAddExperTypeVisible] = useState(false);
+  const [isAddCountryVisible, setIsAddCountryVisible] = useState(false);
+  const [isAddSkillVisible, setIsAddSkillVisible] = useState(false);
+  const [isAddCoreVisible, setIsAddCoreVisible] = useState(false); 
+  const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
+  const [isViewNriVisible, setIsViewNriVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -161,7 +193,22 @@ const AdminDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
-
+    setIsAddExpertPanelVisible(false);
+    setIsAddRoleVisible(false);
+    setIsAddDisVisible(false);
+    setIsAddNriVisible(false);
+    setIsExpertReqVisible(false);
+    setIsAddConsVisible(false);
+    setIsAddOccuVisible(false);
+    setIsAddUseVisible(false);
+    setIsAddExpertiseVisible(false);
+    setIsAddProTypeVisible(false);
+    setIsAddExperTypeVisible(false);
+    setIsAddCountryVisible(false);
+    setIsAddSkillVisible(false);
+    setIsAddCoreVisible(false);
+    setIsAddCoreProVisible(false);
+    setIsViewNriVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -198,6 +245,38 @@ const AdminDashboard = () => {
     setIsViewClientVisible(true);
   }  else if (subItem === "View Core Projects"){
     setIsViewCoreProVisible(true);
+  }  else if (subItem === "Add Expert Panel"){
+    setIsAddExpertPanelVisible(true);
+  }  else if (subItem === "Add Roles"){
+    setIsAddRoleVisible(true);
+  }  else if (subItem === "Add Districts"){
+    setIsAddDisVisible(true);
+  }  else if (subItem === "Add NRI Member"){
+    setIsAddNriVisible(true);
+  }   else if (subItem === "Expert Panel Requests"){
+    setIsExpertReqVisible(true);
+  }    else if (subItem === "Add Constituencies"){
+    setIsAddConsVisible(true);
+  }    else if (subItem === "Add Occupation"){
+    setIsAddOccuVisible(true);
+  }    else if (subItem === "Add User"){
+    setIsAddUseVisible(true);
+  }    else if (subItem === "Add Expertise"){
+    setIsAddExpertiseVisible(true);
+  } else if (subItem === "Add Property Type"){
+    setIsAddProTypeVisible(true);
+  } else if (subItem === "Add Expert Type"){
+    setIsAddExperTypeVisible(true);
+  }  else if (subItem === "Add Countries"){
+    setIsAddCountryVisible(true);
+  }  else if (subItem === "Add Skill"){
+    setIsAddSkillVisible(true);
+  } else if (subItem === "Add Core Clients"){
+    setIsAddCoreVisible(true);
+  } else if (subItem === "Add Core Projects"){
+    setIsAddCoreProVisible(true);
+  } else if (subItem === "View NRI Members"){
+    setIsViewNriVisible(true);
   } 
   };
 
@@ -222,6 +301,22 @@ const AdminDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
+    setIsAddExpertPanelVisible(false);
+    setIsAddRoleVisible(false);
+    setIsAddDisVisible(false);
+    setIsAddNriVisible(false);
+    setIsExpertReqVisible(false);
+    setIsAddConsVisible(false);
+    setIsAddOccuVisible(false);
+    setIsAddUseVisible(false);
+    setIsAddExpertiseVisible(false);
+    setIsAddProTypeVisible(false);
+    setIsAddExperTypeVisible(false);
+    setIsAddCountryVisible(false);
+    setIsAddSkillVisible(false);
+    setIsAddCoreVisible(false);
+    setIsAddCoreProVisible(false);
+    setIsViewNriVisible(false);
   };
 
   const renderContent = () => {
@@ -234,6 +329,8 @@ const AdminDashboard = () => {
     if(isViewSkillVisible) return <ViewSkilledLabours/>
     if(isViewClientVisible) return <Core_Clients/>
     if(isViewCoreProVisible) return <Core_Projects/>
+    if(isExpertReqVisible) return <ExpertList/>
+    if(isViewNriVisible) return <ViewNri/>
     return <Dashboard/>;
   };
 
@@ -361,7 +458,10 @@ const AdminDashboard = () => {
                     {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
                   </Text>
                 </Text> */}
+                <ScrollView style={{height:"auto"}}>
+
                 {renderContent()}
+                </ScrollView>
               </View>
             </ScrollView>
           </View>
@@ -398,6 +498,48 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isRegSkillVisible} closeModal={closeModal}>
         <Rskill closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddExpertPanelVisible} closeModal={closeModal}>
+        <AddExpertPan closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddRoleVisible} closeModal={closeModal}>
+        <AddRoleModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddDisVisible} closeModal={closeModal}>
+        <AddDistrictModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddNriVisible} closeModal={closeModal}>
+        <AddNRIMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddConsVisible} closeModal={closeModal}>
+        <AddConstiModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddOccuVisible} closeModal={closeModal}>
+        <AddOccuModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddUseVisible} closeModal={closeModal}>
+        <AddUserForm closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddExpertiseVisible} closeModal={closeModal}>
+        <AddExpertiseModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddProTypeVisible} closeModal={closeModal}>
+        <AddProTypeModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddExperTypeVisible} closeModal={closeModal}>
+        <AddExperTypeModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCountryVisible} closeModal={closeModal}>
+        <AddCountryModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddSkillVisible} closeModal={closeModal}>
+        <AddSkillModal closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCoreVisible} closeModal={closeModal}>
+        <AddCoreClientForm closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCoreProVisible} closeModal={closeModal}>
+        <AddCoreProjectForm closeModal={closeModal} />
       </CustomModal>
     </View>
   );
@@ -494,6 +636,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
+    height:"100vh"
   },
   toggleButton: {
     position: "absolute",
@@ -541,6 +684,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
+    height:"auto"
   },
   usersContentText: {
     fontSize: 16,
