@@ -7,7 +7,6 @@ import {
   useWindowDimensions,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
 const data = [
   {
@@ -72,9 +71,8 @@ const data = [
   },
 ];
 
-const ExpertPanel = ({ onPress}) => {
+const ExpertPanel = ({ onPress }) => {
   const { width } = useWindowDimensions();
-  const navigation = useNavigation(); // Hook for navigation
 
   // Dynamic columns based on screen width
   const numColumns = width > 600 ? 4 : width > 300 ? 3 : 2;
@@ -89,7 +87,7 @@ const ExpertPanel = ({ onPress}) => {
           <TouchableOpacity
             key={item.id}
             style={[styles.item, { width: itemSize }]}
-            onPress={() => onPress(item.title)} // Navigate on press
+            onPress={() => onPress(item.title)} // Pass the expertType to onPress
           >
             <View style={styles.iconContainer}>
               <Image source={{ uri: item.icon }} style={styles.icon} />

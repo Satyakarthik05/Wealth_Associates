@@ -21,7 +21,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
 
-// Importing components
 import Agent_Right from "../Screens/Agent/Agent_Right";
 import Add_Agent from "../Screens/Agent/Add_Agent";
 import ViewAgents from "../Screens/Agent/ViewAgents";
@@ -70,7 +69,7 @@ const menuItems = [
   {
     title: "Expert Panel",
     icon: "cog-outline",
-    subItems: ["View Expert Panel", "Request Expert Panel"],
+    subItems: ["View Expert Panel", "Request Expert Panel", "ExpertDetails"],
   },
   {
     title: "Core Clients",
@@ -115,7 +114,7 @@ const Admin_panel = () => {
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
   const [isExperDetails, setIsExpertDetails] = useState(false);
-  const [expertType,setExpertType] = useState(null)
+  const [expertType, setExpertType] = useState(null);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -149,10 +148,11 @@ const Admin_panel = () => {
     setIsAllPropertiesVisible(true);
     setSelectedSubItem("View All Properties");
   };
+
   const handleExpertDetails = (expertType) => {
     setIsExpertDetails(true);
     setSelectedSubItem("expert details");
-    setExpertType(expertType); // Add this line to store the expertType
+    setExpertType(expertType); // Store the expertType
   };
 
   const handleSubItemClick = (subItem) => {
@@ -212,10 +212,6 @@ const Admin_panel = () => {
     }
   };
 
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-  };
-
   const closeModal = () => {
     setIsAddAgentVisible(false);
     setIsRequestPropertyVisible(false);
@@ -247,14 +243,7 @@ const Admin_panel = () => {
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
 
     return (
-      <View
-        style={[styles.container]}
-        // contentContainerStyle={[
-        //   styles.contentContainer,
-        //   isWeb ? { flexGrow: 1 } : null,
-        // ]}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={[styles.container]} keyboardShouldPersistTaps="handled">
         <Agent_Right onViewAllPropertiesClick={handleViewAllPropertiesClick} />
       </View>
     );
@@ -505,7 +494,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 15,
-    // marginRight: 5,
   },
   language: {
     marginRight: 10,
@@ -579,11 +567,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: Platform.OS === "web" ? "65%" : "100%",
-    // backgroundColor: "#fff",
     backgroundColor: "transparent",
     borderRadius: 10,
     padding: 20,
@@ -613,7 +599,6 @@ const styles = StyleSheet.create({
   usersContentText: {
     fontSize: 16,
     fontWeight: "bold",
-    // color: "#E82E5F",
   },
 });
 
