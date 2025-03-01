@@ -7,18 +7,20 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  Platform,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 
 const { width } = Dimensions.get("window");
 const isSmallScreen = width < 600;
 
-const Register= ({ closeModal }) => {
+const Register = ({ closeModal }) => {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedConstituency, setSelectedConstituency] = useState(null);
   const [selectedExpertise, setSelectedExpertise] = useState(null);
   const [selectedExperience, setSelectedExperience] = useState(null);
   const [location, setLocation] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const districts = [
     { label: "Hyderabad", value: "1" },
@@ -58,7 +60,7 @@ const Register= ({ closeModal }) => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.title}>Register Wealth Associate</Text>
+        <Text style={styles.title}>Register Executive Wealth Associate</Text>
 
         {/* Full Name & Mobile Number */}
         <View style={styles.row}>
@@ -68,7 +70,11 @@ const Register= ({ closeModal }) => {
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Mobile Number</Text>
-            <TextInput style={styles.input} placeholder="Ex. 9063 392872" keyboardType="phone-pad" />
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. 9063 392872"
+              keyboardType="phone-pad"
+            />
           </View>
         </View>
 
@@ -107,7 +113,12 @@ const Register= ({ closeModal }) => {
         <View style={styles.row}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Location</Text>
-            <TextInput style={styles.input} placeholder="Ex. Vijayawada" value={location} onChangeText={setLocation} />
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={location}
+              onChangeText={setLocation}
+            />
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Expertise</Text>
@@ -119,6 +130,31 @@ const Register= ({ closeModal }) => {
               value={selectedExpertise}
               onChange={(item) => setSelectedExpertise(item.value)}
               style={styles.input}
+            />
+          </View>
+        </View>
+
+        {/* Experience & Referral Code */}
+        <View style={styles.row}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Experience</Text>
+            <Dropdown
+              data={experienceLevels}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Experience"
+              value={selectedExperience}
+              onChange={(item) => setSelectedExperience(item.value)}
+              style={styles.input}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Referral Code</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Referral Code"
+              value={referralCode}
+              onChangeText={setReferralCode}
             />
           </View>
         </View>
@@ -148,7 +184,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     elevation: 5,
-    width: "90%",
+    width: isSmallScreen ? "95%" : "90%",
     maxWidth: 500,
   },
   title: {
@@ -162,15 +198,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   row: {
-    flexDirection: "row",
+    flexDirection: Platform.OS === "web" ? "row" : "column",
     justifyContent: "space-between",
   },
   inputContainer: {
-    width: "48%",
+    width: Platform.OS === "web" ? "48%" : "100%",
     marginBottom: 10,
   },
   input: {
     borderWidth: 1,
+    width: '98%',
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
@@ -194,6 +231,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

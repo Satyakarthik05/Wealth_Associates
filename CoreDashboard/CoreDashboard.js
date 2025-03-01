@@ -51,31 +51,12 @@ export default function CoreDashboard() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
-            name="Starting Screen"
-            component={StartingScreen}
+          <Stack.Screen
+            name="Login"
+            component={Login_screen}
             options={{ headerShown: false }}
-          /> */}
-          {isLoggedIn ? (
-            // If logged in, show the Home screen
-            <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
-              options={{ headerShown: false }}
-            />
-          ) : (
-            // If not logged in, show the Login screen
-            <Stack.Screen
-              name="Logins"
-              component={Login_screen}
-              options={{ headerShown: false }}
-            />
-          )}
-          {/* <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{ headerShown: false }}
-        /> */}
+          />
+
           <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
@@ -91,11 +72,7 @@ export default function CoreDashboard() {
             component={New_Password}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
-            name="Login"
-            component={Login_screen}
-            options={{ headerShown: false }}
-          />
+
           <Stack.Screen
             name="Home"
             component={Admin_panel}
@@ -109,6 +86,11 @@ export default function CoreDashboard() {
           <Stack.Screen
             name="App"
             component={App}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Starting Screen"
+            component={StartingScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

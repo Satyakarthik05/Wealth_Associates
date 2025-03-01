@@ -15,12 +15,13 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomModal from "../../../Components/CustomModal";
 import PostProperty from "../Properties/PostProperty";
 import RequestProperty from "../Properties/RequestProperty";
-import AddClubMember from "../Customer/Regicus";
+// import AddClubMember from "../Customer/Regicus";
 import RequestExpert from "../ExpertPanel/Requested_expert";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Dashboard from "./Admin_Right";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -37,11 +38,11 @@ const actionButtons = [
     icon: "home-search",
     component: RequestProperty,
   },
-  {
-    title: "Add a customer",
-    icon: "account-plus",
-    component: AddClubMember,
-  },
+  // {
+  //   title: "Add a customer",
+  //   icon: "account-plus",
+  //   component: AddClubMember,
+  // },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
 
@@ -199,7 +200,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-
+        <Dashboard />
         {/* Core Clients */}
         <Text style={styles.sectionTitle}>Core Clients</Text>
         <View style={styles.cardContainer}>

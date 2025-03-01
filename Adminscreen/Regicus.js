@@ -379,7 +379,7 @@ const RegisterExecute = ({ closeModal }) => {
       <View
         style={[styles.container, isSmallScreen && styles.smallScreenContainer]}
       >
-        <Text style={styles.title}>Register Customer</Text>
+        <Text style={styles.title}>  Register Customer  </Text>
 
         <View style={styles.row}>
           <View style={styles.inputContainer}>
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "bold",
     color: "white",
     backgroundColor: "#e91e63",
@@ -616,13 +616,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 25,
     padding: 10,
   },
   buttonRow: {
@@ -644,6 +643,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
   dropdownContainer: {
     position: "absolute",

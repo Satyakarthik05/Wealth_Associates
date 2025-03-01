@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const CustomerSchema = new mongoose.Schema({
+const CoreSchema = new mongoose.Schema({
   FullName: {
     type: String,
     required: true,
@@ -40,5 +40,5 @@ const CustomerSchema = new mongoose.Schema({
   },
 });
 
-const Customer = mongoose.model("Customers", CustomerSchema);
-module.exports = Customer;
+const Core = mongoose.model("Core members", CoreSchema);
+module.exports = Core;

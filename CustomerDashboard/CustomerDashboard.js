@@ -56,26 +56,14 @@ export default function CustomerDashboard() {
             component={StartingScreen}
             options={{ headerShown: false }}
           /> */}
-          {isLoggedIn ? (
-            // If logged in, show the Home screen
+
+          {/* {
             <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
+              name="Register"
+              component={RegisterScreen}
               options={{ headerShown: false }}
             />
-          ) : (
-            // If not logged in, show the Login screen
-            <Stack.Screen
-              name="Logins"
-              component={Login_screen}
-              options={{ headerShown: false }}
-            />
-          )}
-          {/* <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{ headerShown: false }}
-        /> */}
+          }
           <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
@@ -95,7 +83,7 @@ export default function CustomerDashboard() {
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="Home"
             component={Admin_panel}
