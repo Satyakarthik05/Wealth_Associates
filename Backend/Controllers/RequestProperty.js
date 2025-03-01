@@ -32,12 +32,12 @@ const PropertyRequest = async (req, res) => {
     await newRequestProperty.save();
 
     // Ensure RequestdPropertys is an array before pushing
-    if (!Array.isArray(agent.RequestdPropertys)) {
-      agent.RequestdPropertys = [];
-    }
+    // if (!Array.isArray(agent.RequestdPropertys)) {
+    //   agent.RequestdPropertys = [];
+    // }
 
-    agent.RequestdPropertys.push(newRequestProperty._id);
-    await agent.save();
+    // agent.RequestdPropertys.push(newRequestProperty._id);
+    // await agent.save();
 
     try {
       const callCenterResponse = await axios.get(

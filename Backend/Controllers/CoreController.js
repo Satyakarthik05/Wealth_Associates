@@ -1,11 +1,6 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const core = require("../Models/CoreModel");
 const axios = require("axios");
-const Agent = require("../Models/AgentModel");
-const CustomerSchema = require("../Models/Customer");
-
-secret = "Wealth@123";
+const jwt = require("jsonwebtoken");
 
 const sendSMS = async (MobileNumber, Password, refferedby) => {
   try {
@@ -39,7 +34,7 @@ const sendSMS = async (MobileNumber, Password, refferedby) => {
   }
 };
 
-const CustomerSign = async (req, res) => {
+const CoreSign = async (req, res) => {
   const {
     FullName,
     MobileNumber,
@@ -52,8 +47,8 @@ const CustomerSign = async (req, res) => {
   } = req.body;
 
   try {
-    const existingCustomer = await CustomerSchema.findOne({ MobileNumber });
-    if (existingCustomer) {
+    const existingCore = await core.findOne({ MobileNumber });
+    if (existingCore) {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
 
@@ -63,7 +58,7 @@ const CustomerSign = async (req, res) => {
 
     const finalReferredBy = ReferredBy || "WA0000000001";
 
-    const newCustomer = new CustomerSchema({
+    const newCustomer = new core({
       FullName,
       MobileNumber,
       Password,
@@ -79,9 +74,9 @@ const CustomerSign = async (req, res) => {
     try {
       smsResponse = await sendSMS(
         MobileNumber,
-        FullName,
+        // FullName,
         Password,
-        finalReferredBy,
+        // finalReferredBy,
         refferedby
       );
     } catch (error) {
@@ -91,36 +86,8 @@ const CustomerSign = async (req, res) => {
 
     await newCustomer.save();
 
-    // const agent = await Agent.findOne({ MyRefferalCode: ReferredBy });
-
-    // if (agent) {
-    //   if (!Array.isArray(agent.MyCustomers)) {
-    //     agent.MyCustomers = [];
-    //   }
-
-    //   agent.MyCustomers.push(newCustomer._id);
-    //   await agent.save();
-    // }
-    try {
-      const callCenterResponse = await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/9e7ab9c6-ae34-428a-9820-81a8009aa6c9/leads",
-        {
-          params: {
-            name: FullName,
-            mobile: MobileNumber,
-            email: "wealthassociation.com@gmail.com",
-            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
-          },
-        }
-      );
-
-      console.log("Call center API response:", callCenterResponse.data);
-    } catch (error) {
-      console.error("Failed to call call center API:", error.message);
-    }
-
     res.status(200).json({
-      message: "Customer Registration successful",
+      message: "Core Registration successful",
       smsResponse,
     });
   } catch (error) {
@@ -129,24 +96,41 @@ const CustomerSign = async (req, res) => {
   }
 };
 
-const fetchReferredCustomers = async (req, res) => {
+const coreLogin = async (req, res) => {
+  const { MobileNumber, Password } = req.body;
+
   try {
-    const authenticatedAgent = await Agent.findById(req.AgentId);
-    if (!authenticatedAgent) {
-      return res.status(404).json({ error: "Authenticated agent not found" });
+    const Core = await core.findOne({
+      MobileNumber: MobileNumber,
+      Password: Password,
+    });
+    if (!Core) {
+      return res
+        .status(400)
+        .json({ message: "Invalid MobileNumber or Password" });
     }
 
-    const myReferralCode = authenticatedAgent.MyRefferalCode;
-
-    const referredAgents = await CustomerSchema.find({
-      ReferredBy: myReferralCode,
+    const token = await jwt.sign({ coreId: Core._id }, secret, {
+      expiresIn: "30d",
     });
 
-    res.status(200).json({ message: "Your Agents", referredAgents });
+    res.status(200).json({ message: "Login Successful", token });
   } catch (error) {
-    console.error("Error fetching referred agents:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    console.log(error);
   }
 };
 
-module.exports = { CustomerSign, fetchReferredCustomers };
+const getCore = async (req, res) => {
+  try {
+    const coreDetails = await core.findById(req.coreId);
+    if (!coreDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(coreDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = { CoreSign, coreLogin, getCore };
