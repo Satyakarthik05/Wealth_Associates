@@ -108,15 +108,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
-  welcomeText: {
-    fontSize: isTablet ? 28 : 22,
-    fontWeight: "500",
-    color: "#e9356e",
-    marginBottom: 20,
-    textAlign: "center",
-  },
   contentContainer: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: isTablet ? "row" : "column", // Adjusted for consistent behavior across platforms
     width: "100%",
     alignItems: "center",
     justifyContent: "space-between",
@@ -135,6 +128,13 @@ const styles = StyleSheet.create({
     flex: isTablet ? 1 : undefined,
     width: isTablet ? "45%" : "100%",
     alignItems: "center",
+  },
+  welcomeText: {
+    fontSize: isTablet ? 28 : 22,
+    fontWeight: "500",
+    color: "#e9356e",
+    marginBottom: 20,
+    textAlign: "center",
   },
   loginAsText: {
     fontSize: isTablet ? 24 : 20,
@@ -171,5 +171,4 @@ const styles = StyleSheet.create({
     tintColor: "white",
   },
 });
-
 export default StartingScreen;

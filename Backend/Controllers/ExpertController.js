@@ -52,16 +52,19 @@ const registerExpert = async (req, res) => {
   }
 };
 
-const getExperts = async (req, res) => {
+const getExpertsByType = async (req, res) => {
   try {
-    const { ExpertType } = req.query;
-    const query = ExpertType ? { ExpertType } : {};
-    const experts = await Expert.find(query);
-    res.status(200).json({ message: "Experts retrieved successfully", experts });
+    const { ExpertType } = req.params;
+    const experts = await Expert.find({ ExpertType: ExpertType });
+
+    if (experts.length > 0) {
+      res.status(200).json({ success: true, experts });
+    } else {
+      res.status(404).json({ success: false, message: "No experts found for this type" });
+    }
   } catch (error) {
-    console.error("Error fetching experts:", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-module.exports = { registerExpert, getExperts };
+module.exports = { registerExpert, getExpertsByType };

@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerExpert, getExperts } = require("../Controllers/ExpertController");
+const { registerExpert, getExpertsByType } = require("../Controllers/ExpertController");
 
 const router = express.Router();
 
@@ -7,6 +7,6 @@ const router = express.Router();
 router.post("/register",registerExpert);
 
 // Route to get all experts
-router.get("/list", getExperts);
+router.get("/getexpert/:ExpertType",getExpertsByType);
 
 module.exports = router;

@@ -15,6 +15,7 @@ import StartingScreen from "./StartingScreen";
 import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
+import Admin from "./Admin_Pan/AdminDashboard";
 
 const Stack = createStackNavigator();
 
@@ -115,6 +116,11 @@ export default function App() {
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="Admin"
+            component={Admin}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>
