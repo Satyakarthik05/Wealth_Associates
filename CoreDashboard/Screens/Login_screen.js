@@ -36,7 +36,7 @@ export default function Login_screen() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/agent/AgentLogin`, {
+      const response = await fetch(`${API_URL}/core/coreLogin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const AgentRouter = require("./Routes/AgentRoutes");
 const CustomerRoutes = require("./Routes/CustomerRoutes");
+const CoreRoutes = require("./Routes/CoreRoutes");
 const propertyRoutes = require("./Routes/PostPropertyRoutes");
 const RequestProperty = require("./Routes/RequestPropertyRoute");
 const fs = require("fs");
@@ -12,10 +13,10 @@ const DisConsExpert = require("./Routes/DisConsExpRoutes");
 const District = require("./Models/Districts");
 const ExpertRouter = require("./Routes/ExpertRoute");
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());
@@ -47,6 +48,7 @@ mongoose
 
 app.use("/agent", AgentRouter);
 app.use("/customer", CustomerRoutes);
+app.use("/core", CoreRoutes);
 app.use("/properties", propertyRoutes);
 app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);

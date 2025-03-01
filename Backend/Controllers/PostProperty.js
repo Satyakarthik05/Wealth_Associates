@@ -106,8 +106,8 @@ const createProperty = async (req, res) => {
     await newProperty.save();
 
     // Update the agent's PostedPropertys field by pushing the new property ID
-    agent.PostedPropertys.push(newProperty._id);
-    await agent.save();
+    // agent.PostedPropertys.push(newProperty._id);
+    // await agent.save();
 
     res
       .status(200)
