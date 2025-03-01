@@ -11,10 +11,10 @@ const https = require("https");
 const DisConsExpert = require("./Routes/DisConsExpRoutes");
 const District = require("./Models/Districts");
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());
