@@ -41,6 +41,7 @@ import Agent_Profile from "./Agent/Agent_Profile";
 import Modify_Deatils from "./Agent/Modify_Details";
 import ExpertDetails from "./ExpertPanel/ExpertDetails";
 import ExpertRoute from "./ExpertPanel/ExpertRoute";
+import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -80,7 +81,11 @@ const menuItems = [
   {
     title: "Skilled Club",
     icon: "trophy-outline",
-    subItems: ["Register Skilled Labour", "View Skilled Labour"],
+    subItems: [
+      "Register Skilled Labour",
+      "View Skilled Labour",
+      "All Skilled Labours",
+    ],
   },
 ];
 
@@ -116,6 +121,7 @@ const Admin_panel = () => {
   const [isAgentProfile, setIsAgentProfile] = useState(false);
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [expertType, setExpertType] = useState(null);
+  const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -213,6 +219,8 @@ const Admin_panel = () => {
       setisRsSkill(true);
     } else if (subItem === "expert details") {
       setIsExpertDetails(true);
+    } else if (subItem === "All Skilled Labours") {
+      setAllSkilledLabour(true);
     }
   };
 
@@ -244,6 +252,7 @@ const Admin_panel = () => {
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
+    if (AllSkilledLabour) return <AllSkilledLabours />;
 
     return (
       <View style={[styles.container]} keyboardShouldPersistTaps="handled">

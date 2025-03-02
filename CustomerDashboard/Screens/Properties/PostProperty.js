@@ -33,6 +33,10 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
 
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
+  };
+
   // const propertyTypes = [
   //   { name: "villas", code: "01" },
   //   { name: "Commersial", code: "02" },

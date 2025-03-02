@@ -111,7 +111,6 @@ const createProperty = async (req, res) => {
       postedByUser = customerUser;
       userType = "customerMember";
     } else {
-      // If mobile number is not found in any database, mark as admin posted
       postedByUser = { MobileNumber: "998877" }; // Default admin number
       userType = "admin";
     }
