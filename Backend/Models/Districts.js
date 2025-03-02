@@ -49,10 +49,18 @@ const PropertyType = mongoose.model("PropertyTypes", PropertyTypeSchema);
 //   }
 // };
 
+// const skillSchema = new mongoose.Schema({ name: String });
+// // const Skills = mongoose.model("Skill", skillSchema);
+// const Skils = mongoose.model("SKills", skillSchema);
+
+const skillSchema = new mongoose.Schema({ name: String });
+const Skills = mongoose.model("Skills", skillSchema);
+
 module.exports = {
   District,
   Constituency,
   Expertise,
   Occupation,
   PropertyType,
+  Skills,
 };

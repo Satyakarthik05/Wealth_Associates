@@ -142,6 +142,7 @@ const Register_screen = () => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      AgentType: "WealthAssociate",
     };
 
     try {
@@ -590,12 +591,13 @@ const styles = StyleSheet.create({
   },
 
   inputRow: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" || Platform.OS === "ios"? "100%" : "30%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
     zIndex: 1, // Ensure the input container has a zIndex
   },

@@ -37,7 +37,7 @@ const ViewPostedProperties = () => {
       const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
         method: "GET",
         headers: {
-          token: `${token}`, // Include the token in the headers
+          token: `${token}`,
           "Content-Type": "application/json",
         },
       });

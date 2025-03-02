@@ -6,7 +6,8 @@ const propertySchema = new mongoose.Schema(
     location: { type: String, required: true },
     price: { type: Number, required: true },
     photo: { type: String, required: true },
-    PostedBy: { type: Number, required: true }, // Adjust type if necessary
+    PostedBy: { type: Number, required: true },
+    PostedUserType: { type: String }, // Adjust type if necessary
   },
   { timestamps: true } // Adds createdAt and updatedAt fields
 );

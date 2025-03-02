@@ -20,7 +20,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   useEffect(() => {
     if (!expertType) return;
 
-    fetch(`${API_URL}/expertPanel/getexpert/${expertType}`)
+    fetch(`${API_URL}/expert/getexpert/${expertType}`)
       .then((response) => response.json())
       .then((data) => {
         setExperts(data.experts || []);

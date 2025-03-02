@@ -18,6 +18,7 @@ import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 // import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -177,6 +178,7 @@ const RegisterExecue = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      AgentType: "WealthAssociate",
     };
 
     try {
@@ -193,6 +195,7 @@ const RegisterExecue = ({ closeModal }) => {
       if (response.ok) {
         const result = await response.json();
         Alert.alert("Success", "Registration successful!");
+        closeModal();
       } else if (response.status === 400) {
         const errorData = await response.json();
         Alert.alert("Error", "Mobile number already exists.");

@@ -38,6 +38,9 @@ const CustomerSchema = new mongoose.Schema({
   Otp: {
     type: String,
   },
+  RegisteredBY: {
+    type: String,
+  },
 });
 
 const Customer = mongoose.model("Customers", CustomerSchema);

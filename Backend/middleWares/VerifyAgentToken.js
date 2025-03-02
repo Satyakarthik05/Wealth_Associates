@@ -24,7 +24,7 @@ const verifyAgentToken = async (req, res, next) => {
     }
 
     req.AgentId = agent._id;
-    next(); // Proceed to the next middleware/route
+    next();
   } catch (error) {
     console.error("Token verification error:", error.message);
 

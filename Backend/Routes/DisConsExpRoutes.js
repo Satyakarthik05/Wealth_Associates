@@ -7,5 +7,6 @@ app.get("/constituencys", DistrictData.constituency);
 app.get("/expertise", DistrictData.Expertis);
 app.get("/occupations", DistrictData.Occupations);
 app.get("/propertytype", DistrictData.PropertyTypes);
+app.get("/skills", DistrictData.Skillss);
 
 module.exports = app;

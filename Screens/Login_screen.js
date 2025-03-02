@@ -28,7 +28,6 @@ export default function Login_screen() {
 
   const handleLogin = async () => {
     if (mobileNumber === "1234567890" && password === "1234") {
-      await AsyncStorage.setItem("authToken", "dummy_token");
       navigation.navigate("Admin"); // Redirects to Dashboard after login
     } else {
       if (!mobileNumber || !password) {
@@ -94,7 +93,7 @@ export default function Login_screen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        {(Platform.OS !== "android" && Platform.OS !== "ios" )&& (
+        {Platform.OS !== "android" && Platform.OS !== "ios" && (
           <View style={styles.leftSection}>
             <Image
               source={require("../assets/logo2.png")}

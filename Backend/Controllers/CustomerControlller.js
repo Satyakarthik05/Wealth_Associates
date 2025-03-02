@@ -23,7 +23,7 @@ const sendSMS = async (MobileNumber, Password, refferedby) => {
 
     const response = await axios.get(apiUrl, { params });
 
-    if ( 
+    if (
       response.data &&
       response.data.toLowerCase().includes("sms sent successfully")
     ) {
@@ -49,6 +49,7 @@ const CustomerSign = async (req, res) => {
     Occupation,
     ReferredBy,
     MyRefferalCode,
+    RegisteredBY,
   } = req.body;
 
   try {
@@ -73,6 +74,7 @@ const CustomerSign = async (req, res) => {
       Occupation,
       ReferredBy: finalReferredBy,
       MyRefferalCode: refferedby,
+      RegisteredBY,
     });
 
     let smsResponse;
@@ -149,11 +151,8 @@ const fetchReferredCustomers = async (req, res) => {
   }
 };
 
-
-
-
-const customerLogin =async(req,res)=> {
-  const {MobileNumber,Password}=req.body
+const customerLogin = async (req, res) => {
+  const { MobileNumber, Password } = req.body;
 
   try {
     const customer = await CustomerSchema.findOne({
@@ -174,7 +173,7 @@ const customerLogin =async(req,res)=> {
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 const getCustomer = async (req, res) => {
   try {
@@ -189,4 +188,9 @@ const getCustomer = async (req, res) => {
   }
 };
 
-module.exports = { CustomerSign, fetchReferredCustomers,customerLogin,getCustomer };
+module.exports = {
+  CustomerSign,
+  fetchReferredCustomers,
+  customerLogin,
+  getCustomer,
+};

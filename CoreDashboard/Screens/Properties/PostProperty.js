@@ -33,6 +33,10 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
 
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
+  };
+
   // const propertyTypes = [
   //   { name: "villas", code: "01" },
   //   { name: "Commersial", code: "02" },
@@ -44,7 +48,7 @@ const PostProperty = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",

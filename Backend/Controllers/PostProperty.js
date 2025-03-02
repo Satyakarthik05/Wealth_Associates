@@ -2,6 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const Property = require("../Models/Property");
 const AgentSchema = require("../Models/AgentModel");
+const CustomerSchema = require("../Models/Customer");
+const CoreSchema = require("../Models/CoreModel");
+const mongoose = require("mongoose");
 
 // const createProperty = async (req, res) => {
 //   try {
@@ -87,11 +90,30 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Check if the agent exists using PostedBy (MobileNumber)
+    // Check if the user exists in AgentSchema, CoreSchema, or CustomerSchema using PostedBy (MobileNumber)
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
+    const coreUser = await CoreSchema.findOne({ MobileNumber: PostedBy });
+    const customerUser = await CustomerSchema.findOne({
+      MobileNumber: PostedBy,
+    });
 
-    if (!agent) {
-      return res.status(404).json({ message: "Agent not found." });
+    let postedByUser = null;
+    let userType = "";
+
+    // Determine which user type is posting the property
+    if (agent) {
+      postedByUser = agent;
+      userType = "agent";
+    } else if (coreUser) {
+      postedByUser = coreUser;
+      userType = "coreMember";
+    } else if (customerUser) {
+      postedByUser = customerUser;
+      userType = "customerMember";
+    } else {
+      // If mobile number is not found in any database, mark as admin posted
+      postedByUser = { MobileNumber: "998877" }; // Default admin number
+      userType = "admin";
     }
 
     // Create the new property
@@ -100,14 +122,25 @@ const createProperty = async (req, res) => {
       location,
       price,
       photo: photoPath,
-      PostedBy: agent.MobileNumber, // Ensure it's stored correctly
+      PostedBy: postedByUser.MobileNumber, // Store the mobile number
+      PostedUserType: userType, // Store the user type (agent, coreMember, customerMember, or admin)
     });
 
     await newProperty.save();
 
-    // Update the agent's PostedPropertys field by pushing the new property ID
-    // agent.PostedPropertys.push(newProperty._id);
-    // await agent.save();
+    // Update the user's PostedPropertys field by pushing the new property ID (if not admin)
+    // if (agent) {
+    //   agent.PostedPropertys.push(newProperty._id);
+    //   await agent.save();
+    // }
+    // if (coreUser) {
+    //   coreUser.PostedPropertys.push(newProperty._id);
+    //   await coreUser.save();
+    // }
+    // if (customerUser) {
+    //   customerUser.PostedPropertys.push(newProperty._id);
+    //   await customerUser.save();
+    // }
 
     res
       .status(200)
@@ -130,30 +163,22 @@ const GetAllPropertys = async (req, res) => {
 
 const GetMyPropertys = async (req, res) => {
   try {
-    // Find the authenticated agent using AgentId
-    const authenticatedAgent = await AgentSchema.findById(req.AgentId);
-    if (!authenticatedAgent) {
-      return res.status(404).json({ error: "Authenticated agent not found" });
-    }
+    const mobileNumber = req.mobileNumber; // Get mobile number from middleware
+    const userType = req.userType; // Get user type from middleware
 
-    // Retrieve the MobileNumber (used as PostedBy) of the authenticated agent
-    const PostedBy = authenticatedAgent.MobileNumber;
+    // Fetch properties where PostedBy matches the user's MobileNumber
+    const properties = await Property.find({ PostedBy: mobileNumber });
 
-    // Fetch all properties where PostedBy matches the authenticated agent's MobileNumber
-    const MyPosts = await Property.find({ PostedBy });
-
-    // If no posts are found, return an empty array
-    if (!MyPosts || MyPosts.length === 0) {
+    if (!properties || properties.length === 0) {
       return res
         .status(200)
-        .json({ message: "No properties found", MyPosts: [] });
+        .json({ message: "No properties found for this user", MyPosts: [] });
     }
 
-    // Return the found properties
-    res.status(200).json(MyPosts);
+    res.status(200).json(properties);
   } catch (error) {
-    console.error("Error fetching properties:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Error fetching properties", error });
   }
 };
 

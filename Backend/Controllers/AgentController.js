@@ -56,6 +56,7 @@ const AgentSign = async (req, res) => {
     Experience,
     ReferredBy,
     MyRefferalCode,
+    AgentType,
   } = req.body;
 
   try {
@@ -83,6 +84,7 @@ const AgentSign = async (req, res) => {
       Experience,
       ReferredBy: finalReferredBy, // Use the finalReferredBy value
       MyRefferalCode: refferedby,
+      AgentType,
     });
 
     let smsResponse;

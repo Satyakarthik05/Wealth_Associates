@@ -162,6 +162,7 @@ const RegisterExecute = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      RegisteredBY: "WealthAssociate",
     };
 
     try {

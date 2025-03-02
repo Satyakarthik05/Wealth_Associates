@@ -37,6 +37,7 @@ const RegisterExecute = ({ closeModal }) => {
   const [constituencies, setConstituencys] = useState([]);
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fetchDistricts = async () => {
     try {
@@ -87,7 +88,7 @@ const RegisterExecute = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -138,6 +139,7 @@ const RegisterExecute = ({ closeModal }) => {
     }
 
     setIsLoading(true);
+    setErrorMessage(""); // Clear any previous error message
 
     const selectedDistrict = districts.find((d) => d.name === district);
     const selectedConstituency = constituencies.find(
@@ -162,6 +164,7 @@ const RegisterExecute = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      RegisteredBY: "CoreMember",
     };
 
     try {
@@ -178,17 +181,17 @@ const RegisterExecute = ({ closeModal }) => {
         Alert.alert("Success", "Registration successful!");
         closeModal();
       } else if (response.status === 400) {
-        Alert.alert("Error", "Mobile number already exists.");
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || "Mobile number already exists."); // Set the error message
       } else {
         const errorData = await response.json();
-        Alert.alert("Error", errorData.message || "Something went wrong.");
+        setErrorMessage(errorData.message || "Something went wrong."); // Set the error message
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      Alert.alert(
-        "Error",
+      setErrorMessage(
         "Failed to connect to the server. Please try again later."
-      );
+      ); // Set the error message
     } finally {
       setIsLoading(false);
     }
@@ -200,6 +203,12 @@ const RegisterExecute = ({ closeModal }) => {
         style={[styles.container, isSmallScreen && styles.smallScreenContainer]}
       >
         <Text style={styles.title}>Register Customer</Text>
+        {/* Display the error message above the input fields */}
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.row}>
           <View style={styles.inputContainer}>

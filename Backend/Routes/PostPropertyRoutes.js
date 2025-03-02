@@ -2,6 +2,9 @@ const express = require("express");
 const multer = require("multer");
 const PostPropertyController = require("../Controllers/PostProperty");
 const verifyAgentToken = require("../middleWares/VerifyAgentToken");
+const CustomerToken = require("../middleWares/VerifyCustomerToken");
+const CoreToken = require("../middleWares/VerifyCoreToken");
+const verifyUser = require("../middleWares/VerifyUser");
 
 const router = express.Router();
 
@@ -25,9 +28,15 @@ router.post(
   PostPropertyController.createProperty
 );
 router.get("/getallPropertys", PostPropertyController.GetAllPropertys);
+// router.get(
+//   "/getMyPropertys",
+//   verifyAgentToken,
+//   CustomerToken,
+//   PostPropertyController.GetMyPropertys
+// );
 router.get(
   "/getMyPropertys",
-  verifyAgentToken,
+  verifyUser,
   PostPropertyController.GetMyPropertys
 );
 

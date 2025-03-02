@@ -114,7 +114,7 @@ const Add_Agent = ({ closeModal }) => {
       const token = await AsyncStorage.getItem("authToken");
 
       // Make the fetch request
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "", // Fallback to an empty string if token is null
@@ -177,6 +177,7 @@ const Add_Agent = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      AgentType: "WealthAssociate",
     };
 
     try {
@@ -193,6 +194,7 @@ const Add_Agent = ({ closeModal }) => {
       if (response.ok) {
         const result = await response.json();
         Alert.alert("Success", "Registration successful!");
+        closeModal();
       } else if (response.status === 400) {
         const errorData = await response.json();
         Alert.alert("Error", "Mobile number already exists.");

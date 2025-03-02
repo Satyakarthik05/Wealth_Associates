@@ -46,6 +46,9 @@ const AgentScheme = new mongoose.Schema({
   Otp: {
     type: String,
   },
+  AgentType: {
+    type: String,
+  },
   // PostedPropertys: [
   //   {
   //     type: mongoose.Schema.Types.ObjectId,

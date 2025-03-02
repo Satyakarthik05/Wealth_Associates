@@ -71,22 +71,20 @@ const PropertyRequest = async (req, res) => {
 const GetMyRequestedPropertys = async (req, res) => {
   try {
     // Find the authenticated agent using AgentId
-    const authenticatedAgent = await Agent.findById(req.AgentId);
-    if (!authenticatedAgent) {
-      return res.status(404).json({ error: "Authenticated agent not found" });
-    }
+    const mobileNumber = req.mobileNumber; // Get mobile number from middleware
+    const userType = req.userType; // Get user type from middleware
 
-    const PostedBy = authenticatedAgent.MobileNumber;
-    const MyPosts = await RequestProperty.find({ PostedBy });
+    // Fetch properties where PostedBy matches the user's MobileNumber
+    const properties = await RequestProperty.find({ PostedBy: mobileNumber });
 
     // If no posts are found, return an empty array
-    if (!MyPosts || MyPosts.length === 0) {
+    if (!properties || properties.length === 0) {
       return res
         .status(200)
-        .json({ message: "No properties found", MyPosts: [] });
+        .json({ message: "No properties found", properties: [] });
     }
 
-    res.status(200).json(MyPosts);
+    res.status(200).json(properties);
   } catch (error) {
     console.error("Error fetching properties:", error.message);
     return res.status(500).json({ error: "Internal server error" });

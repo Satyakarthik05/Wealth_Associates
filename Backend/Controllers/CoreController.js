@@ -1,6 +1,8 @@
 const core = require("../Models/CoreModel");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
+const AgentSchema = require("../Models/AgentModel");
+const Customer = require("../Models/Customer");
 
 const sendSMS = async (MobileNumber, Password, refferedby) => {
   try {
@@ -133,4 +135,54 @@ const getCore = async (req, res) => {
   }
 };
 
-module.exports = { CoreSign, coreLogin, getCore };
+const fetchReferredAgents = async (req, res) => {
+  try {
+    // Find the authenticated agent
+    const authenticatedAgent = await core.findById(req.coreId);
+    if (!authenticatedAgent) {
+      return res.status(404).json({ error: "Authenticated agent not found" });
+    }
+
+    // Retrieve the MyRefferalCode of the authenticated agent
+    const myReferralCode = authenticatedAgent.MyRefferalCode;
+
+    // Fetch all agents whose ReferredBy matches the authenticated agent's MyRefferalCode
+    const referredAgents = await AgentSchema.find({
+      ReferredBy: myReferralCode,
+    });
+
+    // Return the result
+    res.status(200).json({ message: "Your Agents", referredAgents });
+  } catch (error) {
+    console.error("Error fetching referred agents:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const fetchReferredCustomers = async (req, res) => {
+  try {
+    const authenticatedAgent = await core.findById(req.coreId);
+    if (!authenticatedAgent) {
+      return res.status(404).json({ error: "Authenticated agent not found" });
+    }
+
+    const myReferralCode = authenticatedAgent.MyRefferalCode;
+
+    const referredAgents = await Customer.find({
+      ReferredBy: myReferralCode,
+    });
+
+    res.status(200).json({ message: "Your Agents", referredAgents });
+  } catch (error) {
+    console.error("Error fetching referred agents:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = {
+  CoreSign,
+  coreLogin,
+  getCore,
+  fetchReferredAgents,
+  fetchReferredCustomers,
+};

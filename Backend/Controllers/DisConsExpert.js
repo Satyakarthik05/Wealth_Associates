@@ -4,6 +4,7 @@ const {
   Expertise,
   Occupation,
   PropertyType,
+  Skills,
 } = require("../Models/Districts");
 
 const district = async (req, res) => {
@@ -60,10 +61,20 @@ const PropertyTypes = async (req, res) => {
   }
 };
 
+const Skillss = async (req, res) => {
+  try {
+    const skills = await Skills.find();
+    res.json({ skills: skills.map((skill) => skill.name) });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching skills" });
+  }
+};
+
 module.exports = {
   district,
   constituency,
   Expertis,
   Occupations,
   PropertyTypes,
+  Skillss,
 };
