@@ -18,10 +18,10 @@ const AllCounts = require("./Controllers/AllCollectionsCount");
 const InvestorRoutes = require("./Routes/InvestorRouts");
 const RequestExpertRoute = require("./Routes/RequstedExpertsRoutes");
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());
