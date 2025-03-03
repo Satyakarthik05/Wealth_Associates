@@ -5,11 +5,21 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import { API_URL } from "../data/ApiUrl";
 
 const AddNRIMember = ({ closeModal }) => {
+  const [name, setName] = useState("");
   const [country, setCountry] = useState(null);
+  const [locality, setLocality] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [mobileIN, setMobileIN] = useState("");
+  const [mobileCountryNo, setMobileCountryNo] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
     { label: "USA", value: "usa" },
@@ -18,20 +28,60 @@ const AddNRIMember = ({ closeModal }) => {
     { label: "India", value: "india" },
   ]);
 
+  const handleAddMember = async () => {
+    if (
+      !name ||
+      !country ||
+      !locality ||
+      !occupation ||
+      !mobileIN ||
+      !mobileCountryNo
+    ) {
+      Alert.alert("Error", "Please fill all the fields");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/nri/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Name: name,
+          Country: country,
+          Locality: locality,
+          Occupation: occupation,
+          MobileIN: mobileIN,
+          MobileCountryNo: mobileCountryNo,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", data.message);
+        closeModal();
+      } else {
+        Alert.alert("Error", data.message);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to connect to server");
+    }
+    setLoading(false);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>Add NRI Member</Text>
 
-      {/* Name Field */}
       <Text style={styles.label}>Name</Text>
       <TextInput
         style={styles.input}
         placeholder="Ex. Vijayawada"
-        placeholderTextColor="#aaa"
+        value={name}
+        onChangeText={setName}
       />
 
-      {/* Country Dropdown */}
       <Text style={styles.label}>Country</Text>
       <DropDownPicker
         open={open}
@@ -42,48 +92,50 @@ const AddNRIMember = ({ closeModal }) => {
         setItems={setItems}
         placeholder="-- Select Country --"
         style={styles.dropdown}
-        dropDownContainerStyle={styles.dropdownContainer}
       />
 
-      {/* Locality Field */}
       <Text style={styles.label}>Locality</Text>
       <TextInput
         style={styles.input}
         placeholder="Ex. Dallas"
-        placeholderTextColor="#aaa"
+        value={locality}
+        onChangeText={setLocality}
       />
 
-      {/* Occupation Field */}
       <Text style={styles.label}>Occupation</Text>
       <TextInput
         style={styles.input}
         placeholder="Ex. Software Engineer"
-        placeholderTextColor="#aaa"
+        value={occupation}
+        onChangeText={setOccupation}
       />
 
-      {/* Mobile IN Field */}
       <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
       <TextInput
         style={styles.input}
         placeholder="Ex. 9063392872"
-        placeholderTextColor="#aaa"
         keyboardType="phone-pad"
+        value={mobileIN}
+        onChangeText={setMobileIN}
       />
 
-      {/* Mobile Country No Field */}
       <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
       <TextInput
         style={styles.input}
         placeholder="Ex. 9063392872"
-        placeholderTextColor="#aaa"
         keyboardType="phone-pad"
+        value={mobileCountryNo}
+        onChangeText={setMobileCountryNo}
       />
 
-      {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.buttonText}>Add</Text>
-        </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="large" color="#E91E63" />
+        ) : (
+          <TouchableOpacity style={styles.addButton} onPress={handleAddMember}>
+            <Text style={styles.buttonText}>Add</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
@@ -132,9 +184,6 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 15,
     marginBottom: 10,
-  },
-  dropdownContainer: {
-    borderColor: "#000",
   },
   buttonContainer: {
     flexDirection: "row",

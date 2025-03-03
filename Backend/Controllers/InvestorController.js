@@ -1,8 +1,8 @@
 const express = require("express");
-const SkilledLabour = require("../Models/SkillModel");
+const Investors = require("../Models/InvestorModel");
 const AgentSchema = require("../Models/AgentModel");
 
-const registerSkilledLabour = async (req, res) => {
+const registerInvestors = async (req, res) => {
   const {
     FullName,
     SelectSkill,
@@ -13,14 +13,14 @@ const registerSkilledLabour = async (req, res) => {
   } = req.body;
 
   try {
-    const existingLabour = await SkilledLabour.findOne({ MobileNumber });
-    if (existingLabour) {
+    const existingInvestor = await Investors.findOne({ MobileNumber });
+    if (existingInvestor) {
       return res
         .status(400)
         .json({ message: "Mobile number already registered" });
     }
 
-    const newLabour = new SkilledLabour({
+    const newInvestor = new Investors({
       FullName,
       SelectSkill,
       Location,
@@ -29,10 +29,10 @@ const registerSkilledLabour = async (req, res) => {
       RegisteredBy,
     });
 
-    await newLabour.save();
+    await newInvestor.save();
 
     res.status(200).json({
-      message: "Skilled Labour Registration successful",
+      message: "Investor Registration successful",
     });
   } catch (error) {
     console.error("Error during registration:", error.message);
@@ -40,9 +40,9 @@ const registerSkilledLabour = async (req, res) => {
   }
 };
 
-const fetchSkilledLabours = async (req, res) => {
+const fetchInvestors = async (req, res) => {
   try {
-    const skilledLabours = await SkilledLabour.find();
+    const skilledLabours = await Investors.find();
     res.status(200).json({ message: "Your Skilled Labours", skilledLabours });
   } catch (error) {
     console.error("Error fetching skilled labours:", error.message);
@@ -72,13 +72,13 @@ const fetchAddedSkillLAbours = async (req, res) => {
   }
 };
 
-const fetchAdminSkill = async (req, res) => {
+const fetchAdminInvestors = async (req, res) => {
   try {
     const mobileNumber = req.mobileNumber; // Get mobile number from middleware
     const userType = req.userType;
 
     // Fetch skilled labours added by the agent
-    const referredAgents = await SkilledLabour.find({
+    const referredAgents = await Investors.find({
       AddedBy: "Admin",
     }).lean();
 
@@ -94,10 +94,10 @@ const fetchAdminSkill = async (req, res) => {
   }
 };
 
-const deleteSkillLabour = async (req, res) => {
+const deleteInvestor = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedLabour = await SkilledLabour.findByIdAndDelete(id);
+    const deletedLabour = await Investors.findByIdAndDelete(id);
     if (!deletedLabour) {
       return res.status(404).json({ message: "Labour not found" });
     }
@@ -108,9 +108,8 @@ const deleteSkillLabour = async (req, res) => {
 };
 
 module.exports = {
-  registerSkilledLabour,
-  fetchSkilledLabours,
-  fetchAddedSkillLAbours,
-  fetchAdminSkill,
-  deleteSkillLabour,
+  registerInvestors,
+  fetchAdminInvestors,
+  fetchInvestors,
+  deleteInvestor,
 };
