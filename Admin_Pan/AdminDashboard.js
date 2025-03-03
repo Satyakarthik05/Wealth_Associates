@@ -96,7 +96,7 @@ const menuItems = [
   {
     title: "Referrals",
     icon: "person-add-outline",
-    subItems: [],
+    subItems: ["Add ReferralAgents", "View ReferralAgents"],
   },
   {
     title: "NRI Club",
