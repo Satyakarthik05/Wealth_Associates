@@ -28,12 +28,8 @@ router.post(
   PostPropertyController.createProperty
 );
 router.get("/getallPropertys", PostPropertyController.GetAllPropertys);
-// router.get(
-//   "/getMyPropertys",
-//   verifyAgentToken,
-//   CustomerToken,
-//   PostPropertyController.GetMyPropertys
-// );
+router.get("/getAdminProperties", PostPropertyController.AdminProperties);
+router.delete("/delete/:id", PostPropertyController.deletProperty);
 router.get(
   "/getMyPropertys",
   verifyUser,

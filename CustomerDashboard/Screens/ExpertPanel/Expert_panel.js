@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Image,
   useWindowDimensions,
+  TouchableOpacity,
 } from "react-native";
 
 const data = [
@@ -70,10 +71,8 @@ const data = [
   },
 ];
 
-const ExpertPanel = () => {
+const ExpertPanel = ({ onSwitch }) => {
   const { width } = useWindowDimensions();
-
-  // Dynamic columns based on screen width
   const numColumns = width > 600 ? 4 : width > 300 ? 3 : 2;
   const spacing = 8;
   const itemSize = (width - spacing * (numColumns + 1)) / numColumns;
@@ -83,12 +82,16 @@ const ExpertPanel = () => {
       <Text style={styles.header}>Expert Panel</Text>
       <View style={styles.listContainer}>
         {data.map((item) => (
-          <View key={item.id} style={[styles.item, { width: itemSize }]}>
+          <TouchableOpacity
+            key={item.id}
+            style={[styles.item, { width: itemSize }]}
+            onPress={() => onSwitch(item.title)} // Pass title on click
+          >
             <View style={styles.iconContainer}>
               <Image source={{ uri: item.icon }} style={styles.icon} />
             </View>
             <Text style={styles.text}>{item.title}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
@@ -96,10 +99,7 @@ const ExpertPanel = () => {
 };
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
+  mainContainer: { flex: 1, backgroundColor: "#f8f9fa", padding: 16 },
   header: {
     fontSize: 22,
     fontWeight: "bold",
@@ -111,14 +111,10 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
   },
-  item: {
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 4,
-  },
+  item: { alignItems: "center", justifyContent: "center", margin: 4 },
   iconContainer: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 50,
     backgroundColor: "#fff",
     justifyContent: "center",
@@ -129,11 +125,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
   },
-  icon: {
-    width: 35,
-    height: 35,
-    resizeMode: "contain",
-  },
+  icon: { width: 35, height: 35, resizeMode: "contain" },
   text: {
     fontSize: 12,
     fontWeight: "bold",

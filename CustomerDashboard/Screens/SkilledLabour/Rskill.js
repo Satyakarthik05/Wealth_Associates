@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// React Native Frontend (Rskill.js)
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,78 +7,163 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import { API_URL } from "../../../data/ApiUrl";
 
-const Rskill = ({closeModal}) => {
+const Rskill = ({ closeModal }) => {
   const [fullName, setFullName] = useState("");
   const [skill, setSkill] = useState("");
   const [location, setLocation] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [Details, setDetails] = useState(null); // Initialize as null
+  const [loadingSkills, setLoadingSkills] = useState(true);
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
+  useEffect(() => {
+    console.log("Updated Details:", Details);
+  }, [Details]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch(`${API_URL}/discons/skills`);
+        const data = await response.json();
+        setSkills(data.skills);
+      } catch (error) {
+        alert("Error fetching skills: " + error.message);
+      } finally {
+        setLoadingSkills(false);
+      }
+    };
+    fetchSkills();
+  }, []);
+
+  const handleRegister = async () => {
+    if (!fullName || !skill || !location || !mobileNumber) {
+      alert("All fields are required");
+      return;
+    }
+
+    if (!Details || !Details.MobileNumber) {
+      alert("Agent details are not available. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/skillLabour/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          FullName: fullName,
+          SelectSkill: skill,
+          Location: location,
+          MobileNumber: mobileNumber,
+          AddedBy: Details.MobileNumber, // Ensure this is correctly set
+          RegisteredBy: "Customer",
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Registration successful");
+        setFullName("");
+        setSkill("");
+        setLocation("");
+        setMobileNumber("");
+        closeModal();
+      } else {
+        alert(data.message || "Registration failed");
+      }
+    } catch (error) {
+      alert("Error: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Register Skilled Labour</Text>
       </View>
-
       <View style={styles.form}>
         <Text style={styles.label}>Full Name</Text>
         <TextInput
-          placeholder="Ex. John Dhee"
           value={fullName}
           onChangeText={setFullName}
           style={styles.input}
         />
-
         <Text style={styles.label}>Select Skill</Text>
-        <View
-          style={
-            Platform.OS === "web"
-              ? styles.pickerWebContainer
-              : styles.pickerContainer
-          }
-        >
-          <Picker
-            selectedValue={skill}
-            onValueChange={(itemValue) => setSkill(itemValue)}
-            style={styles.picker} // No border on Picker
+        {loadingSkills ? (
+          <ActivityIndicator size="small" color="#E91E63" />
+        ) : (
+          <View
+            style={
+              Platform.OS === "web"
+                ? styles.pickerWebContainer
+                : styles.pickerContainer
+            }
           >
-            <Picker.Item label="-- Select Skill Type --" value="" />
-            <Picker.Item label="Plumber" value="plumber" />
-            <Picker.Item label="Electrician" value="electrician" />
-          </Picker>
-        </View>
-
+            <Picker
+              selectedValue={skill}
+              onValueChange={setSkill}
+              style={styles.picker}
+            >
+              <Picker.Item label="-- Select Skill Type --" value="" />
+              {skills.map((item) => (
+                <Picker.Item key={item} label={item} value={item} />
+              ))}
+            </Picker>
+          </View>
+        )}
         <Text style={styles.label}>Location</Text>
         <TextInput
-          placeholder="Ex. Vijayawada"
           value={location}
           onChangeText={setLocation}
           style={styles.input}
         />
-
         <Text style={styles.label}>Mobile Number</Text>
         <TextInput
-          placeholder="Ex. 9063392872"
-          keyboardType="numeric"
           value={mobileNumber}
           onChangeText={setMobileNumber}
+          keyboardType="numeric"
           style={styles.input}
         />
-
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.registerButton}
-            onPress={() => console.log("Registered")}
+            onPress={handleRegister}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Register</Text>
+            <Text style={styles.buttonText}>
+              {loading ? "Registering..." : "Register"}
+            </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={closeModal}
-          >
+          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -126,7 +212,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
-  // Mobile Picker (Full Rounded)
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -134,19 +219,17 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 15,
   },
-  // Web Picker (Rounded + Single Border)
   pickerWebContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10, // Rounded corners
+    borderRadius: 10,
     overflow: "hidden",
     marginBottom: 15,
-    paddingHorizontal: 10, // Added padding for better look
+    paddingHorizontal: 10,
   },
   picker: {
     height: 50,
     width: "100%",
-    borderWidth: 0, // Removes default picker border
   },
   buttonContainer: {
     flexDirection: "row",

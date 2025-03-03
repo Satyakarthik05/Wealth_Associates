@@ -1,3 +1,4 @@
+// React Native Component
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,10 +9,13 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
-const numColumns = width > 800 ? 4 : 1; // Mobile: Single column, Web: 4 columns
+const numColumns = width > 800 ? 4 : 1;
 
 const RequestedProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -24,31 +28,65 @@ const RequestedProperties = () => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      // Simulating API call delay for better UI experience
-      setTimeout(() => {
-        setProperties([
-          {
-            id: "1",
-            title: "Individual House for Sale",
-            type: "Independent House",
-            location: "Vijayawada",
-            budget: "₹50,00,000",
-            // image: require("../../assets/house.png"),
-          },
-          {
-            id: "2",
-            title: "Luxury Villa for Sale",
-            type: "Villa",
-            location: "Hyderabad",
-            budget: "₹1,20,00,000",
-            // image: require("../../assets/house.png"),
-          },
-        ]);
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
         setLoading(false);
-      }, 2000); // Simulated delay (2 seconds)
+        return;
+      }
+      const response = await fetch(
+        `${API_URL}/requestProperty/getallrequestProperty`,
+        {
+          method: "GET",
+          headers: { token: token },
+        }
+      );
+      const data = await response.json();
+      const formattedProperties = [...data].reverse().map((item) => ({
+        id: item._id,
+        title: item.propertyTitle,
+        type: item.propertyType,
+        location: item.location,
+        budget: `₹${item.Budget.toLocaleString()}`,
+        image: getImageByPropertyType(item.propertyType),
+      }));
+      setProperties(formattedProperties);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
       setLoading(false);
+    }
+  };
+
+  const deleteProperty = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
+        return;
+      }
+      await fetch(`${API_URL}/requestProperty/delete/${id}`, {
+        method: "DELETE",
+        headers: { token: token },
+      });
+      setProperties(properties.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Error deleting property:", error);
+    }
+  };
+
+  const getImageByPropertyType = (propertyType) => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return require("../assets/Land.jpg");
+      case "residential":
+        return require("../assets/residntial.jpg");
+      case "commercial":
+        return require("../assets/commercial.jpg");
+      case "villa":
+        return require("../assets/villa.jpg");
+      default:
+        return require("../assets/house.png");
     }
   };
 
@@ -65,14 +103,17 @@ const RequestedProperties = () => {
           {properties.map((item) => (
             <View key={item.id} style={styles.card}>
               <Image source={item.image} style={styles.image} />
-              <View style={styles.approvedBadge}>
-                <Text style={styles.badgeText}>✔ Approved</Text>
-              </View>
               <View style={styles.details}>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.text}>Property Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteProperty(item.id)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             </View>
           ))}
@@ -83,6 +124,7 @@ const RequestedProperties = () => {
 };
 
 const styles = StyleSheet.create({
+  // Styles remain the same
   container: {
     flexGrow: 1,
     padding: 20,
@@ -148,6 +190,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#888",
+  },
+  deleteButton: {
+    backgroundColor: "#ff3b30",
+    padding: 8,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

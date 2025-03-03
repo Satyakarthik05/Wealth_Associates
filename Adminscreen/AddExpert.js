@@ -9,10 +9,12 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { API_URL } from "../data/ApiUrl";
 
-const AddExpertForm = ({closeModal }) => {
+const AddExpertForm = ({ closeModal }) => {
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 400;
 
@@ -29,6 +31,48 @@ const AddExpertForm = ({closeModal }) => {
     setForm({ ...form, [key]: value });
   };
 
+  const handleSubmit = async () => {
+    if (
+      !form.name ||
+      !form.expertType ||
+      !form.qualification ||
+      !form.experience ||
+      !form.location ||
+      !form.mobile
+    ) {
+      Alert.alert("Error", "Please fill all the fields.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/expert/registerExpert`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Name: form.name,
+          Experttype: form.expertType,
+          Qualification: form.qualification,
+          Experience: form.experience,
+          Locations: form.location,
+          Mobile: form.mobile,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", data.message);
+        closeModal();
+      } else {
+        Alert.alert("Error", data.message || "Failed to register expert.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong. Please try again.");
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <View style={styles.overlay}>
       <KeyboardAvoidingView
@@ -36,7 +80,9 @@ const AddExpertForm = ({closeModal }) => {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={[styles.container, { width: isSmallScreen ? "90%" : 350 }]}> 
+          <View
+            style={[styles.container, { width: isSmallScreen ? "90%" : 350 }]}
+          >
             <View style={styles.header}>
               <Text style={styles.headerText}>Add Expert</Text>
             </View>
@@ -44,10 +90,27 @@ const AddExpertForm = ({closeModal }) => {
             {/** Form Fields */}
             {[
               { label: "Name", key: "name", placeholder: "Ex. Vijayawada" },
-              { label: "Qualification", key: "qualification", placeholder: "Ex. BA LLB" },
-              { label: "Experience", key: "experience", placeholder: "Ex. 5 Years" },
-              { label: "Location", key: "location", placeholder: "Ex. Vijayawada" },
-              { label: "Mobile", key: "mobile", placeholder: "Ex. 9063392872", keyboardType: "numeric" },
+              {
+                label: "Qualification",
+                key: "qualification",
+                placeholder: "Ex. BA LLB",
+              },
+              {
+                label: "Experience",
+                key: "experience",
+                placeholder: "Ex. 5 Years",
+              },
+              {
+                label: "Location",
+                key: "location",
+                placeholder: "Ex. Vijayawada",
+              },
+              {
+                label: "Mobile",
+                key: "mobile",
+                placeholder: "Ex. 9063392872",
+                keyboardType: "numeric",
+              },
             ].map(({ label, key, placeholder, keyboardType }) => (
               <View style={styles.formGroup} key={key}>
                 <Text style={styles.label}>{label}</Text>
@@ -68,23 +131,42 @@ const AddExpertForm = ({closeModal }) => {
                 <Picker
                   selectedValue={form.expertType}
                   style={styles.picker}
-                  onValueChange={(itemValue) => handleChange("expertType", itemValue)}
+                  onValueChange={(itemValue) =>
+                    handleChange("expertType", itemValue)
+                  }
                 >
                   <Picker.Item label="-- Select Type --" value="" />
-                  <Picker.Item label="0-1 years" value="0-1 years" />
-                  <Picker.Item label="2-3 years" value="2-3 years" />
-                  <Picker.Item label="4-5 years" value="4-5 years" />
-                  <Picker.Item label="5+ years" value="5+ years" />
+                  <Picker.Item label="LEGAL" value="LEGAL" />
+                  <Picker.Item label="REVENUE" value="REVENUE" />
+                  <Picker.Item label="ENGINEERS" value="ENGINEERS" />
+                  <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
+                  <Picker.Item label="SURVEY" value="SURVEY" />
+                  <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
+                  <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
+                  <Picker.Item label="BANKING" value="BANKING" />
+                  <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
+                  <Picker.Item
+                    label="REGISTRATION & DOCUMENTATION"
+                    value="REGISTRATION & DOCUMENTATION"
+                  />
+                  <Picker.Item label="DESIGNING" value="DESIGNING" />
+                  <Picker.Item
+                    label="MATERIALS & CONTRACTS"
+                    value="MATERIALS & CONTRACTS"
+                  />
                 </Picker>
               </View>
             </View>
 
             {/** Buttons */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.addButton}>
+              <TouchableOpacity style={styles.addButton} onPress={handleSubmit}>
                 <Text style={styles.addText}>Add</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={closeModal}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
