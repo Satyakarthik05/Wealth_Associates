@@ -81,6 +81,11 @@ const menuItems = [
     icon: "trophy-outline",
     subItems: ["Register Skilled Labour", "View Skilled Labour"],
   },
+  {
+    title: "Refer",
+    icon: "trophy-outline",
+    subItems: ["Refer a Member"],
+  },
 ];
 
 const Admin_panel = () => {
