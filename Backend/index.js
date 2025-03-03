@@ -14,6 +14,7 @@ const District = require("./Models/Districts");
 const ExpertRoutes = require("./Routes/ExpertRoute");
 const NriRoutes = require("./Routes/NriRoute");
 const SkillRoutes = require("./Routes/SkillRoutes");
+const AllCounts = require("./Controllers/AllCollectionsCount");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),
@@ -56,6 +57,7 @@ app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);
 app.use("/expert", ExpertRoutes);
 app.use("/skillLabour", SkillRoutes);
+app.use("/count", AllCounts);
 
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 
 const RequestedPropertyForm = ({ closeModal }) => {
   const [propertyTitle, setPropertyTitle] = useState("");
@@ -10,12 +10,24 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [location, setLocation] = useState("");
   const [budget, setBudget] = useState("");
   const [Details, setDetails] = useState({});
+  const [propertyTypes, setPropertyTypes] = useState([]); // State to store property types
+
+  // Fetch property types from the backend
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/propertytype`);
+      const data = await response.json();
+      setPropertyTypes(data); // Set the fetched property types
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
 
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
 
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -32,6 +44,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
 
   useEffect(() => {
     getDetails();
+    fetchPropertyTypes(); // Fetch property types when the component mounts
   }, []);
 
   const handleSubmit = async () => {
@@ -45,7 +58,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: "Admin", // Sending agent's mobile number as PostedBy
     };
 
     try {
@@ -96,9 +109,9 @@ const RequestedPropertyForm = ({ closeModal }) => {
             style={styles.picker}
           >
             <Picker.Item label="-- Select Type --" value="" />
-            <Picker.Item label="Residential" value="residential" />
-            <Picker.Item label="Commercial" value="commercial" />
-            <Picker.Item label="Land" value="land" />
+            {propertyTypes.map((type) => (
+              <Picker.Item key={type._id} label={type.name} value={type.name} />
+            ))}
           </Picker>
         </View>
       </View>

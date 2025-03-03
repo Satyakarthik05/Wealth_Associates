@@ -52,26 +52,12 @@ const fetchSkilledLabours = async (req, res) => {
 
 const fetchAddedSkillLAbours = async (req, res) => {
   try {
-    // Ensure AgentId is provided
-    if (!req.AgentId) {
-      return res.status(400).json({ error: "Agent ID is missing in request" });
-    }
-
-    // Find the authenticated agent
-    const authenticatedAgent = await AgentSchema.findById(req.AgentId).lean();
-    if (!authenticatedAgent) {
-      return res.status(404).json({ error: "Authenticated agent not found" });
-    }
-
-    // Get the agent's mobile number
-    const myMobileNumber = authenticatedAgent.MobileNumber;
-    if (!myMobileNumber) {
-      return res.status(400).json({ error: "Agent mobile number not found" });
-    }
+    const mobileNumber = req.mobileNumber; // Get mobile number from middleware
+    const userType = req.userType;
 
     // Fetch skilled labours added by the agent
     const referredAgents = await SkilledLabour.find({
-      AddedBy: myMobileNumber,
+      AddedBy: mobileNumber,
     }).lean();
 
     // Return response

@@ -8,30 +8,81 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
+  Alert,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
 export default function ViewAgents() {
-  const [agents, setAgents] = useState([
-    {
-      _id: "1",
-      FullName: "John Doe",
-      District: "New York",
-      Contituency: "Brooklyn",
-      MyRefferalCode: "REF1234",
-    },
-    {
-      _id: "2",
-      FullName: "Jane Smith",
-      District: "Los Angeles",
-      Contituency: "Hollywood",
-      MyRefferalCode: "REF5678",
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [agents, setAgents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch agents from the API
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch(`${API_URL}/agent/allagents`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch agents");
+        }
+        const data = await response.json();
+        setAgents(data.data); // Set the fetched agents
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching agents:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+  }, []);
+
+  // Handle delete agent
+  const handleDeleteAgent = (agentId) => {
+    if (Platform.OS === "web") {
+      // Use window.confirm on Web
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this agent?"
+      );
+      if (!confirmDelete) return;
+      deleteAgent(agentId);
+    } else {
+      // Use Alert.alert on Mobile
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this agent?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => deleteAgent(agentId),
+          },
+        ]
+      );
+    }
+  };
+
+  // Extracted delete function to avoid duplication
+  const deleteAgent = async (agentId) => {
+    try {
+      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete agent");
+
+      setAgents((prevAgents) =>
+        prevAgents.filter((agent) => agent._id !== agentId)
+      );
+      Alert.alert("Success", "Agent deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      Alert.alert("Error", "Failed to delete agent.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,15 +101,21 @@ export default function ViewAgents() {
               <View style={styles.agentDetails}>
                 <Text style={styles.agentText}>{agent.FullName}</Text>
                 <Text style={styles.agentText}>
-                  Parliament Constituency: {agent.District}
+                  Parliament : {agent.District}
                 </Text>
                 <Text style={styles.agentText}>
-                  Assembly Constituency: {agent.Contituency}
+                  Constituency: {agent.Contituency}
                 </Text>
                 <Text style={styles.agentText}>
                   Referral Code: {agent.MyRefferalCode}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteAgent(agent._id)}
+              >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
@@ -126,5 +183,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
     marginTop: 20,
+  },
+  deleteButton: {
+    backgroundColor: "#ff4444",
+    padding: 8,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });

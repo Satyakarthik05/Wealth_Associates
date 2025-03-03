@@ -13,5 +13,7 @@ app.get("/myAgents", verifyAgentToken, AgentController.fetchReferredAgents);
 app.post("/ForgetPassword", ForgetPassword.ForgetPassword);
 app.post("/VerifyOtp", ForgetPassword.VerifyOtp);
 app.post("/updatepassword", ForgetPassword.resetPassword);
+app.get("/allagents", AgentController.getAllAgents);
+app.delete("/deleteagent/:id", AgentController.deleteAgent);
 
 module.exports = app;

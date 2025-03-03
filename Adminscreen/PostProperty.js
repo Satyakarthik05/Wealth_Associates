@@ -12,11 +12,9 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import imageCompression from "browser-image-compression";
-// import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -29,14 +27,30 @@ const PostProperty = ({ closeModal }) => {
   const [photo, setPhoto] = useState(null);
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
-  const [PostedBy, setPostedBy] = useState("");
+  // const [PostedBy, setPostedBy] = useState("");
   const [loading, setLoading] = useState(false);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
+  const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
+
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
+  };
+
+  let PostedBy = "admin";
+
+  // const propertyTypes = [
+  //   { name: "villas", code: "01" },
+  //   { name: "Commersial", code: "02" },
+  //   { name: "Land", code: "03" },
+  //   { name: "House", code: "04" },
+  // ];
 
   // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -44,16 +58,33 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileNumber);
+      // setPostedBy(newDetails.MobileNumber);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
   };
 
+  // Fetch property types from backend
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/propertytype`);
+      const data = await response.json();
+      setPropertyTypes(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
+    fetchPropertyTypes();
   }, []);
+
+  // Filter property types based on search input
+  const filteredPropertyTypes = propertyTypes.filter((item) =>
+    item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
 
   // Validate form inputs
   const validateForm = () => {
@@ -65,13 +96,6 @@ const PostProperty = ({ closeModal }) => {
     if (!photo) newErrors.photo = "Please upload a photo.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Convert blob URL to file (for web)
-  const blobToFile = async (blobUrl, fileName) => {
-    const response = await fetch(blobUrl);
-    const blob = await response.blob();
-    return new File([blob], fileName, { type: blob.type });
   };
 
   // Handle property posting
@@ -142,7 +166,7 @@ const PostProperty = ({ closeModal }) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct option
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
 
@@ -156,27 +180,24 @@ const PostProperty = ({ closeModal }) => {
 
   const takePhotoWithCamera = async () => {
     try {
-      if (Platform.OS !== "web") {
-        const permissionResult =
-          await ImagePicker.requestCameraPermissionsAsync();
-        if (permissionResult.status !== "granted") {
-          alert("Permission is required to use the camera.");
-          return;
-        }
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
-        const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaType.Images, // Updated here
-          quality: 1,
-        });
+      if (status !== "granted") {
+        alert("Camera permission is required to take a photo.");
+        return;
+      }
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          setPhoto(result.assets[0].uri);
-        }
-      } else {
-        alert("Camera functionality is not supported on the web.");
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error taking photo with camera:", error);
+      console.error("Error opening camera:", error);
     }
   };
 
@@ -222,16 +243,38 @@ const PostProperty = ({ closeModal }) => {
           </View>
           {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
           <Text style={styles.label}>Property Type</Text>
-          <Picker
-            selectedValue={propertyType}
-            onValueChange={(value) => setPropertyType(value)}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Type --" value="" />
-            <Picker.Item label="Apartment" value="Apartment" />
-            <Picker.Item label="House" value="House" />
-            <Picker.Item label="Land" value="Land" />
-          </Picker>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search Property Type"
+              placeholderTextColor="rgba(25, 25, 25, 0.5)"
+              value={propertyTypeSearch}
+              onChangeText={(text) => {
+                setPropertyTypeSearch(text);
+                setShowPropertyTypeList(true);
+              }}
+              onFocus={() => {
+                setShowPropertyTypeList(true);
+              }}
+            />
+            {showPropertyTypeList && (
+              <View style={styles.dropdownContainer}>
+                {filteredPropertyTypes.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.code}-${item.name}`} // Ensure unique key
+                    style={styles.listItem}
+                    onPress={() => {
+                      setPropertyType(item.name);
+                      setPropertyTypeSearch(item.name);
+                      setShowPropertyTypeList(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.propertyType && (
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
@@ -327,18 +370,30 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
   },
-  picker: {
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
+  },
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
     borderWidth: 1,
-    borderColor: "#ddd",
-    marginBottom: 10,
-    borderRadius: 10,
-    backgroundColor: "#f9f9f9",
-    height: Platform.OS === "android" ? "" : 40,
+    borderRadius: 5,
+    marginBottom: 5,
+    maxHeight: 200,
+    overflow: "scroll",
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   uploadSection: { alignItems: "center", marginBottom: 20 },
-  uploadedImageContainer: {
-    alignItems: "center",
-  },
   uploadedImage: {
     width: 100,
     height: 100,
@@ -394,7 +449,7 @@ const styles = StyleSheet.create({
   },
   errorText: { color: "red", fontSize: 12, marginTop: -8, marginBottom: 10 },
   disabledButton: {
-    backgroundColor: "#ccc", // Disabled button color
+    backgroundColor: "#ccc",
   },
   loadingIndicator: {
     marginTop: 20,

@@ -181,6 +181,43 @@ const GetMyPropertys = async (req, res) => {
   }
 };
 
+const AdminProperties = async (req, res) => {
+  try {
+    const properties = await Property.find({
+      PostedUserType: "admin",
+    });
+
+    if (!properties || properties.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No properties found for this user", MyPosts: [] });
+    }
+
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Error fetching properties", error });
+  }
+};
+
+const deletProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Received delete request for ID:", id);
+
+    const property = await Property.findByIdAndDelete(id);
+
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.json({ message: "Property deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // router.get("/properties", async (req, res) => {
 //   try {
 //     const properties = await Property.find();
@@ -191,4 +228,10 @@ const GetMyPropertys = async (req, res) => {
 //   }
 // });
 
-module.exports = { createProperty, GetAllPropertys, GetMyPropertys };
+module.exports = {
+  createProperty,
+  GetAllPropertys,
+  GetMyPropertys,
+  AdminProperties,
+  deletProperty,
+};

@@ -13,11 +13,21 @@ const PropertyRequest = async (req, res) => {
         .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
-    // Find the agent using MobileNumber
-    const agent = await Agent.findOne({ MobileNumber: PostedBy });
+    let agent;
+    if (PostedBy === "Admin") {
+      // Use default admin details
+      agent = {
+        FullName: "Admin",
+        MobileNumber: "0000000000", // Default admin mobile number
+        Email: "admin@wealthassociation.com", // Default admin email
+      };
+    } else {
+      // Find the agent using MobileNumber
+      agent = await Agent.findOne({ MobileNumber: PostedBy });
 
-    if (!agent) {
-      return res.status(404).json({ message: "Agent not found." });
+      if (!agent) {
+        return res.status(404).json({ message: "Agent not found." });
+      }
     }
 
     // Create the new requested property
@@ -26,18 +36,10 @@ const PropertyRequest = async (req, res) => {
       propertyType,
       location,
       Budget,
-      PostedBy: agent.MobileNumber,
+      PostedBy: PostedBy,
     });
 
     await newRequestProperty.save();
-
-    // Ensure RequestdPropertys is an array before pushing
-    // if (!Array.isArray(agent.RequestdPropertys)) {
-    //   agent.RequestdPropertys = [];
-    // }
-
-    // agent.RequestdPropertys.push(newRequestProperty._id);
-    // await agent.save();
 
     try {
       const callCenterResponse = await axios.get(
@@ -101,8 +103,24 @@ const GetRequsestedPropertys = async (req, res) => {
   }
 };
 
+const DeleteRequestedProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedProperty = await Property.findByIdAndDelete(id);
+
+    if (!deletedProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.status(200).json({ message: "Property deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   PropertyRequest,
   GetMyRequestedPropertys,
   GetRequsestedPropertys,
+  DeleteRequestedProperty,
 };
