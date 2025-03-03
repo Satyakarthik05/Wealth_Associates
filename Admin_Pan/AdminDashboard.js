@@ -53,6 +53,8 @@ import AddSkillModal from "../Adminscreen/AddSkill";
 import AddCoreClientForm from "../Adminscreen/AddCoreClient";
 import AddCoreProjectForm from "../Adminscreen/AddCoreProj";
 import ViewNri from "../Adminscreen/ViewNri";
+import ViewReferralAgents from "../Adminscreen/ViewReferralAgents";
+import AddReferral from "../Adminscreen/AddReferralAgents";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -179,6 +181,8 @@ const AdminDashboard = () => {
   const [isAddCoreVisible, setIsAddCoreVisible] = useState(false);
   const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isViewReferral, setIsViewReferral] = useState(false);
+  const [isAddReferral, setIsAddReferral] = useState(false);
   const [activeComponent, setActiveComponent] = useState("A");
 
   const toggleSidebar = () => {
@@ -231,6 +235,8 @@ const AdminDashboard = () => {
     setIsAddCoreVisible(false);
     setIsAddCoreProVisible(false);
     setIsViewNriVisible(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -299,6 +305,10 @@ const AdminDashboard = () => {
       setIsAddCoreProVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
+    } else if (subItem === "View ReferralAgents"){
+      setIsViewReferral(true);
+    } else if (subItem === "Add ReferralAgents"){
+      setIsAddReferral(true);
     }
   };
 
@@ -339,6 +349,8 @@ const AdminDashboard = () => {
     setIsAddCoreVisible(false);
     setIsAddCoreProVisible(false);
     setIsViewNriVisible(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
   };
 
   const renderContent = () => {
@@ -353,6 +365,7 @@ const AdminDashboard = () => {
     if (isViewCoreProVisible) return <Core_Projects />;
     if (isExpertReqVisible) return <ExpertList />;
     if (isViewNriVisible) return <ViewNri />;
+    if (isViewReferral) return <ViewReferralAgents />;
     return <Dashboard />;
   };
 
@@ -564,6 +577,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCoreProVisible} closeModal={closeModal}>
         <AddCoreProjectForm closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddReferral} closeModal={closeModal}>
+        <AddReferral closeModal={closeModal} />
       </CustomModal>
     </View>
   );
