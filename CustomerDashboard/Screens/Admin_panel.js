@@ -88,6 +88,11 @@ const menuItems = [
       "All Skilled Labours",
     ],
   },
+  {
+    title: "Refer",
+    icon: "trophy-outline",
+    subItems: ["Refer a Member"],
+  },
 ];
 
 const Admin_panel = () => {

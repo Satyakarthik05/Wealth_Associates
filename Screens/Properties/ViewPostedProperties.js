@@ -14,7 +14,9 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3; // Set number of properties per row
@@ -43,10 +45,10 @@ const ViewPostedProperties = () => {
         setLoading(false);
         return;
       }
-
       const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
         method: "GET",
         headers: {
+          token: `${token}`,
           token: `${token}`,
           "Content-Type": "application/json",
         },
@@ -56,6 +58,7 @@ const ViewPostedProperties = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
 
       const data = await response.json();
+      setProperties(data.length > 0 ? data : []);
       setProperties(data.length > 0 ? data : []);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -224,6 +227,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 15,
   },
+  heading: { fontSize: 22, fontWeight: "bold" },
   heading: { fontSize: 22, fontWeight: "bold" },
   filterContainer: { flexDirection: "row", alignItems: "center" },
   filterLabel: { fontSize: 16, marginRight: 5 },
