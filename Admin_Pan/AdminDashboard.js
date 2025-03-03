@@ -53,6 +53,8 @@ import AddSkillModal from "../Adminscreen/AddSkill";
 import AddCoreClientForm from "../Adminscreen/AddCoreClient";
 import AddCoreProjectForm from "../Adminscreen/AddCoreProj";
 import ViewNri from "../Adminscreen/ViewNri";
+import ViewReferralAgents from "../Adminscreen/ViewReferralAgents";
+import AddReferral from "../Adminscreen/AddReferralAgents";
 import AllSkilledLabours from "../Adminscreen/Skilled Labour/AllSkilledLabours";
 import AddInvestors from "../Adminscreen/Investors/AddInvestors";
 import ViewInvesters from "../Adminscreen/Investors/ViewInvestors";
@@ -187,6 +189,8 @@ const AdminDashboard = () => {
   const [isAddCoreVisible, setIsAddCoreVisible] = useState(false);
   const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isViewReferral, setIsViewReferral] = useState(false);
+  const [isAddReferral, setIsAddReferral] = useState(false);
   const [activeComponent, setActiveComponent] = useState("A");
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
   const [AddInvestor, setAddInvestor] = useState(false);
@@ -247,6 +251,8 @@ const AdminDashboard = () => {
     setAddInvestor(false);
     setViewInvester(false);
     setAllViewInvester(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -323,6 +329,10 @@ const AdminDashboard = () => {
       setViewInvester(true);
     } else if (subItem === "View All Investors") {
       setAllViewInvester(true);
+    } else if (subItem === "View ReferralAgents"){
+      setIsViewReferral(true);
+    } else if (subItem === "Add ReferralAgents"){
+      setIsAddReferral(true);
     }
   };
 
@@ -364,6 +374,8 @@ const AdminDashboard = () => {
     setIsAddCoreProVisible(false);
     setIsViewNriVisible(false);
     setAddInvestor(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
   };
 
   const renderContent = () => {
@@ -382,6 +394,7 @@ const AdminDashboard = () => {
     if (ViewInvester) return <ViewInvesters />;
     if (ViewAllInvester) return <ViewAllInvesters />;
 
+    if (isViewReferral) return <ViewReferralAgents />;
     return <Dashboard />;
   };
 
@@ -596,6 +609,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={AddInvestor} closeModal={closeModal}>
         <AddInvestors closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddReferral} closeModal={closeModal}>
+        <AddReferral closeModal={closeModal} />
       </CustomModal>
     </View>
   );
