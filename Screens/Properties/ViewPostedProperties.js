@@ -7,17 +7,20 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
-const { width } = Dimensions.get("window"); // Get screen width for responsiveness
+const { width } = Dimensions.get("window");
 
 const ViewPostedProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchProperties();
@@ -25,34 +28,24 @@ const ViewPostedProperties = () => {
 
   const fetchProperties = async () => {
     try {
-      // Retrieve the token from AsyncStorage
       const token = await AsyncStorage.getItem("authToken");
-
       if (!token) {
         console.warn("No token found in AsyncStorage.");
         setLoading(false);
         return;
       }
-
       const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
         method: "GET",
         headers: {
-          token: `${token}`, // Include the token in the headers
+          token: `${token}`,
           "Content-Type": "application/json",
         },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
       const data = await response.json();
-
-      if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data);
-      } else {
-        console.warn("API returned empty data.");
-      }
+      setProperties(data.length > 0 ? data : []);
     } catch (error) {
       console.error("Error fetching properties:", error);
     } finally {
@@ -67,8 +60,12 @@ const ViewPostedProperties = () => {
     } else if (value === "lowToHigh") {
       setProperties([...properties].sort((a, b) => a.price - b.price));
     } else {
-      fetchProperties(); // Reset to original data
+      fetchProperties();
     }
+  };
+
+  const handleEdit = (propertyId) => {
+    navigation.navigate("EditProperty", { propertyId });
   };
 
   const renderHeader = () => (
@@ -100,9 +97,8 @@ const ViewPostedProperties = () => {
           {renderHeader()}
           {[...properties].reverse().map((item) => {
             const imageUri = item.photo
-              ? { uri: `${API_URL}${item.photo}` } // Adjusted to concatenate the `photo` path
-              : require("../../assets/logo.png"); // Local fallback image
-
+              ? { uri: `${API_URL}${item.photo}` }
+              : require("../../assets/logo.png");
             return (
               <View key={item._id} style={styles.card}>
                 <Image source={imageUri} style={styles.image} />
@@ -112,6 +108,12 @@ const ViewPostedProperties = () => {
                   <Text style={styles.budget}>
                     ₹ {parseInt(item.price).toLocaleString()}
                   </Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEdit(item._id)}
+                  >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             );
@@ -124,13 +126,12 @@ const ViewPostedProperties = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5", padding: 15 },
-  headerContainer: { marginBottom: 10 },
   header: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  heading: { fontSize: 22, fontWeight: "bold", textAlign: "left" },
+  heading: { fontSize: 22, fontWeight: "bold" },
   filterContainer: { flexDirection: "row", alignItems: "center" },
   filterLabel: { fontSize: 16, marginRight: 5 },
   pickerWrapper: {
@@ -139,11 +140,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     height: Platform.OS === "android" ? 50 : 40,
   },
-  picker: {
-    height: "100%",
-    width: 180,
-    fontSize: 14,
-  },
+  picker: { height: "100%", width: 180, fontSize: 14 },
   loader: { marginTop: 50 },
   grid: { justifyContent: "space-between" },
   card: {
@@ -151,7 +148,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     margin: 10,
-    width: Platform.OS === "web" ? "25%" : "100%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -163,6 +159,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+  editButton: {
+    marginTop: 10,
+    backgroundColor: "#3498db",
+    padding: 8,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  editButtonText: { color: "#fff", fontWeight: "bold" },
 });
 
 export default ViewPostedProperties;
