@@ -8,9 +8,11 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-// import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -39,14 +41,48 @@ const ViewAllProperties = () => {
     }
   };
 
-  const handleFilterChange = (value) => {
-    setSelectedFilter(value);
-    if (value === "highToLow") {
-      setProperties([...properties].sort((a, b) => b.price - a.price));
-    } else if (value === "lowToHigh") {
-      setProperties([...properties].sort((a, b) => a.price - b.price));
+  const handleDelete = async (id) => {
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this property?"
+      );
+      if (!confirmDelete) return;
     } else {
-      fetchProperties();
+      const confirmDelete = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to delete this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Delete", onPress: () => resolve(true) },
+          ]
+        );
+      });
+      if (!confirmDelete) return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/properties/delete/${id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setProperties(properties.filter((item) => item._id !== id));
+        if (Platform.OS === "web") {
+          alert("Property deleted successfully.");
+        } else {
+          Alert.alert("Success", "Property deleted successfully.");
+        }
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to delete.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to delete.");
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting property:", error);
     }
   };
 
@@ -63,12 +99,12 @@ const ViewAllProperties = () => {
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={selectedFilter}
-                  onValueChange={handleFilterChange}
+                  onValueChange={(value) => setSelectedFilter(value)}
                   style={styles.picker}
                 >
                   <Picker.Item label="-- Select Filter --" value="" />
-                  <Picker.Item label="Price: Low to High" value="lowToHigh" />
-                  <Picker.Item label="Price: High to Low" value="highToLow" />
+                  <Picker.Item label="Price: High to Low" value="lowToHigh" />
+                  <Picker.Item label="Price: Low to High" value="highToLow" />
                 </Picker>
               </View>
             </View>
@@ -76,9 +112,9 @@ const ViewAllProperties = () => {
 
           <View style={styles.grid}>
             {properties.map((item) => {
-            //   const imageUri = item.photo
-            //     ? { uri: `${API_URL}${item.photo}` }
-            //     : require("../../assets/logo.png");
+              const imageUri = item.photo
+                ? { uri: `${API_URL}${item.photo}` }
+                : require("../assets/logo.png");
 
               return (
                 <View key={item._id} style={styles.card}>
@@ -90,6 +126,12 @@ const ViewAllProperties = () => {
                       ₹ {parseInt(item.price).toLocaleString()}
                     </Text>
                   </View>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(item._id)}
+                  >
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </TouchableOpacity>
                 </View>
               );
             })}
@@ -132,7 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     margin: 10,
-    width: Platform.OS === "web" ? "45%" : "100%",
+    width: Platform.OS === "web" ? "30%" : "100%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -143,6 +185,17 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+  deleteButton: {
+    backgroundColor: "red",
+    padding: 8,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });
 
 export default ViewAllProperties;

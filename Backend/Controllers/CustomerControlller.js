@@ -188,9 +188,45 @@ const getCustomer = async (req, res) => {
   }
 };
 
+const getAllCustomers = async (req, res) => {
+  try {
+    const customers = await CustomerSchema.find(); // Fetch all agents from the database
+    res
+      .status(200)
+      .json({ success: true, count: customers.length, data: customers });
+  } catch (error) {
+    console.error("Error fetching agents:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+const deleteCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find and delete the agent by ID
+    const deletedCustomer = await CustomerSchema.findByIdAndDelete(id);
+
+    if (!deletedCustomer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Customer not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Customer deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 module.exports = {
   CustomerSign,
   fetchReferredCustomers,
   customerLogin,
   getCustomer,
+  getAllCustomers,
+  deleteCustomer,
 };

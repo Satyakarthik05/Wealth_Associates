@@ -40,7 +40,9 @@ import Core_Projects from "./coreClients/Core_Projects";
 import Rskill from "../Screens/SkilledLabour/Rskill";
 import Agent_Profile from "./Agent/Agent_Profile";
 import Modify_Deatils from "./Agent/Modify_Details";
-
+import ExpertRoute from "./ExpertPanel/ExpertRoute";
+import ExpertDetails from "./ExpertPanel/ExpertDetails";
+import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -79,7 +81,11 @@ const menuItems = [
   {
     title: "Skilled Club",
     icon: "trophy-outline",
-    subItems: ["Register Skilled Labour", "View Skilled Labour"],
+    subItems: [
+      "Register Skilled Labour",
+      "View Skilled Labour",
+      "All Skilled Labours",
+    ],
   },
 ];
 
@@ -113,6 +119,9 @@ const Admin_panel = () => {
   const [Details, setDetails] = useState({});
   const [isRskillVisible, setIsRskillVisible] = useState(false);
   const [isAgentProfile, setIsAgentProfile] = useState(false);
+  const [isExperDetails, setIsExpertDetails] = useState(false);
+  const [expertType, setExpertType] = useState(null);
+  const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -120,7 +129,13 @@ const Admin_panel = () => {
     }
   };
 
-  const [refreshKey, setRefreshKey] = useState(0); // State to force refresh
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleExpertDetails = (expertType) => {
+    setIsExpertDetails(true);
+    setSelectedSubItem("expert details");
+    setExpertType(expertType); // Store the expertType
+  };
 
   const handleDetailsUpdated = () => {
     setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
@@ -198,6 +213,10 @@ const Admin_panel = () => {
       setCoreProjects(true);
     } else if (subItem === "Register Skilled Labour") {
       setisRsSkill(true);
+    } else if (subItem === "expert details") {
+      setIsExpertDetails(true);
+    } else if (subItem === "All Skilled Labours") {
+      setAllSkilledLabour(true);
     }
   };
 
@@ -226,12 +245,14 @@ const Admin_panel = () => {
     if (isRequestedPropertiesVisible) return <RequestedProperties />;
     if (isAllPropertiesVisible) return <ViewAllProperties />;
     if (isViewCustomersModalVisible) return <ViewCustomers />;
-    if (isExpertPanelVisible) return <ExpertPanel />;
+    if (isExpertPanelVisible) return <ExpertRoute />;
     if (isViewAgentVisible) return <ViewAgents />;
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
+    if (isExperDetails) return <ExpertDetails expertType={expertType} />;
+    if (AllSkilledLabour) return <AllSkilledLabours />;
 
     return (
       <ScrollView

@@ -14,9 +14,10 @@ app.get(
   verifyAgentToken,
   CustomerController.fetchReferredCustomers
 );
+app.get("/allcustomers", CustomerController.getAllCustomers);
+app.delete("/deletecustomer/:id", CustomerController.deleteCustomer);
 
-
-app.post("/CustomerLogin",CustomerController.customerLogin)
+app.post("/CustomerLogin", CustomerController.customerLogin);
 // app.post("/ForgetPassword", ForgetPassword.ForgetPassword);
 
 module.exports = app;

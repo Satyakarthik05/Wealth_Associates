@@ -11,5 +11,6 @@ app.get(
   verifyUser,
   RequestProperty.GetMyRequestedPropertys
 );
+app.delete("/delete/:id", RequestProperty.DeleteRequestedProperty);
 
 module.exports = app;

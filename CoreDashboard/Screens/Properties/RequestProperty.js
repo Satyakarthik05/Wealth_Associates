@@ -15,7 +15,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
     try {
       const token = await AsyncStorage.getItem("authToken");
 
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",

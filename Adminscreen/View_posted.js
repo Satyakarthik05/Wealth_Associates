@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
+  ScrollView,
   Image,
   ActivityIndicator,
   StyleSheet,
@@ -9,12 +10,11 @@ import {
   Dimensions,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-//import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 
-const { width } = Dimensions.get("window"); // Get screen width for responsiveness
+const { width } = Dimensions.get("window");
 
-const ViewPostedProperties = () => {
+const ViewAllProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
@@ -25,29 +25,8 @@ const ViewPostedProperties = () => {
 
   const fetchProperties = async () => {
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem("authToken");
-
-      if (!token) {
-        console.warn("No token found in AsyncStorage.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
-        method: "GET",
-        headers: {
-          token: `${token}`, // Include the token in the headers
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
+      const response = await fetch(`${API_URL}/properties/getAdminProperties`);
       const data = await response.json();
-
       if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data);
       } else {
@@ -67,71 +46,73 @@ const ViewPostedProperties = () => {
     } else if (value === "lowToHigh") {
       setProperties([...properties].sort((a, b) => a.price - b.price));
     } else {
-      fetchProperties(); // Reset to original data
+      fetchProperties();
     }
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.heading}>My Properties</Text>
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Sort by:</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedFilter}
-            onValueChange={handleFilterChange}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Filter --" value="" />
-            <Picker.Item label="Price: Low to High" value="lowToHigh" />
-            <Picker.Item label="Price: High to Low" value="highToLow" />
-          </Picker>
-        </View>
-      </View>
-    </View>
-  );
-
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
       ) : (
-        <View style={styles.grid}>
-          {renderHeader()}
-          {properties.map((item) => {
-            // const imageUri = item.photo
-            //   ? { uri: `${API_URL}${item.photo}` } // Adjusted to concatenate the `photo` path
-            //   : require("../../assets/logo.png"); // Local fallback image
-
-            return (
-              <View key={item._id} style={styles.card}>
-                <Image source={imageUri} style={styles.image} />
-                <View style={styles.details}>
-                  <Text style={styles.title}>{item.propertyType}</Text>
-                  <Text style={styles.info}>Location: {item.location}</Text>
-                  <Text style={styles.budget}>
-                    ₹ {parseInt(item.price).toLocaleString()}
-                  </Text>
-                </View>
+        <>
+          <View style={styles.header}>
+            <Text style={styles.heading}>All Properties</Text>
+            <View style={styles.filterContainer}>
+              <Text style={styles.filterLabel}>Sort by:</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedFilter}
+                  onValueChange={handleFilterChange}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="-- Select Filter --" value="" />
+                  <Picker.Item label="Price: High to Low" value="lowToHigh" />
+                  <Picker.Item label="Price: Low to High" value="highToLow" />
+                </Picker>
               </View>
-            );
-          })}
-        </View>
+            </View>
+          </View>
+
+          <View style={styles.grid}>
+            {[...properties].reverse().map((item) => {
+              const imageUri = item.photo
+                ? { uri: `${API_URL}${item.photo}` }
+                : require("../assets/logo.png");
+
+              return (
+                <View key={item._id} style={styles.card}>
+                  <Image source={imageUri} style={styles.image} />
+                  <View style={styles.details}>
+                    <Text style={styles.title}>{item.propertyType}</Text>
+                    <Text style={styles.info}>Location: {item.location}</Text>
+                    <Text style={styles.budget}>
+                      ₹ {parseInt(item.price).toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </>
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 15 },
-  headerContainer: { marginBottom: 10 },
+  container: { backgroundColor: "#f5f5f5", padding: 15 },
   header: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   heading: { fontSize: 22, fontWeight: "bold", textAlign: "left" },
-  filterContainer: { flexDirection: "row", alignItems: "center" },
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   filterLabel: { fontSize: 16, marginRight: 5 },
   pickerWrapper: {
     backgroundColor: "#fff",
@@ -139,24 +120,23 @@ const styles = StyleSheet.create({
     elevation: 3,
     height: Platform.OS === "android" ? 50 : 40,
   },
-  picker: {
-    height: "100%",
-    width: 180,
-    fontSize: 14,
-  },
+  picker: { height: "100%", width: 180, fontSize: 14 },
   loader: { marginTop: 50 },
-  grid: { justifyContent: "space-between" },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
     margin: 10,
-    width: Platform.OS === "web" ? "25%" : "100%",
+    width: Platform.OS === "web" ? "30%" : "100%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 3,
-    position: "relative",
   },
   image: { width: "100%", height: 150, borderRadius: 8 },
   details: { marginTop: 10 },
@@ -165,4 +145,4 @@ const styles = StyleSheet.create({
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
 });
 
-export default ViewPostedProperties;
+export default ViewAllProperties;
