@@ -1,32 +1,41 @@
-import React, { useState } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, useWindowDimensions } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  useWindowDimensions,
+  ActivityIndicator,
+} from "react-native";
+import { API_URL } from "../data/ApiUrl";
 
 const ExpertCard = ({ expert }) => {
   return (
     <View style={styles.card}>
-      <Image source={require("../Admin_Pan/assets/man.png")} style={styles.avatar} />
+      <Image
+        source={require("../Admin_Pan/assets/man.png")}
+        style={styles.avatar}
+      />
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <Text style={styles.label}>Name:</Text>
-          <Text style={styles.value}>{expert.name}</Text>
+          <Text style={styles.value}>{expert.Name}</Text>
         </View>
-
         <View style={styles.row}>
           <Text style={styles.label}>Mobile Number:</Text>
-          <Text style={styles.value}>{expert.mobile}</Text>
+          <Text style={styles.value}>{expert.MobileNumber}</Text>
         </View>
-
         <View style={styles.row}>
           <Text style={styles.label}>Expert Type:</Text>
-          <Text style={styles.value}>{expert.type}</Text>
+          <Text style={styles.value}>{expert.ExpertType}</Text>
         </View>
-
         <View style={styles.row}>
           <Text style={styles.label}>Expert Name:</Text>
-          <Text style={styles.value}>{expert.expertName}</Text>
+          <Text style={styles.value}>{expert.ExpertName}</Text>
         </View>
       </View>
-
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Resolved</Text>
       </TouchableOpacity>
@@ -35,32 +44,43 @@ const ExpertCard = ({ expert }) => {
 };
 
 const ExpertList = () => {
-  const experts = [
-    { id: "1", name: "Dummy 1", mobile: "1234567890", type: "Finance", expertName: "Accountant" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-    { id: "2", name: "Dummy 2", mobile: "0987654321", type: "Medical", expertName: "Doctor" },
-  ];
-
+  const [experts, setExperts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { width } = useWindowDimensions();
   const isWebView = width > 600;
+
+  useEffect(() => {
+    fetch(`${API_URL}/requestexpert/all`)
+      .then((response) => response.json())
+      .then((data) => {
+        setExperts(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching experts:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#e91e63"
+        style={{ marginTop: 50 }}
+      />
+    );
+  }
 
   return (
     <FlatList
       data={experts}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item) => item._id.toString()}
       renderItem={({ item }) => <ExpertCard expert={item} />}
-      contentContainerStyle={isWebView ? styles.webContainer : styles.listContainer}
-      numColumns={isWebView ? 3 : 1} // Grid on web, list on mobile
+      contentContainerStyle={
+        isWebView ? styles.webContainer : styles.listContainer
+      }
+      numColumns={isWebView ? 3 : 1}
     />
   );
 };
