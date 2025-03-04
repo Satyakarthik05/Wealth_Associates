@@ -5,7 +5,7 @@ const RequestpropertySchema = new mongoose.Schema({
   propertyType: { type: String, required: true },
   location: { type: String, required: true },
   Budget: { type: Number, required: true },
-  PostedBy: { type: String, required: true }, // Adjust type if it's not a string
+  PostedBy: { type: String, required: true }, // Change from ObjectId to String
 });
 
 const requestProperty = mongoose.model(

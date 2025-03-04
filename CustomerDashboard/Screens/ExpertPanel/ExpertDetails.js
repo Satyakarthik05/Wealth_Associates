@@ -8,14 +8,17 @@ import {
   ScrollView,
   Image,
   Platform,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 
 const ExpertDetails = ({ expertType, onSwitch }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [Details, setDetails] = useState({});
+  const [PostedBy, setPostedBy] = useState("");
 
   useEffect(() => {
     if (!expertType) return;
@@ -33,6 +36,68 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
       });
   }, [expertType]);
 
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/core/getcore`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      const newDetails = await response.json();
+      setPostedBy(newDetails.MobileNumber);
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  const requestExpert = async (expert) => {
+    try {
+      const response = await fetch(`${API_URL}/requestexpert/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Name: Details.FullName ? Details.FullName : "name",
+          MobileNumber: Details.MobileNumber
+            ? Details.MobileNumber
+            : "MobileNumber",
+          ExpertType: expertType,
+          ExpertName: expert.Name,
+          RequestedBy: "Customer",
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        if (Platform.OS === "web") {
+          window.alert("Expert Requested Successfully");
+        } else {
+          Alert.alert("Expert Requested");
+        }
+      } else {
+        Alert.alert(
+          "Request Failed",
+          result.message || "Something went wrong."
+        );
+      }
+    } catch (error) {
+      console.error("Request error:", error);
+      Alert.alert(
+        "Network error",
+        "Please check your internet connection and try again."
+      );
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => onSwitch(null)}>
@@ -47,14 +112,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
       ) : experts.length > 0 ? (
         <ScrollView contentContainerStyle={styles.cardContainer}>
           {experts.map((item, index) => (
-            <TouchableOpacity
-              key={item._id}
-              style={[
-                styles.expertCard,
-                selectedIndex === index && styles.selectedCard,
-              ]}
-              onPress={() => setSelectedIndex(index)}
-            >
+            <View key={item._id} style={styles.expertCard}>
               <Image
                 source={require("../../../assets/man.png")}
                 style={styles.profileImage}
@@ -78,8 +136,13 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
                 <Text style={styles.requestButtonText}>Request Expert</Text>
               </TouchableOpacity>
               </Text>
-              
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.requestButton}
+                onPress={() => requestExpert(item)}
+              >
+                <Text style={styles.requestButtonText}>Request Expert</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
       ) : (
@@ -118,10 +181,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  selectedCard: {
-    borderWidth: 2,
-    borderColor: "#007bff",
-  },
   profileImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 10 },
   expertName: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
   expertDetails: { fontSize: 14, color: "#555", textAlign: "center" },
@@ -133,6 +192,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   errorText: { textAlign: "center", fontSize: 16, color: "red", marginTop: 20 },
+  requestButton: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  requestButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });
 
 export default ExpertDetails;
