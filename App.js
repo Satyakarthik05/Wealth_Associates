@@ -54,7 +54,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -129,11 +129,11 @@ export default function App() {
             component={Admin}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="LogPage"
             component={LoginPageScreen}
             options={{ headerShown: false }}
-          />
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

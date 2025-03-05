@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,9 +22,23 @@ const AddCoreClientForm = ({ closeModal }) => {
     website: "",
     mobile: "",
     photo: null, // Changed from 'logo' to 'photo' to match PostProperty
+    file: null, // Added to store the file object for web
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Clean up temporary URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (
+        Platform.OS === "web" &&
+        form.photo &&
+        form.photo.startsWith("blob:")
+      ) {
+        URL.revokeObjectURL(form.photo); // Clean up the temporary URL
+      }
+    };
+  }, [form.photo]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -56,17 +70,15 @@ const AddCoreClientForm = ({ closeModal }) => {
         // Handle image upload
         if (form.photo) {
           if (Platform.OS === "web") {
-            // Handle image for web (URL or Blob)
-            if (
+            if (form.file) {
+              // If form.file exists (web), append it to FormData
+              formData.append("photo", form.file);
+            } else if (
               typeof form.photo === "string" &&
               form.photo.startsWith("http")
             ) {
               // If form.photo is a URL (web image)
               formData.append("photoUrl", form.photo); // Send it as URL to the backend
-            } else {
-              // If form.photo is a Blob, convert to a file
-              const file = await blobToFile(form.photo, "photo.jpg");
-              formData.append("photo", file); // Send the file to backend
             }
           } else {
             // Handle mobile (URI from gallery)
@@ -107,21 +119,37 @@ const AddCoreClientForm = ({ closeModal }) => {
 
   const selectImageFromGallery = async () => {
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (Platform.OS === "web") {
+        // Handle image selection for web
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setForm({ ...form, photo: imageUrl, file }); // Store both URL and file
+          }
+        };
+        input.click();
+      } else {
+        // Handle image selection for mobile
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (permissionResult.status !== "granted") {
-        alert("Permission is required to upload a photo.");
-        return;
-      }
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to upload a photo.");
+          return;
+        }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setForm({ ...form, photo: result.assets[0].uri }); // Update form.photo with the selected image URI
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setForm({ ...form, photo: result.assets[0].uri });
+        }
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
@@ -140,7 +168,13 @@ const AddCoreClientForm = ({ closeModal }) => {
         style={styles.uploadContainer}
       >
         {form.photo ? (
-          <Image source={{ uri: form.photo }} style={styles.logo} />
+          <Image
+            source={{ uri: form.photo }}
+            style={styles.logo}
+            onError={(e) =>
+              console.error("Failed to load image:", e.nativeEvent.error)
+            }
+          />
         ) : (
           <View style={styles.uploadRow}>
             <Ionicons name="cloud-upload-outline" size={20} color="#555" />
