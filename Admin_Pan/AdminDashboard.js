@@ -59,9 +59,8 @@ import AllSkilledLabours from "../Adminscreen/Skilled Labour/AllSkilledLabours";
 import AddInvestors from "../Adminscreen/Investors/AddInvestors";
 import ViewInvesters from "../Adminscreen/Investors/ViewInvestors";
 import ViewAllInvesters from "../Adminscreen/Investors/ViewAllInvestors";
-
-const { width, height } = Dimensions.get("window");
-const isWeb = Platform.OS === "web";
+import AddCoreMember from "../Adminscreen/Core Member/AddCoreMember";
+import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
 
 const menuItems = [
   {
@@ -78,6 +77,11 @@ const menuItems = [
     title: "Customers",
     icon: "people-outline",
     subItems: ["Add Customer", "View Customers"],
+  },
+  {
+    title: "Core Members",
+    icon: "shield-outline",
+    subItems: ["Add Core Member", "View Core Members"],
   },
   {
     title: "Properties",
@@ -106,7 +110,7 @@ const menuItems = [
   },
   {
     title: "NRI Club",
-    icon: "globe-outline", // 🌍 Represents an international community
+    icon: "globe-outline",
     subItems: ["Add NRI Member", "View NRI Members"],
   },
   {
@@ -196,6 +200,8 @@ const AdminDashboard = () => {
   const [AddInvestor, setAddInvestor] = useState(false);
   const [ViewInvester, setViewInvester] = useState(false);
   const [ViewAllInvester, setAllViewInvester] = useState(false);
+  const [isAddCoreMember, setIsCoreMember] = useState(false);
+  const [isViewCoreMember, setIsViewCoreMember] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -253,6 +259,8 @@ const AdminDashboard = () => {
     setAllViewInvester(false);
     setIsViewReferral(false);
     setIsAddReferral(false);
+    setIsCoreMember(false);
+    setIsViewCoreMember(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -329,10 +337,14 @@ const AdminDashboard = () => {
       setViewInvester(true);
     } else if (subItem === "View All Investors") {
       setAllViewInvester(true);
-    } else if (subItem === "View ReferralAgents"){
+    } else if (subItem === "View ReferralAgents") {
       setIsViewReferral(true);
-    } else if (subItem === "Add ReferralAgents"){
+    } else if (subItem === "Add ReferralAgents") {
       setIsAddReferral(true);
+    } else if (subItem === "Add Core Member") {
+      setIsCoreMember(true);
+    } else if (subItem === "View Core Members") {
+      setIsViewCoreMember(true);
     }
   };
 
@@ -376,6 +388,7 @@ const AdminDashboard = () => {
     setAddInvestor(false);
     setIsViewReferral(false);
     setIsAddReferral(false);
+    setIsCoreMember(false);
   };
 
   const renderContent = () => {
@@ -393,8 +406,8 @@ const AdminDashboard = () => {
     if (AllSkilledLabour) return <AllSkilledLabours />;
     if (ViewInvester) return <ViewInvesters />;
     if (ViewAllInvester) return <ViewAllInvesters />;
-
     if (isViewReferral) return <ViewReferralAgents />;
+    if (isViewCoreMember) return <ViewCoreMembers />;
     return <Dashboard />;
   };
 
@@ -612,6 +625,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddReferral} closeModal={closeModal}>
         <AddReferral closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCoreMember} closeModal={closeModal}>
+        <AddCoreMember closeModal={closeModal} />
       </CustomModal>
     </View>
   );
