@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +21,7 @@ const AddCoreClientForm = ({ closeModal }) => {
     city: "",
     website: "",
     mobile: "",
-    logo: null,
+    photo: null, // Changed from 'logo' to 'photo' to match PostProperty
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -32,9 +33,13 @@ const AddCoreClientForm = ({ closeModal }) => {
       newErrors.officeAddress = "Office address is required.";
     if (!form.city) newErrors.city = "City is required.";
     if (!form.mobile) newErrors.mobile = "Mobile number is required.";
-    if (!form.logo) newErrors.logo = "Logo is required.";
+    if (!form.photo) newErrors.photo = "Logo is required."; // Changed from 'logo' to 'photo'
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
   };
 
   const handleAddClient = async () => {
@@ -47,19 +52,40 @@ const AddCoreClientForm = ({ closeModal }) => {
         formData.append("city", form.city);
         formData.append("website", form.website);
         formData.append("mobile", form.mobile);
-        if (form.logo) {
-          formData.append("logo", {
-            uri: form.logo,
-            name: "logo.jpg",
-            type: "image/jpeg",
-          });
+
+        // Handle image upload
+        if (form.photo) {
+          if (Platform.OS === "web") {
+            // Handle image for web (URL or Blob)
+            if (
+              typeof form.photo === "string" &&
+              form.photo.startsWith("http")
+            ) {
+              // If form.photo is a URL (web image)
+              formData.append("photoUrl", form.photo); // Send it as URL to the backend
+            } else {
+              // If form.photo is a Blob, convert to a file
+              const file = await blobToFile(form.photo, "photo.jpg");
+              formData.append("photo", file); // Send the file to backend
+            }
+          } else {
+            // Handle mobile (URI from gallery)
+            formData.append("photo", {
+              uri: form.photo, // URI for mobile (image path)
+              name: "photo.jpg", // You can modify this as needed
+              type: "image/jpeg", // Ensure this matches the file type you're uploading
+            });
+          }
+        } else {
+          console.error("No photo selected.");
+          return; // Don't proceed if no photo is selected
         }
 
         const response = await fetch(`${API_URL}/coreclient/addCoreClient`, {
           method: "POST",
           body: formData,
           headers: {
-            "Content-Type": "multipart/form-data",
+            // Don't set Content-Type for FormData, it is automatically set by the browser
           },
         });
 
@@ -83,6 +109,7 @@ const AddCoreClientForm = ({ closeModal }) => {
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (permissionResult.status !== "granted") {
         alert("Permission is required to upload a photo.");
         return;
@@ -94,7 +121,7 @@ const AddCoreClientForm = ({ closeModal }) => {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setForm({ ...form, logo: result.assets[0].uri });
+        setForm({ ...form, photo: result.assets[0].uri }); // Update form.photo with the selected image URI
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
@@ -112,8 +139,8 @@ const AddCoreClientForm = ({ closeModal }) => {
         onPress={selectImageFromGallery}
         style={styles.uploadContainer}
       >
-        {form.logo ? (
-          <Image source={{ uri: form.logo }} style={styles.logo} />
+        {form.photo ? (
+          <Image source={{ uri: form.photo }} style={styles.logo} />
         ) : (
           <View style={styles.uploadRow}>
             <Ionicons name="cloud-upload-outline" size={20} color="#555" />
@@ -121,7 +148,7 @@ const AddCoreClientForm = ({ closeModal }) => {
           </View>
         )}
       </TouchableOpacity>
-      {errors.logo && <Text style={styles.errorText}>{errors.logo}</Text>}
+      {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
 
       <Text style={styles.label}>Company Name</Text>
       <TextInput
