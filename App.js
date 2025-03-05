@@ -18,6 +18,7 @@ import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import LoginPageScreen from "./Screens/pagetwo.js/LoginPage";
 import { StatusBar } from "expo-status-bar";
+import MainScreen from "./Screens/MainScreen";
 
 const Stack = createStackNavigator();
 
@@ -54,7 +55,11 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-{/* 
+          <Stack.Screen
+            name="Main Screen"
+            component={MainScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}

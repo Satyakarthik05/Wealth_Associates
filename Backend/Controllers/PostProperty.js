@@ -60,6 +60,24 @@ const createProperty = async (req, res) => {
     });
 
     await newProperty.save();
+
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/86b467c1-3e77-48c2-8c52-821ba2d27eb4/leads",
+        {
+          params: {
+            name: postedByUser.FullName,
+            mobile: postedByUser.MobileNumber,
+            email: postedByUser.Email,
+            detail1: `ProprtyType:${propertyType},Location:${location},price:${price},reffralCode:${postedByUser.MyRefferalCode}`, // Adjust this as necessary
+          },
+        }
+      );
+
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+    }
     res
       .status(200)
       .json({ message: "Property added successfully", newProperty });

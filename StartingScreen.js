@@ -2,173 +2,172 @@ import React from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   Image,
+  TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  Dimensions,
   Platform,
 } from "react-native";
-import { Alert } from "react-native";
-
-// Icons - you'll need to add these to your project
-import AgentIcon from "./assets/agent-icon.png";
-import CustomerIcon from "./assets/customer-icon.png";
-import CoreMemberIcon from "./assets/core-member-icon.png";
-import ReferralIcon from "./assets/referral-icon.png";
-import WealthAssociatesLogo from "./assets/logo.png";
+import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import CoreDashboard from "./CoreDashboard/CoreDashboard";
-
-const { width } = Dimensions.get("window");
-const isSmallDevice = width < 375;
-const isTablet = width > 768;
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const StartingScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Use the useNavigation hook
+
+  const loginOptions = [
+    {
+      name: "Agent",
+      icon: (
+        <MaterialIcons name="real-estate-agent" size={hp("4%")} color="white" />
+      ),
+      navigateTo: "Login", // Navigate to AgentDashboard
+    },
+    {
+      name: "Customer",
+      icon: <FontAwesome5 name="user" size={hp("4%")} color="white" />,
+      navigateTo: "CustomerDashboard", // Navigate to CustomerDashboard
+    },
+    {
+      name: "Core Member",
+      icon: <Ionicons name="link" size={hp("4%")} color="white" />,
+      navigateTo: "CoreDashboard", // Navigate to CoreMemberDashboard
+    },
+    {
+      name: "Referral",
+      icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
+      navigateTo: "ReferralDashboard", // Navigate to ReferralDashboard
+    },
+    {
+      name: "Investor",
+      icon: (
+        <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
+      ),
+      navigateTo: "InvestorDashboard", // Navigate to InvestorDashboard
+    },
+    {
+      name: "NRI",
+      icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
+      navigateTo: "NRIDashboard", // Navigate to NRIDashboard
+    },
+    {
+      name: "Skilled Resource",
+      icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
+      navigateTo: "SkilledResourceDashboard", // Navigate to SkilledResourceDashboard
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.contentContainer}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={WealthAssociatesLogo}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
+    <View style={styles.container}>
+      <Image source={require("./assets/logo.png")} style={styles.logo} />
+      <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
+      <Text style={styles.loginAsText}>Login as</Text>
 
-          <View style={styles.loginContainer}>
-            <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
-            <Text style={styles.loginAsText}>Login as</Text>
-
-            <View style={styles.buttonsContainer}>
+      {Platform.OS === "web" ? (
+        <View style={styles.card}>
+          <View style={styles.gridContainer}>
+            {loginOptions.map((option, index) => (
               <TouchableOpacity
-                style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => navigation.navigate("Login")}
+                key={index}
+                style={styles.button}
+                onPress={() => navigation.navigate(option.navigateTo)} // Navigate based on option
               >
-                <Text style={styles.buttonText}>Agent Login</Text>
-                <Image source={AgentIcon} style={styles.buttonIcon} />
+                {option.icon}
+                <Text style={styles.buttonText}>{option.name}</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => navigation.navigate("CustomerDashboard")}
-              >
-                <Text style={styles.buttonText}>Customer login</Text>
-                <Image source={CustomerIcon} style={styles.buttonIcon} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() => navigation.navigate("CoreDashboard")}
-              >
-                <Text style={styles.buttonText}>Core Member login</Text>
-                <Image source={CoreMemberIcon} style={styles.buttonIcon} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() =>
-                  Alert.alert(
-                    "Only Agent login available This feature is under Development"
-                  )
-                }
-              >
-                <Text style={styles.buttonText}>Referral login</Text>
-                <Image source={ReferralIcon} style={styles.buttonIcon} />
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      ) : (
+        <View style={styles.gridContainer}>
+          {loginOptions.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.button}
+              onPress={() => navigation.navigate(option.navigateTo)} // Navigate based on option
+            >
+              {option.icon}
+              <Text style={styles.buttonText}>{option.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 20,
-  },
-  card: {
     backgroundColor: "white",
-    borderRadius: 30,
-    width: isTablet ? "80%" : "100%",
-    maxWidth: 780,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  contentContainer: {
-    flexDirection: isTablet ? "row" : "column", // Adjusted for consistent behavior across platforms
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  logoContainer: {
-    marginRight: isTablet ? 20 : 0,
-    marginBottom: isTablet ? 0 : 30,
-    width: isTablet ? "45%" : "70%",
-    alignItems: "center",
+    paddingTop: hp("5%"),
   },
   logo: {
-    width: "100%",
-    height: isTablet ? 250 : 150,
-  },
-  loginContainer: {
-    flex: isTablet ? 1 : undefined,
-    width: isTablet ? "45%" : "100%",
-    alignItems: "center",
+    width: wp("50%"),
+    height: hp("20%"),
+    resizeMode: "contain",
+    marginBottom: hp("3%"),
   },
   welcomeText: {
-    fontSize: isTablet ? 28 : 22,
-    fontWeight: "500",
-    color: "#e9356e",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+    fontWeight: "bold",
+    color: "#D81B60",
+    marginBottom: hp("1%"),
   },
   loginAsText: {
-    fontSize: isTablet ? 24 : 20,
-    fontWeight: "500",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+    fontWeight: "600",
+    marginBottom: Platform.OS === "android" ? hp("2%") : hp("2%"),
   },
-  buttonsContainer: {
-    width: "100%",
+  card: {
+    backgroundColor: "#fff",
+    padding: hp("3%"),
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    width: wp("60%"),
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: hp("2%"),
+    height: "400px",
+  },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    width: Platform.OS === "web" ? "100%" : "40px",
   },
   button: {
-    backgroundColor: "#e9356e",
-    borderRadius: 30,
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    marginBottom: 15,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    width: Platform.OS === "web" ? "15%" : wp("38%"),
+    maxWidth: Platform.OS === "web" ? 200 : 180,
+    height: hp("12%"),
+    maxHeight: 120,
+    backgroundColor: "#D81B60",
+    borderRadius: Platform.OS === "web" ? 15 : wp("3%"),
     alignItems: "center",
-  },
-  smallButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginBottom: 10,
+    justifyContent: "center",
+    margin: Platform.OS === "web" ? "1.5%" : hp("1.5%"),
+    elevation: Platform.OS === "android" ? 5 : 0,
+    shadowColor: "#000",
+    shadowOffset:
+      Platform.OS === "ios" || Platform.OS === "web"
+        ? { width: 0, height: 3 }
+        : { width: 0, height: 0 },
+    shadowOpacity: Platform.OS === "ios" || Platform.OS === "web" ? 0.2 : 0,
+    shadowRadius: Platform.OS === "ios" || Platform.OS === "web" ? 5 : 0,
+    marginBottom: Platform.OS === "android" ? hp("0%") : hp("10%"),
   },
   buttonText: {
     color: "white",
-    fontSize: isTablet ? 18 : 16,
-    fontWeight: "500",
-  },
-  buttonIcon: {
-    width: 24,
-    height: 24,
-    tintColor: "white",
+    fontSize: hp("2%"),
+    marginTop: hp("1%"),
+    textAlign: "center",
   },
 });
+
 export default StartingScreen;
