@@ -54,7 +54,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -127,31 +127,6 @@ export default function App() {
           <Stack.Screen
             name="Admin"
             component={Admin}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Homes"
-            component={Admin_panel}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
-            options={{ headerShown: false }}
-          /> */}
-          <Stack.Screen
-            name="Home"
-            component={Admin_panel}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

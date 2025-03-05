@@ -86,7 +86,7 @@ export default function ViewInvesters() {
             {agents.map((item) => renderAgentCard(item))}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No skilled labours found.</Text>
+          <Text style={styles.emptyText}>No Investors found.</Text>
         )}
       </ScrollView>
     </SafeAreaView>

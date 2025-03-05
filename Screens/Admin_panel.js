@@ -44,6 +44,9 @@ import ExpertRoute from "./ExpertPanel/ExpertRoute";
 import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
 import AddInvestor from "./Investors/AddInvestors";
 import ViewAllInvesters from "./Investors/ViewAllInvestors";
+import ViewInvesters from "./Investors/ViewInvestors";
+import AddNRIMember from "./NRI/AddNri";
+import ViewNri from "./NRI/ViewNri";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -93,7 +96,12 @@ const menuItems = [
     title: "Investors",
     icon: "business-outline",
     subItems: ["Add Investor", "View Investors", "View All Investors"],
-  }
+  },
+  {
+    title: "NRI Club",
+    icon: "globe-outline", // 🌍 Represents an international community
+    subItems: ["Add NRI Member", "View NRI Members"],
+  },
 ];
 
 const Admin_panel = () => {
@@ -131,6 +139,9 @@ const Admin_panel = () => {
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
   const [isAddInvestVisible, setIsAddInvestVisible] = useState(false);
   const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
+  const [isViewInVisible, setIsViewInvisible] =  useState(false);
+  const [isNriVisible, setIsNriVisible] = useState(false);
+  const [isNriViewVisible, setIsNriViewVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -193,6 +204,9 @@ const Admin_panel = () => {
     setIsViewInvestVisible(false);
     setIsExpertDetails(false);
     setIsAddInvestVisible(false);
+    setIsViewInvisible(false);
+    setIsNriVisible(false);
+    setIsNriViewVisible(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -236,6 +250,12 @@ const Admin_panel = () => {
       setIsAddInvestVisible(true);
     } else if (subItem === "View All Investors") {
       setIsViewInvestVisible(true);
+    } else if (subItem === "View Investors") {
+      setIsViewInvisible(true);
+    } else if (subItem === "Add NRI Member") {
+      setIsNriVisible(true);
+    } else if (subItem === "View NRI Members") {
+      setIsNriViewVisible(true);
     }
   };
 
@@ -254,6 +274,9 @@ const Admin_panel = () => {
     setIsAddInvestVisible(false);
     setAddPost(false);
     setisRsSkill(false);
+    setIsViewInvisible(false);
+    setIsNriVisible(false);
+    setIsNriViewVisible(false);
   };
 
   const renderContent = () => {
@@ -263,12 +286,16 @@ const Admin_panel = () => {
     if (isViewCustomersModalVisible) return <ViewCustomers />;
     if (isExpertPanelVisible) return <ExpertRoute />;
     if (isViewAgentVisible) return <ViewAgents />;
+    if (isViewInvestVisible) return <ViewAllInvesters />;
+    if (isViewInVisible) return <ViewInvesters />;
     if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
     if (coreClients) return <Core_Clients />;
     if (coreProjects) return <Core_Projects />;
     if (isAgentProfile) return <Agent_Profile />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
+    if (isNriViewVisible) return <ViewNri />;
+
 
     return (
       <View style={[styles.container]} keyboardShouldPersistTaps="handled">
@@ -335,8 +362,12 @@ const Admin_panel = () => {
             setCoreProjects(false);
             setisRsSkill(false);
             setIsAddInvestVisible(false);
+            setIsViewInvestVisible(false);
             setIsAgentProfile(false);
             setSelectedSubItem(null);
+            setIsViewInvisible(false);
+            setIsNriVisible(false);
+            setIsNriViewVisible(false);
           }}
         >
           <Image source={require("../assets/logo.png")} style={styles.logo} />
@@ -363,10 +394,14 @@ const Admin_panel = () => {
                 setIsViewSkilledLabourVisible(false);
                 setIsRequestExpertVisible(false);
                 setIsAddInvestVisible(false);
+                setIsViewInvestVisible(false);
                 setAddPost(false);
                 setCoreClients(false);
                 setCoreProjects(false);
                 setisRsSkill(false);
+                setIsViewInvisible(false);
+                setIsNriVisible(false);
+                setIsNriViewVisible(false);
               }}
             />
           </View>
@@ -484,6 +519,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isAddInvestVisible} closeModal={closeModal}>
         <AddInvestor closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
+        <AddNRIMember closeModal={closeModal} />
       </CustomModal>
     </View>
   );
