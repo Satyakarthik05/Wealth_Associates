@@ -128,6 +128,13 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
               </Text>
               <Text style={styles.expertDetails}>
                 <Text style={styles.label}>Location:</Text> {item.Locations}
+                {/* Request Expert Button */}
+              <TouchableOpacity
+                style={styles.requestButton}
+                onPress={() => requestExpert(item.Name, expertType)}
+              >
+                <Text style={styles.requestButtonText}>Request Expert</Text>
+              </TouchableOpacity>
               </Text>
               <TouchableOpacity
                 style={styles.requestButton}
