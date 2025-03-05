@@ -18,17 +18,19 @@ const AllCounts = require("./Controllers/AllCollectionsCount");
 const InvestorRoutes = require("./Routes/InvestorRouts");
 const RequestExpertRoute = require("./Routes/RequstedExpertsRoutes");
 const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
+const path = require("path");
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -70,22 +72,22 @@ app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
 
-https.createServer(options, app).listen(443, () => {
-  console.log("HTTPS Server running on port 443");
-});
-
-const http = require("http");
-http
-  .createServer((req, res) => {
-    res.writeHead(301, {
-      Location: "https://" + req.headers["host"] + req.url,
-    });
-    res.end();
-  })
-  .listen(80, () => {
-    console.log("Redirecting HTTP to HTTPS");
-  });
-
-// app.listen("3000", () => {
-//   console.log("Server is running succssfully");
+// https.createServer(options, app).listen(443, () => {
+//   console.log("HTTPS Server running on port 443");
 // });
+
+// const http = require("http");
+// http
+//   .createServer((req, res) => {
+//     res.writeHead(301, {
+//       Location: "https://" + req.headers["host"] + req.url,
+//     });
+//     res.end();
+//   })
+//   .listen(80, () => {
+//     console.log("Redirecting HTTP to HTTPS");
+//   });
+
+app.listen("3000", () => {
+  console.log("Server is running succssfully");
+});

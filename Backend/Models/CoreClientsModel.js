@@ -6,7 +6,8 @@ const CoreClientsSchema = new mongoose.Schema(
     officeAddress: { type: String, required: true },
     city: { type: String, required: true },
     website: { type: String, required: true },
-    photo: { type: String, required: true }, // agent, coreMember, customerMember, admin
+    photo: { type: String, required: true },
+    mobile: { type: String, required: true },
     editedAt: { type: Date }, // Stores the last edit timestamp
   },
   { timestamps: true } // Adds createdAt and updatedAt fields

@@ -2,7 +2,7 @@ const CoreClient = require("../Models/CoreClientsModel");
 
 const createCoreClient = async (req, res) => {
   try {
-    const { companyName, officeAddress, city, website } = req.body;
+    const { companyName, officeAddress, city, website, mobile } = req.body;
 
     let photoPath = null;
     if (req.file) {
@@ -16,6 +16,7 @@ const createCoreClient = async (req, res) => {
       officeAddress,
       city,
       website,
+      mobile,
       photo: photoPath,
     });
 
@@ -29,4 +30,14 @@ const createCoreClient = async (req, res) => {
   }
 };
 
-module.exports = { createCoreClient };
+const GetAllcoreClients = async (req, res) => {
+  try {
+    const properties = await CoreClient.find();
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Error fetching properties", error });
+  }
+};
+
+module.exports = { createCoreClient, GetAllcoreClients };
