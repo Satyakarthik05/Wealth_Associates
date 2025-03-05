@@ -17,6 +17,7 @@ const SkillRoutes = require("./Routes/SkillRoutes");
 const AllCounts = require("./Controllers/AllCollectionsCount");
 const InvestorRoutes = require("./Routes/InvestorRouts");
 const RequestExpertRoute = require("./Routes/RequstedExpertsRoutes");
+const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -63,6 +64,7 @@ app.use("/count", AllCounts);
 app.use("/nri", NriRoutes);
 app.use("/investors", InvestorRoutes);
 app.use("/requestexpert", RequestExpertRoute);
+app.use("/coreclient", CoreClientRoutes);
 
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
