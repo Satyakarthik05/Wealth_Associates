@@ -259,7 +259,7 @@ const PostProperty = ({ closeModal }) => {
               <View style={styles.dropdownContainer}>
                 {filteredPropertyTypes.map((item) => (
                   <TouchableOpacity
-                    key={item.code}
+                    key={`${item.code}-${item.name}`}
                     style={styles.listItem}
                     onPress={() => {
                       setPropertyType(item.name);

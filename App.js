@@ -17,6 +17,7 @@ import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
+import MainScreen from "./Screens/MainScreen";
 
 const Stack = createStackNavigator();
 
@@ -53,7 +54,11 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-
+          {/* <Stack.Screen
+            name="Main Screen"
+            component={MainScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
@@ -122,6 +127,11 @@ export default function App() {
           <Stack.Screen
             name="Admin"
             component={Admin}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="LogPage"
+            component={LoginPageScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
