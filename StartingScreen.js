@@ -69,11 +69,7 @@ const StartingScreen = () => {
 
               <TouchableOpacity
                 style={[styles.button, isSmallDevice && styles.smallButton]}
-                onPress={() =>
-                  Alert.alert(
-                    "Only Agent login available This feature is under Development"
-                  )
-                }
+                onPress={() => navigation.navigate("RefferalDashboard")}
               >
                 <Text style={styles.buttonText}>Referral login</Text>
                 <Image source={ReferralIcon} style={styles.buttonIcon} />

@@ -17,6 +17,7 @@ import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
 
 const Stack = createStackNavigator();
 
@@ -53,7 +54,6 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
@@ -112,6 +112,11 @@ export default function App() {
           <Stack.Screen
             name="CoreDashboard"
             component={CoreDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
