@@ -1,5 +1,4 @@
-import React from "react";
-// import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,28 +9,46 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl";
+
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
-const coreClients = [
-  {
-    name: "Harischandra Townships",
-    // logo: require("../../assets/Logo Final 1.png"),
-  },
-];
-
 const Core_Clients = () => {
+  const [coreClients, setCoreClients] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+
   return (
     <View>
       <Text style={styles.sectionTitle}>Core Clients</Text>
       <View style={styles.cardContainer}>
         {coreClients.map((client, index) => (
-          <View key={index} style={styles.card}>
+          <View key={client._id} style={styles.card}>
             <Image
-              source={client.logo}
+              source={{ uri: `${API_URL}${client.photo}` }} // Update this line
               style={styles.logo}
               resizeMode="contain"
             />
+
+            <Text style={styles.companyName}>{client.companyName}</Text>
+            <Text style={styles.details}>{client.officeAddress}</Text>
+            <Text style={styles.details}>{client.city}</Text>
+            <Text style={styles.details}>{client.website}</Text>
+            <Text style={styles.details}>{client.mobile}</Text>
           </View>
         ))}
       </View>
@@ -54,7 +71,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   card: {
-    width: isWeb ? 200 : 150, // Fixed width for horizontal scrolling
+    width: isWeb ? 300 : 150, // Fixed width for horizontal scrolling
     height: 80,
     backgroundColor: "#fff",
     borderRadius: 10,

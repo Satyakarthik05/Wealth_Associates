@@ -1,25 +1,110 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Platform,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { API_URL } from "../data/ApiUrl"; // Ensure this path is correct
 
-const AddCoreClientForm = ({closeModal}) => {
+const AddCoreClientForm = ({ closeModal }) => {
   const [form, setForm] = useState({
     companyName: "",
     officeAddress: "",
     city: "",
     website: "",
     mobile: "",
-    logo: null,
+    photo: null, // Changed from 'logo' to 'photo' to match PostProperty
   });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // const pickImage = () => {
-  //   ImagePicker.launchImageLibrary({ mediaType: "photo" }, (response) => {
-  //     if (!response.didCancel && !response.error) {
-  //       setForm({ ...form, logo: response.assets[0].uri });
-  //     }
-  //   });
-  // };
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.companyName) newErrors.companyName = "Company name is required.";
+    if (!form.officeAddress)
+      newErrors.officeAddress = "Office address is required.";
+    if (!form.city) newErrors.city = "City is required.";
+    if (!form.mobile) newErrors.mobile = "Mobile number is required.";
+    if (!form.photo) newErrors.photo = "Logo is required."; // Changed from 'logo' to 'photo'
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
+  };
+
+  const handleAddClient = async () => {
+    if (validateForm()) {
+      setLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append("companyName", form.companyName);
+        formData.append("officeAddress", form.officeAddress);
+        formData.append("city", form.city);
+        formData.append("website", form.website);
+        formData.append("mobile", form.mobile);
+
+        // Handle image upload
+        if (form.photo) {
+          if (Platform.OS === "web") {
+            // Handle image for web (URL or Blob)
+            if (
+              typeof form.photo === "string" &&
+              form.photo.startsWith("http")
+            ) {
+              // If form.photo is a URL (web image)
+              formData.append("photoUrl", form.photo); // Send it as URL to the backend
+            } else {
+              // If form.photo is a Blob, convert to a file
+              const file = await blobToFile(form.photo, "photo.jpg");
+              formData.append("photo", file); // Send the file to backend
+            }
+          } else {
+            // Handle mobile (URI from gallery)
+            formData.append("photo", {
+              uri: form.photo, // URI for mobile (image path)
+              name: "photo.jpg", // You can modify this as needed
+              type: "image/jpeg", // Ensure this matches the file type you're uploading
+            });
+          }
+        } else {
+          console.error("No photo selected.");
+          return; // Don't proceed if no photo is selected
+        }
+
+        const response = await fetch(`${API_URL}/coreclient/addCoreClient`, {
+          method: "POST",
+          body: formData,
+          headers: {
+            // Don't set Content-Type for FormData, it is automatically set by the browser
+          },
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          Alert.alert("Success", "Core client added successfully!");
+          closeModal();
+        } else {
+          Alert.alert("Error", result.message || "Failed to add core client.");
+        }
+      } catch (error) {
+        console.error("Error adding core client:", error);
+        Alert.alert("Error", "An error occurred while adding the core client.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const selectImageFromGallery = async () => {
     try {
       const permissionResult =
@@ -31,27 +116,31 @@ const AddCoreClientForm = ({closeModal}) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Correct option
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
+        setForm({ ...form, photo: result.assets[0].uri }); // Update form.photo with the selected image URI
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.header}>Add Core Client</Text>
       </View>
-      
+
       <Text style={styles.label}>Logo</Text>
-      <TouchableOpacity onPress={selectImageFromGallery} style={styles.uploadContainer}>
-        {form.logo ? (
-          <Image source={{ uri: form.logo }} style={styles.logo} />
+      <TouchableOpacity
+        onPress={selectImageFromGallery}
+        style={styles.uploadContainer}
+      >
+        {form.photo ? (
+          <Image source={{ uri: form.photo }} style={styles.logo} />
         ) : (
           <View style={styles.uploadRow}>
             <Ionicons name="cloud-upload-outline" size={20} color="#555" />
@@ -59,7 +148,8 @@ const AddCoreClientForm = ({closeModal}) => {
           </View>
         )}
       </TouchableOpacity>
-      
+      {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
+
       <Text style={styles.label}>Company Name</Text>
       <TextInput
         placeholder="Ex. Harischandra Townships"
@@ -67,7 +157,10 @@ const AddCoreClientForm = ({closeModal}) => {
         value={form.companyName}
         onChangeText={(text) => setForm({ ...form, companyName: text })}
       />
-      
+      {errors.companyName && (
+        <Text style={styles.errorText}>{errors.companyName}</Text>
+      )}
+
       <Text style={styles.label}>Office Address</Text>
       <TextInput
         placeholder="Ex. Road no.1, Srinivasa Nagar Colony"
@@ -75,7 +168,10 @@ const AddCoreClientForm = ({closeModal}) => {
         value={form.officeAddress}
         onChangeText={(text) => setForm({ ...form, officeAddress: text })}
       />
-      
+      {errors.officeAddress && (
+        <Text style={styles.errorText}>{errors.officeAddress}</Text>
+      )}
+
       <Text style={styles.label}>City</Text>
       <TextInput
         placeholder="Ex. Vijayawada"
@@ -83,7 +179,8 @@ const AddCoreClientForm = ({closeModal}) => {
         value={form.city}
         onChangeText={(text) => setForm({ ...form, city: text })}
       />
-      
+      {errors.city && <Text style={styles.errorText}>{errors.city}</Text>}
+
       <Text style={styles.label}>Website</Text>
       <TextInput
         placeholder="Ex. www.wealthassociatesindia.com"
@@ -91,7 +188,7 @@ const AddCoreClientForm = ({closeModal}) => {
         value={form.website}
         onChangeText={(text) => setForm({ ...form, website: text })}
       />
-      
+
       <Text style={styles.label}>Mobile</Text>
       <TextInput
         placeholder="Ex. 9063392872"
@@ -100,10 +197,19 @@ const AddCoreClientForm = ({closeModal}) => {
         value={form.mobile}
         onChangeText={(text) => setForm({ ...form, mobile: text })}
       />
+      {errors.mobile && <Text style={styles.errorText}>{errors.mobile}</Text>}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.buttonText}>Add</Text>
+        <TouchableOpacity
+          style={[styles.addButton, loading && styles.disabledButton]}
+          onPress={handleAddClient}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Add</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
           <Text style={styles.buttonText}>Cancel</Text>
@@ -190,6 +296,15 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -5,
+    marginBottom: 10,
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
   },
 });
 
