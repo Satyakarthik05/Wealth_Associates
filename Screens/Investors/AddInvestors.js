@@ -63,8 +63,8 @@ const AddInvestor = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: "Admin",
-          RegisteredBy: "Admin",
+          AddedBy: Details.MobileNumber,
+          RegisteredBy: "WealthAssociate",
         }),
       });
       const data = await response.json();

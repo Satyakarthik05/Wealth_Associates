@@ -50,13 +50,13 @@ const fetchInvestors = async (req, res) => {
   }
 };
 
-const fetchAddedSkillLAbours = async (req, res) => {
+const fetchAgentInvestors = async (req, res) => {
   try {
     const mobileNumber = req.mobileNumber; // Get mobile number from middleware
     const userType = req.userType;
 
     // Fetch skilled labours added by the agent
-    const referredAgents = await SkilledLabour.find({
+    const referredAgents = await Investors.find({
       AddedBy: mobileNumber,
     }).lean();
 
@@ -82,7 +82,6 @@ const fetchAdminInvestors = async (req, res) => {
       AddedBy: "Admin",
     }).lean();
 
-    // Return response
     return res.status(200).json({
       message: "Your Referred Skilled Labour",
       count: referredAgents.length,
@@ -112,4 +111,5 @@ module.exports = {
   fetchAdminInvestors,
   fetchInvestors,
   deleteInvestor,
+  fetchAgentInvestors,
 };

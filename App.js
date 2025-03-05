@@ -19,6 +19,8 @@ import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
 import RLogin_screen from "./Refferal/Screens/Login_screen";
+import RegisterAsScreen from "./Screens/Register_change";
+import RegisterCustomer from "./Screens/Customer_Register";
 
 const Stack = createStackNavigator();
 
@@ -80,9 +82,10 @@ export default function App() {
               options={{ headerShown: false }}
             />
           )}
+
           <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
+            name="RegisterAS"
+            component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -93,6 +96,16 @@ export default function App() {
           <Stack.Screen
             name="otpscreen"
             component={OTPVerification}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="RegisterCustomer"
+            component={RegisterCustomer}
             options={{ headerShown: false }}
           />
           <Stack.Screen

@@ -2,7 +2,7 @@ const express = require("express");
 const {
   registerInvestors,
   fetchSkilledLabours,
-  fetchAddedSkillLAbours,
+  fetchAgentInvestors,
   fetchAdminInvestors,
   deleteInvestor,
   fetchInvestors,
@@ -17,7 +17,7 @@ router.post("/register", registerInvestors);
 
 // Route to fetch all skilled labours
 router.get("/list", fetchInvestors);
-// router.get("/getmyskilllabour", verifyUser, fetchAddedSkillLAbours);
+router.get("/getagentinvestor", verifyUser, fetchAgentInvestors);
 router.get("/AdminInvestor", fetchAdminInvestors);
 router.delete("/delete/:id", deleteInvestor);
 
