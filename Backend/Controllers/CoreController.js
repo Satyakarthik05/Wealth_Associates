@@ -179,10 +179,21 @@ const fetchReferredCustomers = async (req, res) => {
   }
 };
 
+const getAllCoreMembers = async (req, res) => {
+  try {
+    const coreMembers = await core.find({});
+    res.status(200).json(coreMembers);
+  } catch (error) {
+    console.error("Error fetching core members:", error);
+    throw error; // Rethrow the error if you want to handle it elsewhere
+  }
+};
+
 module.exports = {
   CoreSign,
   coreLogin,
   getCore,
   fetchReferredAgents,
   fetchReferredCustomers,
+  getAllCoreMembers,
 };

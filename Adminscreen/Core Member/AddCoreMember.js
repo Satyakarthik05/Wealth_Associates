@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Platform,
   ScrollView,
@@ -12,43 +11,40 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
-  FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "../../../data/ApiUrl";
+import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-const Add_Agent = ({ closeModal }) => {
+const AddCoreMember = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
-  const [email, setEmail] = useState("");
   const [district, setDistrict] = useState("");
   const [constituency, setConstituency] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [experience, setExperience] = useState("");
-  const [referralCode, setReferralCode] = useState("");
   const [location, setLocation] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [referredBy, setReferredBy] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [responseStatus, setResponseStatus] = useState(null);
   const [districtSearch, setDistrictSearch] = useState("");
   const [constituencySearch, setConstituencySearch] = useState("");
-  const [expertiseSearch, setExpertiseSearch] = useState("");
-  const [experienceSearch, setExperienceSearch] = useState("");
   const [showDistrictList, setShowDistrictList] = useState(false);
   const [showConstituencyList, setShowConstituencyList] = useState(false);
-  const [showExpertiseList, setShowExpertiseList] = useState(false);
-  const [showExperienceList, setShowExperienceList] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencys] = useState([]);
-  const [expertiseOptions, setExpertiseOptions] = useState([]);
   const [Details, setDetails] = useState({});
 
   const mobileRef = useRef(null);
-  const emailRef = useRef(null);
   const districtRef = useRef(null);
+  const constituencyRef = useRef(null);
+  const locationRef = useRef(null);
+  const occupationRef = useRef(null);
+  const referredByRef = useRef(null);
+  const referralCodeRef = useRef(null);
 
   const fetchDistricts = async () => {
     try {
@@ -56,39 +52,24 @@ const Add_Agent = ({ closeModal }) => {
       const data = await response.json();
       setDistricts(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching districts:", error);
     }
   };
+
   const fetchConstituency = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/constituencys`);
       const data = await response.json();
       setConstituencys(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching constituencies:", error);
     }
   };
-  const fetchExpertise = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/expertise`);
-      const data = await response.json();
-      setExpertiseOptions(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+
   useEffect(() => {
     fetchDistricts();
     fetchConstituency();
-    fetchExpertise();
   }, []);
-
-  const experienceOptions = [
-    { name: "0-1 years", code: "01" },
-    { name: "1-3 years", code: "02" },
-    { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
-  ];
 
   const filteredDistricts = districts.filter((item) =>
     item.name.toLowerCase().includes(districtSearch.toLowerCase())
@@ -98,33 +79,17 @@ const Add_Agent = ({ closeModal }) => {
     item.name.toLowerCase().includes(constituencySearch.toLowerCase())
   );
 
-  const filteredExpertise = expertiseOptions.filter((item) =>
-    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
-  );
-
-  const filteredExperience = experienceOptions.filter((item) =>
-    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
-  );
-
   const getDetails = async () => {
     try {
-      // Await the token retrieval from AsyncStorage
       const token = await AsyncStorage.getItem("authToken");
-
-      // Make the fetch request
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
-          token: `${token}` || "", // Fallback to an empty string if token is null
+          token: `${token}` || "",
         },
       });
-
-      // Parse the response
       const newDetails = await response.json();
-
-      // Update state with the details
       setDetails(newDetails);
-      console.log(Details);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -133,9 +98,10 @@ const Add_Agent = ({ closeModal }) => {
   useEffect(() => {
     getDetails();
   }, []);
+
   useEffect(() => {
     if (Details.MyRefferalCode) {
-      setReferralCode(Details.MyRefferalCode); // Pre-fill the referralCode state
+      setReferralCode(Details.MyRefferalCode);
     }
   }, [Details]);
 
@@ -143,12 +109,10 @@ const Add_Agent = ({ closeModal }) => {
     if (
       !fullname ||
       !mobile ||
-      !email ||
       !district ||
       !constituency ||
       !location ||
-      !expertise ||
-      !experience
+      !occupation
     ) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
@@ -156,30 +120,19 @@ const Add_Agent = ({ closeModal }) => {
 
     setIsLoading(true);
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
-    );
-
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
-
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email,
       District: district,
       Contituency: constituency,
       Locations: location,
-      Expertise: expertise,
-      Experience: experience,
-      ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
-      Password: "Wealth",
-      MyRefferalCode: referenceId,
-      AgentType: "WealthAssociate",
+      Occupation: occupation,
+      ReferredBy: referredBy || "WA0000000001",
+      MyRefferalCode: referralCode,
     };
 
     try {
-      const response = await fetch(`${API_URL}/agent/AgentRegister`, {
+      const response = await fetch(`${API_URL}/core/CoreRegister`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -216,7 +169,7 @@ const Add_Agent = ({ closeModal }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
           <View style={styles.register_main}>
-            <Text style={styles.register_text}>Register Wealth Associate</Text>
+            <Text style={styles.register_text}>Register Core Member</Text>
           </View>
           {responseStatus === 400 && (
             <Text style={styles.errorText}>Mobile number already exists.</Text>
@@ -226,13 +179,14 @@ const Add_Agent = ({ closeModal }) => {
             {/* Row 1 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Fullname</Text>
+                <Text style={styles.label}>Full Name</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Full name"
+                    placeholder="Full Name"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     onChangeText={setFullname}
+                    value={fullname}
                     returnKeyType="next"
                     onSubmitEditing={() => mobileRef.current.focus()}
                   />
@@ -253,44 +207,13 @@ const Add_Agent = ({ closeModal }) => {
                     placeholder="Mobile Number"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     onChangeText={setMobile}
+                    value={mobile}
                     keyboardType="number-pad"
                     returnKeyType="next"
-                    onSubmitEditing={() => emailRef.current.focus()}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
+                    onSubmitEditing={() => districtRef.current.focus()}
                   />
                   <MaterialIcons
                     name="phone"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
-                </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    ref={emailRef}
-                    style={styles.input}
-                    placeholder="Email"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setEmail}
-                    returnKeyType="next"
-                    onSubmitEditing={() => districtRef.current.focus()}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  <MaterialIcons
-                    name="email"
                     size={20}
                     color="#E82E5F"
                     style={styles.icon}
@@ -383,99 +306,23 @@ const Add_Agent = ({ closeModal }) => {
                   )}
                 </View>
               </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Experience</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Experience"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={experienceSearch}
-                    onChangeText={(text) => {
-                      setExperienceSearch(text);
-                      setShowExperienceList(true);
-                    }}
-                    onFocus={() => {
-                      setShowExperienceList(true);
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                    }}
-                  />
-                  {showExperienceList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
             </View>
 
             {/* Row 3 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Expertise</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Expertise"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={expertiseSearch}
-                    onChangeText={(text) => {
-                      setExpertiseSearch(text);
-                      setShowExpertiseList(true);
-                    }}
-                    onFocus={() => {
-                      setShowExpertiseList(true);
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  {showExpertiseList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Location</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    ref={locationRef}
                     style={styles.input}
                     placeholder="Location"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     onChangeText={setLocation}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
+                    value={location}
+                    returnKeyType="next"
+                    onSubmitEditing={() => occupationRef.current.focus()}
+                    onFocus={()=>{setShowConstituencyList(false)}}
                   />
                   <MaterialIcons
                     name="location-on"
@@ -486,20 +333,60 @@ const Add_Agent = ({ closeModal }) => {
                 </View>
               </View>
               <View style={styles.inputContainer}>
+                <Text style={styles.label}>Occupation</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    ref={occupationRef}
+                    style={styles.input}
+                    placeholder="Occupation"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    onChangeText={setOccupation}
+                    value={occupation}
+                    returnKeyType="next"
+                    onSubmitEditing={() => referredByRef.current.focus()}
+                  />
+                  <MaterialIcons
+                    name="work"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Row 4 */}
+            <View style={styles.inputRow}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Referred By</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    ref={referredByRef}
+                    style={styles.input}
+                    placeholder="Referred By"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    onChangeText={setReferredBy}
+                    value={referredBy}
+                    returnKeyType="next"
+                    onSubmitEditing={() => referralCodeRef.current.focus()}
+                  />
+                  <MaterialIcons
+                    name="card-giftcard"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </View>
+              </View>
+              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Referral Code</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    ref={referralCodeRef}
                     style={styles.input}
                     placeholder="Referral Code"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     onChangeText={setReferralCode}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                    // defaultValue="WA0000000001"
                     value={referralCode}
                   />
                   <MaterialIcons
@@ -590,23 +477,40 @@ const styles = StyleSheet.create({
     borderWidth: Platform.OS === "web" ? 0 : 1,
     borderColor: Platform.OS === "web" ? "transparent" : "#ccc",
   },
-  webInputWrapper: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    gap: 20,
-    marginTop: 25,
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
   },
   scrollView: {
     maxHeight: 200,
   },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  webInputWrapper: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    // gap: 20,
+    marginTop: 25,
+  },
   inputRow: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "30%",
+    width: Platform.OS === "android" ? "100%" : "50%",
     position: "relative",
     zIndex: 1,
   },
@@ -661,14 +565,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "400",
   },
-  loginText: {
-    marginTop: 20,
-    fontSize: 16,
-    color: "#E82E5F",
-  },
-  loginLink: {
-    fontWeight: "bold",
-  },
   loadingIndicator: {
     marginTop: 20,
   },
@@ -678,26 +574,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  dropdownContainer: {
-    position: "absolute",
-    bottom: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#FFF",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 5,
-  },
-  list: {
-    maxHeight: 150,
-  },
-  listItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
 });
-
-export default Add_Agent;
+export default AddCoreMember;

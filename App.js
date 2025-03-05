@@ -18,6 +18,7 @@ import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
 
 const Stack = createStackNavigator();
 
@@ -120,6 +121,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -129,11 +135,11 @@ export default function App() {
             component={Admin}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
+          <Stack.Screen
+            name="ReferralDashboard"
+            component={RLogin_screen}
             options={{ headerShown: false }}
-          /> */}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
