@@ -16,7 +16,6 @@ import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
-import LoginPageScreen from "./Screens/pagetwo.js/LoginPage";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
 
@@ -55,7 +54,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
