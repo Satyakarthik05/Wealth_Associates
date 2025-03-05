@@ -5,6 +5,7 @@ const AgentSchema = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
 const CoreSchema = require("../Models/CoreModel");
 const mongoose = require("mongoose");
+const axios =require("axios")
 
 // Create a new property
 const createProperty = async (req, res) => {
@@ -60,6 +61,25 @@ const createProperty = async (req, res) => {
     });
 
     await newProperty.save();
+    try {
+      const callCenterResponse = await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/dfbba5ed-861d-488f-9150-24c7d45ac64c/leads",
+        {
+          params: {
+            name: postedByUser.FullName,
+            mobile: postedByUser.MobileNumber,
+            email: postedByUser.Email,
+            detail: `${propertyType}`,
+            detail2: `${location}`,
+            detail3:`${price}`
+          },
+        }
+      );
+
+      console.log("Call center API response:", callCenterResponse.data);
+    } catch (error) {
+      console.error("Failed to call call center API:", error.message);
+    }
     res
       .status(200)
       .json({ message: "Property added successfully", newProperty });
