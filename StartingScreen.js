@@ -15,7 +15,7 @@ import {
 } from "react-native-responsive-screen";
 
 const StartingScreen = () => {
-  const navigation = useNavigation(); // Use the useNavigation hook
+  const navigation = useNavigation();
 
   const loginOptions = [
     {
