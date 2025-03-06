@@ -137,8 +137,6 @@ const menuItems = [
     title: "Master Data",
     icon: "settings-outline",
     subItems: [
-      "Add User",
-      "Add Roles",
       "Add Districts",
       "Add Constituencies",
       "Add Expertise",
@@ -329,9 +327,9 @@ const AdminDashboard = () => {
       setViewInvester(true);
     } else if (subItem === "View All Investors") {
       setAllViewInvester(true);
-    } else if (subItem === "View ReferralAgents"){
+    } else if (subItem === "View ReferralAgents") {
       setIsViewReferral(true);
-    } else if (subItem === "Add ReferralAgents"){
+    } else if (subItem === "Add ReferralAgents") {
       setIsAddReferral(true);
     }
   };

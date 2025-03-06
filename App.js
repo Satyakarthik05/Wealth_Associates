@@ -129,27 +129,14 @@ export default function App() {
             name="Admin"
             component={Admin}
             options={{ headerShown: false }}
-          /> */}
-         <Stack.Screen
+          />
+          <Stack.Screen
             name="LogPage"
             component={LoginPageScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
-            options={{ headerShown: false }}
-          />
+    
+          {/* <Stack.Screen name="ReferralDashboard" component={}/> */}
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
