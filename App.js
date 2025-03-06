@@ -26,6 +26,8 @@ import RegisterCustomer from "./Screens/Customer_Register";
 // import Login_Nri from "./Nri_Dashboard/Screens/Login_Nri";
 // import Main_dashboard from "./Nri_Dashboard/Main_dashboard";
 import SkillDasboard from "./SkillDashboard/SkillDashboard";
+import NriDashboard from "./NriDashboard/NriDashboard";
+import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -155,6 +157,16 @@ export default function App() {
           <Stack.Screen
             name="SkillDashboard"
             component={SkillDasboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NriDashboard"
+            component={NriDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="InvestorDashboard"
+            component={InvestorDashboard}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

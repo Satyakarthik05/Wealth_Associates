@@ -50,7 +50,7 @@ const StartingScreen = () => {
     {
       name: "NRI",
       icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
-      navigateTo: "NriLogin", // Navigate to NRIDashboard
+      navigateTo: "NriDashboard", // Navigate to NRIDashboard
     },
     {
       name: "Skilled Resource",
