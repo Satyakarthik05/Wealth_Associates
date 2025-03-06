@@ -26,5 +26,5 @@ router.post(
   upload.single("photo"),
   CoreClientController.createCoreClient
 );
-
+router.get("/getallcoreclients", CoreClientController.GetAllcoreClients);
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,10 +21,24 @@ const AddCoreClientForm = ({ closeModal }) => {
     city: "",
     website: "",
     mobile: "",
-    logo: null,
+    photo: null, // Changed from 'logo' to 'photo' to match PostProperty
+    file: null, // Added to store the file object for web
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Clean up temporary URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (
+        Platform.OS === "web" &&
+        form.photo &&
+        form.photo.startsWith("blob:")
+      ) {
+        URL.revokeObjectURL(form.photo); // Clean up the temporary URL
+      }
+    };
+  }, [form.photo]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -32,9 +47,13 @@ const AddCoreClientForm = ({ closeModal }) => {
       newErrors.officeAddress = "Office address is required.";
     if (!form.city) newErrors.city = "City is required.";
     if (!form.mobile) newErrors.mobile = "Mobile number is required.";
-    if (!form.logo) newErrors.logo = "Logo is required.";
+    if (!form.photo) newErrors.photo = "Logo is required."; // Changed from 'logo' to 'photo'
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const blobToFile = (blob, fileName) => {
+    return new File([blob], fileName, { type: blob.type });
   };
 
   const handleAddClient = async () => {
@@ -47,19 +66,38 @@ const AddCoreClientForm = ({ closeModal }) => {
         formData.append("city", form.city);
         formData.append("website", form.website);
         formData.append("mobile", form.mobile);
-        if (form.logo) {
-          formData.append("logo", {
-            uri: form.logo,
-            name: "logo.jpg",
-            type: "image/jpeg",
-          });
+
+        // Handle image upload
+        if (form.photo) {
+          if (Platform.OS === "web") {
+            if (form.file) {
+              // If form.file exists (web), append it to FormData
+              formData.append("photo", form.file);
+            } else if (
+              typeof form.photo === "string" &&
+              form.photo.startsWith("http")
+            ) {
+              // If form.photo is a URL (web image)
+              formData.append("photoUrl", form.photo); // Send it as URL to the backend
+            }
+          } else {
+            // Handle mobile (URI from gallery)
+            formData.append("photo", {
+              uri: form.photo, // URI for mobile (image path)
+              name: "photo.jpg", // You can modify this as needed
+              type: "image/jpeg", // Ensure this matches the file type you're uploading
+            });
+          }
+        } else {
+          console.error("No photo selected.");
+          return; // Don't proceed if no photo is selected
         }
 
         const response = await fetch(`${API_URL}/coreclient/addCoreClient`, {
           method: "POST",
           body: formData,
           headers: {
-            "Content-Type": "multipart/form-data",
+            // Don't set Content-Type for FormData, it is automatically set by the browser
           },
         });
 
@@ -81,20 +119,37 @@ const AddCoreClientForm = ({ closeModal }) => {
 
   const selectImageFromGallery = async () => {
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.status !== "granted") {
-        alert("Permission is required to upload a photo.");
-        return;
-      }
+      if (Platform.OS === "web") {
+        // Handle image selection for web
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setForm({ ...form, photo: imageUrl, file }); // Store both URL and file
+          }
+        };
+        input.click();
+      } else {
+        // Handle image selection for mobile
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to upload a photo.");
+          return;
+        }
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setForm({ ...form, logo: result.assets[0].uri });
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setForm({ ...form, photo: result.assets[0].uri });
+        }
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
@@ -112,8 +167,14 @@ const AddCoreClientForm = ({ closeModal }) => {
         onPress={selectImageFromGallery}
         style={styles.uploadContainer}
       >
-        {form.logo ? (
-          <Image source={{ uri: form.logo }} style={styles.logo} />
+        {form.photo ? (
+          <Image
+            source={{ uri: form.photo }}
+            style={styles.logo}
+            onError={(e) =>
+              console.error("Failed to load image:", e.nativeEvent.error)
+            }
+          />
         ) : (
           <View style={styles.uploadRow}>
             <Ionicons name="cloud-upload-outline" size={20} color="#555" />
@@ -121,7 +182,7 @@ const AddCoreClientForm = ({ closeModal }) => {
           </View>
         )}
       </TouchableOpacity>
-      {errors.logo && <Text style={styles.errorText}>{errors.logo}</Text>}
+      {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
 
       <Text style={styles.label}>Company Name</Text>
       <TextInput

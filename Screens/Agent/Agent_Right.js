@@ -84,6 +84,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [propertiess, setPropertiess] = useState([]);
+  const [coreClients, setCoreClients] = useState([]);
+  const [coreProjects, setCoreProjectes] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/coreproject/getallcoreprojects`
+        );
+        const data = await response.json();
+        setCoreProjectes(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreCProject = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreCProject();
+  }, []);
 
   useEffect(() => {
     fetchPropertiess();
@@ -253,7 +286,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreClients.map((client, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={client.logo}
+                source={{ uri: `${API_URL}${client.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -271,10 +304,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreProjects.map((project, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={project.logo}
+                source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
             </View>
           ))}
         </ScrollView>

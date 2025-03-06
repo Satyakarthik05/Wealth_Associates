@@ -20,6 +20,9 @@ import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
 import Admin_panelnri from "./Nri_Dashboard/NRIScreens/Admin_panel";
 import NRILogin_screen from "./Nri_Dashboard/NRIScreens/Login_Nri";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
+import RegisterAsScreen from "./Screens/Register_change";
+import RegisterCustomer from "./Screens/Customer_Register";
 
 const Stack = createStackNavigator();
 
@@ -81,9 +84,10 @@ export default function App() {
               options={{ headerShown: false }}
             />
           )}
+
           <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
+            name="RegisterAS"
+            component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -97,8 +101,18 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="newpassword"
-            component={New_Password}
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="RegisterCustomer"
+            component={RegisterCustomer}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -122,6 +136,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -131,40 +150,9 @@ export default function App() {
             component={Admin}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
-            options={{ headerShown: false }}
-          /> */}
-          {/* <Stack.Screen
-            name="Homes"
-            component={Admin_panel}
-            options={{ headerShown: false }}
-          />
           <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
-            options={{ headerShown: false }}
-          /> */}
-          
-          {/* <Stack.Screen
-          name="Home"
-          component={Admin_panel}
-          options={{ headerShown: false }}
-        /> */}
-        <Stack.Screen
-            name="Homenri"
-            component={Admin_panelnri}
-            options={{ headerShown: false }}
-          /> 
-        <Stack.Screen
-            name="nriLogin"
-            component={NRILogin_screen}
+            name="ReferralDashboard"
+            component={RLogin_screen}
             options={{ headerShown: false }}
           /> 
         </Stack.Navigator>

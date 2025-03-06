@@ -5,6 +5,7 @@ const verifyAgentToken = require("../middleWares/VerifyAgentToken");
 const CustomerToken = require("../middleWares/VerifyCustomerToken");
 const CoreToken = require("../middleWares/VerifyCoreToken");
 const verifyUser = require("../middleWares/VerifyUser");
+const CoreClients = require("../Controllers/CoreClientsController");
 
 const router = express.Router();
 
@@ -28,6 +29,11 @@ router.post(
   "/addProperty",
   upload.single("photo"),
   PostPropertyController.createProperty
+);
+router.post(
+  "/addcoreclient",
+  upload.single("photo"),
+  CoreClients.createCoreClient
 );
 
 // ✅ **Get All Properties**

@@ -27,7 +27,7 @@ export default function ViewInvesters() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/investors/AdminInvestor`, {
+        const response = await fetch(`${API_URL}/investors/getagentinvestor`, {
           method: "GET",
           headers: {
             token: `${token}` || "",
@@ -60,7 +60,7 @@ export default function ViewInvesters() {
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Skill Type</Text>
+          <Text style={styles.label}>Category</Text>
           <Text style={styles.value}>: {item.SelectSkill}</Text>
         </View>
         <View style={styles.row}>
@@ -86,7 +86,7 @@ export default function ViewInvesters() {
             {agents.map((item) => renderAgentCard(item))}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No skilled labours found.</Text>
+          <Text style={styles.emptyText}>No Investors found.</Text>
         )}
       </ScrollView>
     </SafeAreaView>

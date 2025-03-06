@@ -51,18 +51,18 @@ export default function CoreDashboard() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          />
+          /> */}
 
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="otpscreen"
             component={OTPVerification}
             options={{ headerShown: false }}
@@ -71,7 +71,7 @@ export default function CoreDashboard() {
             name="newpassword"
             component={New_Password}
             options={{ headerShown: false }}
-          />
+          /> */}
 
           <Stack.Screen
             name="Home"

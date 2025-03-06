@@ -1,1 +1,1 @@
-export const API_URL = "https://api.wealthassociate.in";
+export const API_URL = "http://192.168.77.105:3000";
