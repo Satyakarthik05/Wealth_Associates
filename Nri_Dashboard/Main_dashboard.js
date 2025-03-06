@@ -3,18 +3,17 @@ import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import Login_screen from "./Screens/Login_screen";
-import Register_Screen from "./Screens/Register_screen";
+// import Register_Screen from "./Screens/Register_screen";
 import Admin_panel from "./Screens/Admin_panel";
-import ForgotPassword from "./Screens/ForgetPassword";
-import OTPVerification from "./Screens/OtpVerification";
-import New_Password from "./Screens/New_Password";
-import Agent_Profile from "./Screens/Agent/Agent_Profile";
-import PrivacyPolicy from "./Screens/PrivacyPolicy";
+// import ForgotPassword from "./Screens/ForgetPassword";
+// import OTPVerification from "./Screens/OtpVerification";
+// import New_Password from "./Screens/New_Password";
+// import Agent_Profile from "./Screens/Agent/Agent_Profile";
+// import PrivacyPolicy from "./Screens/PrivacyPolicy";
 import StartingScreen from "../StartingScreen";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import App from "../App";
-// import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
+import Login_Nri from "./Screens/Login_Nri";
 
 const Stack = createStackNavigator();
 
@@ -51,18 +50,18 @@ export default function CustomerDashboard() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-        <Stack.Screen
-            name="Login"
-            component={Login_screen}
-            options={{ headerShown: false }}
-          /> 
-            <Stack.Screen
-              name="Register"
-              component={Register_Screen}
-              options={{ headerShown: false }}
-            />
-          
           <Stack.Screen
+            name="Login"
+            component={Login_Nri}
+            options={{ headerShown: false }}
+          />
+          {/* <Stack.Screen
+            name="Register"
+            component={Register_Screen}
+            options={{ headerShown: false }}
+          /> */}
+
+          {/* <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
             options={{ headerShown: false }}
@@ -76,14 +75,14 @@ export default function CustomerDashboard() {
             name="newpassword"
             component={New_Password}
             options={{ headerShown: false }}
-          />
-         
+          /> */}
+
           <Stack.Screen
             name="Home"
             component={Admin_panel}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -92,7 +91,7 @@ export default function CustomerDashboard() {
             name="App"
             component={App}
             options={{ headerShown: false }}
-          />
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

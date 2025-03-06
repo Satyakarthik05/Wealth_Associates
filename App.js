@@ -18,11 +18,13 @@ import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
-import Admin_panelnri from "./Nri_Dashboard/NRIScreens/Admin_panel";
-import NRILogin_screen from "./Nri_Dashboard/NRIScreens/Login_Nri";
+import Admin_panelnri from "./Nri_Dashboard/Screens/Admin_panel";
+import NRILogin_screen from "./Nri_Dashboard/Screens/Login_Nri";
 import RLogin_screen from "./Refferal/Screens/Login_screen";
 import RegisterAsScreen from "./Screens/Register_change";
 import RegisterCustomer from "./Screens/Customer_Register";
+import Login_Nri from "./Nri_Dashboard/Screens/Login_Nri";
+import Main_dashboard from "./Nri_Dashboard/Main_dashboard";
 
 const Stack = createStackNavigator();
 
@@ -111,11 +113,6 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
@@ -154,7 +151,12 @@ export default function App() {
             name="ReferralDashboard"
             component={RLogin_screen}
             options={{ headerShown: false }}
-          /> 
+          />
+          <Stack.Screen
+            name="NriLogin"
+            component={Main_dashboard}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

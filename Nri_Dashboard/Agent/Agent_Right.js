@@ -15,7 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomModal from "../../Components/CustomModal";
 //import PostProperty from "../Properties/PostProperty";
-import RequestedPropertyForm from "../NRIScreens/Properties/RequestProperty";
+import RequestedPropertyForm from "../Screens/Properties/RequestProperty";
 //import AddClubMember from "../Customer/Regicus";
 //import RequestExpert from "../ExpertPanel/Requested_expert";
 import { useNavigation } from "@react-navigation/native";
