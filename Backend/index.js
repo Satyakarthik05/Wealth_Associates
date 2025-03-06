@@ -15,10 +15,10 @@ const ExpertRoutes = require("./Routes/ExpertRoute");
 const NriRoutes = require("./Routes/NriRoute");
 const SkillRoutes = require("./Routes/SkillRoutes");
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());

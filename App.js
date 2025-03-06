@@ -3,6 +3,7 @@ import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import Loginas from "./Screens/Loginas"
 import Login_screen from "./Screens/Login_screen";
 import RegisterScreen from "./Screens/Register_screen";
 import Admin_panel from "./Screens/Admin_panel";
@@ -112,7 +113,7 @@ export default function App() {
           <Stack.Screen
             name="CoreDashboard"
             component={CoreDashboard}
-            options={{ headerShown: false }}
+            options={{ headerShown: false }} 
           />
           <Stack.Screen
             name="PrivacyPolicy"
@@ -124,6 +125,7 @@ export default function App() {
             component={Admin}
             options={{ headerShown: false }}
           />
+          
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
