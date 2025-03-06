@@ -4,26 +4,21 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import Login_screen from "./Screens/Login_screen";
-import RegisterScreen from "./Screens/Register_screen";
+import Register_Screen from "./Screens/Register_screen";
 import Admin_panel from "./Screens/Admin_panel";
 import ForgotPassword from "./Screens/ForgetPassword";
 import OTPVerification from "./Screens/OtpVerification";
 import New_Password from "./Screens/New_Password";
 import Agent_Profile from "./Screens/Agent/Agent_Profile";
 import PrivacyPolicy from "./Screens/PrivacyPolicy";
-import StartingScreen from "./StartingScreen";
-import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
+import StartingScreen from "../StartingScreen";
 import { NavigationIndependentTree } from "@react-navigation/native";
-import CoreDashboard from "./CoreDashboard/CoreDashboard";
-import Admin from "./Admin_Pan/AdminDashboard";
-import { StatusBar } from "expo-status-bar";
-import MainScreen from "./Screens/MainScreen";
-import Admin_panelnri from "./Nri_Dashboard/NRIScreens/Admin_panel";
-import NRILogin_screen from "./Nri_Dashboard/NRIScreens/Login_Nri";
+import App from "../App";
+// import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 
 const Stack = createStackNavigator();
 
-export default function App() {
+export default function CustomerDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(null); // Track login state
   const [isLoading, setIsLoading] = useState(true); // Track loading state
 
@@ -56,36 +51,17 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
-            name="Main Screen"
-            component={MainScreen}
+        <Stack.Screen
+            name="Login"
+            component={Login_screen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Starting Screen"
-            component={StartingScreen}
-            options={{ headerShown: false }}
-          />
-          {isLoggedIn ? (
-            // If logged in, show the Home screen
+          /> 
             <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
+              name="Register"
+              component={Register_Screen}
               options={{ headerShown: false }}
             />
-          ) : (
-            // If not logged in, show the Login screen
-            <Stack.Screen
-              name="Logins"
-              component={Login_screen}
-              options={{ headerShown: false }}
-            />
-          )}
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ headerShown: false }}
-          />
+          
           <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
@@ -101,24 +77,10 @@ export default function App() {
             component={New_Password}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
-            name="Login"
-            component={Login_screen}
-            options={{ headerShown: false }}
-          />
+         
           <Stack.Screen
             name="Home"
             component={Admin_panel}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -127,46 +89,10 @@ export default function App() {
             options={{ headerShown: true }}
           />
           <Stack.Screen
-            name="Admin"
-            component={Admin}
+            name="App"
+            component={App}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
-            options={{ headerShown: false }}
-          /> */}
-          {/* <Stack.Screen
-            name="Homes"
-            component={Admin_panel}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
-            options={{ headerShown: false }}
-          /> */}
-          
-          {/* <Stack.Screen
-          name="Home"
-          component={Admin_panel}
-          options={{ headerShown: false }}
-        /> */}
-        <Stack.Screen
-            name="Homenri"
-            component={Admin_panelnri}
-            options={{ headerShown: false }}
-          /> 
-        <Stack.Screen
-            name="nriLogin"
-            component={NRILogin_screen}
-            options={{ headerShown: false }}
-          /> 
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
