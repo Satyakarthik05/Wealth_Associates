@@ -41,7 +41,10 @@ const MainScreen = () => {
 
           <View style={styles.buttonColumn}>
             <Text style={styles.subText}>New account ?</Text>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("RegisterAS")}
+            >
               <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
           </View>

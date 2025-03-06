@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  TouchableWithoutFeedback, // Import TouchableWithoutFeedback
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -21,6 +22,12 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Import nested action components
+import AddCustomer from "./Add_Agent";
+import AddInvestor from "./Add_Agent";
+import AddNR from "../Customer/Regicus";
+import AddBuilder from "../Customer/Regicus";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -38,11 +45,18 @@ const actionButtons = [
     component: RequestProperty,
   },
   {
-    title: "Add a customer",
+    title: "Add a member",
     icon: "account-plus",
     component: AddClubMember,
   },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
+];
+
+const nestedActionButtons = [
+  { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
+  { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
+  { title: "Add a NR", icon: "account-clock", component: AddNR },
+  { title: "Add a Builder", icon: "account-hard-hat", component: AddBuilder },
 ];
 
 const coreClients = [
@@ -73,6 +87,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [propertiess, setPropertiess] = useState([]);
+  const [coreClients, setCoreClients] = useState([]);
+  const [coreProjects, setCoreProjectes] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/coreproject/getallcoreprojects`
+        );
+        const data = await response.json();
+        setCoreProjectes(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreCProject = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreCProject();
+  }, []);
 
   useEffect(() => {
     fetchPropertiess();
@@ -150,9 +197,45 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   };
 
   const handleActionButtonClick = (btn) => {
-    const ModalComponent = btn.component;
+    if (btn.title === "Add a member") {
+      // Open nested modal for "Add a member"
+      setModalContent(
+        <TouchableWithoutFeedback onPress={closeModal}>
+          <View style={styles.nestedModalContent}>
+            {nestedActionButtons.map((nestedBtn, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.nestedActionButton}
+                onPress={() => handleNestedActionButtonClick(nestedBtn)}
+              >
+                <View style={styles.iconCircle}>
+                  <Icon
+                    name={nestedBtn.icon}
+                    size={Platform.OS === "web" ? 40 : 30}
+                    color="#E91E63"
+                  />
+                </View>
+                <Text style={styles.actionText}>{nestedBtn.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableWithoutFeedback>
+      );
+      setModalVisible(true);
+    } else {
+      // Handle other action buttons
+      const ModalComponent = btn.component;
+      setModalContent(
+        <ModalComponent title={btn.title} closeModal={closeModal} />
+      );
+      setModalVisible(true);
+    }
+  };
+
+  const handleNestedActionButtonClick = (nestedBtn) => {
+    const ModalComponent = nestedBtn.component;
     setModalContent(
-      <ModalComponent title={btn.title} closeModal={closeModal} />
+      <ModalComponent title={nestedBtn.title} closeModal={closeModal} />
     );
     setModalVisible(true);
   };
@@ -170,8 +253,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
+      <View
+        // style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Action Buttons */}
@@ -206,7 +289,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreClients.map((client, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={client.logo}
+                source={{ uri: `${API_URL}${client.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -224,10 +307,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreProjects.map((project, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={project.logo}
+                source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
             </View>
           ))}
         </ScrollView>
@@ -351,7 +437,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
         {/* Version Info */}
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -360,7 +446,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    ...(isWeb && { height: "auto", overflow: "scroll" }),
+    ...(isWeb && { height: "auto" }),
   },
   scrollView: {
     flex: 1,
@@ -529,6 +615,27 @@ const styles = StyleSheet.create({
     color: "#e91e63",
   },
   loader: { marginTop: 50 },
+  nestedModalContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
+    padding: 20,
+    backgroundColor: "#fff", // Light gray background
+    borderRadius: 20, // Rounded corners
+    margin: 0,
+  },
+  nestedActionButton: {
+    // backgroundColor: "#e0f7fa",
+    alignItems: "center",
+    margin: 10,
+    width: isWeb ? 100 : 100,
+    borderRadius: 10,
+    padding: 10,
+    // shadowColor: "#000",
+    // shadowOpacity: 0.1,
+    // shadowRadius: 5,
+    // elevation: 3,
+  },
 });
 
 export default Agent_Right;

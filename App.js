@@ -16,9 +16,15 @@ import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
-import LoginPageScreen from "./Screens/pagetwo.js/LoginPage";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
+import Admin_panelnri from "./Nri_Dashboard/Screens/Admin_panel";
+import NRILogin_screen from "./Nri_Dashboard/Screens/Login_Nri";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
+import RegisterAsScreen from "./Screens/Register_change";
+import RegisterCustomer from "./Screens/Customer_Register";
+import Login_Nri from "./Nri_Dashboard/Screens/Login_Nri";
+import Main_dashboard from "./Nri_Dashboard/Main_dashboard";
 
 const Stack = createStackNavigator();
 
@@ -80,9 +86,10 @@ export default function App() {
               options={{ headerShown: false }}
             />
           )}
+
           <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
+            name="RegisterAS"
+            component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -96,8 +103,13 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="newpassword"
-            component={New_Password}
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="RegisterCustomer"
+            component={RegisterCustomer}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -121,6 +133,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -131,12 +148,15 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
+            name="ReferralDashboard"
+            component={RLogin_screen}
             options={{ headerShown: false }}
           />
-    
-          {/* <Stack.Screen name="ReferralDashboard" component={}/> */}
+          <Stack.Screen
+            name="NriLogin"
+            component={Main_dashboard}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

@@ -15,7 +15,7 @@ import {
 } from "react-native-responsive-screen";
 
 const StartingScreen = () => {
-  const navigation = useNavigation(); // Use the useNavigation hook
+  const navigation = useNavigation();
 
   const loginOptions = [
     {
@@ -50,7 +50,7 @@ const StartingScreen = () => {
     {
       name: "NRI",
       icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
-      navigateTo: "NRIDashboard", // Navigate to NRIDashboard
+      navigateTo: "NriLogin", // Navigate to NRIDashboard
     },
     {
       name: "Skilled Resource",
