@@ -72,13 +72,13 @@ const Dashboard = () => {
           {
             id: 1,
             title: "Wealth Associates",
-            count: `${Agents}`,
+            count: `${Agents}` || 2000,
             icon: "account-circle",
           },
           {
             id: 2,
             title: "Expert Panel Members",
-            count: `${Experts}`,
+            count: `${Experts}` || 2000,
             icon: "account-check",
           },
           {
@@ -90,19 +90,19 @@ const Dashboard = () => {
           {
             id: 4,
             title: "Customers",
-            count: `${Customers}`,
+            count: `${Customers}` || 2000,
             icon: "account-group",
           },
           {
             id: 5,
             title: "Total Properties Listed",
-            count: `${Properties}`,
+            count: `${Properties}` || 2000,
             icon: "office-building",
           },
           {
             id: 6,
             title: "Skilled Resource",
-            count: `${SkilledResource}`,
+            count: `${SkilledResource}` || 2000,
             icon: "human-handsup",
           },
           { id: 7, title: "Core Clients", count: "12", icon: "contacts" },

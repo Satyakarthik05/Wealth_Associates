@@ -16,9 +16,11 @@ import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
 import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
-import LoginPageScreen from "./Screens/pagetwo.js/LoginPage";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
+import RegisterAsScreen from "./Screens/Register_change";
+import RegisterCustomer from "./Screens/Customer_Register";
 
 const Stack = createStackNavigator();
 
@@ -55,7 +57,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -65,15 +67,25 @@ export default function App() {
             component={StartingScreen}
             options={{ headerShown: false }}
           />
-          // If not logged in, show the Login screen
+          {isLoggedIn ? (
+            // If logged in, show the Home screen
+            <Stack.Screen
+              name="Homes"
+              component={Admin_panel}
+              options={{ headerShown: false }}
+            />
+          ) : (
+            // If not logged in, show the Login screen
+            <Stack.Screen
+              name="Logins"
+              component={Login_screen}
+              options={{ headerShown: false }}
+            />
+          )}
+
           <Stack.Screen
-            name="Logins"
-            component={Login_screen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
+            name="RegisterAS"
+            component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -87,16 +99,46 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="newpassword"
-            component={New_Password}
+            name="Register"
+            component={RegisterScreen}
             options={{ headerShown: false }}
-          /> */}
+          />
+          <Stack.Screen
+            name="RegisterCustomer"
+            component={RegisterCustomer}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={Login_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={Admin_panel}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CustomerDashboard"
+            component={CustomerDashboard}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="CoreDashboard"
             component={CoreDashboard}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
+          <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -105,22 +147,12 @@ export default function App() {
             name="Admin"
             component={Admin}
             options={{ headerShown: false }}
-          /> */}
-          {/* <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
-            options={{ headerShown: false }}
-          /> */}
-          {/* <Stack.Screen
-            name="Homes"
-            component={Admin_panel}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
+            name="ReferralDashboard"
+            component={RLogin_screen}
             options={{ headerShown: false }}
-          /> */}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

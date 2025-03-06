@@ -8,62 +8,32 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const StartingScreen = () => {
-  const navigation = useNavigation();
-
+const RegisterAsScreen = ({ navigation }) => {
   const loginOptions = [
     {
       name: "Agent",
       icon: (
         <MaterialIcons name="real-estate-agent" size={hp("4%")} color="white" />
       ),
-      navigateTo: "Login", // Navigate to AgentDashboard
+      navigateTo: "Register", // This is the screen you want to navigate to
     },
     {
       name: "Customer",
       icon: <FontAwesome5 name="user" size={hp("4%")} color="white" />,
-      navigateTo: "CustomerDashboard", // Navigate to CustomerDashboard
-    },
-    {
-      name: "Core Member",
-      icon: <Ionicons name="link" size={hp("4%")} color="white" />,
-      navigateTo: "CoreDashboard", // Navigate to CoreMemberDashboard
-    },
-    {
-      name: "Referral",
-      icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
-      navigateTo: "ReferralDashboard", // Navigate to ReferralDashboard
-    },
-    {
-      name: "Investor",
-      icon: (
-        <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
-      ),
-      navigateTo: "InvestorDashboard", // Navigate to InvestorDashboard
-    },
-    {
-      name: "NRI",
-      icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
-      navigateTo: "NRIDashboard", // Navigate to NRIDashboard
-    },
-    {
-      name: "Skilled Resource",
-      icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
-      navigateTo: "SkilledResourceDashboard", // Navigate to SkilledResourceDashboard
+      navigateTo: "RegisterCustomer", // Correct the navigation target if needed
     },
   ];
 
   return (
     <View style={styles.container}>
-      <Image source={require("./assets/logo.png")} style={styles.logo} />
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
       <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
-      <Text style={styles.loginAsText}>Login as</Text>
+      <Text style={styles.loginAsText}>Register as</Text>
 
       {Platform.OS === "web" ? (
         <View style={styles.card}>
@@ -72,7 +42,7 @@ const StartingScreen = () => {
               <TouchableOpacity
                 key={index}
                 style={styles.button}
-                onPress={() => navigation.navigate(option.navigateTo)} // Navigate based on option
+                onPress={() => navigation.navigate(option.navigateTo)}
               >
                 {option.icon}
                 <Text style={styles.buttonText}>{option.name}</Text>
@@ -86,7 +56,7 @@ const StartingScreen = () => {
             <TouchableOpacity
               key={index}
               style={styles.button}
-              onPress={() => navigation.navigate(option.navigateTo)} // Navigate based on option
+              onPress={() => navigation.navigate(option.navigateTo)}
             >
               {option.icon}
               <Text style={styles.buttonText}>{option.name}</Text>
@@ -110,17 +80,27 @@ const styles = StyleSheet.create({
     height: hp("20%"),
     resizeMode: "contain",
     marginBottom: hp("3%"),
+    marginRight: Platform.OS === "web" ? hp("15%") : hp("0%"),
+    marginLeft: Platform.OS === "android" ? "0%" : "10%",
+    alignSelf: Platform.OS === "web" ? "flex-end" : "auto",
+    marginTop: Platform.OS === "web" ? hp("0%") : hp("0%"),
   },
   welcomeText: {
-    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+    fontSize: Platform.OS === "android" ? hp("2.5%") : hp("3%"),
     fontWeight: "bold",
     color: "#D81B60",
     marginBottom: hp("1%"),
+    alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
   },
   loginAsText: {
     fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+
     fontWeight: "600",
-    marginBottom: Platform.OS === "android" ? hp("2%") : hp("2%"),
+    //marginBottom:Platform.OS === "android" ? hp("2%") : hp("2%"),
+    marginTop: Platform.OS === "android" ? hp("3%") : hp("2%"),
+
+    // alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
+    // marginLeft: Platform.OS === "android" ? "30%" : "auto",
   },
   card: {
     backgroundColor: "#fff",
@@ -130,14 +110,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    width: wp("60%"),
+    width: Platform.OS === "android" ? wp("60%") : wp("60%"),
     alignItems: "center",
     justifyContent: "center",
     marginTop: hp("2%"),
-    height: "400px",
   },
   gridContainer: {
-    flexDirection: "row",
+    // flexDirection: "row",
+    display: "flex",
+    flexDirection: Platform.OS === "android" ? "column" : "row",
     flexWrap: "wrap",
     justifyContent: "center",
     width: Platform.OS === "web" ? "100%" : "40px",
@@ -145,8 +126,9 @@ const styles = StyleSheet.create({
   button: {
     width: Platform.OS === "web" ? "15%" : wp("38%"),
     maxWidth: Platform.OS === "web" ? 200 : 180,
-    height: hp("12%"),
-    maxHeight: 120,
+    height: Platform.OS === "android" ? 100 : "100px",
+    // height: hp("12%"),
+    // maxHeight: 120,
     backgroundColor: "#D81B60",
     borderRadius: Platform.OS === "web" ? 15 : wp("3%"),
     alignItems: "center",
@@ -161,6 +143,9 @@ const styles = StyleSheet.create({
     shadowOpacity: Platform.OS === "ios" || Platform.OS === "web" ? 0.2 : 0,
     shadowRadius: Platform.OS === "ios" || Platform.OS === "web" ? 5 : 0,
     marginBottom: Platform.OS === "android" ? hp("0%") : hp("10%"),
+    marginTop: Platform.OS === "web" ? hp("0%") : hp("8%"),
+
+    //justifyContent:Platform.OS === "android"? "center" : "none"
   },
   buttonText: {
     color: "white",
@@ -170,4 +155,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StartingScreen;
+export default RegisterAsScreen;
