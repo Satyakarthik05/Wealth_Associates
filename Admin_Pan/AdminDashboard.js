@@ -33,8 +33,8 @@ import ViewPostedProperties from "../Adminscreen/View_posted";
 import RequestedProperties from "../Adminscreen/View_Req";
 import ViewAllProperties from "../Adminscreen/AllProp";
 import ExpertPanel from "../Adminscreen/ViewExpert";
-import Rskill from "../Adminscreen/RegSkill";
-import ViewSkilledLabours from "../Adminscreen/ViewSkill";
+import Rskill from "../Adminscreen/Skilled Labour/Rskill";
+import ViewSkilledLabours from "../Adminscreen/Skilled Labour/ViewSkilledLabours";
 import Core_Clients from "../Adminscreen/ViewCoreCli";
 import Core_Projects from "../Adminscreen/ViewCorePro";
 import AddExpertPan from "../Adminscreen/AddExpert";
@@ -53,9 +53,14 @@ import AddSkillModal from "../Adminscreen/AddSkill";
 import AddCoreClientForm from "../Adminscreen/AddCoreClient";
 import AddCoreProjectForm from "../Adminscreen/AddCoreProj";
 import ViewNri from "../Adminscreen/ViewNri";
-
-const { width, height } = Dimensions.get("window");
-const isWeb = Platform.OS === "web";
+import ViewReferralAgents from "../Adminscreen/ViewReferralAgents";
+import AddReferral from "../Adminscreen/AddReferralAgents";
+import AllSkilledLabours from "../Adminscreen/Skilled Labour/AllSkilledLabours";
+import AddInvestors from "../Adminscreen/Investors/AddInvestors";
+import ViewInvesters from "../Adminscreen/Investors/ViewInvestors";
+import ViewAllInvesters from "../Adminscreen/Investors/ViewAllInvestors";
+import AddCoreMember from "../Adminscreen/Core Member/AddCoreMember";
+import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
 
 const menuItems = [
   {
@@ -72,6 +77,11 @@ const menuItems = [
     title: "Customers",
     icon: "people-outline",
     subItems: ["Add Customer", "View Customers"],
+  },
+  {
+    title: "Core Members",
+    icon: "shield-outline",
+    subItems: ["Add Core Member", "View Core Members"],
   },
   {
     title: "Properties",
@@ -96,11 +106,11 @@ const menuItems = [
   {
     title: "Referrals",
     icon: "person-add-outline",
-    subItems: [],
+    subItems: ["Add ReferralAgents", "View ReferralAgents"],
   },
   {
     title: "NRI Club",
-    icon: "globe-outline", // 🌍 Represents an international community
+    icon: "globe-outline",
     subItems: ["Add NRI Member", "View NRI Members"],
   },
   {
@@ -116,16 +126,20 @@ const menuItems = [
   {
     title: "Skilled Club",
     icon: "trophy-outline",
-    subItems: ["Register Skilled Labour", "View Skilled Labour"],
+    subItems: [
+      "Register Skilled Labour",
+      "View Skilled Labour",
+      "All Skilled Labours",
+    ],
   },
   {
     title: "Investors",
     icon: "business-outline",
-    subItems: ["Add Investor", "View Ivestors"],
+    subItems: ["Add Investor", "View Investors", "View All Investors"],
   },
   {
     title: "Master Data",
-    icon: "settings-outline", // ⚙️ Represents data/configuration
+    icon: "settings-outline",
     subItems: [
       "Add User",
       "Add Roles",
@@ -179,7 +193,15 @@ const AdminDashboard = () => {
   const [isAddCoreVisible, setIsAddCoreVisible] = useState(false);
   const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isViewReferral, setIsViewReferral] = useState(false);
+  const [isAddReferral, setIsAddReferral] = useState(false);
   const [activeComponent, setActiveComponent] = useState("A");
+  const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
+  const [AddInvestor, setAddInvestor] = useState(false);
+  const [ViewInvester, setViewInvester] = useState(false);
+  const [ViewAllInvester, setAllViewInvester] = useState(false);
+  const [isAddCoreMember, setIsCoreMember] = useState(false);
+  const [isViewCoreMember, setIsViewCoreMember] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -213,6 +235,7 @@ const AdminDashboard = () => {
     setIsAddExpertVisible(false);
     setIsRegSkillVisible(false);
     setIsViewSkillVisible(false);
+    setAllSkilledLabour(false);
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
     setIsAddExpertPanelVisible(false);
@@ -231,6 +254,13 @@ const AdminDashboard = () => {
     setIsAddCoreVisible(false);
     setIsAddCoreProVisible(false);
     setIsViewNriVisible(false);
+    setAddInvestor(false);
+    setViewInvester(false);
+    setAllViewInvester(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
+    setIsCoreMember(false);
+    setIsViewCoreMember(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -299,6 +329,22 @@ const AdminDashboard = () => {
       setIsAddCoreProVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
+    } else if (subItem === "All Skilled Labours") {
+      setAllSkilledLabour(true);
+    } else if (subItem === "Add Investor") {
+      setAddInvestor(true);
+    } else if (subItem === "View Investors") {
+      setViewInvester(true);
+    } else if (subItem === "View All Investors") {
+      setAllViewInvester(true);
+    } else if (subItem === "View ReferralAgents") {
+      setIsViewReferral(true);
+    } else if (subItem === "Add ReferralAgents") {
+      setIsAddReferral(true);
+    } else if (subItem === "Add Core Member") {
+      setIsCoreMember(true);
+    } else if (subItem === "View Core Members") {
+      setIsViewCoreMember(true);
     }
   };
 
@@ -339,6 +385,10 @@ const AdminDashboard = () => {
     setIsAddCoreVisible(false);
     setIsAddCoreProVisible(false);
     setIsViewNriVisible(false);
+    setAddInvestor(false);
+    setIsViewReferral(false);
+    setIsAddReferral(false);
+    setIsCoreMember(false);
   };
 
   const renderContent = () => {
@@ -353,6 +403,11 @@ const AdminDashboard = () => {
     if (isViewCoreProVisible) return <Core_Projects />;
     if (isExpertReqVisible) return <ExpertList />;
     if (isViewNriVisible) return <ViewNri />;
+    if (AllSkilledLabour) return <AllSkilledLabours />;
+    if (ViewInvester) return <ViewInvesters />;
+    if (ViewAllInvester) return <ViewAllInvesters />;
+    if (isViewReferral) return <ViewReferralAgents />;
+    if (isViewCoreMember) return <ViewCoreMembers />;
     return <Dashboard />;
   };
 
@@ -564,6 +619,15 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCoreProVisible} closeModal={closeModal}>
         <AddCoreProjectForm closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={AddInvestor} closeModal={closeModal}>
+        <AddInvestors closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddReferral} closeModal={closeModal}>
+        <AddReferral closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCoreMember} closeModal={closeModal}>
+        <AddCoreMember closeModal={closeModal} />
       </CustomModal>
     </View>
   );

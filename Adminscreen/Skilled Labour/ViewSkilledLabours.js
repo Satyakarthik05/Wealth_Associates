@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
-  FlatList,
+  ScrollView,
   Text,
   View,
   Image,
   StyleSheet,
   Dimensions,
 } from "react-native";
+import { API_URL } from "../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -16,62 +18,58 @@ export default function ViewSkilledLabours() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://your-backend-url/agents")
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setAgents(data);
+    const fetchSkilledLabours = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        if (!token) {
+          console.error("No token found in AsyncStorage");
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/skillLabour/AdminLabour`, {
+          method: "GET",
+          headers: {
+            token: `${token}` || "",
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok && Array.isArray(data.data)) {
+          setAgents(data.data);
         } else {
           setAgents([]);
         }
-        setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching agents:", error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchSkilledLabours();
   }, []);
 
-  // Two Sample Customers for reference
-  const dummyAgents = [
-    {
-      id: "dummy1",
-      name: "John Dhee",
-      skill: "Painter",
-      mobile: "9063392872",
-      location: "Vijayawada",
-      avatar: require("../Admin_Pan/assets/man.png"),
-    },
-    {
-      id: "dummy2",
-      name: "Jane Doe",
-      skill: "Plumber",
-      mobile: "7896541230",
-      location: "Guntur",
-      avatar: require("../Admin_Pan/assets/man.png"),
-    },
-  ];
-
-  const renderAgentCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={item.avatar} style={styles.avatar} />
+  const renderAgentCard = (item) => (
+    <View key={item._id} style={styles.card}>
+      <Image source={require("../../assets/man.png")} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>: {item.name}</Text>
+          <Text style={styles.value}>: {item.FullName}</Text>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>Skill Type</Text>
-          <Text style={styles.value}>: {item.skill}</Text>
+          <Text style={styles.value}>: {item.SelectSkill}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Mobile Number</Text>
-          <Text style={styles.value}>: {item.mobile}</Text>
+          <Text style={styles.value}>: {item.MobileNumber}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Location</Text>
-          <Text style={styles.value}>: {item.location}</Text>
+          <Text style={styles.value}>: {item.Location}</Text>
         </View>
       </View>
     </View>
@@ -80,14 +78,17 @@ export default function ViewSkilledLabours() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.heading}>Skilled labours</Text>
-      <FlatList
-        data={loading ? dummyAgents : agents.length > 0 ? agents : dummyAgents}
-        keyExtractor={(item) => item.id}
-        numColumns={width > 600 ? 2 : 1} // 2 columns on tablets, 1 on mobile
-        columnWrapperStyle={width > 600 ? styles.rowWrapper : null}
-        renderItem={renderAgentCard}
-        contentContainerStyle={styles.gridContainer}
-      />
+      <ScrollView contentContainerStyle={styles.gridContainer}>
+        {loading ? (
+          <Text style={styles.emptyText}>Loading...</Text>
+        ) : agents.length > 0 ? (
+          <View style={width > 600 ? styles.rowWrapper : null}>
+            {agents.map((item) => renderAgentCard(item))}
+          </View>
+        ) : (
+          <Text style={styles.emptyText}>No skilled labours found.</Text>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -110,13 +111,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   rowWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 15,
+    width: "100%",
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "48%" : "90%", // 45% on tablets, 90% on mobile
+    width: width > 600 ? "35%" : "90%", // 45% on tablets, 90% on mobile
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",
@@ -152,5 +155,11 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 14,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#888",
   },
 });

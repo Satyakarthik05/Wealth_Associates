@@ -14,6 +14,12 @@ const District = require("./Models/Districts");
 const ExpertRoutes = require("./Routes/ExpertRoute");
 const NriRoutes = require("./Routes/NriRoute");
 const SkillRoutes = require("./Routes/SkillRoutes");
+const AllCounts = require("./Controllers/AllCollectionsCount");
+const InvestorRoutes = require("./Routes/InvestorRouts");
+const RequestExpertRoute = require("./Routes/RequstedExpertsRoutes");
+const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
+const path = require("path");
+const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),
@@ -25,6 +31,8 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
+app.use("/coreProjects", express.static(path.join(__dirname, "coreProjects")));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -56,6 +64,12 @@ app.use("/requestProperty", RequestProperty);
 app.use("/discons", DisConsExpert);
 app.use("/expert", ExpertRoutes);
 app.use("/skillLabour", SkillRoutes);
+app.use("/count", AllCounts);
+app.use("/nri", NriRoutes);
+app.use("/investors", InvestorRoutes);
+app.use("/requestexpert", RequestExpertRoute);
+app.use("/coreclient", CoreClientRoutes);
+app.use("/coreproject", CoreProjectRoutes);
 
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");

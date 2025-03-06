@@ -9,24 +9,36 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState("");
   const [budget, setBudget] = useState("");
-  const [Details, setDetails] = useState({});
+  const [details, setDetails] = useState(null);
 
+  // Fetch agent details (ensure _id is used)
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
 
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      if (!token) {
+        Alert.alert("Error", "Authentication token not found.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
-          token: `${token}` || "",
+          token: token, // Remove extra space
         },
       });
 
+      if (!response.ok) {
+        throw new Error("Failed to fetch agent details");
+      }
+
       const newDetails = await response.json();
       setDetails(newDetails);
-      console.log(Details);
+
+      console.log("Fetched Details:", newDetails); // Debugging
     } catch (error) {
       console.error("Error fetching agent details:", error);
+      Alert.alert("Error", "Failed to load agent details.");
     }
   };
 
@@ -40,12 +52,17 @@ const RequestedPropertyForm = ({ closeModal }) => {
       return;
     }
 
+    if (!details || !details._id) {
+      Alert.alert("Error", "Invalid agent details. Please try again.");
+      return;
+    }
+
     const requestData = {
       propertyTitle,
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: details._id, // Ensure correct ObjectId is sent
     };
 
     try {
@@ -63,7 +80,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", result.message);
-        closeModal(); // Close the modal after successful submission
+        closeModal(); // Close modal after successful submission
       } else {
         Alert.alert("Error", result.message || "Failed to request property.");
       }
@@ -192,7 +209,6 @@ const styles = {
   picker: {
     height: 55,
     width: "100%",
-    borderWidth: 0,
     backgroundColor: "transparent",
     fontSize: 16,
     textAlignVertical: "center",

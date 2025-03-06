@@ -50,8 +50,6 @@ const Add_Agent = ({ closeModal }) => {
   const emailRef = useRef(null);
   const districtRef = useRef(null);
 
-  const navigation = useNavigation();
-
   const fetchDistricts = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/districts`);

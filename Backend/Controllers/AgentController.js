@@ -217,10 +217,43 @@ const updateAgentDetails = async (req, res) => {
   }
 };
 
+const getAllAgents = async (req, res) => {
+  try {
+    const agents = await AgentSchema.find(); // Fetch all agents from the database
+    res.status(200).json({ success: true, count: agents.length, data: agents });
+  } catch (error) {
+    console.error("Error fetching agents:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+const deleteAgent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find and delete the agent by ID
+    const deletedAgent = await AgentSchema.findByIdAndDelete(id);
+
+    if (!deletedAgent) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Agent deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 module.exports = {
   AgentSign,
   AgentLogin,
   getAgent,
   fetchReferredAgents,
   updateAgentDetails,
+  getAllAgents,
+  deleteAgent,
 };

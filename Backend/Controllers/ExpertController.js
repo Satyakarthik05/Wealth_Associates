@@ -12,7 +12,7 @@ const registerExpert = async (req, res) => {
     Mobile,
   });
 
-  newExpert.save()
+  newExpert.save();
 
   if (newExpert) {
     res.status(200).json({ message: "Expert Registered successfully" });
@@ -29,12 +29,15 @@ const getExpertsByType = async (req, res) => {
     if (experts.length > 0) {
       res.status(200).json({ success: true, experts });
     } else {
-      res.status(404).json({ success: false, message: "No experts found for this type" });
+      res
+        .status(404)
+        .json({ success: false, message: "No experts found for this type" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-
-module.exports = { registerExpert ,getExpertsByType };
+module.exports = { registerExpert, getExpertsByType };

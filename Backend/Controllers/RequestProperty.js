@@ -13,35 +13,34 @@ const PropertyRequest = async (req, res) => {
         .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
-    // Find the agent using MobileNumber
-    const agent = await Agent.findOne({ MobileNumber: PostedBy });
+    let agent;
+    if (PostedBy === "Admin") {
+      agent = {
+        FullName: "Admin",
+        MobileNumber: "0000000000",
+        Email: "admin@wealthassociation.com",
+      };
+    } else {
+      agent = await Agent.findOne({ MobileNumber: PostedBy });
 
-    if (!agent) {
-      return res.status(404).json({ message: "Agent not found." });
+      if (!agent) {
+        return res.status(404).json({ message: "Agent not found." });
+      }
     }
 
-    // Create the new requested property
     const newRequestProperty = new RequestProperty({
       propertyTitle,
       propertyType,
       location,
       Budget,
-      PostedBy: agent.MobileNumber,
+      PostedBy: PostedBy,
     });
 
     await newRequestProperty.save();
 
-    // Ensure RequestdPropertys is an array before pushing
-    // if (!Array.isArray(agent.RequestdPropertys)) {
-    //   agent.RequestdPropertys = [];
-    // }
-
-    // agent.RequestdPropertys.push(newRequestProperty._id);
-    // await agent.save();
-
     try {
-      const callCenterResponse = await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/e811c9e8-53b4-457f-8c09-e4511b22c584/leads", // Use environment variable for API URL
+      await axios.get(
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/e811c9e8-53b4-457f-8c09-e4511b22c584/leads",
         {
           params: {
             name: agent.FullName,
@@ -51,11 +50,8 @@ const PropertyRequest = async (req, res) => {
           },
         }
       );
-      console.log("Call center API response:", callCenterResponse.data);
     } catch (error) {
       console.error("Failed to call call center API:", error.message);
-      // Optionally, return an error response if the API call is critical
-      // return res.status(500).json({ message: "Failed to call call center API", error: error.message });
     }
 
     res.status(200).json({
@@ -70,14 +66,9 @@ const PropertyRequest = async (req, res) => {
 
 const GetMyRequestedPropertys = async (req, res) => {
   try {
-    // Find the authenticated agent using AgentId
-    const mobileNumber = req.mobileNumber; // Get mobile number from middleware
-    const userType = req.userType; // Get user type from middleware
-
-    // Fetch properties where PostedBy matches the user's MobileNumber
+    const mobileNumber = req.mobileNumber;
     const properties = await RequestProperty.find({ PostedBy: mobileNumber });
 
-    // If no posts are found, return an empty array
     if (!properties || properties.length === 0) {
       return res
         .status(200)
@@ -101,8 +92,64 @@ const GetRequsestedPropertys = async (req, res) => {
   }
 };
 
+// 🆕 New: Update Requested Property
+const UpdateRequestedProperty = async (req, res) => {
+  try {
+    const { id } = req.params; // Get property ID from the URL
+    const { propertyTitle, propertyType, location, Budget } = req.body;
+    const mobileNumber = req.mobileNumber; // User's mobile number from authentication
+
+    const existingProperty = await RequestProperty.findById(id);
+
+    if (!existingProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    // Ensure only the owner can edit the property
+    if (existingProperty.PostedBy !== mobileNumber) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to edit this property" });
+    }
+
+    existingProperty.propertyTitle =
+      propertyTitle || existingProperty.propertyTitle;
+    existingProperty.propertyType =
+      propertyType || existingProperty.propertyType;
+    existingProperty.location = location || existingProperty.location;
+    existingProperty.Budget = Budget || existingProperty.Budget;
+
+    const updatedProperty = await existingProperty.save();
+
+    res.status(200).json({
+      message: "Property updated successfully",
+      updatedProperty,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
+};
+
+const DeleteRequestedProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedProperty = await RequestProperty.findByIdAndDelete(id);
+
+    if (!deletedProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.status(200).json({ message: "Property deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 module.exports = {
   PropertyRequest,
   GetMyRequestedPropertys,
   GetRequsestedPropertys,
+  UpdateRequestedProperty,
+  DeleteRequestedProperty,
 };
