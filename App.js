@@ -3,6 +3,7 @@ import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import Loginas from "./Screens/Loginas";
 import Login_screen from "./Screens/Login_screen";
 import RegisterScreen from "./Screens/Register_screen";
 import Admin_panel from "./Screens/Admin_panel";
@@ -88,7 +89,6 @@ export default function App() {
               options={{ headerShown: false }}
             />
           )}
-
           <Stack.Screen
             name="RegisterAS"
             component={RegisterAsScreen}
@@ -104,27 +104,27 @@ export default function App() {
             component={OTPVerification}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="RegisterCustomer"
             component={RegisterCustomer}
             options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Home"
             component={Admin_panel}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="CustomerDashboard"
             component={CustomerDashboard}
             options={{ headerShown: false }}
@@ -133,23 +133,23 @@ export default function App() {
             name="CoreDashboard"
             component={CoreDashboard}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="RefferalDashboard"
             component={RLogin_screen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="Admin"
             component={Admin}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="ReferralDashboard"
             component={RLogin_screen}
             options={{ headerShown: false }}

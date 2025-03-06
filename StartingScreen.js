@@ -45,7 +45,7 @@ const StartingScreen = () => {
       icon: (
         <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
       ),
-      navigateTo: "InvestorDashboard", // Navigate to InvestorDashboard
+      navigateTo: "Investordashboard", // Navigate to InvestorDashboard
     },
     {
       name: "NRI",
