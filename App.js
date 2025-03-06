@@ -26,7 +26,7 @@ import RegisterAsScreen from "./Screens/Register_change";
 import RegisterCustomer from "./Screens/Customer_Register";
 import Login_Nri from "./Nri_Dashboard/Screens/Login_Nri";
 import Main_dashboard from "./Nri_Dashboard/Main_dashboard";
-
+import SkillDasboard from "./SkillDashboard/SkillDashboard";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -62,7 +62,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -156,6 +156,11 @@ export default function App() {
           <Stack.Screen
             name="NriLogin"
             component={Main_dashboard}
+            options={{ headerShown: false }}
+          /> */}
+           <Stack.Screen
+            name="Skill"
+            component={SkillDasboard}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
