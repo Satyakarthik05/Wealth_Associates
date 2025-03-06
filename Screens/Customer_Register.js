@@ -245,10 +245,6 @@ const RegisterCustomer = ({ closeModal }) => {
                   />
                 </View>
               </View>
-            </View>
-
-            {/* Row 2 */}
-            <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Select District</Text>
                 <View style={styles.inputWrapper}>
@@ -287,6 +283,10 @@ const RegisterCustomer = ({ closeModal }) => {
                   )}
                 </View>
               </View>
+            </View>
+
+            {/* Row 2 */}
+            <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Select Constituency</Text>
                 <View style={styles.inputWrapper}>
@@ -325,10 +325,6 @@ const RegisterCustomer = ({ closeModal }) => {
                   )}
                 </View>
               </View>
-            </View>
-
-            {/* Row 3 */}
-            <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Select Occupation</Text>
                 <View style={styles.inputWrapper}>
@@ -388,8 +384,14 @@ const RegisterCustomer = ({ closeModal }) => {
               </View>
             </View>
 
-            {/* Row 4 */}
-            <View style={styles.inputRow}>
+            {/* Row 3 */}
+            <View
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Referral Code</Text>
                 <View style={styles.inputWrapper}>
@@ -400,6 +402,7 @@ const RegisterCustomer = ({ closeModal }) => {
                     value={referralCode}
                     onChangeText={setReferralCode}
                     onFocus={closeAllDropdowns}
+                    defaultValue="WA0000000001"
                   />
                   <MaterialIcons
                     name="card-giftcard"

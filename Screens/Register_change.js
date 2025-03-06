@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
     height: hp("20%"),
     resizeMode: "contain",
     marginBottom: hp("3%"),
-    marginRight: Platform.OS === "web" ? hp("15%") : hp("0%"),
-    marginLeft: Platform.OS === "android" ? "0%" : "10%",
-    alignSelf: Platform.OS === "web" ? "flex-end" : "auto",
+    // marginRight: Platform.OS === "web" ? hp("15%") : hp("0%"),
+    // marginLeft: Platform.OS === "android" ? "0%" : "10%",
+    // alignSelf: Platform.OS === "web" ? "flex-end" : "auto",
     marginTop: Platform.OS === "web" ? hp("0%") : hp("0%"),
   },
   welcomeText: {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#D81B60",
     marginBottom: hp("1%"),
-    alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
+    // alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
   },
   loginAsText: {
     fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
