@@ -3,7 +3,7 @@ import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import Loginas from "./Screens/Loginas"
+import Loginas from "./Screens/Loginas";
 import Login_screen from "./Screens/Login_screen";
 import RegisterScreen from "./Screens/Register_screen";
 import Admin_panel from "./Screens/Admin_panel";
@@ -19,14 +19,15 @@ import CoreDashboard from "./CoreDashboard/CoreDashboard";
 import Admin from "./Admin_Pan/AdminDashboard";
 import { StatusBar } from "expo-status-bar";
 import MainScreen from "./Screens/MainScreen";
-import Admin_panelnri from "./Nri_Dashboard/Screens/Admin_panel";
-import NRILogin_screen from "./Nri_Dashboard/Screens/Login_Nri";
+// import Admin_panelnri from "./Nri_Dashboard/Screens/Admin_panel";
+// import NRILogin_screen from "./Nri_Dashboard/Screens/Login_Nri";
 import RLogin_screen from "./Refferal/Screens/Login_screen";
 import RegisterAsScreen from "./Screens/Register_change";
 import RegisterCustomer from "./Screens/Customer_Register";
 import Login_Nri from "./Nri_Dashboard/Screens/Login_Nri";
 import Main_dashboard from "./Nri_Dashboard/Main_dashboard";
 import SkillDasboard from "./SkillDashboard/SkillDashboard";
+import Investordashboard from "./Investor_Dashboard/Investordashboard";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -62,7 +63,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -87,7 +88,6 @@ export default function App() {
               options={{ headerShown: false }}
             />
           )}
-
           <Stack.Screen
             name="RegisterAS"
             component={RegisterAsScreen}
@@ -103,27 +103,27 @@ export default function App() {
             component={OTPVerification}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="RegisterCustomer"
             component={RegisterCustomer}
             options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Home"
             component={Admin_panel}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="CustomerDashboard"
             component={CustomerDashboard}
             options={{ headerShown: false }}
@@ -132,35 +132,45 @@ export default function App() {
             name="CoreDashboard"
             component={CoreDashboard}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="RefferalDashboard"
             component={RLogin_screen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="Admin"
             component={Admin}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="ReferralDashboard"
             component={RLogin_screen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
+          /> */}
+          {/* <Stack.Screen
             name="NriLogin"
             component={Main_dashboard}
             options={{ headerShown: false }}
           /> */}
-           <Stack.Screen
+          {/* <Stack.Screen
             name="Skill"
             component={SkillDasboard}
+            options={{ headerShown: false }}
+          /> */}
+          {/* <Stack.Screen
+            name="Skill"
+            component={SkillDasboard}
+            options={{ headerShown: false }}
+          /> */}
+          <Stack.Screen
+            name="Investordashboard"
+            component={Investordashboard}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
