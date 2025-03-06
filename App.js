@@ -61,7 +61,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -156,7 +156,7 @@ export default function App() {
             name="NriLogin"
             component={Main_dashboard}
             options={{ headerShown: false }}
-          /> */}
+          />
            <Stack.Screen
             name="Skill"
             component={SkillDasboard}
