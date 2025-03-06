@@ -55,14 +55,14 @@ export default function SkillDasboard() {
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          /> 
+          />
 
           <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
             options={{ headerShown: false }}
           />
-        <Stack.Screen
+          <Stack.Screen
             name="otpscreen"
             component={OTPVerification}
             options={{ headerShown: false }}
