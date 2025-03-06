@@ -22,43 +22,42 @@ import CustomModal from "../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
 
 // Importing components
-import Agent_Right from "../Screens/Agent/Agent_Right";
-import Add_Agent from "../Screens/Agent/Add_Agent";
-import ViewAgents from "../Screens/Agent/ViewAgents";
-import RegisterExecute from "../Screens/Customer/Regicus";
-import ViewCustomers from "../Screens/Customer/View_customers";
-import RequestProperty from "../Screens/Properties/RequestProperty";
-import MyPostedProperties from "../Screens/Properties/ViewPostedProperties";
-import RequestedProperties from "../Screens/Properties/ViewRequestedProperties";
-import ViewAllProperties from "../Screens/Properties/ViewAllProperties";
-import ExpertPanel from "../Screens/ExpertPanel/Expert_panel";
-import ViewSkilledLabours from "../Screens/SkilledLabour/ViewSkilledLabours";
-import RequestedExpert from "../Screens/ExpertPanel/Requested_expert";
-import PostProperty from "./Properties/PostProperty";
-import Core_Clients from "./coreClients/Core_Clients";
-import Core_Projects from "./coreClients/Core_Projects";
-import Rskill from "../Screens/SkilledLabour/Rskill";
-import Agent_Profile from "./Agent/Agent_Profile";
-import Modify_Deatils from "./Agent/Modify_Details";
-import ExpertRoute from "./ExpertPanel/ExpertRoute";
-import ExpertDetails from "./ExpertPanel/ExpertDetails";
-import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
-import AddInvestor from "./Investors/AddInvestors";
-import ViewAllInvesters from "./Investors/ViewAllInvestors";
+import Agent_Right from "../Agent/Agent_Right";
+//import Add_Agent from "../Screens/Agent/Add_Agent";
+//import ViewAgents from "../Screens/Agent/ViewAgents";
+//import RegisterExecute from "../Screens/Customer/Regicus";
+//import ViewCustomers from "../Screens/Customer/View_customers";
+import RequestedPropertyForm from "./Properties/RequestProperty";
+//import MyPostedProperties from "../Screens/Properties/ViewPostedProperties";
+ import RequestedProperties from "./Properties/ViewRequestedProperties";
+ import ViewAllProperties from "./Properties/ViewAllProperties";
+// import ExpertPanel from "../Screens/ExpertPanel/Expert_panel";
+// import ViewSkilledLabours from "../Screens/SkilledLabour/ViewSkilledLabours";
+// import RequestedExpert from "../Screens/ExpertPanel/Requested_expert";
+// import PostProperty from "./Properties/PostProperty";
+// import Core_Clients from "./coreClients/Core_Clients";
+// import Core_Projects from "./coreClients/Core_Projects";
+// import Rskill from "../Screens/SkilledLabour/Rskill";
+// import Agent_Profile from "./Agent/Agent_Profile";
+// import Modify_Deatils from "./Agent/Modify_Details";
+// import ExpertRoute from "./ExpertPanel/ExpertRoute";
+// import ExpertDetails from "./ExpertPanel/ExpertDetails";
+//import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
+
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const menuItems = [
-  {
-    title: "Agents",
-    icon: "person-add-outline",
-    subItems: ["Register Agent", "View Agents"],
-  },
-  {
-    title: "Customers",
-    icon: "people-outline",
-    subItems: ["Add Customer", "View Customers"],
-  },
+  // {
+  //   title: "Agents",
+  //   icon: "person-add-outline",
+  //   subItems: ["Register Agent", "View Agents"],
+  // },
+  // {
+  //   title: "Customers",
+  //   icon: "people-outline",
+  //   subItems: ["Add Customer", "View Customers"],
+  // },
   {
     title: "Properties",
     icon: "home-outline",
@@ -70,89 +69,85 @@ const menuItems = [
       "View All Properties",
     ],
   },
-  {
-    title: "Expert Panel",
-    icon: "cog-outline",
-    subItems: ["View Expert Panel", "Request Expert Panel"],
-  },
+  
+//     title: "Expert Panel",
+//     icon: "cog-outline",
+//     subItems: ["View Expert Panel", "Request Expert Panel"],
+//   },
+//   {
+//     title: "Core Clients",
+//     icon: "business-outline",
+//     subItems: ["View Core Clients", "View Core Projects"],
+//   },
+//   {
+//     title: "Skilled Club",
+//     icon: "trophy-outline",
+//     subItems: [
+//       "Register Skilled Labour",
+//       "View Skilled Labour",
+//       "All Skilled Labours",
+//     ],
+//   },
+//   {
+//     title: "Refer",
+//     icon: "trophy-outline",
+//     subItems: ["Refer a Member"],
 
-  {
-    title: "Investors",
-    icon: "business-outline",
-    subItems: ["Add Investor", "View Investors", "View All Investors"],
-  },
-
-  {
-    title: "Core Clients",
-    icon: "business-outline",
-    subItems: ["View Core Clients", "View Core Projects"],
-  },
-  {
-    title: "Skilled Club",
-    icon: "trophy-outline",
-    subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
-    ],
-  },
 ];
 
-const Admin_panel = () => {
+const Admin_panelnri = () => {
   const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
     Platform.OS !== "android"
   );
   const [expandedItems, setExpandedItems] = useState({});
-  const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);
-  const [isViewAgentVisible, setIsViewAgentVisible] = useState(false);
-  const [isRequestPropertyVisible, setIsRequestPropertyVisible] =
+  const [Request,setRequest]=useState(false);
+//   const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);
+//   const [isViewAgentVisible, setIsViewAgentVisible] = useState(false);
+//   const [isRequestPropertyVisible, setIsRequestPropertyVisible] =
+//     useState(false);
+//   const [isPostedPropertiesVisible, setIsPostedPropertiesVisible] =
+//     useState(false);
+   const [isRequestedPropertiesVisible, setIsRequestedPropertiesVisible] =
     useState(false);
-  const [isPostedPropertiesVisible, setIsPostedPropertiesVisible] =
-    useState(false);
-  const [isRequestedPropertiesVisible, setIsRequestedPropertiesVisible] =
-    useState(false);
-  const [addPost, setAddPost] = useState(false);
+//   const [addPost, setAddPost] = useState(false);
   const [isAllPropertiesVisible, setIsAllPropertiesVisible] = useState(false);
-  const [isViewCustomersModalVisible, setIsViewCustomersModalVisible] =
-    useState(false);
-  const [isExpertPanelVisible, setIsExpertPanelVisible] = useState(false);
-  const [isRegiCusVisible, setIsRegiCusVisible] = useState(false);
-  const [isViewSkilledLabourVisible, setIsViewSkilledLabourVisible] =
-    useState(false);
-  const [isRequestExpertVisible, setIsRequestExpertVisible] = useState(false);
-  const [selectedSubItem, setSelectedSubItem] = useState(null);
-  const [coreClients, setCoreClients] = useState(false);
-  const [coreProjects, setCoreProjects] = useState(false);
-  const [isRskill, setisRsSkill] = useState(false);
+//   const [isViewCustomersModalVisible, setIsViewCustomersModalVisible] =
+//     useState(false);
+//   const [isExpertPanelVisible, setIsExpertPanelVisible] = useState(false);
+//   const [isRegiCusVisible, setIsRegiCusVisible] = useState(false);
+//   const [isViewSkilledLabourVisible, setIsViewSkilledLabourVisible] =
+//     useState(false);
+//   const [isRequestExpertVisible, setIsRequestExpertVisible] = useState(false);
+//   const [selectedSubItem, setSelectedSubItem] = useState(null);
+//   const [coreClients, setCoreClients] = useState(false);
+//   const [coreProjects, setCoreProjects] = useState(false);
+//   const [isRskill, setisRsSkill] = useState(false);
   const [Details, setDetails] = useState({});
-  const [isRskillVisible, setIsRskillVisible] = useState(false);
-  const [isAgentProfile, setIsAgentProfile] = useState(false);
-  const [isExperDetails, setIsExpertDetails] = useState(false);
-  const [expertType, setExpertType] = useState(null);
-  const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
-  const [isAddinvest, setIsAddinvest] = useState(false);
-  const [isviewAllinvestors, setIsviewAllinvestors] = useState(false);
-
+//   const [isRskillVisible, setIsRskillVisible] = useState(false);
+//   const [isAgentProfile, setIsAgentProfile] = useState(false);
+//   const [isExperDetails, setIsExpertDetails] = useState(false);
+//   const [expertType, setExpertType] = useState(null);
+//   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
+     
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded((prev) => !prev);
     }
   };
 
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleExpertDetails = (expertType) => {
-    setIsExpertDetails(true);
-    setSelectedSubItem("expert details");
-    setExpertType(expertType); // Store the expertType
-  };
+  const [refreshKey, setRefreshKey] = useState(0); // State to force refresh
 
   const handleDetailsUpdated = () => {
     setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
     getDetails(); // Re-fetch details from the API
   };
 
+  const handleExpertDetails = (expertType) => {
+    setIsExpertDetails(true);
+    setSelectedSubItem("expert details");
+    setExpertType(expertType); // Store the expertType
+  };
   useEffect(() => {
     getDetails();
   }, [refreshKey]);
@@ -174,67 +169,62 @@ const Admin_panel = () => {
   };
 
   const handleSubItemClick = (subItem) => {
-    setIsAddAgentVisible(false);
-    setIsViewAgentVisible(false);
-    setIsRequestPropertyVisible(false);
-    setIsPostedPropertiesVisible(false);
-    setIsRequestedPropertiesVisible(false);
-    setIsAllPropertiesVisible(false);
-    setIsViewCustomersModalVisible(false);
-    setIsExpertPanelVisible(false);
-    setIsRegiCusVisible(false);
-    setIsViewSkilledLabourVisible(false);
-    setIsRequestExpertVisible(false);
-    setAddPost(false);
-    setCoreClients(false);
-    setCoreProjects(false);
-    setisRsSkill(false);
-    setIsAddinvest(false);
-    setIsviewAllinvestors(false);
+    // setIsAddAgentVisible(false);
+    // setIsViewAgentVisible(false);
+     setRequest(false);
+    // setIsPostedPropertiesVisible(false);
+     setIsRequestedPropertiesVisible(false);
+     setIsAllPropertiesVisible(false);
+    // setIsViewCustomersModalVisible(false);
+    // setIsExpertPanelVisible(false);
+    // setIsRegiCusVisible(false);
+    // setIsViewSkilledLabourVisible(false);
+    // setIsRequestExpertVisible(false);
+    // setAddPost(false);
+    // setCoreClients(false);
+    // setCoreProjects(false);
+    // setisRsSkill(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
     }
 
-    if (subItem === "Register Agent") {
-      setIsAddAgentVisible(true);
-    } else if (subItem === "View Agents") {
-      setIsViewAgentVisible(true);
-    } else if (subItem === "Request Property") {
-      setIsRequestPropertyVisible(true);
-    } else if (subItem === "View Posted Properties") {
-      setIsPostedPropertiesVisible(true);
-    } else if (subItem === "View Requested Properties") {
+     if (subItem === "Request Property") {
+     setRequest(true);}
+     
+    // } else if (subItem === "View Agents") {
+    //   setIsViewAgentVisible(true);
+    // } else if (subItem === "Request Property") {
+    //   setIsRequestPropertyVisible(true);
+    // } else if (subItem === "View Posted Properties") {
+    //   setIsPostedPropertiesVisible(true);
+     else if (subItem === "View Requested Properties") {
       setIsRequestedPropertiesVisible(true);
-    } else if (subItem === "View All Properties") {
-      setIsAllPropertiesVisible(true);
-    } else if (subItem === "View Customers") {
-      setIsViewCustomersModalVisible(true);
-    } else if (subItem === "View Expert Panel") {
-      setIsExpertPanelVisible(true);
-    } else if (subItem === "Add Customer") {
-      setIsRegiCusVisible(true);
-    } else if (subItem === "View Skilled Labour") {
-      setIsViewSkilledLabourVisible(true);
-    } else if (subItem === "Request Expert Panel") {
-      setIsRequestExpertVisible(true);
-    } else if (subItem === "Post Property") {
-      setAddPost(true);
-    } else if (subItem === "View Core Clients") {
-      setCoreClients(true);
-    } else if (subItem === "View Core Projects") {
-      setCoreProjects(true);
-    } else if (subItem === "Register Skilled Labour") {
-      setisRsSkill(true);
-    } else if (subItem === "expert details") {
-      setIsExpertDetails(true);
-    } else if (subItem === "All Skilled Labours") {
-      setAllSkilledLabour(true);
-    } else if (subItem === "Add Investor") {
-      setIsAddinvest(true);
-    } else if (subItem === "View All Investors") {
-      setIsviewAllinvestors(true);
-    }
+     }else if (subItem === "View All Properties") {
+      setIsAllPropertiesVisible(true);}
+    //  } else if (subItem === "View Customers") {
+    //   setIsViewCustomersModalVisible(true);
+    // } else if (subItem === "View Expert Panel") {
+    //   setIsExpertPanelVisible(true);
+    // } else if (subItem === "Add Customer") {
+    //   setIsRegiCusVisible(true);
+    // } else if (subItem === "View Skilled Labour") {
+    //   setIsViewSkilledLabourVisible(true);
+    // } else if (subItem === "Request Expert Panel") {
+    //   setIsRequestExpertVisible(true);
+    // } else if (subItem === "Post Property") {
+    //   setAddPost(true);
+    // } else if (subItem === "View Core Clients") {
+    //   setCoreClients(true);
+    // } else if (subItem === "View Core Projects") {
+    //   setCoreProjects(true);
+    // } else if (subItem === "Register Skilled Labour") {
+    //   setisRsSkill(true);
+    // } else if (subItem === "expert details") {
+    //   setIsExpertDetails(true);
+    // } else if (subItem === "All Skilled Labours") {
+    //   setAllSkilledLabour(true);
+    // }
   };
 
   const handleSearch = (text) => {
@@ -242,36 +232,34 @@ const Admin_panel = () => {
   };
 
   const closeModal = () => {
-    setIsAddAgentVisible(false);
-    setIsRequestPropertyVisible(false);
-    setIsPostedPropertiesVisible(false);
-    setIsRequestedPropertiesVisible(false);
+    // setIsAddAgentVisible(false);
+    setRequest(false);
+    // setIsPostedPropertiesVisible(false);
+     setIsRequestedPropertiesVisible(false);
     setIsAllPropertiesVisible(false);
-    setIsViewCustomersModalVisible(false);
-    setIsExpertPanelVisible(false);
-    setIsViewAgentVisible(false);
-    setIsRegiCusVisible(false);
-    setIsViewSkilledLabourVisible(false);
-    setIsRequestExpertVisible(false);
-    setAddPost(false);
-    setisRsSkill(false);
-    setIsAddinvest(false);
-    setIsviewAllinvestors(false);
+    // setIsViewCustomersModalVisible(false);
+    // setIsExpertPanelVisible(false);
+    // setIsViewAgentVisible(false);
+    // setIsRegiCusVisible(false);
+    // setIsViewSkilledLabourVisible(false);
+    // setIsRequestExpertVisible(false);
+    // setAddPost(false);
+    // setisRsSkill(false);
   };
 
   const renderContent = () => {
-    if (isPostedPropertiesVisible) return <MyPostedProperties />;
-    if (isRequestedPropertiesVisible) return <RequestedProperties />;
-    if (isAllPropertiesVisible) return <ViewAllProperties />;
-    if (isViewCustomersModalVisible) return <ViewCustomers />;
-    if (isExpertPanelVisible) return <ExpertRoute />;
-    if (isViewAgentVisible) return <ViewAgents />;
-    if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
-    if (coreClients) return <Core_Clients />;
-    if (coreProjects) return <Core_Projects />;
-    if (isAgentProfile) return <Agent_Profile />;
-    if (isExperDetails) return <ExpertDetails expertType={expertType} />;
-    if (AllSkilledLabour) return <AllSkilledLabours />;
+    //if (isPostedPropertiesVisible) return <MyPostedProperties />;
+     if (isRequestedPropertiesVisible) return <RequestedProperties />;
+     if (isAllPropertiesVisible) return <ViewAllProperties />;
+    //  if (isViewCustomersModalVisible) return <ViewCustomers />;
+    // if (isExpertPanelVisible) return <ExpertRoute />;
+    // if (isViewAgentVisible) return <ViewAgents />;
+    // if (isViewSkilledLabourVisible) return <ViewSkilledLabours />;
+    // if (coreClients) return <Core_Clients />;
+    // if (coreProjects) return <Core_Projects />;
+    // if (isAgentProfile) return <Agent_Profile />;
+    // if (isExperDetails) return <ExpertDetails expertType={expertType} />;
+    // if (AllSkilledLabour) return <AllSkilledLabours />;
 
     return (
       <ScrollView
@@ -290,7 +278,7 @@ const Admin_panel = () => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -329,25 +317,23 @@ const Admin_panel = () => {
       <View style={styles.navbar}>
         <TouchableOpacity
           onPress={() => {
-            setIsAddAgentVisible(false);
-            setIsViewAgentVisible(false);
-            setIsRequestPropertyVisible(false);
-            setIsPostedPropertiesVisible(false);
+            // setIsAddAgentVisible(false);
+            // setIsViewAgentVisible(false);
+             setRequest(false);
+            // setIsPostedPropertiesVisible(false);
             setIsRequestedPropertiesVisible(false);
-            setIsAllPropertiesVisible(false);
-            setIsViewCustomersModalVisible(false);
-            setIsExpertPanelVisible(false);
-            setIsRegiCusVisible(false);
-            setIsViewSkilledLabourVisible(false);
-            setIsRequestExpertVisible(false);
-            setAddPost(false);
-            setCoreClients(false);
-            setCoreProjects(false);
-            setisRsSkill(false);
-            setIsAgentProfile(false);
-            setSelectedSubItem(null);
-            setIsAddinvest(false);
-            setIsviewAllinvestors(false);
+             setIsAllPropertiesVisible(false);
+            // setIsViewCustomersModalVisible(false);
+            // setIsExpertPanelVisible(false);
+            // setIsRegiCusVisible(false);
+            // setIsViewSkilledLabourVisible(false);
+            // setIsRequestExpertVisible(false);
+            // setAddPost(false);
+            // setCoreClients(false);
+            // setCoreProjects(false);
+            // setisRsSkill(false);
+            // setIsAgentProfile(false);
+            // setSelectedSubItem(null);
           }}
         >
           <Image
@@ -364,24 +350,22 @@ const Admin_panel = () => {
               size={20}
               color="#000"
               onPress={() => {
-                setIsAgentProfile(true);
-                setIsAddAgentVisible(false);
-                setIsViewAgentVisible(false);
-                setIsRequestPropertyVisible(false);
-                setIsPostedPropertiesVisible(false);
-                setIsRequestedPropertiesVisible(false);
-                setIsAllPropertiesVisible(false);
-                setIsViewCustomersModalVisible(false);
-                setIsExpertPanelVisible(false);
-                setIsRegiCusVisible(false);
-                setIsViewSkilledLabourVisible(false);
-                setIsRequestExpertVisible(false);
-                setAddPost(false);
-                setCoreClients(false);
-                setCoreProjects(false);
-                setisRsSkill(false);
-                setIsAddinvest(false);
-                setIsviewAllinvestors(false);
+                // setIsAgentProfile(true);
+                // setIsAddAgentVisible(false);
+                // setIsViewAgentVisible(false);
+                 setRequest(false);
+                // setIsPostedPropertiesVisible(false);
+                 setIsRequestedPropertiesVisible(false);
+                 setIsAllPropertiesVisible(false);
+                // setIsViewCustomersModalVisible(false);
+                // setIsExpertPanelVisible(false);
+                // setIsRegiCusVisible(false);
+                // setIsViewSkilledLabourVisible(false);
+                // setIsRequestExpertVisible(false);
+                // setAddPost(false);
+                // setCoreClients(false);
+                // setCoreProjects(false);
+                // setisRsSkill(false);
               }}
             />
           </View>
@@ -474,7 +458,7 @@ const Admin_panel = () => {
         </TouchableOpacity>
       )}
 
-      <CustomModal
+      {/* <CustomModal
         isVisible={isAddAgentVisible}
         closeModal={closeModal}
         style={styles.modalOverlay}
@@ -482,9 +466,9 @@ const Admin_panel = () => {
         <Add_Agent closeModal={closeModal} style={styles.modalContent} />
       </CustomModal>
 
-      <CustomModal isVisible={isRequestPropertyVisible} closeModal={closeModal}>
+      <Custodal>mModal isVisible={isRequestPropertyVisible} closeModal={closeModal}>
         <RequestProperty closeModal={closeModal} />
-      </CustomModal>
+      </CustomMo
       <CustomModal isVisible={isRegiCusVisible} closeModal={closeModal}>
         <RegisterExecute closeModal={closeModal} />
       </CustomModal>
@@ -496,12 +480,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isRskill} closeModal={closeModal}>
         <Rskill closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddinvest} closeModal={closeModal}>
-        <AddInvestor closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
-        <ViewAllInvesters closeModal={closeModal} />
+      </CustomModal> */}
+      <CustomModal isVisible={Request} closeModal={closeModal}>
+        <RequestedPropertyForm closeModal={closeModal} />
       </CustomModal>
     </View>
   );
@@ -656,4 +637,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Admin_panel;
+export default Admin_panelnri;
