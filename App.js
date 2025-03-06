@@ -55,7 +55,7 @@ export default function App() {
     <NavigationIndependentTree>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
@@ -65,21 +65,12 @@ export default function App() {
             component={StartingScreen}
             options={{ headerShown: false }}
           />
-          {isLoggedIn ? (
-            // If logged in, show the Home screen
-            <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
-              options={{ headerShown: false }}
-            />
-          ) : (
-            // If not logged in, show the Login screen
-            <Stack.Screen
-              name="Logins"
-              component={Login_screen}
-              options={{ headerShown: false }}
-            />
-          )}
+          // If not logged in, show the Login screen
+          <Stack.Screen
+            name="Logins"
+            component={Login_screen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Register"
             component={RegisterScreen}
@@ -99,28 +90,13 @@ export default function App() {
             name="newpassword"
             component={New_Password}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={Login_screen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={Admin_panel}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CustomerDashboard"
-            component={CustomerDashboard}
-            options={{ headerShown: false }}
-          />
+          /> */}
           <Stack.Screen
             name="CoreDashboard"
             component={CoreDashboard}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -130,26 +106,21 @@ export default function App() {
             component={Admin}
             options={{ headerShown: false }}
           /> */}
-         <Stack.Screen
+          {/* <Stack.Screen
             name="LogPage"
             component={LoginPageScreen}
             options={{ headerShown: false }}
+          /> */}
+          {/* <Stack.Screen
+            name="Homes"
+            component={Admin_panel}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
             name="CustomerDashboard"
             component={CustomerDashboard}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="CoreDashboard"
-            component={CoreDashboard}
-            options={{ headerShown: false }}
-          />
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
