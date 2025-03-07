@@ -8,20 +8,62 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window"); // Get screen width
 const isMobile = width < 600; // Detect mobile devices
 
 const AddDistrictModal = ({ closeModal }) => {
-  const [role, setRole] = useState("");
+  const [districtName, setDistrictName] = useState("");
+  const [districtCode, setDistrictCode] = useState("");
+
+  const handleAddDistrict = async () => {
+    if (!districtName || !districtCode) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/addDistrict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: districtName,
+          code: districtCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        Alert.alert("Success", "District added successfully");
+        setDistrictName("");
+        setDistrictCode("");
+        closeModal(); // Close the modal after successful addition
+      } else {
+        Alert.alert("Error", data.message || "Failed to add district");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.wrapper}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.wrapper}
+    >
       <View
         style={[
           styles.container,
-          { width: Platform.OS === "web" ? "80%" : "90%", maxWidth: Platform.OS === "web" ? 350 : 400 },
+          {
+            width: Platform.OS === "web" ? "80%" : "90%",
+            maxWidth: Platform.OS === "web" ? 350 : 400,
+          },
         ]}
       >
         {/* Header */}
@@ -29,20 +71,32 @@ const AddDistrictModal = ({ closeModal }) => {
           <Text style={styles.headerText}>Add Districts</Text>
         </View>
 
-        {/* Input Field */}
+        {/* Input Fields */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>District</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex. Palnadu"
-            value={role}
-            onChangeText={setRole}
+            value={districtName}
+            onChangeText={setDistrictName}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 01"
+            value={districtCode}
+            onChangeText={setDistrictCode}
           />
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddDistrict}
+          >
             <Text style={styles.addText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -63,7 +117,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // No black overlay on web
+    backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // Add overlay for mobile
     paddingHorizontal: 10,
   },
   container: {
