@@ -38,14 +38,14 @@ const StartingScreen = () => {
     {
       name: "Referral",
       icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
-      navigateTo: "ReferralDashboard", // Navigate to ReferralDashboard
+      navigateTo: "Login", // Navigate to ReferralDashboard
     },
     {
       name: "Investor",
       icon: (
         <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
       ),
-      navigateTo: "Investordashboard", // Navigate to InvestorDashboard
+      navigateTo: "InvestorDashboard",
     },
     {
       name: "NRI",

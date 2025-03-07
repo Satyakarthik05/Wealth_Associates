@@ -1,6 +1,7 @@
 const express = require("express");
 const Investors = require("../Models/InvestorModel");
 const AgentSchema = require("../Models/AgentModel");
+const jwt = require("jsonwebtoken");
 
 const registerInvestors = async (req, res) => {
   const {
@@ -22,6 +23,7 @@ const registerInvestors = async (req, res) => {
 
     const newInvestor = new Investors({
       FullName,
+      Password: "wa1234",
       SelectSkill,
       Location,
       MobileNumber,
@@ -36,6 +38,67 @@ const registerInvestors = async (req, res) => {
     });
   } catch (error) {
     console.error("Error during registration:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const InvestorLogin = async (req, res) => {
+  const { MobileNumber, Password } = req.body;
+
+  try {
+    const Investor = await Investors.findOne({
+      MobileNumber: MobileNumber,
+      Password: Password,
+    });
+    if (!Investor) {
+      return res
+        .status(400)
+        .json({ message: "Invalid MobileNumber or Password" });
+    }
+
+    const token = await jwt.sign({ InvestorId: Investor._id }, secret, {
+      expiresIn: "30d",
+    });
+
+    res.status(200).json({ message: "Login Successful", token });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getInvestor = async (req, res) => {
+  try {
+    const agentDetails = await Investors.findById(req.InvestorId);
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const updateInvestorDetails = async (req, res) => {
+  const { MobileNumber, FullName, SelectSkill, Location, Password } = req.body;
+
+  try {
+    const existingAgent = await Investors.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Password = Password || existingAgent.Password;
+    existingAgent.Location = Location || existingAgent.Location;
+    existingAgent.SelectSkill = SelectSkill || existingAgent.SelectSkill;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Investor details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -112,4 +175,7 @@ module.exports = {
   fetchInvestors,
   deleteInvestor,
   fetchAgentInvestors,
+  InvestorLogin,
+  getInvestor,
+  updateInvestorDetails,
 };

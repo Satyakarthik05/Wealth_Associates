@@ -134,6 +134,31 @@ const getCore = async (req, res) => {
     console.log(error);
   }
 };
+const updateCoreDetails = async (req, res) => {
+  const { MobileNumber, FullName, Email, Locations, Occupation, Password } =
+    req.body;
+
+  try {
+    const existingAgent = await core.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Email = Email || existingAgent.Email;
+    existingAgent.Locations = Locations || existingAgent.Locations;
+    existingAgent.Occupation = Occupation || existingAgent.Occupation;
+    existingAgent.Password = Password || existingAgent.Password;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Customer details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 const fetchReferredAgents = async (req, res) => {
   try {
@@ -196,4 +221,5 @@ module.exports = {
   fetchReferredAgents,
   fetchReferredCustomers,
   getAllCoreMembers,
+  updateCoreDetails,
 };

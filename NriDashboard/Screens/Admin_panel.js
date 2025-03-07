@@ -290,7 +290,7 @@ const Admin_panel = () => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -448,15 +448,10 @@ const Admin_panel = () => {
                   Welcome Back:
                   <Text style={{ color: "#E82E5F" }}>
                     {" "}
-                    {Details.FullName ? Details.FullName : "yourname"}
+                    {Details.Name ? Details.Name : "yourname"}
                   </Text>
                 </Text>
-                <Text style={styles.usersContentText}>
-                  YourReferralcode:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
-                  </Text>
-                </Text>
+                {/* <Text style={styles.usersContentText}>YourReferralcode:</Text> */}
                 {renderContent()}
               </View>
             </ScrollView>

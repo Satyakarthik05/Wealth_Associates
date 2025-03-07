@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+// import { useFocusEffect } from "@react-navigation/native";
 
 export default function Login_screen() {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -36,7 +37,7 @@ export default function Login_screen() {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/core/coreLogin`, {
+      const response = await fetch(`${API_URL}/skillLabour/skilllogin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,7 +52,8 @@ export default function Login_screen() {
 
       if (response.status === 200) {
         const token = data.token; // Assuming the token is in the 'token' field
-        await AsyncStorage.setItem("authToken", token); // Store the token in AsyncStorage
+        await AsyncStorage.setItem("authToken", token);
+        await AsyncStorage.setItem("userType", "SkilledLabour"); // Store the token in AsyncStorage
         console.log("Token stored in AsyncStorage:", token);
 
         navigation.navigate("Home");
@@ -67,22 +69,22 @@ export default function Login_screen() {
       setLoading(false);
     }
   };
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const onBackPress = () => {
-  //       Alert.alert("Exit App", "Are you sure you want to exit?", [
-  //         { text: "Cancel", style: "cancel" },
-  //         { text: "Exit", onPress: () => BackHandler.exitApp() },
-  //       ]);
-  //       return true; // Prevent navigating back
-  //     };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; // Prevent navigating back
+      };
 
-  //     BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-  //     return () =>
-  //       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  //   }, [])
-  // );
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

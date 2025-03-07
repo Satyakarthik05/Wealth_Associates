@@ -2,6 +2,9 @@ const jwt = require("jsonwebtoken");
 const AgentSchema = require("../Models/AgentModel");
 const CoreSchema = require("../Models/CoreModel");
 const CustomerSchema = require("../Models/Customer");
+const InvestorSchema = require("../Models/InvestorModel");
+const NriSchema = require("../Models/NriModel");
+const SkillSchema = require("../Models/SkillModel");
 
 const secret = process.env.JWT_SECRET || "Wealth@123";
 
@@ -23,11 +26,16 @@ const verifyUser = async (req, res, next) => {
     }
 
     // Extract IDs from decoded token
-    const { AgentId, coreId, CustomerId } = decoded;
+    const { AgentId, coreId, CustomerId, InvestorId, NriId, SkillId } = decoded;
 
     // Check in all three collections
     const agent = AgentId ? await AgentSchema.findById(AgentId) : null;
     const coreUser = coreId ? await CoreSchema.findById(coreId) : null;
+    const InvestorUser = InvestorId
+      ? await InvestorSchema.findById(InvestorId)
+      : null;
+    const NriUser = NriId ? await NriSchema.findById(NriId) : null;
+    const skillUser = SkillId ? await SkillSchema.findById(SkillId) : null;
     const customerUser = CustomerId
       ? await CustomerSchema.findById(CustomerId)
       : null;
@@ -48,6 +56,18 @@ const verifyUser = async (req, res, next) => {
       userData = customerUser;
       userType = "customerMember";
       mobileNumber = customerUser.MobileNumber;
+    } else if (InvestorUser) {
+      userData = InvestorUser;
+      userType = "InvestorMember";
+      mobileNumber = InvestorUser.MobileNumber;
+    } else if (NriUser) {
+      userData = NriUser;
+      userType = "NriMember";
+      mobileNumber = NriUser.MobileIN;
+    } else if (skillUser) {
+      userData = skillUser;
+      userType = "SkilledMember";
+      mobileNumber = skillUser.MobileNumber;
     } else {
       return res.status(404).json({ message: "User not found" });
     }

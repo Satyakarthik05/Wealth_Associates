@@ -7,7 +7,6 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  Modal,
   ScrollView,
   Dimensions,
   Platform,
@@ -15,16 +14,13 @@ import {
 import { FontAwesome } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Add_Agent from "./Add_Agent";
 import Modify_Deatils from "./Modify_Details";
 import CustomModal from "../../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
-// import App from "../../../App";
 
 const { width } = Dimensions.get("window");
 
 const Agent_Profile = ({ onDetailsUpdates }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [Details, setDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,7 +37,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: token || "",
@@ -57,14 +53,14 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   };
 
   const LogOut = async () => {
-    const token = await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("authToken");
     navigation.navigate("App");
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.agentProfileText}>Agent Profile</Text>
+        <Text style={styles.agentProfileText}>Investor Profile</Text>
         {loading ? (
           <ActivityIndicator
             size="large"
@@ -78,10 +74,9 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
                 source={require("../../../assets/man2.png")}
                 style={styles.avatar}
               />
-              <Text style={styles.profileName}>{Details.name}</Text>
+              {/* <Text style={styles.profileName}>{Details.FullName}</Text> */}
             </View>
             <View style={styles.profileCard}>
-              {/* <Text style={styles.sectionTitle}>My Profile</Text> */}
               <View style={styles.profileForm}>
                 {profileFields.map(({ label, icon, key }) => (
                   <CustomInput
@@ -125,13 +120,9 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
 const profileFields = [
   { label: "Full Name", icon: "user", key: "FullName" },
   { label: "Mobile Number", icon: "phone", key: "MobileNumber" },
-  { label: "Email", icon: "envelope", key: "Email" },
-  { label: "Select District", icon: "map-marker", key: "District" },
-  { label: "Select Constituency", icon: "location-arrow", key: "Contituency" },
-  { label: "Location", icon: "map", key: "Locations" },
-  { label: "Select Expertise", icon: "briefcase", key: "Expertise" },
-  { label: "Select Experience", icon: "calendar", key: "Experience" },
-  { label: "Referral Code", icon: "users", key: "MyRefferalCode" },
+  { label: "Password", icon: "phone", key: "Password" },
+  { label: "Location", icon: "map", key: "Location" },
+  { label: "Select Skill", icon: "briefcase", key: "SelectSkill" },
 ];
 
 const CustomInput = ({ label, icon, value }) => (
@@ -151,7 +142,7 @@ const CustomInput = ({ label, icon, value }) => (
 
 const styles = StyleSheet.create({
   agentProfileText: {
-    fontWeight: 600,
+    fontWeight: "600",
     fontSize: 20,
     marginBottom: 10,
   },
@@ -170,7 +161,7 @@ const styles = StyleSheet.create({
     flexWrap: Platform.OS === "web" ? "wrap" : "nowrap",
     justifyContent: Platform.OS === "web" ? "space-between" : "flex-start",
     width: "100%",
-    fontWeight: 600,
+    fontWeight: "600",
     fontSize: 16,
   },
   inputWrapper: {
@@ -191,36 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     width: Platform.OS === "web" ? "100%" : 200,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: Platform.OS === "web" ? "40%" : "80%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-  },
-  closeButton: {
-    backgroundColor: "#FF3366",
-    padding: 10,
-    borderRadius: 5,
-    width: "100%",
-    alignItems: "center",
   },
   buttonText: {
     color: "#fff",

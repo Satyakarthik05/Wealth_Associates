@@ -23,67 +23,34 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [experience, setExperience] = useState("");
+  const [selectSkill, setSelectSkill] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [responseStatus, setResponseStatus] = useState(null);
-  const [expertiseSearch, setExpertiseSearch] = useState("");
-  const [experienceSearch, setExperienceSearch] = useState("");
-  const [showExpertiseList, setShowExpertiseList] = useState(false);
-  const [showExperienceList, setShowExperienceList] = useState(false);
-  const [Details, setDetails] = useState({});
   const [isMobileEditable, setIsMobileEditable] = useState(false); // State to control mobile field editability
 
   const mobileRef = useRef(null);
   const emailRef = useRef(null);
 
-  const expertiseOptions = [
-    { name: "Residential", code: "01" },
-    { name: "Commercial", code: "02" },
-    { name: "Industrial", code: "03" },
-    { name: "Agricultural", code: "04" },
-  ];
-
-  const experienceOptions = [
-    { name: "0-1 years", code: "01" },
-    { name: "1-3 years", code: "02" },
-    { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
-  ];
-
-  const filteredExpertise = expertiseOptions.filter((item) =>
-    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
-  );
-
-  const filteredExperience = experienceOptions.filter((item) =>
-    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
-  );
-
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
         },
       });
       const newDetails = await response.json();
-      setDetails(newDetails);
+      console.log("Fetched Details:", newDetails); // Debugging: Log fetched details
 
       // Pre-fill the form fields with the fetched details
       if (newDetails.FullName) setFullname(newDetails.FullName);
       if (newDetails.MobileNumber) setMobile(newDetails.MobileNumber);
-      if (newDetails.Email) setEmail(newDetails.Email);
-      if (newDetails.Locations) setLocation(newDetails.Locations);
-      if (newDetails.Expertise) {
-        setExpertise(newDetails.Expertise);
-        setExpertiseSearch(newDetails.Expertise);
-      }
-      if (newDetails.Experience) {
-        setExperience(newDetails.Experience);
-        setExperienceSearch(newDetails.Experience);
-      }
+      // if (newDetails.Email) setEmail(newDetails.Email);
+      if (newDetails.Location) setLocation(newDetails.Location);
+      if (newDetails.SelectSkill) setSelectSkill(newDetails.SelectSkill);
+      if (newDetails.Password) setPassword(newDetails.Password);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -97,10 +64,10 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
     if (
       !fullname ||
       !mobile ||
-      !email ||
+      // !email ||
       !location ||
-      !expertise ||
-      !experience
+      !selectSkill ||
+      !password
     ) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
@@ -111,14 +78,14 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email,
-      Locations: location,
-      Expertise: expertise,
-      Experience: experience,
+      // Email: email,
+      Location: location,
+      SelectSkill: selectSkill,
+      Password: password,
     };
 
     try {
-      const response = await fetch(`${API_URL}/agent/updateAgentDetails`, {
+      const response = await fetch(`${API_URL}/skillLabour/updateskill`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +175,7 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                   />
                 </View>
               </View>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.label}>Email</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -227,79 +194,27 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                     style={styles.icon}
                   />
                 </View>
-              </View>
+              </View> */}
             </View>
 
             {/* Row 2 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Experience</Text>
+                <Text style={styles.label}>Select Skill</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Select Experience"
+                    placeholder="Select Skill"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={experienceSearch}
-                    onChangeText={(text) => {
-                      setExperienceSearch(text);
-                      setShowExperienceList(true);
-                    }}
-                    onFocus={() => setShowExperienceList(true)}
+                    onChangeText={setSelectSkill}
+                    value={selectSkill}
                   />
-                  {showExperienceList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            {/* Row 3 */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Expertise</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Expertise"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={expertiseSearch}
-                    onChangeText={(text) => {
-                      setExpertiseSearch(text);
-                      setShowExpertiseList(true);
-                    }}
-                    onFocus={() => setShowExpertiseList(true)}
+                  <MaterialIcons
+                    name="work"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
                   />
-                  {showExpertiseList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
                 </View>
               </View>
               <View style={styles.inputContainer}>
@@ -314,6 +229,29 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                   />
                   <MaterialIcons
                     name="location-on"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Row 3 */}
+            <View style={styles.inputRow}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    onChangeText={setPassword}
+                    value={password}
+                    secureTextEntry={true}
+                  />
+                  <MaterialIcons
+                    name="lock"
                     size={20}
                     color="#E82E5F"
                     style={styles.icon}
@@ -476,23 +414,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
     textAlign: "center",
-  },
-  dropdownContainer: {
-    position: "absolute",
-    bottom: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#FFF",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 5,
-  },
-  listItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
 });
 

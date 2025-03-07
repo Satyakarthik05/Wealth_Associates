@@ -3,10 +3,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const NRIMember = require("../Models/NriModel");
 
-const secret = "NRI@Secure123";
+const secret = "Wealth@123";
 
 const NRIMemberSign = async (req, res) => {
-  const { Name, Country, Locality, Occupation, MobileIN, MobileCountryNo } = req.body;
+  const { Name, Country, Locality, Occupation, MobileIN, MobileCountryNo } =
+    req.body;
 
   try {
     const existingMember = await NRIMember.findOne({ MobileIN });
@@ -16,6 +17,7 @@ const NRIMemberSign = async (req, res) => {
 
     const newMember = new NRIMember({
       Name,
+      Password: "wa1234",
       Country,
       Locality,
       Occupation,
@@ -34,6 +36,68 @@ const NRIMemberSign = async (req, res) => {
   }
 };
 
+const NRILogin = async (req, res) => {
+  const { MobileNumber, Password } = req.body;
+
+  try {
+    const Nri = await NRIMember.findOne({
+      MobileIN: MobileNumber,
+      Password: Password,
+    });
+    if (!Nri) {
+      return res
+        .status(400)
+        .json({ message: "Invalid MobileNumber or Password" });
+    }
+
+    const token = await jwt.sign({ NriId: Nri._id }, secret, {
+      expiresIn: "30d",
+    });
+
+    res.status(200).json({ message: "Login Successful", token });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getNRI = async (req, res) => {
+  try {
+    const agentDetails = await NRIMember.findById(req.NriId);
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const updateNRIDetails = async (req, res) => {
+  const { MobileIN, Name, Country, Locality, Password, Occupation } = req.body;
+
+  try {
+    const existingAgent = await NRIMember.findOne({ MobileIN });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.Name = Name || existingAgent.Name;
+    existingAgent.Password = Password || existingAgent.Password;
+    existingAgent.Country = Country || existingAgent.Country;
+    existingAgent.Locality = Locality || existingAgent.Locality;
+    existingAgent.Occupation = Occupation || existingAgent.Occupation;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Nri details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const fetchReferredNRIMembers = async (req, res) => {
   try {
     const referredMembers = await NRIMember.find();
@@ -44,4 +108,10 @@ const fetchReferredNRIMembers = async (req, res) => {
   }
 };
 
-module.exports = { NRIMemberSign, fetchReferredNRIMembers };
+module.exports = {
+  NRIMemberSign,
+  fetchReferredNRIMembers,
+  getNRI,
+  updateNRIDetails,
+  NRILogin,
+};
