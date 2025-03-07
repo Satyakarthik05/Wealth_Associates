@@ -8,9 +8,12 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -18,6 +21,7 @@ const ViewAllProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [Details, setDetails] = useState({});
 
   useEffect(() => {
     fetchProperties();
@@ -47,6 +51,63 @@ const ViewAllProperties = () => {
       setProperties([...properties].sort((a, b) => a.price - b.price));
     } else {
       fetchProperties();
+    }
+  };
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
+      console.log(Details);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+  const handleBuyNow = async (PostedBy, propertyType, location, price) => {
+    try {
+      // Send the details to the backend
+      const response = await fetch(`${API_URL}/buy/buyproperty`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          propertyType,
+          location,
+          price,
+          PostedBy,
+          WantedBy: Details.MobileNumber,
+          WantedUserType: "Investor",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", "Purchase request sent successfully!");
+      } else {
+        Alert.alert(
+          "Error",
+          result.message || "Failed to send purchase request."
+        );
+      }
+    } catch (error) {
+      console.error("Error sending purchase request:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while sending the purchase request."
+      );
     }
   };
 
@@ -89,6 +150,19 @@ const ViewAllProperties = () => {
                     <Text style={styles.budget}>
                       ₹ {parseInt(item.price).toLocaleString()}
                     </Text>
+                    <TouchableOpacity
+                      style={styles.buyNowButton}
+                      onPress={() =>
+                        handleBuyNow(
+                          item.PostedBy,
+                          item.propertyType,
+                          item.location,
+                          item.price
+                        )
+                      }
+                    >
+                      <Text style={styles.buyNowButtonText}>Buy Now</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               );
@@ -143,6 +217,18 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+  buyNowButton: {
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  buyNowButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default ViewAllProperties;

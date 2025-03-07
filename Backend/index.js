@@ -20,6 +20,7 @@ const RequestExpertRoute = require("./Routes/RequstedExpertsRoutes");
 const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
 const path = require("path");
 const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
+const buyRoutes = require("./Routes/BuyPropertyRoutes");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),
@@ -70,6 +71,7 @@ app.use("/investors", InvestorRoutes);
 app.use("/requestexpert", RequestExpertRoute);
 app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
+app.use("/buy", buyRoutes);
 
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
