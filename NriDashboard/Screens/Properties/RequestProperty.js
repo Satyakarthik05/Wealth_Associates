@@ -21,7 +21,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: token, // Remove extra space
@@ -62,7 +62,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: details._id, // Ensure correct ObjectId is sent
+      PostedBy: details.MobileIN, // Ensure correct ObjectId is sent
     };
 
     try {

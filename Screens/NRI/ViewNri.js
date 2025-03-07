@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
   return (
@@ -68,16 +69,31 @@ const ViewNri = () => {
   const { width } = useWindowDimensions();
   const isWebView = width > 600;
 
+  const getNriMembers = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No auth token found");
+        return;
+      }
+      const response = await fetch(`${API_URL}/nri/getmynris`, {
+        method: "GET",
+        headers: {
+          token,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setNriMembers(data.referredMembers || []);
+    } catch (error) {
+      console.error("Error fetching NRI members:", error);
+    }
+  };
+
   useEffect(() => {
-    fetch(`${API_URL}/nri/referred-members`) // Ensure the correct endpoint
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => setNriMembers(data.referredMembers))
-      .catch((error) => console.error("Error fetching NRI members:", error));
+    getNriMembers();
   }, []);
 
   const handleDelete = (id) => {
@@ -88,14 +104,17 @@ const ViewNri = () => {
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
-          onPress: () => {
-            fetch(`http://localhost:3000/nri/referred-members/${id}`, {
-              method: "DELETE",
-            })
-              .then(() => {
-                setNriMembers(nriMembers.filter((member) => member._id !== id));
-              })
-              .catch((error) => console.error("Error deleting member:", error));
+          onPress: async () => {
+            try {
+              await fetch(`${API_URL}/nri/referred-members/${id}`, {
+                method: "DELETE",
+              });
+              setNriMembers((prevMembers) =>
+                prevMembers.filter((member) => member._id !== id)
+              );
+            } catch (error) {
+              console.error("Error deleting member:", error);
+            }
           },
           style: "destructive",
         },

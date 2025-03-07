@@ -29,6 +29,12 @@ const AddNriSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  AddedBy: {
+    type: String,
+  },
+  RegisteredBy: {
+    type: String,
+  },
 });
 
 const AddNri = mongoose.model("Nri", AddNriSchema);

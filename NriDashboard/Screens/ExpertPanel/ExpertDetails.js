@@ -39,7 +39,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -62,13 +62,11 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          Name: Details.FullName ? Details.FullName : "name",
-          MobileNumber: Details.MobileNumber
-            ? Details.MobileNumber
-            : "MobileNumber",
+          Name: Details.Name ? Details.Name : "name",
+          MobileNumber: Details.MobileIN ? Details.MobileIN : "MobileNumber",
           ExpertType: expertType,
           ExpertName: expert.Name,
-          RequestedBy: "CoreMember",
+          RequestedBy: "NriMember",
         }),
       });
 

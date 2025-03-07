@@ -139,7 +139,7 @@ const Admin_panel = () => {
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
   const [isAddInvestVisible, setIsAddInvestVisible] = useState(false);
   const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
-  const [isViewInVisible, setIsViewInvisible] =  useState(false);
+  const [isViewInVisible, setIsViewInvisible] = useState(false);
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isNriViewVisible, setIsNriViewVisible] = useState(false);
 
@@ -246,7 +246,7 @@ const Admin_panel = () => {
       setIsExpertDetails(true);
     } else if (subItem === "All Skilled Labours") {
       setAllSkilledLabour(true);
-    }  else if (subItem === "Add Investor") {
+    } else if (subItem === "Add Investor") {
       setIsAddInvestVisible(true);
     } else if (subItem === "View All Investors") {
       setIsViewInvestVisible(true);
@@ -295,7 +295,6 @@ const Admin_panel = () => {
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
     if (isNriViewVisible) return <ViewNri />;
-
 
     return (
       <View style={[styles.container]} keyboardShouldPersistTaps="handled">
@@ -368,6 +367,7 @@ const Admin_panel = () => {
             setIsViewInvisible(false);
             setIsNriVisible(false);
             setIsNriViewVisible(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image source={require("../assets/logo.png")} style={styles.logo} />
@@ -402,6 +402,7 @@ const Admin_panel = () => {
                 setIsViewInvisible(false);
                 setIsNriVisible(false);
                 setIsNriViewVisible(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>

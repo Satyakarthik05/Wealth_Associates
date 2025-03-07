@@ -26,7 +26,7 @@ const Rskill = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -68,7 +68,7 @@ const Rskill = ({ closeModal }) => {
       return;
     }
 
-    if (!Details || !Details.MobileNumber) {
+    if (!Details || !Details.MobileIN) {
       alert("Agent details are not available. Please try again.");
       return;
     }
@@ -83,8 +83,8 @@ const Rskill = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber, // Ensure this is correctly set
-          RegisteredBy: "Customer",
+          AddedBy: Details.MobileIN, // Ensure this is correctly set
+          RegisteredBy: "NRI",
         }),
       });
       const data = await response.json();

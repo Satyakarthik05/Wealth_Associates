@@ -16,18 +16,18 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomModal from "../../../Components/CustomModal";
 import PostProperty from "../Properties/PostProperty";
 import RequestProperty from "../Properties/RequestProperty";
-import AddClubMember from "../Customer/Regicus";
 import RequestExpert from "../ExpertPanel/Requested_expert";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Dashboard from "./Admin_Right";
 
 // Import nested action components
-import AddCustomer from "./Add_Agent";
-import AddInvestor from "./Add_Agent";
-import AddNR from "../Customer/Regicus";
-import AddBuilder from "../Customer/Regicus";
+import AddCustomer from "../Customer/Regicus";
+import AddInvestor from "../Investors/AddInvestors";
+import AddNRI from "../NRI/AddNri";
+import AddSkilled from "../SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -47,7 +47,7 @@ const actionButtons = [
   {
     title: "Add a member",
     icon: "account-plus",
-    component: AddClubMember,
+    component: null, // This will be handled separately
   },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
@@ -55,29 +55,10 @@ const actionButtons = [
 const nestedActionButtons = [
   { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
   { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
-  { title: "Add a NR", icon: "account-clock", component: AddNR },
-  { title: "Add a Builder", icon: "account-hard-hat", component: AddBuilder },
+  { title: "Add a NRI", icon: "account-clock", component: AddNRI },
+  { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
 ];
 
-const coreClients = [
-  {
-    name: "Harischandra Townships",
-    logo: require("../../../assets/Logo Final 1.png"),
-  },
-];
-
-const coreProjects = [
-  { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
-  {
-    name: "Icon",
-    logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
-  },
-  {
-    name: "Surya Avenue",
-    logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
-  },
-  { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
-];
 const numColumns = width > 800 ? 4 : 1;
 
 const Agent_Right = ({ onViewAllPropertiesClick }) => {
@@ -106,6 +87,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
     fetchCoreClients();
   }, []);
+
   useEffect(() => {
     // Fetch data from the backend
     const fetchCoreCProject = async () => {
@@ -253,8 +235,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   return (
     <View style={styles.container}>
-      <View
-        // style={styles.scrollView}
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Action Buttons */}
@@ -282,7 +264,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-
+        <Dashboard />
         {/* Core Clients */}
         <Text style={styles.sectionTitle}>Core Clients</Text>
         <View style={styles.cardContainer}>
@@ -437,7 +419,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
         {/* Version Info */}
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -446,7 +428,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    ...(isWeb && { height: "auto" }),
+    ...(isWeb && { height: "auto", overflow: "scroll" }),
   },
   scrollView: {
     flex: 1,
@@ -625,16 +607,11 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   nestedActionButton: {
-    // backgroundColor: "#e0f7fa",
     alignItems: "center",
     margin: 10,
     width: isWeb ? 100 : 100,
     borderRadius: 10,
     padding: 10,
-    // shadowColor: "#000",
-    // shadowOpacity: 0.1,
-    // shadowRadius: 5,
-    // elevation: 3,
   },
 });
 

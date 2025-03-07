@@ -24,7 +24,7 @@ const AddInvestor = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -62,8 +62,8 @@ const AddInvestor = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: "Admin",
-          RegisteredBy: "Admin",
+          AddedBy: Details.MobileIN,
+          RegisteredBy: "Nri",
         }),
       });
       const data = await response.json();

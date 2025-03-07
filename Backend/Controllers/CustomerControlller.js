@@ -187,6 +187,23 @@ const getCustomer = async (req, res) => {
     console.log(error);
   }
 };
+
+const getMyInvestorCustomers = async (req, res) => {
+  try {
+    const mobileNumber = req.mobileNumber;
+    const customerDetails = await CustomerSchema.find({
+      ReferredBy: mobileNumber,
+    });
+    if (!customerDetails) {
+      return res.status(200).json({ message: "Customer not found" });
+    } else {
+      res.status(200).json(customerDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const updateCustomerDetails = async (req, res) => {
   const { MobileNumber, FullName, Email, Locations, Occupation, Password } =
     req.body;
@@ -255,4 +272,5 @@ module.exports = {
   getAllCustomers,
   deleteCustomer,
   updateCustomerDetails,
+  getMyInvestorCustomers,
 };

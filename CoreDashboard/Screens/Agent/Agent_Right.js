@@ -25,9 +25,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import nested action components
 import AddCustomer from "./Add_Agent";
-import AddInvestor from "./Add_Agent";
-import AddNR from "../Customer/Regicus";
-import AddBuilder from "../Customer/Regicus";
+import AddInvestor from "../Investors/AddInvestors";
+import AddNRI from "../NRI/AddNri";
+import AddSkilled from "../SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -55,8 +55,8 @@ const actionButtons = [
 const nestedActionButtons = [
   { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
   { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
-  { title: "Add a NR", icon: "account-clock", component: AddNR },
-  { title: "Add a Builder", icon: "account-hard-hat", component: AddBuilder },
+  { title: "Add a NRI", icon: "account-clock", component: AddNRI },
+  { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
 ];
 
 const coreClients = [

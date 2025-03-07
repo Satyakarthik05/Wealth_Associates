@@ -348,6 +348,7 @@ const Admin_panel = () => {
             setSelectedSubItem(null);
             setIsAddinvest(false);
             setIsviewAllinvestors(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image
@@ -382,6 +383,7 @@ const Admin_panel = () => {
                 setisRsSkill(false);
                 setIsAddinvest(false);
                 setIsviewAllinvestors(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>

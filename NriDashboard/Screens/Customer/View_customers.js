@@ -26,17 +26,22 @@ export default function ViewCustomers() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/core/mycustomers`, {
+        const response = await fetch(`${API_URL}/customer/getmycustomer`, {
           method: "GET",
           headers: {
             token: `${token}` || "",
           },
         });
 
+        if (!response.ok) {
+          throw new Error("Failed to fetch customers");
+        }
+
         const data = await response.json();
 
-        if (data && Array.isArray(data.referredAgents)) {
-          setCustomers(data.referredAgents);
+        // Check if the response is an array and update the state
+        if (Array.isArray(data)) {
+          setCustomers(data);
         } else {
           setCustomers([]);
         }
@@ -85,6 +90,18 @@ export default function ViewCustomers() {
                 <View style={styles.row}>
                   <Text style={styles.label}>Referral Code</Text>
                   <Text style={styles.value}>: {item.MyRefferalCode}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>District</Text>
+                  <Text style={styles.value}>: {item.District}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Constituency</Text>
+                  <Text style={styles.value}>: {item.Contituency}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Location</Text>
+                  <Text style={styles.value}>: {item.Locations}</Text>
                 </View>
               </View>
             </View>
