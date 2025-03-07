@@ -33,34 +33,13 @@ import ViewPostedProperties from "../Adminscreen/View_posted";
 import RequestedProperties from "../Adminscreen/View_Req";
 import ViewAllProperties from "../Adminscreen/AllProp";
 import ExpertPanel from "../Adminscreen/ViewExpert";
-import Rskill from "../Adminscreen/Skilled Labour/Rskill";
+import Rskill from "../Adminscreen/RegSkill";
 import ViewSkilledLabours from "../Adminscreen/Skilled Labour/ViewSkilledLabours";
 import Core_Clients from "../Adminscreen/ViewCoreCli";
 import Core_Projects from "../Adminscreen/ViewCorePro";
-import AddExpertPan from "../Adminscreen/AddExpert";
-import AddRoleModal from "../Adminscreen/AddRole";
-import AddDistrictModal from "../Adminscreen/AddDistrict";
-import AddNRIMember from "../Adminscreen/AddNri";
-import ExpertList from "../Adminscreen/ExpertReq";
-import AddConstiModal from "../Adminscreen/AddConst";
-import AddOccuModal from "../Adminscreen/AddOccu";
-import AddUserForm from "../Adminscreen/AddUser";
-import AddExpertiseModal from "../Adminscreen/AddExpertise";
-import AddProTypeModal from "../Adminscreen/AddPropType";
-import AddExperTypeModal from "../Adminscreen/AddExpertType";
-import AddCountryModal from "../Adminscreen/AddCountry";
-import AddSkillModal from "../Adminscreen/AddSkill";
-import AddCoreClientForm from "../Adminscreen/AddCoreClient";
-import AddCoreProjectForm from "../Adminscreen/AddCoreProj";
-import ViewNri from "../Adminscreen/ViewNri";
-import ViewReferralAgents from "../Adminscreen/ViewReferralAgents";
-import AddReferral from "../Adminscreen/AddReferralAgents";
-import AllSkilledLabours from "../Adminscreen/Skilled Labour/AllSkilledLabours";
-import AddInvestors from "../Adminscreen/Investors/AddInvestors";
-import ViewInvesters from "../Adminscreen/Investors/ViewInvestors";
-import ViewAllInvesters from "../Adminscreen/Investors/ViewAllInvestors";
-import AddCoreMember from "../Adminscreen/Core Member/AddCoreMember";
-import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
+
+const { width, height } = Dimensions.get("window");
+const isWeb = Platform.OS === "web";
 
 const menuItems = [
   {
@@ -77,11 +56,6 @@ const menuItems = [
     title: "Customers",
     icon: "people-outline",
     subItems: ["Add Customer", "View Customers"],
-  },
-  {
-    title: "Core Members",
-    icon: "shield-outline",
-    subItems: ["Add Core Member", "View Core Members"],
   },
   {
     title: "Properties",
@@ -106,11 +80,11 @@ const menuItems = [
   {
     title: "Referrals",
     icon: "person-add-outline",
-    subItems: ["Add ReferralAgents", "View ReferralAgents"],
+    subItems: [],
   },
   {
     title: "NRI Club",
-    icon: "globe-outline",
+    icon: "globe-outline", // 🌍 Represents an international community
     subItems: ["Add NRI Member", "View NRI Members"],
   },
   {
@@ -126,21 +100,14 @@ const menuItems = [
   {
     title: "Skilled Club",
     icon: "trophy-outline",
-    subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
-    ],
-  },
-  {
-    title: "Investors",
-    icon: "business-outline",
-    subItems: ["Add Investor", "View Investors", "View All Investors"],
+    subItems: ["Register Skilled Labour", "View Skilled Labour"],
   },
   {
     title: "Master Data",
-    icon: "settings-outline",
+    icon: "settings-outline", // ⚙️ Represents data/configuration
     subItems: [
+      "Add User",
+      "Add Roles",
       "Add Districts",
       "Add Constituencies",
       "Add Expertise",
@@ -175,31 +142,6 @@ const AdminDashboard = () => {
   const [isViewSkillVisible, setIsViewSkillVisible] = useState(false);
   const [isViewClientVisible, setIsViewClientVisible] = useState(false);
   const [isViewCoreProVisible, setIsViewCoreProVisible] = useState(false);
-  const [isAddExpertPanelVisible, setIsAddExpertPanelVisible] = useState(false);
-  const [isAddRoleVisible, setIsAddRoleVisible] = useState(false);
-  const [isAddDisVisible, setIsAddDisVisible] = useState(false);
-  const [isAddNriVisible, setIsAddNriVisible] = useState(false);
-  const [isExpertReqVisible, setIsExpertReqVisible] = useState(false);
-  const [isAddConsVisible, setIsAddConsVisible] = useState(false);
-  const [isAddOccuVisible, setIsAddOccuVisible] = useState(false);
-  const [isAddUseVisible, setIsAddUseVisible] = useState(false);
-  const [isAddExpertiseVisible, setIsAddExpertiseVisible] = useState(false);
-  const [isAddProTypeVisible, setIsAddProTypeVisible] = useState(false);
-  const [isAddExperTypeVisible, setIsAddExperTypeVisible] = useState(false);
-  const [isAddCountryVisible, setIsAddCountryVisible] = useState(false);
-  const [isAddSkillVisible, setIsAddSkillVisible] = useState(false);
-  const [isAddCoreVisible, setIsAddCoreVisible] = useState(false);
-  const [isAddCoreProVisible, setIsAddCoreProVisible] = useState(false);
-  const [isViewNriVisible, setIsViewNriVisible] = useState(false);
-  const [isViewReferral, setIsViewReferral] = useState(false);
-  const [isAddReferral, setIsAddReferral] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("A");
-  const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
-  const [AddInvestor, setAddInvestor] = useState(false);
-  const [ViewInvester, setViewInvester] = useState(false);
-  const [ViewAllInvester, setAllViewInvester] = useState(false);
-  const [isAddCoreMember, setIsCoreMember] = useState(false);
-  const [isViewCoreMember, setIsViewCoreMember] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -233,32 +175,8 @@ const AdminDashboard = () => {
     setIsAddExpertVisible(false);
     setIsRegSkillVisible(false);
     setIsViewSkillVisible(false);
-    setAllSkilledLabour(false);
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
-    setIsAddExpertPanelVisible(false);
-    setIsAddRoleVisible(false);
-    setIsAddDisVisible(false);
-    setIsAddNriVisible(false);
-    setIsExpertReqVisible(false);
-    setIsAddConsVisible(false);
-    setIsAddOccuVisible(false);
-    setIsAddUseVisible(false);
-    setIsAddExpertiseVisible(false);
-    setIsAddProTypeVisible(false);
-    setIsAddExperTypeVisible(false);
-    setIsAddCountryVisible(false);
-    setIsAddSkillVisible(false);
-    setIsAddCoreVisible(false);
-    setIsAddCoreProVisible(false);
-    setIsViewNriVisible(false);
-    setAddInvestor(false);
-    setViewInvester(false);
-    setAllViewInvester(false);
-    setIsViewReferral(false);
-    setIsAddReferral(false);
-    setIsCoreMember(false);
-    setIsViewCoreMember(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -295,54 +213,6 @@ const AdminDashboard = () => {
       setIsViewClientVisible(true);
     } else if (subItem === "View Core Projects") {
       setIsViewCoreProVisible(true);
-    } else if (subItem === "Add Expert Panel") {
-      setIsAddExpertPanelVisible(true);
-    } else if (subItem === "Add Roles") {
-      setIsAddRoleVisible(true);
-    } else if (subItem === "Add Districts") {
-      setIsAddDisVisible(true);
-    } else if (subItem === "Add NRI Member") {
-      setIsAddNriVisible(true);
-    } else if (subItem === "Expert Panel Requests") {
-      setIsExpertReqVisible(true);
-    } else if (subItem === "Add Constituencies") {
-      setIsAddConsVisible(true);
-    } else if (subItem === "Add Occupation") {
-      setIsAddOccuVisible(true);
-    } else if (subItem === "Add User") {
-      setIsAddUseVisible(true);
-    } else if (subItem === "Add Expertise") {
-      setIsAddExpertiseVisible(true);
-    } else if (subItem === "Add Property Type") {
-      setIsAddProTypeVisible(true);
-    } else if (subItem === "Add Expert Type") {
-      setIsAddExperTypeVisible(true);
-    } else if (subItem === "Add Countries") {
-      setIsAddCountryVisible(true);
-    } else if (subItem === "Add Skill") {
-      setIsAddSkillVisible(true);
-    } else if (subItem === "Add Core Clients") {
-      setIsAddCoreVisible(true);
-    } else if (subItem === "Add Core Projects") {
-      setIsAddCoreProVisible(true);
-    } else if (subItem === "View NRI Members") {
-      setIsViewNriVisible(true);
-    } else if (subItem === "All Skilled Labours") {
-      setAllSkilledLabour(true);
-    } else if (subItem === "Add Investor") {
-      setAddInvestor(true);
-    } else if (subItem === "View Investors") {
-      setViewInvester(true);
-    } else if (subItem === "View All Investors") {
-      setAllViewInvester(true);
-    } else if (subItem === "View ReferralAgents") {
-      setIsViewReferral(true);
-    } else if (subItem === "Add ReferralAgents") {
-      setIsAddReferral(true);
-    } else if (subItem === "Add Core Member") {
-      setIsCoreMember(true);
-    } else if (subItem === "View Core Members") {
-      setIsViewCoreMember(true);
     }
   };
 
@@ -367,26 +237,6 @@ const AdminDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewClientVisible(false);
     setIsViewCoreProVisible(false);
-    setIsAddExpertPanelVisible(false);
-    setIsAddRoleVisible(false);
-    setIsAddDisVisible(false);
-    setIsAddNriVisible(false);
-    setIsExpertReqVisible(false);
-    setIsAddConsVisible(false);
-    setIsAddOccuVisible(false);
-    setIsAddUseVisible(false);
-    setIsAddExpertiseVisible(false);
-    setIsAddProTypeVisible(false);
-    setIsAddExperTypeVisible(false);
-    setIsAddCountryVisible(false);
-    setIsAddSkillVisible(false);
-    setIsAddCoreVisible(false);
-    setIsAddCoreProVisible(false);
-    setIsViewNriVisible(false);
-    setAddInvestor(false);
-    setIsViewReferral(false);
-    setIsAddReferral(false);
-    setIsCoreMember(false);
   };
 
   const renderContent = () => {
@@ -399,13 +249,6 @@ const AdminDashboard = () => {
     if (isViewSkillVisible) return <ViewSkilledLabours />;
     if (isViewClientVisible) return <Core_Clients />;
     if (isViewCoreProVisible) return <Core_Projects />;
-    if (isExpertReqVisible) return <ExpertList />;
-    if (isViewNriVisible) return <ViewNri />;
-    if (AllSkilledLabour) return <AllSkilledLabours />;
-    if (ViewInvester) return <ViewInvesters />;
-    if (ViewAllInvester) return <ViewAllInvesters />;
-    if (isViewReferral) return <ViewReferralAgents />;
-    if (isViewCoreMember) return <ViewCoreMembers />;
     return <Dashboard />;
   };
 
@@ -473,45 +316,48 @@ const AdminDashboard = () => {
                 : styles.collapsedSidebar),
           ]}
         >
-          <FlatList
-            data={menuItems}
-            keyExtractor={(item) => item.title}
-            renderItem={({ item }) => (
-              <View>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => toggleMenuItem(item.title)}
-                >
-                  <Ionicons name={item.icon} size={24} color="#555" />
-                  {isSidebarExpanded && (
-                    <Text style={styles.menuText}>{item.title}</Text>
-                  )}
-                  {isSidebarExpanded && (
-                    <Ionicons
-                      name={
-                        expandedItems[item.title]
-                          ? "chevron-up-outline"
-                          : "chevron-down-outline"
-                      }
-                      size={16}
-                      color="#555"
-                    />
-                  )}
-                </TouchableOpacity>
-                {isSidebarExpanded &&
-                  expandedItems[item.title] &&
-                  item.subItems &&
-                  item.subItems.map((sub, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleSubItemClick(sub)}
-                    >
-                      <Text style={styles.subMenuText}>{sub}</Text>
-                    </TouchableOpacity>
-                  ))}
-              </View>
-            )}
-          />
+          <ScrollView style={{ minHeight: 200, maxHeight: 600 }}>
+            <FlatList
+              data={menuItems}
+              keyExtractor={(item) => item.title}
+              renderItem={({ item }) => (
+                <View>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => toggleMenuItem(item.title)}
+                  >
+                    <Ionicons name={item.icon} size={24} color="#555" />
+                    {isSidebarExpanded && (
+                      <Text style={styles.menuText}>{item.title}</Text>
+                    )}
+                    {isSidebarExpanded && (
+                      <Ionicons
+                        name={
+                          expandedItems[item.title]
+                            ? "chevron-up-outline"
+                            : "chevron-down-outline"
+                        }
+                        size={16}
+                        color="#555"
+                      />
+                    )}
+                  </TouchableOpacity>
+                  {isSidebarExpanded &&
+                    expandedItems[item.title] &&
+                    item.subItems &&
+                    item.subItems.map((sub, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => handleSubItemClick(sub)}
+                      >
+                        <Text style={styles.subMenuText}>{sub}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              )}
+            />
+          </ScrollView>
+
           <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
         </View>
 
@@ -533,9 +379,7 @@ const AdminDashboard = () => {
                     {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
                   </Text>
                 </Text> */}
-                <ScrollView style={{ height: "auto" }}>
-                  {renderContent()}
-                </ScrollView>
+                {renderContent()}
               </View>
             </ScrollView>
           </View>
@@ -575,57 +419,6 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isRegSkillVisible} closeModal={closeModal}>
         <Rskill closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddExpertPanelVisible} closeModal={closeModal}>
-        <AddExpertPan closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddRoleVisible} closeModal={closeModal}>
-        <AddRoleModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddDisVisible} closeModal={closeModal}>
-        <AddDistrictModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddNriVisible} closeModal={closeModal}>
-        <AddNRIMember closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddConsVisible} closeModal={closeModal}>
-        <AddConstiModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddOccuVisible} closeModal={closeModal}>
-        <AddOccuModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddUseVisible} closeModal={closeModal}>
-        <AddUserForm closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddExpertiseVisible} closeModal={closeModal}>
-        <AddExpertiseModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddProTypeVisible} closeModal={closeModal}>
-        <AddProTypeModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddExperTypeVisible} closeModal={closeModal}>
-        <AddExperTypeModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddCountryVisible} closeModal={closeModal}>
-        <AddCountryModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddSkillVisible} closeModal={closeModal}>
-        <AddSkillModal closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddCoreVisible} closeModal={closeModal}>
-        <AddCoreClientForm closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddCoreProVisible} closeModal={closeModal}>
-        <AddCoreProjectForm closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={AddInvestor} closeModal={closeModal}>
-        <AddInvestors closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddReferral} closeModal={closeModal}>
-        <AddReferral closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isAddCoreMember} closeModal={closeModal}>
-        <AddCoreMember closeModal={closeModal} />
       </CustomModal>
     </View>
   );
@@ -722,7 +515,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
-    height: "100vh",
   },
   toggleButton: {
     position: "absolute",
@@ -770,7 +562,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
-    height: "auto",
   },
   usersContentText: {
     fontSize: 16,
