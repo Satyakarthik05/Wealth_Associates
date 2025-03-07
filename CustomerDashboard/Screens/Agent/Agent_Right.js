@@ -9,19 +9,25 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  TouchableWithoutFeedback, // Import TouchableWithoutFeedback
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomModal from "../../../Components/CustomModal";
 import PostProperty from "../Properties/PostProperty";
 import RequestProperty from "../Properties/RequestProperty";
-// import AddClubMember from "../Customer/Regicus";
 import RequestExpert from "../ExpertPanel/Requested_expert";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Dashboard from "./Admin_Right";
+
+// Import nested action components
+import AddCustomer from "./Add_Agent";
+import AddInvestor from "../Investors/AddInvestors";
+import AddNRI from "../NRI/AddNri";
+import AddSkilled from "../SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -38,33 +44,21 @@ const actionButtons = [
     icon: "home-search",
     component: RequestProperty,
   },
-  // {
-  //   title: "Add a customer",
-  //   icon: "account-plus",
-  //   component: AddClubMember,
-  // },
+  {
+    title: "Add a member",
+    icon: "account-plus",
+    component: null, // This will be handled separately
+  },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
 
-// const coreClients = [
-//   {
-//     name: "Harischandra Townships",
-//     logo: require("../../../assets/Logo Final 1.png"),
-//   },
-// ];
+const nestedActionButtons = [
+  // { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
+  { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
+  { title: "Add a NRI", icon: "account-clock", component: AddNRI },
+  { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
+];
 
-// const coreProjects = [
-//   { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
-//   {
-//     name: "Icon",
-//     logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
-//   },
-//   {
-//     name: "Surya Avenue",
-//     logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
-//   },
-//   { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
-// ];
 const numColumns = width > 800 ? 4 : 1;
 
 const Agent_Right = ({ onViewAllPropertiesClick }) => {
@@ -93,6 +87,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
     fetchCoreClients();
   }, []);
+
   useEffect(() => {
     // Fetch data from the backend
     const fetchCoreCProject = async () => {
@@ -184,9 +179,45 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   };
 
   const handleActionButtonClick = (btn) => {
-    const ModalComponent = btn.component;
+    if (btn.title === "Add a member") {
+      // Open nested modal for "Add a member"
+      setModalContent(
+        <TouchableWithoutFeedback onPress={closeModal}>
+          <View style={styles.nestedModalContent}>
+            {nestedActionButtons.map((nestedBtn, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.nestedActionButton}
+                onPress={() => handleNestedActionButtonClick(nestedBtn)}
+              >
+                <View style={styles.iconCircle}>
+                  <Icon
+                    name={nestedBtn.icon}
+                    size={Platform.OS === "web" ? 40 : 30}
+                    color="#E91E63"
+                  />
+                </View>
+                <Text style={styles.actionText}>{nestedBtn.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableWithoutFeedback>
+      );
+      setModalVisible(true);
+    } else {
+      // Handle other action buttons
+      const ModalComponent = btn.component;
+      setModalContent(
+        <ModalComponent title={btn.title} closeModal={closeModal} />
+      );
+      setModalVisible(true);
+    }
+  };
+
+  const handleNestedActionButtonClick = (nestedBtn) => {
+    const ModalComponent = nestedBtn.component;
     setModalContent(
-      <ModalComponent title={btn.title} closeModal={closeModal} />
+      <ModalComponent title={nestedBtn.title} closeModal={closeModal} />
     );
     setModalVisible(true);
   };
@@ -566,6 +597,22 @@ const styles = StyleSheet.create({
     color: "#e91e63",
   },
   loader: { marginTop: 50 },
+  nestedModalContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
+    padding: 20,
+    backgroundColor: "#fff", // Light gray background
+    borderRadius: 20, // Rounded corners
+    margin: 0,
+  },
+  nestedActionButton: {
+    alignItems: "center",
+    margin: 10,
+    width: isWeb ? 100 : 100,
+    borderRadius: 10,
+    padding: 10,
+  },
 });
 
 export default Agent_Right;

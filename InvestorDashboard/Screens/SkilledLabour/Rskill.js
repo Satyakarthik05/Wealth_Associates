@@ -26,7 +26,7 @@ const Rskill = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -84,7 +84,7 @@ const Rskill = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileNumber, // Ensure this is correctly set
-          RegisteredBy: "Customer",
+          RegisteredBy: "Investor",
         }),
       });
       const data = await response.json();

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   Alert,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddNRIMember = ({ closeModal }) => {
   const [name, setName] = useState("");
@@ -19,6 +20,7 @@ const AddNRIMember = ({ closeModal }) => {
   const [mobileIN, setMobileIN] = useState("");
   const [mobileCountryNo, setMobileCountryNo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [Details, setDetails] = useState({});
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
@@ -27,6 +29,27 @@ const AddNRIMember = ({ closeModal }) => {
     { label: "Canada", value: "canada" },
     { label: "India", value: "india" },
   ]);
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
+      console.log(Details);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
 
   const handleAddMember = async () => {
     if (
@@ -54,8 +77,10 @@ const AddNRIMember = ({ closeModal }) => {
           Occupation: occupation,
           MobileIN: mobileIN,
           MobileCountryNo: mobileCountryNo,
-          AddedBy: "Admin",
-          RegisteredBy: "Admin",
+          AddedBy: Details.MobileNumber
+            ? Details.MobileNumber
+            : "Wealthassociate",
+          RegisteredBy: "SkilledLabour",
         }),
       });
 

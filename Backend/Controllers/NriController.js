@@ -6,8 +6,16 @@ const NRIMember = require("../Models/NriModel");
 const secret = "Wealth@123";
 
 const NRIMemberSign = async (req, res) => {
-  const { Name, Country, Locality, Occupation, MobileIN, MobileCountryNo } =
-    req.body;
+  const {
+    Name,
+    Country,
+    Locality,
+    Occupation,
+    MobileIN,
+    MobileCountryNo,
+    AddedBy,
+    RegisteredBy,
+  } = req.body;
 
   try {
     const existingMember = await NRIMember.findOne({ MobileIN });
@@ -23,6 +31,8 @@ const NRIMemberSign = async (req, res) => {
       Occupation,
       MobileIN,
       MobileCountryNo,
+      AddedBy,
+      RegisteredBy,
     });
 
     await newMember.save();
@@ -108,10 +118,24 @@ const fetchReferredNRIMembers = async (req, res) => {
   }
 };
 
+const geymyNris = async (req, res) => {
+  const mobileNumber = req.mobileNumber;
+  try {
+    const referredMembers = await NRIMember.find({
+      AddedBy: mobileNumber,
+    });
+    res.status(200).json({ message: "Your NRI Members", referredMembers });
+  } catch (error) {
+    console.error("Error fetching referred members:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   NRIMemberSign,
   fetchReferredNRIMembers,
   getNRI,
   updateNRIDetails,
   NRILogin,
+  geymyNris,
 };

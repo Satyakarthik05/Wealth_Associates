@@ -88,7 +88,7 @@ const RegisterExecute = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -161,10 +161,10 @@ const RegisterExecute = ({ closeModal }) => {
       Contituency: constituency,
       Locations: location,
       Occupation: occupation,
-      ReferredBy: referralCode || "WA0000000001",
+      ReferredBy: Details.MobileNumber ? Details.MobileNumber : "investor",
       Password: "Wealth",
-      MyRefferalCode: referenceId,
-      RegisteredBY: "CoreMember",
+      MyRefferalCode: "Investor",
+      RegisteredBY: "Investor",
     };
 
     try {

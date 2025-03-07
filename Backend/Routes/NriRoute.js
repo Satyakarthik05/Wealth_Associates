@@ -5,8 +5,10 @@ const {
   NRILogin,
   getNRI,
   updateNRIDetails,
+  geymyNris,
 } = require("../Controllers/NriController");
 const verifyNriToken = require("../middleWares/NriToken");
+const verifyUser = require("../middleWares/VerifyUser");
 
 const router = express.Router();
 
@@ -18,5 +20,6 @@ router.get("/referred-members", fetchReferredNRIMembers);
 router.post("/nrilogin", NRILogin);
 router.get("/getnri", verifyNriToken, getNRI);
 router.post("/updatenri", updateNRIDetails);
+router.get("/getmynris", verifyUser, geymyNris);
 
 module.exports = router;

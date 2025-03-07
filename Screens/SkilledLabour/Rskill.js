@@ -83,7 +83,7 @@ const Rskill = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber, // Ensure this is correctly set
+          AddedBy: Details.MobileNumber,
           RegisteredBy: "WealthAssociate",
         }),
       });

@@ -27,7 +27,7 @@ export default function ViewInvesters() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/investors/AdminInvestor`, {
+        const response = await fetch(`${API_URL}/investors/getagentinvestor`, {
           method: "GET",
           headers: {
             token: `${token}` || "",

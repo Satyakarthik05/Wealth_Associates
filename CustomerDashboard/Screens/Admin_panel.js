@@ -47,6 +47,7 @@ import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import ViewInvesters from "./Investors/ViewInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
+import AddInvestor from "./Investors/AddInvestors";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -92,15 +93,15 @@ const menuItems = [
       "All Skilled Labours",
     ],
   },
-  {
-    title: "Refer",
-    icon: "trophy-outline",
-    subItems: ["Refer a Member"],
-  },
+  // {
+  //   title: "Refer",
+  //   icon: "trophy-outline",
+  //   subItems: ["Refer a Member"],
+  // },
   {
     title: "Investors",
     icon: "business-outline",
-    subItems: [ "View Investors", "View All Investors"],
+    subItems: ["Add Investor", "View Investors", "View All Investors"],
   },
   {
     title: "NRI Club",
@@ -142,10 +143,12 @@ const Admin_panel = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [expertType, setExpertType] = useState(null);
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
-  const [isViewAllInvestersVisible, setIsViewAllInvestersVisible] = useState(false);
+  const [isViewAllInvestersVisible, setIsViewAllInvestersVisible] =
+    useState(false);
   const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
   const [isAddNriVisible, setIsAddNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isAddInvestVisible, setIsAddInvestVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -205,6 +208,7 @@ const Admin_panel = () => {
     setIsViewInvestVisible(false);
     setIsAddNriVisible(false);
     setIsViewNriVisible(false);
+    setIsAddInvestVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -252,6 +256,8 @@ const Admin_panel = () => {
       setIsAddNriVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
+    } else if (subItem === "Add Investor") {
+      setIsAddInvestVisible(true);
     }
   };
 
@@ -277,6 +283,7 @@ const Admin_panel = () => {
     setIsViewInvestVisible(false);
     setIsAddNriVisible(false);
     setIsViewNriVisible(false);
+    setIsAddInvestVisible(false);
   };
 
   const renderContent = () => {
@@ -373,6 +380,8 @@ const Admin_panel = () => {
             setIsViewInvestVisible(false);
             setIsAddNriVisible(false);
             setIsViewNriVisible(false);
+            setIsAddInvestVisible(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image
@@ -409,6 +418,7 @@ const Admin_panel = () => {
                 setIsViewInvestVisible(false);
                 setIsAddNriVisible(false);
                 setIsViewNriVisible(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>
@@ -526,6 +536,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isAddNriVisible} closeModal={closeModal}>
         <AddNRIMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddInvestVisible} closeModal={closeModal}>
+        <AddInvestor closeModal={closeModal} />
       </CustomModal>
     </View>
   );

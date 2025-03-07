@@ -38,7 +38,7 @@ const PostProperty = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -46,7 +46,7 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileNumber);
+      setPostedBy(newDetails.MobileIN);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
