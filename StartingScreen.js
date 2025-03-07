@@ -38,24 +38,24 @@ const StartingScreen = () => {
     {
       name: "Referral",
       icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
-      navigateTo: "ReferralDashboard", // Navigate to ReferralDashboard
+      navigateTo: "Login", // Navigate to ReferralDashboard
     },
     {
       name: "Investor",
       icon: (
         <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
       ),
-      navigateTo: "InvestorDashboard", // Navigate to InvestorDashboard
+      navigateTo: "InvestorDashboard",
     },
     {
       name: "NRI",
       icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
-      navigateTo: "NriLogin", // Navigate to NRIDashboard
+      navigateTo: "NriDashboard", // Navigate to NRIDashboard
     },
     {
       name: "Skilled Resource",
       icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
-      navigateTo: "SkilledResourceDashboard", // Navigate to SkilledResourceDashboard
+      navigateTo: "SkillDashboard", // Navigate to SkilledResourceDashboard
     },
   ];
 

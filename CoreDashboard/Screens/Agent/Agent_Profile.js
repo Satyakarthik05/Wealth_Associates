@@ -41,7 +41,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: token || "",
@@ -64,7 +64,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.agentProfileText}>Agent Profile</Text>
+        <Text style={styles.agentProfileText}>Customer Profile</Text>
         {loading ? (
           <ActivityIndicator
             size="large"
@@ -125,12 +125,12 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
 const profileFields = [
   { label: "Full Name", icon: "user", key: "FullName" },
   { label: "Mobile Number", icon: "phone", key: "MobileNumber" },
-  { label: "Email", icon: "envelope", key: "Email" },
+  { label: "Password", icon: "envelope", key: "Password" },
   { label: "Select District", icon: "map-marker", key: "District" },
   { label: "Select Constituency", icon: "location-arrow", key: "Contituency" },
   { label: "Location", icon: "map", key: "Locations" },
-  { label: "Select Expertise", icon: "briefcase", key: "Expertise" },
-  { label: "Select Experience", icon: "calendar", key: "Experience" },
+  { label: "Select Occupation", icon: "briefcase", key: "Occupation" },
+  // { label: "Select Experience", icon: "calendar", key: "Experience" },
   { label: "Referral Code", icon: "users", key: "MyRefferalCode" },
 ];
 

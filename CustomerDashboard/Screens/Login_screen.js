@@ -51,7 +51,8 @@ export default function Login_screen() {
 
       if (response.status === 200) {
         const token = data.token; // Assuming the token is in the 'token' field
-        await AsyncStorage.setItem("authToken", token); // Store the token in AsyncStorage
+        await AsyncStorage.setItem("authToken", token);
+        await AsyncStorage.setItem("userType", "Customer"); // Store the token in AsyncStorage
         console.log("Token stored in AsyncStorage:", token);
 
         navigation.navigate("Home");
@@ -67,22 +68,22 @@ export default function Login_screen() {
       setLoading(false);
     }
   };
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const onBackPress = () => {
-  //       Alert.alert("Exit App", "Are you sure you want to exit?", [
-  //         { text: "Cancel", style: "cancel" },
-  //         { text: "Exit", onPress: () => BackHandler.exitApp() },
-  //       ]);
-  //       return true; // Prevent navigating back
-  //     };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; // Prevent navigating back
+      };
 
-  //     BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-  //     return () =>
-  //       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  //   }, [])
-  // );
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

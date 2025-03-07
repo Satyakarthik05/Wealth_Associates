@@ -514,7 +514,11 @@ const Register_screen = () => {
             >
               <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              disabled={isLoading}
+              onPress={() => navigation.navigate("RegisterAS")}
+            >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -527,7 +531,7 @@ const Register_screen = () => {
             />
           )}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.loginText}
             onPress={() => navigation.navigate("Login")}
           >
@@ -535,7 +539,7 @@ const Register_screen = () => {
               Already have an account?{" "}
               <Text style={styles.loginLink}>Login here</Text>
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             style={{ marginTop: 5 }}
             onPress={() => navigation.navigate("PrivacyPolicy")}

@@ -56,6 +56,7 @@ export default function Login_screen() {
         if (response.status === 200) {
           const token = data.token;
           await AsyncStorage.setItem("authToken", token);
+          await AsyncStorage.setItem("userType", "WealthAssociate");
           console.log("Token stored in AsyncStorage:", token);
 
           navigation.navigate("Home");
@@ -73,22 +74,22 @@ export default function Login_screen() {
     }
   };
 
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const onBackPress = () => {
-  //       Alert.alert("Exit App", "Are you sure you want to exit?", [
-  //         { text: "Cancel", style: "cancel" },
-  //         { text: "Exit", onPress: () => BackHandler.exitApp() },
-  //       ]);
-  //       return true; // Prevent navigating back
-  //     };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; // Prevent navigating back
+      };
 
-  //     BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-  //     return () =>
-  //       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  //   }, [])
-  // );
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -191,7 +192,7 @@ export default function Login_screen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.signupContainer}
             onPress={() => navigation.navigate("Register")}
           >
@@ -199,7 +200,7 @@ export default function Login_screen() {
               Don't have an account?{" "}
               <Text style={styles.signupLink}>Sign up here</Text>
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>

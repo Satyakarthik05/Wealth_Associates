@@ -10,5 +10,6 @@ app.get("/getallcoremembers", CoreController.getAllCoreMembers);
 app.post("/coreLogin", CoreController.coreLogin);
 app.get("/myagents", verifyCoreToken, CoreController.fetchReferredAgents);
 app.get("/mycustomers", verifyCoreToken, CoreController.fetchReferredCustomers);
+app.post("/updateCoreDetails", CoreController.updateCoreDetails);
 
 module.exports = app;

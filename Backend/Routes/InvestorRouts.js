@@ -6,8 +6,11 @@ const {
   fetchAdminInvestors,
   deleteInvestor,
   fetchInvestors,
+  InvestorLogin,
+  getInvestor,
+  updateInvestorDetails,
 } = require("../Controllers/InvestorController");
-const verifyAgentToken = require("../middleWares/VerifyAgentToken");
+const verifyInvestorToken = require("../middleWares/InvestorToken");
 const verifyUser = require("../middleWares/VerifyUser");
 
 const router = express.Router();
@@ -20,5 +23,8 @@ router.get("/list", fetchInvestors);
 router.get("/getagentinvestor", verifyUser, fetchAgentInvestors);
 router.get("/AdminInvestor", fetchAdminInvestors);
 router.delete("/delete/:id", deleteInvestor);
+router.post("/investorlogin", InvestorLogin);
+router.get("/getinvestor", verifyInvestorToken, getInvestor);
+router.post("/updateInvestor", updateInvestorDetails);
 
 module.exports = router;

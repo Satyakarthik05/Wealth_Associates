@@ -50,18 +50,15 @@ export default function CustomerDashboard() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        <Stack.Navigator>
-        <Stack.Screen
+        <Stack.Navigator
+          initialRouteName={isLoggedIn ? "Home" : "Login"} // Set initial route based on login status
+        >
+          <Stack.Screen
             name="Login"
             component={Login_screen}
             options={{ headerShown: false }}
-          /> 
-            <Stack.Screen
-              name="Register"
-              component={Register_Screen}
-              options={{ headerShown: false }}
-            />
-          
+          />
+
           <Stack.Screen
             name="Forgetpassword"
             component={ForgotPassword}
@@ -77,7 +74,6 @@ export default function CustomerDashboard() {
             component={New_Password}
             options={{ headerShown: false }}
           />
-         
           <Stack.Screen
             name="Home"
             component={Admin_panel}

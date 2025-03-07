@@ -14,6 +14,7 @@ app.get(
   verifyAgentToken,
   CustomerController.fetchReferredCustomers
 );
+app.post("/updateCustomerDetails", CustomerController.updateCustomerDetails);
 app.get("/allcustomers", CustomerController.getAllCustomers);
 app.delete("/deletecustomer/:id", CustomerController.deleteCustomer);
 
