@@ -8,7 +8,6 @@ import {
   StyleSheet,
   FlatList,
   Platform,
-  TextInput,
   StatusBar,
   ScrollView,
   Modal,
@@ -99,7 +98,7 @@ const menuItems = [
   },
   {
     title: "NRI Club",
-    icon: "globe-outline", // 🌍 Represents an international community
+    icon: "globe-outline", 
     subItems: ["Add NRI Member", "View NRI Members"],
   },
 ];

@@ -26,7 +26,7 @@ const AddDistrictModal = ({ closeModal }) => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/addDistrict`, {
+      const response = await fetch(`${API_URL}/discons/addDistrict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

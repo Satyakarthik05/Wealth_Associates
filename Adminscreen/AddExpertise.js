@@ -8,20 +8,63 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl"; // Import the API URL
 
 const { width } = Dimensions.get("window"); // Get screen width
 const isMobile = width < 600; // Detect mobile devices
 
 const AddExpertiseModal = ({ closeModal }) => {
-  const [role, setRole] = useState("");
+  const [expertise, setExpertise] = useState(""); // State for expertise name
+  const [code, setCode] = useState(""); // State for expertise code
+
+  // Function to handle adding expertise
+  const handleAddExpertise = async () => {
+    if (!expertise || !code) {
+      Alert.alert("Error", "Please enter both expertise name and code.");
+      return;
+    }
+
+    try {
+      // Make a POST request to the backend using fetch
+      const response = await fetch(`${API_URL}/discons/addexpertise`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: expertise,
+          code: code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Expertise added successfully!");
+        closeModal(); // Close the modal after successful addition
+      } else {
+        Alert.alert("Error", data.message || "Failed to add expertise.");
+      }
+    } catch (error) {
+      console.error("Error adding expertise:", error);
+      Alert.alert("Error", "Failed to add expertise. Please try again.");
+    }
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.wrapper}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.wrapper}
+    >
       <View
         style={[
           styles.container,
-          { width: Platform.OS === "web" ? "80%" : "90%", maxWidth: Platform.OS === "web" ? 350 : 400 },
+          {
+            width: Platform.OS === "web" ? "80%" : "90%",
+            maxWidth: Platform.OS === "web" ? 350 : 400,
+          },
         ]}
       >
         {/* Header */}
@@ -29,20 +72,34 @@ const AddExpertiseModal = ({ closeModal }) => {
           <Text style={styles.headerText}>Add Expertise</Text>
         </View>
 
-        {/* Input Field */}
+        {/* Input Field for Expertise Name */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Expertise</Text>
+          <Text style={styles.label}>Expertise Name</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex. Open Lands"
-            value={role}
-            onChangeText={setRole}
+            value={expertise}
+            onChangeText={setExpertise}
+          />
+        </View>
+
+        {/* Input Field for Expertise Code */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Expertise Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 01"
+            value={code}
+            onChangeText={setCode}
           />
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddExpertise}
+          >
             <Text style={styles.addText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -54,6 +111,7 @@ const AddExpertiseModal = ({ closeModal }) => {
   );
 };
 
+// Styles remain the same as in your original code
 const styles = StyleSheet.create({
   wrapper: {
     position: "absolute",
@@ -63,7 +121,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // No black overlay on web
     paddingHorizontal: 10,
   },
   container: {
