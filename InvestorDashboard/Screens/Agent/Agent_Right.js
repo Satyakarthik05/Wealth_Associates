@@ -133,6 +133,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         location: item.location,
         budget: `₹${item.Budget.toLocaleString()}`,
         image: getImageByPropertyType(item.propertyType),
+        createdAt: item.createdAt,
       }));
       setPropertiess(formattedProperties);
       setLoading(false);
@@ -160,6 +161,22 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   useEffect(() => {
     fetchProperties();
   }, []);
+  const getPropertyTag = (createdAt) => {
+    const currentDate = new Date();
+    const propertyDate = new Date(createdAt);
+    const timeDifference = currentDate - propertyDate;
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (daysDifference <= 3) {
+      return "Regular Property";
+    } else if (daysDifference >= 4 && daysDifference <= 17) {
+      return "Approved Property";
+    } else if (daysDifference >= 18 && daysDifference <= 25) {
+      return "Wealth Property";
+    } else {
+      return "Listed Property";
+    }
+  };
 
   const fetchProperties = async () => {
     try {
@@ -355,12 +372,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
@@ -386,12 +404,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}

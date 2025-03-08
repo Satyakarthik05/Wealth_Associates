@@ -214,6 +214,53 @@ const getAllCoreMembers = async (req, res) => {
   }
 };
 
+const deleteCore = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find and delete the agent by ID
+    const deletedAgent = await core.findByIdAndDelete(id);
+
+    if (!deletedAgent) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Agent deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+const updateCoreByadmin = async (req, res) => {
+  const { id } = req.params;
+  const { FullName, District, Contituency, MobileNumber, MyRefferalCode } =
+    req.body;
+
+  try {
+    const updatedAgent = await core.findByIdAndUpdate(
+      id,
+      { FullName, District, Contituency, MobileNumber, MyRefferalCode },
+      { new: true }
+    );
+
+    if (!updatedAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Agent updated successfully", data: updatedAgent });
+  } catch (error) {
+    console.error("Error updating agent:", error);
+    res.status(500).json({ message: "Failed to update agent" });
+  }
+};
+
 module.exports = {
   CoreSign,
   coreLogin,
@@ -222,4 +269,6 @@ module.exports = {
   fetchReferredCustomers,
   getAllCoreMembers,
   updateCoreDetails,
+  deleteCore,
+  updateCoreByadmin,
 };

@@ -170,6 +170,27 @@ const deleteSkillLabour = async (req, res) => {
   }
 };
 
+const UpdateSkillAdmin = async (req, res) => {
+  const { id } = req.params;
+  const { FullName, SelectSkill, MobileNumber, Location } = req.body;
+
+  try {
+    const updatedLabour = await SkilledLabour.findByIdAndUpdate(
+      id,
+      { FullName, SelectSkill, MobileNumber, Location },
+      { new: true }
+    );
+
+    if (!updatedLabour) {
+      return res.status(404).json({ message: "Skilled labour not found" });
+    }
+
+    res.status(200).json(updatedLabour);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating skilled labour", error });
+  }
+};
+
 module.exports = {
   registerSkilledLabour,
   fetchSkilledLabours,
@@ -179,4 +200,5 @@ module.exports = {
   SkillLogin,
   getSkilled,
   updateSkilledDetails,
+  UpdateSkillAdmin,
 };

@@ -169,6 +169,28 @@ const deleteInvestor = async (req, res) => {
   }
 };
 
+const UpdateInvestorAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { FullName, SelectSkill, MobileNumber, Location } = req.body;
+
+    const updatedInvestor = await Investors.findByIdAndUpdate(
+      id,
+      { FullName, SelectSkill, MobileNumber, Location },
+      { new: true }
+    );
+
+    if (!updatedInvestor) {
+      return res.status(404).json({ message: "Investor not found" });
+    }
+
+    res.status(200).json(updatedInvestor);
+  } catch (error) {
+    console.error("Error updating investor:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerInvestors,
   fetchAdminInvestors,
@@ -178,4 +200,5 @@ module.exports = {
   InvestorLogin,
   getInvestor,
   updateInvestorDetails,
+  UpdateInvestorAdmin,
 };

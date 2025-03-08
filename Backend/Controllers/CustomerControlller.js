@@ -264,6 +264,32 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
+const updatecustomerAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { FullName, MobileNumber, Occupation, MyRefferalCode } = req.body;
+
+    const updatedCustomer = await CustomerSchema.findByIdAndUpdate(
+      id,
+      { FullName, MobileNumber, Occupation, MyRefferalCode },
+      { new: true }
+    );
+
+    if (!updatedCustomer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(200).json({
+      message: "Customer updated successfully",
+      data: updatedCustomer,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating customer", error: error.message });
+  }
+};
+
 module.exports = {
   CustomerSign,
   fetchReferredCustomers,
@@ -273,4 +299,5 @@ module.exports = {
   deleteCustomer,
   updateCustomerDetails,
   getMyInvestorCustomers,
+  updatecustomerAdmin,
 };
