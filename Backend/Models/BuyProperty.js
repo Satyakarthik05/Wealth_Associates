@@ -1,18 +1,18 @@
 const mongoose = require("mongoose");
 
-const propertySchema = new mongoose.Schema(
+const BuySchema = new mongoose.Schema(
   {
     propertyType: { type: String, required: true },
     location: { type: String, required: true },
     price: { type: Number, required: true },
-    photo: { type: String, required: true },
     PostedBy: { type: Number, required: true },
-    PostedUserType: { type: String },
+    WantedBy: { type: String, required: true },
+    WantedUserType: { type: String },
     editedAt: { type: Date },
   },
   { timestamps: true }
 );
 
-const Property = mongoose.model("Property", propertySchema);
+const BuyProperty = mongoose.model("BuyProperty", BuySchema);
 
-module.exports = Property;
+module.exports = BuyProperty;
