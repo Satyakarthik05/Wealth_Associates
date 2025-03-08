@@ -9,6 +9,8 @@ import {
   Platform,
   TouchableOpacity,
   Alert,
+  Modal,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
@@ -18,6 +20,14 @@ const { width } = Dimensions.get("window");
 export default function ViewCustomers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [editedCustomer, setEditedCustomer] = useState({
+    FullName: "",
+    MobileNumber: "",
+    Occupation: "",
+    MyRefferalCode: "",
+  });
 
   useEffect(() => {
     fetchCustomers();
@@ -50,6 +60,49 @@ export default function ViewCustomers() {
     } catch (error) {
       console.error("Error deleting customer:", error);
       Alert.alert("Error", "Failed to delete customer.");
+    }
+  };
+
+  const openEditModal = (customer) => {
+    setSelectedCustomer(customer);
+    setEditedCustomer({
+      FullName: customer.FullName,
+      MobileNumber: customer.MobileNumber,
+      Occupation: customer.Occupation,
+      MyRefferalCode: customer.MyRefferalCode,
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleEditCustomer = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/customer/updatecustomer/${selectedCustomer._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedCustomer),
+        }
+      );
+      if (response.ok) {
+        const updatedCustomer = await response.json();
+        setCustomers(
+          customers.map((customer) =>
+            customer._id === updatedCustomer.data._id
+              ? updatedCustomer.data
+              : customer
+          )
+        );
+        setEditModalVisible(false);
+        Alert.alert("Success", "Customer updated successfully.");
+      } else {
+        throw new Error("Failed to update customer");
+      }
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      Alert.alert("Error", "Failed to update customer.");
     }
   };
 
@@ -103,6 +156,12 @@ export default function ViewCustomers() {
                 )}
               </View>
               <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => openEditModal(item)}
+              >
+                <Text style={styles.editText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => deleteCustomer(item._id)}
               >
@@ -114,6 +173,63 @@ export default function ViewCustomers() {
           <Text style={styles.noCustomersText}>No customers found.</Text>
         )}
       </View>
+
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Customer</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={editedCustomer.FullName}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, FullName: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              value={editedCustomer.MobileNumber}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, MobileNumber: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Occupation"
+              value={editedCustomer.Occupation}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, Occupation: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Referral Code"
+              value={editedCustomer.MyRefferalCode}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, MyRefferalCode: text })
+              }
+            />
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleEditCustomer}
+            >
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setEditModalVisible(false)}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -191,6 +307,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
+  editButton: {
+    marginTop: 10,
+    backgroundColor: "blue",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  editText: {
+    color: "white",
+    fontWeight: "bold",
+  },
   deleteButton: {
     marginTop: 10,
     backgroundColor: "red",
@@ -199,6 +327,52 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   deleteText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: width > 600 ? "50%" : "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+  },
+  saveButton: {
+    backgroundColor: "blue",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  saveText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "red",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelText: {
     color: "white",
     fontWeight: "bold",
   },

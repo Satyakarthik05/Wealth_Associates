@@ -8,20 +8,63 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl"; // Import the API URL
 
 const { width } = Dimensions.get("window"); // Get screen width
 const isMobile = width < 600; // Detect mobile devices
 
 const AddProTypeModal = ({ closeModal }) => {
-  const [role, setRole] = useState("");
+  const [propertyType, setPropertyType] = useState(""); // State for property type name
+  const [code, setCode] = useState(""); // State for property type code
+
+  // Function to handle adding property type
+  const handleAddPropertyType = async () => {
+    if (!propertyType || !code) {
+      Alert.alert("Error", "Please enter both property type and code.");
+      return;
+    }
+
+    try {
+      // Make a POST request to the backend using fetch
+      const response = await fetch(`${API_URL}/discons/addproperty-type`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: propertyType,
+          code: code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Property type added successfully!");
+        closeModal(); // Close the modal after successful addition
+      } else {
+        Alert.alert("Error", data.message || "Failed to add property type.");
+      }
+    } catch (error) {
+      console.error("Error adding property type:", error);
+      Alert.alert("Error", "Failed to add property type. Please try again.");
+    }
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.wrapper}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.wrapper}
+    >
       <View
         style={[
           styles.container,
-          { width: Platform.OS === "web" ? "80%" : "90%", maxWidth: Platform.OS === "web" ? 350 : 400 },
+          {
+            width: Platform.OS === "web" ? "80%" : "90%",
+            maxWidth: Platform.OS === "web" ? 350 : 400,
+          },
         ]}
       >
         {/* Header */}
@@ -29,20 +72,34 @@ const AddProTypeModal = ({ closeModal }) => {
           <Text style={styles.headerText}>Add Property Type</Text>
         </View>
 
-        {/* Input Field */}
+        {/* Input Field for Property Type */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Property  Type</Text>
+          <Text style={styles.label}>Property Type</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex. Apartment"
-            value={role}
-            onChangeText={setRole}
+            value={propertyType}
+            onChangeText={setPropertyType}
+          />
+        </View>
+
+        {/* Input Field for Property Type Code */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 100"
+            value={code}
+            onChangeText={setCode}
           />
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddPropertyType}
+          >
             <Text style={styles.addText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -54,6 +111,7 @@ const AddProTypeModal = ({ closeModal }) => {
   );
 };
 
+// Styles remain the same as in your original code
 const styles = StyleSheet.create({
   wrapper: {
     position: "absolute",
@@ -63,7 +121,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // No black overlay on web
     paddingHorizontal: 10,
   },
   container: {

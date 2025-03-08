@@ -2,6 +2,7 @@ const express = require("express");
 const CustomerController = require("../Controllers/CustomerControlller");
 const verifyAgentToken = require("../middleWares/VerifyAgentToken");
 const verifCustomerToken = require("../middleWares/VerifyCustomerToken");
+const verifyUser = require("../middleWares/VerifyUser");
 // const ForgetPassword = require("../Controllers/ForgetPasswordController");
 
 const app = express.Router();
@@ -14,10 +15,16 @@ app.get(
   verifyAgentToken,
   CustomerController.fetchReferredCustomers
 );
+app.post("/updateCustomerDetails", CustomerController.updateCustomerDetails);
 app.get("/allcustomers", CustomerController.getAllCustomers);
 app.delete("/deletecustomer/:id", CustomerController.deleteCustomer);
 
 app.post("/CustomerLogin", CustomerController.customerLogin);
-// app.post("/ForgetPassword", ForgetPassword.ForgetPassword);
+app.get(
+  "/getmycustomer",
+  verifyUser,
+  CustomerController.getMyInvestorCustomers
+);
+app.put("/updatecustomer/:id", CustomerController.updatecustomerAdmin);
 
 module.exports = app;

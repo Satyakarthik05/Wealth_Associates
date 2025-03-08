@@ -7,10 +7,10 @@ const propertySchema = new mongoose.Schema(
     price: { type: Number, required: true },
     photo: { type: String, required: true },
     PostedBy: { type: Number, required: true },
-    PostedUserType: { type: String }, // agent, coreMember, customerMember, admin
-    editedAt: { type: Date }, // Stores the last edit timestamp
+    PostedUserType: { type: String },
+    editedAt: { type: Date },
   },
-  { timestamps: true } // Adds createdAt and updatedAt fields
+  { timestamps: true }
 );
 
 const Property = mongoose.model("Property", propertySchema);

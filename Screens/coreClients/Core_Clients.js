@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 // import { StyleSheet, Text, View } from "react-native";
 import {
   View,
@@ -10,6 +10,7 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import { API_URL } from "../../data/ApiUrl";
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -21,6 +22,22 @@ const coreClients = [
 ];
 
 const Core_Clients = () => {
+  const [coreClients, setCoreClients] = useState([]);
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreCProject = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreCProject();
+  }, []);
+
   return (
     <View>
       <Text style={styles.sectionTitle}>Core Clients</Text>
@@ -28,7 +45,7 @@ const Core_Clients = () => {
         {coreClients.map((client, index) => (
           <View key={index} style={styles.card}>
             <Image
-              source={client.logo}
+              source={{ uri: `${API_URL}${client.photo}` }}
               style={styles.logo}
               resizeMode="contain"
             />

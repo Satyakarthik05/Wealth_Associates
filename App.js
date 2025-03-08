@@ -2,47 +2,76 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import Login_screen from "./Screens/Login_screen";
-import RegisterScreen from "./Screens/Register_screen";
-import Admin_panel from "./Screens/Admin_panel";
+// import { NavigationContainer } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import MainScreen from "./Screens/MainScreen";
+import RegisterAsScreen from "./Screens/Register_change";
 import ForgotPassword from "./Screens/ForgetPassword";
 import OTPVerification from "./Screens/OtpVerification";
-import New_Password from "./Screens/New_Password";
-import Agent_Profile from "./Screens/Agent/Agent_Profile";
-import PrivacyPolicy from "./Screens/PrivacyPolicy";
-import StartingScreen from "./StartingScreen";
+import RegisterScreen from "./Screens/Register_screen";
+import RegisterCustomer from "./Screens/Customer_Register";
+import Login_screen from "./Screens/Login_screen";
+import Admin_panel from "./Screens/Admin_panel";
 import CustomerDashboard from "./CustomerDashboard/CustomerDashboard";
-import { NavigationIndependentTree } from "@react-navigation/native";
 import CoreDashboard from "./CoreDashboard/CoreDashboard";
+import RLogin_screen from "./Refferal/Screens/Login_screen";
+import PrivacyPolicy from "./Screens/PrivacyPolicy";
 import Admin from "./Admin_Pan/AdminDashboard";
-import LoginPageScreen from "./Screens/pagetwo.js/LoginPage";
-import { StatusBar } from "expo-status-bar";
-import MainScreen from "./Screens/MainScreen";
+import SkillDasboard from "./SkillDashboard/SkillDashboard";
+import NriDashboard from "./NriDashboard/NriDashboard";
+import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
+import { NavigationIndependentTree } from "@react-navigation/native";
+import StartingScreen from "./StartingScreen";
 
 const Stack = createStackNavigator();
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(null); // Track login state
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState("Main Screen");
 
-  // Check login status on app start
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const token = await AsyncStorage.getItem("authToken"); // Replace "userToken" with your key
-        setIsLoggedIn(token !== null); // Set login state based on token presence
+        const token = await AsyncStorage.getItem("authToken");
+        const userType = await AsyncStorage.getItem("userType");
+
+        if (token && userType) {
+          switch (userType) {
+            case "WealthAssociate":
+              setInitialRoute("Home");
+              break;
+            case "Customer":
+              setInitialRoute("CustomerDashboard");
+              break;
+            case "Investor":
+              setInitialRoute("InvestorDashboard");
+              break;
+            case "Coremember":
+              setInitialRoute("CoreDashboard");
+              break;
+            case "Referral":
+              setInitialRoute("Home");
+              break;
+            case "SkilledLabour":
+              setInitialRoute("SkillDashboard");
+              break;
+            case "Nri":
+              setInitialRoute("NriDashboard");
+              break;
+            default:
+              setInitialRoute("Main Screen");
+          }
+        }
       } catch (error) {
         console.error("Error checking login status:", error);
       } finally {
-        setIsLoading(false); // Stop loading
+        setIsLoading(false);
       }
     };
 
     checkLoginStatus();
   }, []);
 
-  // Show a loading indicator while checking login status
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -54,35 +83,20 @@ export default function App() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator initialRouteName={initialRoute}>
           <Stack.Screen
             name="Main Screen"
             component={MainScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Starting Screen"
-            component={StartingScreen}
+            name="RegisterAS"
+            component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
-          {isLoggedIn ? (
-            // If logged in, show the Home screen
-            <Stack.Screen
-              name="Homes"
-              component={Admin_panel}
-              options={{ headerShown: false }}
-            />
-          ) : (
-            // If not logged in, show the Login screen
-            <Stack.Screen
-              name="Logins"
-              component={Login_screen}
-              options={{ headerShown: false }}
-            />
-          )}
           <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
+            name="Starting Screen"
+            component={StartingScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -96,8 +110,13 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="newpassword"
-            component={New_Password}
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="RegisterCustomer"
+            component={RegisterCustomer}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -121,6 +140,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="RefferalDashboard"
+            component={RLogin_screen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicy}
             options={{ headerShown: true }}
@@ -129,13 +153,22 @@ export default function App() {
             name="Admin"
             component={Admin}
             options={{ headerShown: false }}
-          /> 
-         <Stack.Screen
-            name="LogPage"
-            component={LoginPageScreen}
+          />
+          <Stack.Screen
+            name="SkillDashboard"
+            component={SkillDasboard}
             options={{ headerShown: false }}
           />
-          
+          <Stack.Screen
+            name="NriDashboard"
+            component={NriDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="InvestorDashboard"
+            component={InvestorDashboard}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

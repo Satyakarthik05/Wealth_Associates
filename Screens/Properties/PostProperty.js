@@ -25,6 +25,7 @@ const PostProperty = ({ closeModal }) => {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [photo, setPhoto] = useState(null);
+  const [file, setFile] = useState(null); // Added for web file handling
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
@@ -32,17 +33,6 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
-
-  function blobToFile(blob, fileName) {
-    return new File([blob], fileName, { type: blob.type });
-  }
-
-  // const propertyTypes = [
-  //   { name: "villas", code: "01" },
-  //   { name: "Commersial", code: "02" },
-  //   { name: "Land", code: "03" },
-  //   { name: "House", code: "04" },
-  // ];
 
   // Fetch agent details
   const getDetails = async () => {
@@ -101,41 +91,45 @@ const PostProperty = ({ closeModal }) => {
     if (validateForm()) {
       setLoading(true);
       try {
-        let response;
-        if (Platform.OS === "web") {
-          const file = await blobToFile(photo, "photo.jpg");
+        const formData = new FormData();
+        formData.append("propertyType", propertyType);
+        formData.append("location", location);
+        formData.append("price", price);
+        formData.append("PostedBy", PostedBy);
 
-          const formData = new FormData();
-          formData.append("propertyType", propertyType);
-          formData.append("location", location);
-          formData.append("price", price);
-          formData.append("photo", file);
-          formData.append("PostedBy", PostedBy);
-
-          response = await fetch(`${API_URL}/properties/addProperty`, {
-            method: "POST",
-            body: formData,
-          });
+        // Handle image upload
+        if (photo) {
+          if (Platform.OS === "web") {
+            if (file) {
+              // Append the file for web
+              formData.append("photo", file);
+            } else if (typeof photo === "string" && photo.startsWith("blob:")) {
+              // Convert Blob URL to File
+              const response = await fetch(photo);
+              const blob = await response.blob();
+              const file = new File([blob], "photo.jpg", { type: blob.type });
+              formData.append("photo", file);
+            }
+          } else {
+            // Append the image URI for mobile
+            formData.append("photo", {
+              uri: photo,
+              name: "photo.jpg",
+              type: "image/jpeg",
+            });
+          }
         } else {
-          const formData = new FormData();
-          formData.append("propertyType", propertyType);
-          formData.append("location", location);
-          formData.append("price", price);
-          formData.append("photo", {
-            uri: photo,
-            name: "photo.jpg",
-            type: "image/jpeg",
-          });
-          formData.append("PostedBy", PostedBy);
-
-          response = await fetch(`${API_URL}/properties/addProperty`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          console.error("No photo selected.");
+          return;
         }
+
+        const response = await fetch(`${API_URL}/properties/addProperty`, {
+          method: "POST",
+          body: formData,
+          headers: {
+            // Don't set Content-Type for FormData, it is automatically set by the browser
+          },
+        });
 
         const result = await response.json();
         if (response.ok) {
@@ -153,29 +147,48 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Select image from gallery
   const selectImageFromGallery = async () => {
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (Platform.OS === "web") {
+        // Handle image selection for web
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setPhoto(imageUrl); // Set the image URL for display
+            setFile(file); // Store the file for FormData
+          }
+        };
+        input.click();
+      } else {
+        // Handle image selection for mobile
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (permissionResult.status !== "granted") {
-        alert("Permission is required to upload a photo.");
-        return;
-      }
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to upload a photo.");
+          return;
+        }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setPhoto(result.assets[0].uri);
+        }
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
     }
   };
 
+  // Take photo with camera
   const takePhotoWithCamera = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -259,7 +272,7 @@ const PostProperty = ({ closeModal }) => {
               <View style={styles.dropdownContainer}>
                 {filteredPropertyTypes.map((item) => (
                   <TouchableOpacity
-                    key={item.code}
+                    key={`${item.code}-${item.name}`}
                     style={styles.listItem}
                     onPress={() => {
                       setPropertyType(item.name);
@@ -324,7 +337,7 @@ const PostProperty = ({ closeModal }) => {
   );
 };
 
-// Styles
+// Styles (unchanged)
 const styles = StyleSheet.create({
   container: {
     marginTop: Platform.OS === "ios" ? 90 : 0,

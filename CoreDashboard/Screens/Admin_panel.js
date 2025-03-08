@@ -43,6 +43,8 @@ import Modify_Deatils from "./Agent/Modify_Details";
 import ExpertRoute from "./ExpertPanel/ExpertRoute";
 import ExpertDetails from "./ExpertPanel/ExpertDetails";
 import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
+import AddInvestor from "./Investors/AddInvestors";
+import ViewAllInvesters from "./Investors/ViewAllInvestors";
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -73,6 +75,13 @@ const menuItems = [
     icon: "cog-outline",
     subItems: ["View Expert Panel", "Request Expert Panel"],
   },
+
+  {
+    title: "Investors",
+    icon: "business-outline",
+    subItems: ["Add Investor", "View Investors", "View All Investors"],
+  },
+
   {
     title: "Core Clients",
     icon: "business-outline",
@@ -122,6 +131,8 @@ const Admin_panel = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [expertType, setExpertType] = useState(null);
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
+  const [isAddinvest, setIsAddinvest] = useState(false);
+  const [isviewAllinvestors, setIsviewAllinvestors] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -178,6 +189,8 @@ const Admin_panel = () => {
     setCoreClients(false);
     setCoreProjects(false);
     setisRsSkill(false);
+    setIsAddinvest(false);
+    setIsviewAllinvestors(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -217,6 +230,10 @@ const Admin_panel = () => {
       setIsExpertDetails(true);
     } else if (subItem === "All Skilled Labours") {
       setAllSkilledLabour(true);
+    } else if (subItem === "Add Investor") {
+      setIsAddinvest(true);
+    } else if (subItem === "View All Investors") {
+      setIsviewAllinvestors(true);
     }
   };
 
@@ -238,6 +255,8 @@ const Admin_panel = () => {
     setIsRequestExpertVisible(false);
     setAddPost(false);
     setisRsSkill(false);
+    setIsAddinvest(false);
+    setIsviewAllinvestors(false);
   };
 
   const renderContent = () => {
@@ -327,6 +346,9 @@ const Admin_panel = () => {
             setisRsSkill(false);
             setIsAgentProfile(false);
             setSelectedSubItem(null);
+            setIsAddinvest(false);
+            setIsviewAllinvestors(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image
@@ -359,6 +381,9 @@ const Admin_panel = () => {
                 setCoreClients(false);
                 setCoreProjects(false);
                 setisRsSkill(false);
+                setIsAddinvest(false);
+                setIsviewAllinvestors(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>
@@ -473,6 +498,12 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isRskill} closeModal={closeModal}>
         <Rskill closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddinvest} closeModal={closeModal}>
+        <AddInvestor closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
+        <ViewAllInvesters closeModal={closeModal} />
       </CustomModal>
     </View>
   );

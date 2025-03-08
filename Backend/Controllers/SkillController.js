@@ -1,6 +1,9 @@
 const express = require("express");
 const SkilledLabour = require("../Models/SkillModel");
 const AgentSchema = require("../Models/AgentModel");
+const jwt = require("jsonwebtoken");
+
+secret = "Wealth@123";
 
 const registerSkilledLabour = async (req, res) => {
   const {
@@ -22,6 +25,7 @@ const registerSkilledLabour = async (req, res) => {
 
     const newLabour = new SkilledLabour({
       FullName,
+      Password: "wa1234",
       SelectSkill,
       Location,
       MobileNumber,
@@ -36,6 +40,65 @@ const registerSkilledLabour = async (req, res) => {
     });
   } catch (error) {
     console.error("Error during registration:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const SkillLogin = async (req, res) => {
+  const { MobileNumber, Password } = req.body;
+
+  try {
+    const fetchSkill = await SkilledLabour.findOne({
+      MobileNumber: MobileNumber,
+      Password: Password,
+    });
+
+    if (!fetchSkill) {
+      res.status(400).json({ message: "SkilledLAbour not found" });
+    } else {
+      const token = await jwt.sign({ SkillId: fetchSkill._id }, secret, {
+        expiresIn: "30d",
+      });
+      res.status(200).json({ message: "Login Successful", token });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getSkilled = async (req, res) => {
+  try {
+    const agentDetails = await SkilledLabour.findById(req.SkillId);
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const updateSkilledDetails = async (req, res) => {
+  const { MobileNumber, FullName, SelectSkill, Location, Password } = req.body;
+
+  try {
+    const existingAgent = await SkilledLabour.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Password = Password || existingAgent.Password;
+    existingAgent.Location = Location || existingAgent.Location;
+    existingAgent.SelectSkill = SelectSkill || existingAgent.SelectSkill;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Investor details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -107,10 +170,35 @@ const deleteSkillLabour = async (req, res) => {
   }
 };
 
+const UpdateSkillAdmin = async (req, res) => {
+  const { id } = req.params;
+  const { FullName, SelectSkill, MobileNumber, Location } = req.body;
+
+  try {
+    const updatedLabour = await SkilledLabour.findByIdAndUpdate(
+      id,
+      { FullName, SelectSkill, MobileNumber, Location },
+      { new: true }
+    );
+
+    if (!updatedLabour) {
+      return res.status(404).json({ message: "Skilled labour not found" });
+    }
+
+    res.status(200).json(updatedLabour);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating skilled labour", error });
+  }
+};
+
 module.exports = {
   registerSkilledLabour,
   fetchSkilledLabours,
   fetchAddedSkillLAbours,
   fetchAdminSkill,
   deleteSkillLabour,
+  SkillLogin,
+  getSkilled,
+  updateSkilledDetails,
+  UpdateSkillAdmin,
 };

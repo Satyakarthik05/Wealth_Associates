@@ -19,74 +19,37 @@ import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
-const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
+const Modify_Details = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
-  const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [experience, setExperience] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [responseStatus, setResponseStatus] = useState(null);
-  const [expertiseSearch, setExpertiseSearch] = useState("");
-  const [experienceSearch, setExperienceSearch] = useState("");
-  const [showExpertiseList, setShowExpertiseList] = useState(false);
-  const [showExperienceList, setShowExperienceList] = useState(false);
-  const [Details, setDetails] = useState({});
-  const [isMobileEditable, setIsMobileEditable] = useState(false); // State to control mobile field editability
+  const [isMobileEditable, setIsMobileEditable] = useState(false);
 
   const mobileRef = useRef(null);
-  const emailRef = useRef(null);
-
-  const expertiseOptions = [
-    { name: "Residential", code: "01" },
-    { name: "Commercial", code: "02" },
-    { name: "Industrial", code: "03" },
-    { name: "Agricultural", code: "04" },
-  ];
-
-  const experienceOptions = [
-    { name: "0-1 years", code: "01" },
-    { name: "1-3 years", code: "02" },
-    { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
-  ];
-
-  const filteredExpertise = expertiseOptions.filter((item) =>
-    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
-  );
-
-  const filteredExperience = experienceOptions.filter((item) =>
-    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
-  );
 
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
         },
       });
       const newDetails = await response.json();
-      setDetails(newDetails);
 
-      // Pre-fill the form fields with the fetched details
+      // Directly set the form fields with fetched data
       if (newDetails.FullName) setFullname(newDetails.FullName);
       if (newDetails.MobileNumber) setMobile(newDetails.MobileNumber);
-      if (newDetails.Email) setEmail(newDetails.Email);
+      if (newDetails.Password) setPassword(newDetails.Password);
       if (newDetails.Locations) setLocation(newDetails.Locations);
-      if (newDetails.Expertise) {
-        setExpertise(newDetails.Expertise);
-        setExpertiseSearch(newDetails.Expertise);
-      }
-      if (newDetails.Experience) {
-        setExperience(newDetails.Experience);
-        setExperienceSearch(newDetails.Experience);
-      }
+      if (newDetails.Occupation) setOccupation(newDetails.Occupation);
     } catch (error) {
-      console.error("Error fetching agent details:", error);
+      console.error("Error fetching customer details:", error);
     }
   };
 
@@ -95,14 +58,7 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
   }, []);
 
   const handleRegister = async () => {
-    if (
-      !fullname ||
-      !mobile ||
-      !email ||
-      !location ||
-      !expertise ||
-      !experience
-    ) {
+    if (!fullname || !mobile || !location || !occupation || !password) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
@@ -112,29 +68,31 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email,
+      Password: password,
       Locations: location,
-      Expertise: expertise,
-      Experience: experience,
+      Occupation: occupation,
     };
 
     try {
-      const response = await fetch(`${API_URL}/agent/updateAgentDetails`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        `${API_URL}/customer/updateCustomerDetails`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
       setResponseStatus(response.status);
 
       if (response.ok) {
         Alert.alert("Success", "Details Updated successfully!");
-        setIsMobileEditable(false); // Disable mobile number field
+        setIsMobileEditable(false);
         closeModal();
         onDetailsUpdate();
-        if (onDetailsUpdated) onDetailsUpdated(); // Check if the function exists before calling
+        if (onDetailsUpdated) onDetailsUpdated();
       } else if (response.status === 400) {
         Alert.alert("Error", "Unable to Update details.");
       } else {
@@ -171,7 +129,6 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
           )}
 
           <View style={styles.webInputWrapper}>
-            {/* Row 1 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Fullname</Text>
@@ -205,8 +162,7 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                     value={mobile}
                     keyboardType="number-pad"
                     returnKeyType="next"
-                    onSubmitEditing={() => emailRef.current.focus()}
-                    editable={isMobileEditable} // Disable editing based on state
+                    editable={isMobileEditable}
                   />
                   <MaterialIcons
                     name="phone"
@@ -216,100 +172,9 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                   />
                 </View>
               </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    ref={emailRef}
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setEmail}
-                    returnKeyType="next"
-                  />
-                  <MaterialIcons
-                    name="email"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
-                </View>
-              </View>
             </View>
 
-            {/* Row 2 */}
             <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Experience</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Experience"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={experienceSearch}
-                    onChangeText={(text) => {
-                      setExperienceSearch(text);
-                      setShowExperienceList(true);
-                    }}
-                    onFocus={() => setShowExperienceList(true)}
-                  />
-                  {showExperienceList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            {/* Row 3 */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Expertise</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Expertise"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={expertiseSearch}
-                    onChangeText={(text) => {
-                      setExpertiseSearch(text);
-                      setShowExpertiseList(true);
-                    }}
-                    onFocus={() => setShowExpertiseList(true)}
-                  />
-                  {showExpertiseList && (
-                    <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Location</Text>
                 <View style={styles.inputWrapper}>
@@ -322,6 +187,46 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
                   />
                   <MaterialIcons
                     name="location-on"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </View>
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Occupation</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Occupation"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    onChangeText={setOccupation}
+                    value={occupation}
+                  />
+                  <MaterialIcons
+                    name="work"
+                    size={20}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.inputRow}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    onChangeText={setPassword}
+                    value={password}
+                    secureTextEntry
+                  />
+                  <MaterialIcons
+                    name="lock"
                     size={20}
                     color="#E82E5F"
                     style={styles.icon}
@@ -486,23 +391,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  dropdownContainer: {
-    position: "absolute",
-    bottom: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#FFF",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 5,
-  },
-  listItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
 });
 
-export default Modify_Deatils;
+export default Modify_Details;

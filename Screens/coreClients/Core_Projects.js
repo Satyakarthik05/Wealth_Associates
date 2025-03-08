@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import { API_URL } from "../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -24,6 +25,25 @@ const coreProjects = [
 ];
 
 const Core_Projects = () => {
+  const [coreProjects, setCoreProjectes] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/coreproject/getallcoreprojects`
+        );
+        const data = await response.json();
+        setCoreProjectes(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Core Projects</Text>
@@ -35,10 +55,13 @@ const Core_Projects = () => {
           {coreProjects.map((project, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={project.logo}
+                source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
             </View>
           ))}
         </View>
@@ -88,7 +111,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    flexDirection: "row",
+    flexDirection: "column",
   },
   logo: { width: "80%", height: "80%" },
 });

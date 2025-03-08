@@ -5,8 +5,12 @@ const {
   fetchAddedSkillLAbours,
   fetchAdminSkill,
   deleteSkillLabour,
+  SkillLogin,
+  getSkilled,
+  updateSkilledDetails,
+  UpdateSkillAdmin,
 } = require("../Controllers/SkillController");
-const verifyAgentToken = require("../middleWares/VerifyAgentToken");
+const verifySkilledToken = require("../middleWares/SkillToken");
 const verifyUser = require("../middleWares/VerifyUser");
 
 const router = express.Router();
@@ -19,5 +23,9 @@ router.get("/list", fetchSkilledLabours);
 router.get("/getmyskilllabour", verifyUser, fetchAddedSkillLAbours);
 router.get("/AdminLabour", fetchAdminSkill);
 router.delete("/delete/:id", deleteSkillLabour);
+router.post("/skilllogin", SkillLogin);
+router.post("/updateskill", updateSkilledDetails);
+router.get("/getskilled", verifySkilledToken, getSkilled);
+router.put("/update/:id", UpdateSkillAdmin);
 
 module.exports = router;

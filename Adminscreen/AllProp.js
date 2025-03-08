@@ -10,6 +10,8 @@ import {
   Dimensions,
   TouchableOpacity,
   Alert,
+  Modal,
+  TextInput,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../data/ApiUrl";
@@ -20,6 +22,14 @@ const ViewAllProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [editedDetails, setEditedDetails] = useState({
+    propertyType: "",
+    location: "",
+    price: "",
+    photo: "",
+  });
 
   useEffect(() => {
     fetchProperties();
@@ -86,6 +96,50 @@ const ViewAllProperties = () => {
     }
   };
 
+  const handleEdit = (property) => {
+    setSelectedProperty(property);
+    setEditedDetails({
+      propertyType: property.propertyType,
+      location: property.location,
+      price: property.price.toString(),
+      photo: property.photo,
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/properties/update/${selectedProperty._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedDetails),
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        // Update the properties list
+        const updatedProperties = properties.map((item) =>
+          item._id === selectedProperty._id
+            ? { ...item, ...editedDetails }
+            : item
+        );
+        setProperties(updatedProperties);
+        setIsModalVisible(false);
+        Alert.alert("Success", "Property updated successfully.");
+      } else {
+        Alert.alert("Error", result.message || "Failed to update property.");
+      }
+    } catch (error) {
+      console.error("Error updating property:", error);
+      Alert.alert("Error", "An error occurred while updating the property.");
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
@@ -126,16 +180,85 @@ const ViewAllProperties = () => {
                       ₹ {parseInt(item.price).toLocaleString()}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDelete(item._id)}
-                  >
-                    <Text style={styles.deleteText}>Delete</Text>
-                  </TouchableOpacity>
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.editButton]}
+                      onPress={() => handleEdit(item)}
+                    >
+                      <Text style={styles.buttonText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.deleteButton]}
+                      onPress={() => handleDelete(item._id)}
+                    >
+                      <Text style={styles.buttonText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               );
             })}
           </View>
+
+          {/* Edit Modal */}
+          <Modal
+            visible={isModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Edit Property</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Property Type"
+                  value={editedDetails.propertyType}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, propertyType: text })
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Location"
+                  value={editedDetails.location}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, location: text })
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Price"
+                  value={editedDetails.price}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, price: text })
+                  }
+                  keyboardType="numeric"
+                />
+                {/* <TextInput
+                  style={styles.input}
+                  placeholder="Photo URL"
+                  value={editedDetails.photo}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, photo: text })
+                  }
+                /> */}
+                <View style={styles.modalButtonContainer}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.saveButton]}
+                    onPress={handleSave}
+                  >
+                    <Text style={styles.modalButtonText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </>
       )}
     </ScrollView>
@@ -185,14 +308,71 @@ const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-  deleteButton: {
-    backgroundColor: "red",
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  button: {
     padding: 8,
     borderRadius: 5,
-    marginTop: 10,
     alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
   },
-  deleteText: {
+  editButton: {
+    backgroundColor: "#3498db",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: "50%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#ccc",
+  },
+  saveButton: {
+    backgroundColor: "#3498db",
+  },
+  modalButtonText: {
     color: "#fff",
     fontWeight: "bold",
   },

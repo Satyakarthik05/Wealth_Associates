@@ -9,6 +9,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  TouchableWithoutFeedback, // Import TouchableWithoutFeedback
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -21,6 +22,12 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Import nested action components
+import AddCustomer from "./Add_Agent";
+import AddInvestor from "../Investors/AddInvestors";
+import AddNRI from "../NRI/AddNri";
+import AddSkilled from "../SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -38,11 +45,18 @@ const actionButtons = [
     component: RequestProperty,
   },
   {
-    title: "Add a customer",
+    title: "Add a member",
     icon: "account-plus",
     component: AddClubMember,
   },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
+];
+
+const nestedActionButtons = [
+  { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
+  { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
+  { title: "Add a NRI", icon: "account-clock", component: AddNRI },
+  { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
 ];
 
 const coreClients = [
@@ -73,6 +87,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [propertiess, setPropertiess] = useState([]);
+  const [coreClients, setCoreClients] = useState([]);
+  const [coreProjects, setCoreProjectes] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/coreproject/getallcoreprojects`
+        );
+        const data = await response.json();
+        setCoreProjectes(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreCProject = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreCProject();
+  }, []);
 
   useEffect(() => {
     fetchPropertiess();
@@ -104,12 +151,29 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         location: item.location,
         budget: `₹${item.Budget.toLocaleString()}`,
         image: getImageByPropertyType(item.propertyType),
+        createdAt: item.createdAt,
       }));
       setPropertiess(formattedProperties);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
       setLoading(false);
+    }
+  };
+  const getPropertyTag = (createdAt) => {
+    const currentDate = new Date();
+    const propertyDate = new Date(createdAt);
+    const timeDifference = currentDate - propertyDate;
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (daysDifference <= 3) {
+      return "Regular Property";
+    } else if (daysDifference >= 4 && daysDifference <= 17) {
+      return "Approved Property";
+    } else if (daysDifference >= 18 && daysDifference <= 25) {
+      return "Wealth Property";
+    } else {
+      return "Listed Property";
     }
   };
 
@@ -150,9 +214,45 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   };
 
   const handleActionButtonClick = (btn) => {
-    const ModalComponent = btn.component;
+    if (btn.title === "Add a member") {
+      // Open nested modal for "Add a member"
+      setModalContent(
+        <TouchableWithoutFeedback onPress={closeModal}>
+          <View style={styles.nestedModalContent}>
+            {nestedActionButtons.map((nestedBtn, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.nestedActionButton}
+                onPress={() => handleNestedActionButtonClick(nestedBtn)}
+              >
+                <View style={styles.iconCircle}>
+                  <Icon
+                    name={nestedBtn.icon}
+                    size={Platform.OS === "web" ? 40 : 30}
+                    color="#E91E63"
+                  />
+                </View>
+                <Text style={styles.actionText}>{nestedBtn.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableWithoutFeedback>
+      );
+      setModalVisible(true);
+    } else {
+      // Handle other action buttons
+      const ModalComponent = btn.component;
+      setModalContent(
+        <ModalComponent title={btn.title} closeModal={closeModal} />
+      );
+      setModalVisible(true);
+    }
+  };
+
+  const handleNestedActionButtonClick = (nestedBtn) => {
+    const ModalComponent = nestedBtn.component;
     setModalContent(
-      <ModalComponent title={btn.title} closeModal={closeModal} />
+      <ModalComponent title={nestedBtn.title} closeModal={closeModal} />
     );
     setModalVisible(true);
   };
@@ -170,8 +270,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
+      <View
+        // style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Action Buttons */}
@@ -206,7 +306,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreClients.map((client, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={client.logo}
+                source={{ uri: `${API_URL}${client.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -224,10 +324,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreProjects.map((project, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={project.logo}
+                source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
             </View>
           ))}
         </ScrollView>
@@ -287,12 +390,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
@@ -318,12 +422,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
@@ -351,7 +456,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
         {/* Version Info */}
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -360,7 +465,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    ...(isWeb && { height: "auto", overflow: "scroll" }),
+    ...(isWeb && { height: "auto" }),
   },
   scrollView: {
     flex: 1,
@@ -529,6 +634,27 @@ const styles = StyleSheet.create({
     color: "#e91e63",
   },
   loader: { marginTop: 50 },
+  nestedModalContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
+    padding: 20,
+    backgroundColor: "#fff", // Light gray background
+    borderRadius: 20, // Rounded corners
+    margin: 0,
+  },
+  nestedActionButton: {
+    // backgroundColor: "#e0f7fa",
+    alignItems: "center",
+    margin: 10,
+    width: isWeb ? 100 : 100,
+    borderRadius: 10,
+    padding: 10,
+    // shadowColor: "#000",
+    // shadowOpacity: 0.1,
+    // shadowRadius: 5,
+    // elevation: 3,
+  },
 });
 
 export default Agent_Right;

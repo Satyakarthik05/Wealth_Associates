@@ -11,13 +11,13 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const isSmallScreen = width < 600;
 
-const RegisterCustomer = ({ closeModal }) => {
+const RegisterExecute = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -88,7 +88,7 @@ const RegisterCustomer = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -161,10 +161,10 @@ const RegisterCustomer = ({ closeModal }) => {
       Contituency: constituency,
       Locations: location,
       Occupation: occupation,
-      ReferredBy: referralCode || "WA0000000001",
+      ReferredBy: Details.MobileIN ? Details.MobileIN : "investor",
       Password: "Wealth",
-      MyRefferalCode: referenceId,
-      RegisteredBY: "WealthAssociate",
+      MyRefferalCode: "Nri",
+      RegisteredBY: "Nri",
     };
 
     try {
@@ -345,15 +345,6 @@ const RegisterCustomer = ({ closeModal }) => {
             )}
           </View>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Annual Income</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. "
-              value={fullname}
-              onChangeText={setFullname}
-            />
-          </View>
-          <View style={styles.inputContainer}>
             <Text style={styles.label}>Location</Text>
             <TextInput
               style={styles.input}
@@ -508,4 +499,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterCustomer;
+export default RegisterExecute;

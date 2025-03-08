@@ -22,10 +22,16 @@ const AddNRIMember = ({ closeModal }) => {
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
-    { label: "USA", value: "usa" },
-    { label: "UK", value: "uk" },
+    { label: "United Arab Emirates", value: "uae" },
+    { label: "United States of America", value: "usa" },
+    { label: "Saudi Arabia", value: "saudi_arabia" },
     { label: "Canada", value: "canada" },
-    { label: "India", value: "india" },
+    { label: "United Kingdom", value: "uk" },
+    { label: "Australia", value: "australia" },
+    { label: "Kuwait", value: "kuwait" },
+    { label: "Qatar", value: "qatar" },
+    { label: "Oman", value: "oman" },
+    { label: "Singapore", value: "singapore" },
   ]);
 
   const handleAddMember = async () => {
@@ -54,6 +60,8 @@ const AddNRIMember = ({ closeModal }) => {
           Occupation: occupation,
           MobileIN: mobileIN,
           MobileCountryNo: mobileCountryNo,
+          AddedBy: "Admin",
+          RegisteredBy: "Admin",
         }),
       });
 
