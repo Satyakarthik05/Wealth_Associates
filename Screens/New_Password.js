@@ -8,6 +8,9 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -70,95 +73,102 @@ export default function ResetPassword() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        <View style={styles.contentContainer}>
-          <Image
-            source={require("../assets/forgot_password.png")}
-            style={styles.illustration}
-            resizeMode="contain"
-          />
-
-          <View style={styles.form}>
-            <Text style={styles.errorText}>
-              Your New Password must be different from the old one.!
-            </Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>New Password</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter new password"
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.iconContainer}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color="#888"
-                  />
-                </TouchableOpacity>
-                <MaterialIcons
-                  name="lock"
-                  size={20}
-                  color="#E82E5F"
-                  style={styles.lockIcon}
-                />
-              </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("../assets/logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  secureTextEntry={!showConfirmPassword}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm new password"
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.iconContainer}
-                >
-                  <Ionicons
-                    name={
-                      showConfirmPassword ? "eye-off-outline" : "eye-outline"
-                    }
-                    size={20}
-                    color="#888"
-                  />
+            <View style={styles.contentContainer}>
+              <Image
+                source={require("../assets/forgot_password.png")}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
+
+              <View style={styles.form}>
+                <Text style={styles.errorText}>
+                  Your New Password must be different from the old one.!
+                </Text>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>New Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter new password"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.iconContainer}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color="#888"
+                      />
+                    </TouchableOpacity>
+                    <MaterialIcons
+                      name="lock"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.lockIcon}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Confirm Password</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      secureTextEntry={!showConfirmPassword}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder="Confirm new password"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={styles.iconContainer}
+                    >
+                      <Ionicons
+                        name={
+                          showConfirmPassword ? "eye-off-outline" : "eye-outline"
+                        }
+                        size={20}
+                        color="#888"
+                      />
+                    </TouchableOpacity>
+                    <MaterialIcons
+                      name="lock"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.lockIcon}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Save</Text>
                 </TouchableOpacity>
-                <MaterialIcons
-                  name="lock"
-                  size={20}
-                  color="#E82E5F"
-                  style={styles.lockIcon}
-                />
               </View>
             </View>
-
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Save</Text>
-            </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -171,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    width: Platform.OS === "web" ? "60%" : "90%",
+    width: Platform.OS === "web" || Platform.OS === "ios" ? "100%" : "110%",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 16,
@@ -189,17 +199,18 @@ const styles = StyleSheet.create({
     width: 200,
   },
   contentContainer: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   illustration: {
-    height: Platform.OS === "android" ? 200 : 400,
-    width: Platform.OS === "android" ? "80%" : 500,
-    marginBottom: Platform.OS === "android" ? 16 : 0,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 400,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "80%" : 500,
+    marginBottom: Platform.OS === "android" || Platform.OS === "ios" ? 16 : 0,
   },
   form: {
-    width: Platform.OS === "android" ? "100%" : "auto",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "auto",
   },
   errorText: {
     color: "#ff4d4d",

@@ -11,6 +11,10 @@ import {
   ActivityIndicator,
   BackHandler,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -86,9 +90,18 @@ export default function Login_screen() {
   );
 
   return (
+     <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        {Platform.OS !== "android" && (
+        {Platform.OS !== "android" && Platform.OS !== "ios" && (
           <View style={styles.leftSection}>
             <Image
               source={require("../../assets/logo2.png")}
@@ -196,6 +209,9 @@ export default function Login_screen() {
         </View>
       </View>
     </SafeAreaView>
+    </ScrollView>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

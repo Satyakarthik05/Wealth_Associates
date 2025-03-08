@@ -8,6 +8,8 @@ import {
   Alert,
   Image,
   Platform,
+  KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
@@ -119,6 +121,9 @@ const OTP = () => {
   }, [otp]);
 
   return (
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={styles.container}>
     <View style={styles.container}>
       <View style={styles.card}>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
@@ -178,6 +183,7 @@ const OTP = () => {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 };
 

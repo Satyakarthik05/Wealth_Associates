@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  KeyboardAvoidingView,
   StyleSheet,
   Platform,
   ScrollView,
@@ -215,7 +216,11 @@ const Add_Agent = ({ closeModal }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.container}
+                  >
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
           <View style={styles.register_main}>
             <Text style={styles.register_text}>Register Wealth Associate</Text>
@@ -542,6 +547,7 @@ const Add_Agent = ({ closeModal }) => {
         </View>
       </ScrollView>
       <StatusBar style="auto" />
+    </KeyboardAvoidingView>
     </View>
   );
 };
@@ -603,12 +609,12 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   inputRow: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "30%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
     zIndex: 1,
   },

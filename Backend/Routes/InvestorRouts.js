@@ -8,6 +8,7 @@ const {
   fetchInvestors,
   InvestorLogin,
   getInvestor,
+  UpdateInvestorAdmin,
   updateInvestorDetails,
 } = require("../Controllers/InvestorController");
 const verifyInvestorToken = require("../middleWares/InvestorToken");
@@ -26,5 +27,6 @@ router.delete("/delete/:id", deleteInvestor);
 router.post("/investorlogin", InvestorLogin);
 router.get("/getinvestor", verifyInvestorToken, getInvestor);
 router.post("/updateInvestor", updateInvestorDetails);
+router.put("/update/:id", UpdateInvestorAdmin);
 
 module.exports = router;

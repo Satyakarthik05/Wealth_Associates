@@ -60,7 +60,7 @@ const RequestedExpert = ({ closeModal }) => {
 const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
-    width: Platform.OS === "android" ? "100%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios"  ? "100%" : "40%",
     marginLeft: 20,
     // height: 360,
     borderRadius: 15,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: "100%",
     overflow: "hidden",
     marginTop: 5,
-    height: Platform.OS === "android" ? 50 : "auto",
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 50 : "auto",
   },
   picker: {
     height: 50,

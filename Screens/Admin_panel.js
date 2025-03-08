@@ -8,7 +8,6 @@ import {
   StyleSheet,
   FlatList,
   Platform,
-  TextInput,
   StatusBar,
   ScrollView,
   Modal,
@@ -99,7 +98,7 @@ const menuItems = [
   },
   {
     title: "NRI Club",
-    icon: "globe-outline", // 🌍 Represents an international community
+    icon: "globe-outline", 
     subItems: ["Add NRI Member", "View NRI Members"],
   },
 ];
@@ -533,10 +532,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? 0
-        : StatusBar.currentHeight,
+    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
+    
   },
   navbar: {
     flexDirection: "row",
@@ -546,7 +543,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#ddd",
     justifyContent: "space-between",
-    marginTop: -10,
+    marginTop: Platform.OS === "ios" ? 25 : -10,
   },
   logo: {
     width: 100,
@@ -624,19 +621,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
     height: "100vh",
+    
   },
   toggleButton: {
     position: "absolute",
-    top: 18,
+    top: Platform.OS === "ios" ? 49 : 14,
     left: 10,
     zIndex: 1000,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 30,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    // shadowColor: "#000",
+    // shadowOpacity: 0.1,
+    // shadowRadius: 5,
+    // shadowOffset: { width: 0, height: 2 },
   },
   modalOverlay: {
     flex: 1,
@@ -670,6 +668,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
     height: "auto",
+    
   },
   usersContentText: {
     fontSize: 16,

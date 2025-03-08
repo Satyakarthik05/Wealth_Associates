@@ -11,5 +11,7 @@ app.post("/coreLogin", CoreController.coreLogin);
 app.get("/myagents", verifyCoreToken, CoreController.fetchReferredAgents);
 app.get("/mycustomers", verifyCoreToken, CoreController.fetchReferredCustomers);
 app.post("/updateCoreDetails", CoreController.updateCoreDetails);
+app.delete("/deletecore/:id", CoreController.deleteCore);
+app.put("/updatecore/:id", CoreController.updateCoreByadmin);
 
 module.exports = app;

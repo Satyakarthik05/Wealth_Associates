@@ -8,6 +8,7 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Platform,
   Button,
   TouchableOpacity,
   ScrollView,
@@ -43,7 +44,7 @@ const ViewPostedProperties = () => {
         setLoading(false);
         return;
       }
-
+  
       const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
         method: "GET",
         headers: {
@@ -51,18 +52,28 @@ const ViewPostedProperties = () => {
           "Content-Type": "application/json",
         },
       });
-
-      if (!response.ok)
+  
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
-
+      }
+  
       const data = await response.json();
-      setProperties(data.length > 0 ? data : []);
+  
+      // ✅ Ensure `data` is an array
+      if (Array.isArray(data)) {
+        setProperties(data);
+      } else {
+        setProperties([]); // Set an empty array if response is not an array
+        console.error("Unexpected API response:", data);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setProperties([]); // Set default empty array on failure
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleFilterChange = (value) => {
     setSelectedFilter(value);
@@ -219,35 +230,56 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios"  ? "column" : "row",
     justifyContent: "space-between",
+    alignItems: "center",
     width: "100%",
     marginBottom: 15,
   },
-  heading: { fontSize: 22, fontWeight: "bold" },
-  filterContainer: { flexDirection: "row", alignItems: "center" },
-  filterLabel: { fontSize: 16, marginRight: 5 },
-  picker: { width: 180, height: 40 },
-  loader: { marginTop: 50 },
-  grid: {
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+  filterContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    width: "95%",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  filterLabel: { fontSize: 16, marginRight: 5 },
+  pickerWrapper: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 3,
+    height: Platform.OS === "android" ? 50 : 40,
+  },
+  picker: { height: "100%", width: 180, fontSize: 14 },
+  loader: { marginTop: 50 },
+
+  /** 🟢 Updated Grid & Card Styles for Vertical List **/
+  grid: {
+    flexDirection: "column", // 🔹 Stack cards vertically
+    width: "100%", // Take full width
+    alignItems: "center", // Center cards horizontally
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
-    margin: 8,
-    width: width / numColumns - 20,
+    marginVertical: 8, // 🔹 Space between cards
+    width: "90%", // Make it occupy most of the screen width
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
     elevation: 3,
   },
+
   image: { width: "100%", height: 150, borderRadius: 8 },
   details: { marginTop: 10 },
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+
   editButton: {
     marginTop: 10,
     backgroundColor: "#007bff",
@@ -271,5 +303,4 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
   input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
 });
-
 export default ViewPostedProperties;

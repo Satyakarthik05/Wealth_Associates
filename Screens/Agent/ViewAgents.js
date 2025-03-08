@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     width: "90%",
     textAlign: "left",
     marginBottom: 20,
-    marginTop: Platform.OS === "android" ? "10%" : 0,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? "10%" : 0,
   },
   agentCard: {
     flexDirection: "row",
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     shadowOpacity: Platform.OS === "ios" ? 0.1 : 0,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    elevation: Platform.OS === "android" ? 2 : 0,
+    elevation: Platform.OS === "android" || Platform.OS === "ios" ? 2 : 0,
   },
   agentImage: {
     width: 60,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   agentDetails: {
     flex: 1,
     justifyContent: "space-between",
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
   },
   agentText: {
     fontSize: 14,

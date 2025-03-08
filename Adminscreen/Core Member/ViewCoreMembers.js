@@ -10,6 +10,9 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Modal,
+  TextInput,
+  Button,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
@@ -19,6 +22,8 @@ const { width } = Dimensions.get("window");
 export default function ViewCoreMembers() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingAgent, setEditingAgent] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Fetch agents from the API
   useEffect(() => {
@@ -27,9 +32,9 @@ export default function ViewCoreMembers() {
         const response = await fetch(`${API_URL}/core/getallcoremembers`);
         if (!response.ok) {
           throw new Error("Failed to fetch agents");
-        }s
+        }
         const data = await response.json();
-        setAgents(data.data); // Set the fetched agents
+        setAgents(data); // Set the fetched agents
         setLoading(false);
       } catch (error) {
         console.error("Error fetching agents:", error);
@@ -45,7 +50,7 @@ export default function ViewCoreMembers() {
     if (Platform.OS === "web") {
       // Use window.confirm on Web
       const confirmDelete = window.confirm(
-        "Are you sure you want to delete this agent?"
+        "Are you sure you want to delete this coremember?"
       );
       if (!confirmDelete) return;
       deleteAgent(agentId);
@@ -69,7 +74,7 @@ export default function ViewCoreMembers() {
   // Extracted delete function to avoid duplication
   const deleteAgent = async (agentId) => {
     try {
-      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
+      const response = await fetch(`${API_URL}/core/deleteCore/${agentId}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete agent");
@@ -81,6 +86,37 @@ export default function ViewCoreMembers() {
     } catch (error) {
       console.error("Error deleting agent:", error);
       Alert.alert("Error", "Failed to delete agent.");
+    }
+  };
+
+  const handleEditAgent = (agent) => {
+    setEditingAgent(agent);
+    setIsModalVisible(true);
+  };
+
+  const handleSaveAgent = async (editedAgent) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/core/updatecore/${editedAgent._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedAgent),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to update agent");
+
+      setAgents((prevAgents) =>
+        prevAgents.map((agent) =>
+          agent._id === editedAgent._id ? editedAgent : agent
+        )
+      );
+      Alert.alert("Success", "Agent updated successfully.");
+    } catch (error) {
+      console.error("Error updating agent:", error);
+      Alert.alert("Error", "Failed to update agent.");
     }
   };
 
@@ -106,10 +142,17 @@ export default function ViewCoreMembers() {
                 <Text style={styles.agentText}>
                   Constituency: {agent.Contituency}
                 </Text>
+                <Text style={styles.agentText}>PHno: {agent.MobileNumber}</Text>
                 <Text style={styles.agentText}>
                   Referral Code: {agent.MyRefferalCode}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => handleEditAgent(agent)}
+              >
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteAgent(agent._id)}
@@ -122,10 +165,105 @@ export default function ViewCoreMembers() {
           <Text style={styles.message}>No agents found.</Text>
         )}
       </ScrollView>
+
+      <EditAgentModal
+        visible={isModalVisible}
+        agent={editingAgent}
+        onClose={() => setIsModalVisible(false)}
+        onSave={handleSaveAgent}
+      />
     </SafeAreaView>
   );
 }
 
+const EditAgentModal = ({ visible, agent, onClose, onSave }) => {
+  // Initialize editedAgent with the agent's current details
+  const [editedAgent, setEditedAgent] = useState(
+    agent || {
+      FullName: "",
+      District: "",
+      Contituency: "",
+      MobileNumber: "",
+      MyRefferalCode: "",
+    }
+  );
+
+  // Update the editedAgent state when the agent prop changes
+  useEffect(() => {
+    if (agent) {
+      setEditedAgent(agent);
+    }
+  }, [agent]);
+
+  const handleSave = () => {
+    onSave(editedAgent);
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true}>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Edit Core Member</Text>
+          <TextInput
+            style={styles.input}
+            value={editedAgent.FullName}
+            onChangeText={(text) =>
+              setEditedAgent({ ...editedAgent, FullName: text })
+            }
+            placeholder="Full Name"
+          />
+          <TextInput
+            style={styles.input}
+            value={editedAgent.District}
+            onChangeText={(text) =>
+              setEditedAgent({ ...editedAgent, District: text })
+            }
+            placeholder="District"
+          />
+          <TextInput
+            style={styles.input}
+            value={editedAgent.Contituency}
+            onChangeText={(text) =>
+              setEditedAgent({ ...editedAgent, Contituency: text })
+            }
+            placeholder="Constituency"
+          />
+          <TextInput
+            style={styles.input}
+            value={editedAgent.MobileNumber}
+            onChangeText={(text) =>
+              setEditedAgent({ ...editedAgent, MobileNumber: text })
+            }
+            placeholder="Mobile Number"
+          />
+          <TextInput
+            style={styles.input}
+            value={editedAgent.MyRefferalCode}
+            onChangeText={(text) =>
+              setEditedAgent({ ...editedAgent, MyRefferalCode: text })
+            }
+            placeholder="Referral Code"
+          />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={handleSave}
+            >
+              <Text style={styles.buttonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onClose}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -184,6 +322,19 @@ const styles = StyleSheet.create({
     color: "#555",
     marginTop: 20,
   },
+  editButton: {
+    backgroundColor: "#4CAF50",
+    padding: 8,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
   deleteButton: {
     backgroundColor: "#ff4444",
     padding: 8,
@@ -192,6 +343,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   deleteButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "50%", // Set modal width to 50%
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  button: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5, // Add margin between buttons
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50", // Green color for Save button
+  },
+  cancelButton: {
+    backgroundColor: "#ff4444", // Red color for Cancel button
+  },
+  buttonText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",

@@ -9,11 +9,13 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Keyboard,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+const screenHeight = Dimensions.get("window").height;
 const { width } = Dimensions.get("window");
 const isSmallScreen = width < 600;
 
@@ -38,6 +40,24 @@ const RegisterExecute = ({ closeModal }) => {
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+ 
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   const fetchDistricts = async () => {
     try {
@@ -198,205 +218,225 @@ const RegisterExecute = ({ closeModal }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View
-        style={[styles.container, isSmallScreen && styles.smallScreenContainer]}
+    
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Adjust if needed
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        resetScrollToCoords={{ x: 0, y: 0 }} // Add this
       >
-        <Text style={styles.title}>Register Customer</Text>
-        {/* Display the error message above the input fields */}
-        {errorMessage ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          </View>
-        ) : null}
+        <View
+          style={[
+            styles.container,
+            isSmallScreen && styles.smallScreenContainer,
+            {
+              minHeight: isKeyboardVisible ? screenHeight * 0.6 : screenHeight * 0.1, // Adjust minHeight dynamically
+              justifyContent: "flex-start",
+            },
+          ]}
+        >
+          <Text style={styles.title}>Register Customer</Text>
+          {/* Display the error message above the input fields */}
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : null}
 
-        <View style={styles.row}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. John Doe"
-              value={fullname}
-              onChangeText={setFullname}
-            />
+          <View style={styles.row}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. John Doe"
+                value={fullname}
+                onChangeText={setFullname}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Mobile Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. 9063 392872"
+                keyboardType="phone-pad"
+                value={mobile}
+                onChangeText={setMobile}
+              />
+            </View>
           </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Mobile Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. 9063 392872"
-              keyboardType="phone-pad"
-              value={mobile}
-              onChangeText={setMobile}
-            />
+
+          <View style={styles.row}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Select District</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Search District"
+                value={districtSearch}
+                onChangeText={(text) => {
+                  setDistrictSearch(text);
+                  closeAllDropdowns();
+                  setShowDistrictList(true);
+                }}
+                onFocus={() => {
+                  closeAllDropdowns();
+                  setShowDistrictList(true);
+                }}
+              />
+              {showDistrictList && (
+                <View style={styles.dropdownContainer}>
+                  <ScrollView style={styles.scrollView}>
+                    {filteredDistricts.map((item) => (
+                      <TouchableOpacity
+                        key={item.name}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setDistrict(item.name);
+                          setDistrictSearch(item.name);
+                          closeAllDropdowns();
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Select Constituency</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Search Constituency"
+                value={constituencySearch}
+                onChangeText={(text) => {
+                  setConstituencySearch(text);
+                  closeAllDropdowns();
+                  setShowConstituencyList(true);
+                }}
+                onFocus={() => {
+                  closeAllDropdowns();
+                  setShowConstituencyList(true);
+                }}
+              />
+              {showConstituencyList && (
+                <View style={styles.dropdownContainer}>
+                  <ScrollView style={styles.scrollView}>
+                    {filteredConstituencies.map((item) => (
+                      <TouchableOpacity
+                        key={item.code}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setConstituency(item.name);
+                          setConstituencySearch(item.name);
+                          closeAllDropdowns();
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
           </View>
+
+          <View style={styles.row}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Select Occupation</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Select Occupation"
+                value={occupationSearch}
+                onChangeText={(text) => {
+                  setOccupationSearch(text);
+                  closeAllDropdowns();
+                  setShowOccupationList(true);
+                }}
+                onFocus={() => {
+                  closeAllDropdowns();
+                  setShowOccupationList(true);
+                }}
+              />
+              {showOccupationList && (
+                <View style={styles.dropdownContainer}>
+                  <ScrollView style={styles.scrollView}>
+                    {filteredOccupations.map((item) => (
+                      <TouchableOpacity
+                        key={item.code}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setOccupation(item.name);
+                          setOccupationSearch(item.name);
+                          closeAllDropdowns();
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Location</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. Vijayawada"
+                value={location}
+                onChangeText={setLocation}
+              />
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Referral Code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Referral Code"
+                placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                onChangeText={setReferralCode}
+                value={referralCode}
+              />
+            </View>
+          </View>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                console.log("Cancel button clicked");
+                closeModal && closeModal();
+              }}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+
+          {isLoading && (
+            <ActivityIndicator
+              size="large"
+              color="#E82E5F"
+              style={styles.loadingIndicator}
+            />
+          )}
         </View>
-
-        <View style={styles.row}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Select District</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Search District"
-              value={districtSearch}
-              onChangeText={(text) => {
-                setDistrictSearch(text);
-                closeAllDropdowns();
-                setShowDistrictList(true);
-              }}
-              onFocus={() => {
-                closeAllDropdowns();
-                setShowDistrictList(true);
-              }}
-            />
-            {showDistrictList && (
-              <View style={styles.dropdownContainer}>
-                <ScrollView style={styles.scrollView}>
-                  {filteredDistricts.map((item) => (
-                    <TouchableOpacity
-                      key={item.name}
-                      style={styles.listItem}
-                      onPress={() => {
-                        setDistrict(item.name);
-                        setDistrictSearch(item.name);
-                        closeAllDropdowns();
-                      }}
-                    >
-                      <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Select Constituency</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Search Constituency"
-              value={constituencySearch}
-              onChangeText={(text) => {
-                setConstituencySearch(text);
-                closeAllDropdowns();
-                setShowConstituencyList(true);
-              }}
-              onFocus={() => {
-                closeAllDropdowns();
-                setShowConstituencyList(true);
-              }}
-            />
-            {showConstituencyList && (
-              <View style={styles.dropdownContainer}>
-                <ScrollView style={styles.scrollView}>
-                  {filteredConstituencies.map((item) => (
-                    <TouchableOpacity
-                      key={item.code}
-                      style={styles.listItem}
-                      onPress={() => {
-                        setConstituency(item.name);
-                        setConstituencySearch(item.name);
-                        closeAllDropdowns();
-                      }}
-                    >
-                      <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Select Occupation</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Select Occupation"
-              value={occupationSearch}
-              onChangeText={(text) => {
-                setOccupationSearch(text);
-                closeAllDropdowns();
-                setShowOccupationList(true);
-              }}
-              onFocus={() => {
-                closeAllDropdowns();
-                setShowOccupationList(true);
-              }}
-            />
-            {showOccupationList && (
-              <View style={styles.dropdownContainer}>
-                <ScrollView style={styles.scrollView}>
-                  {filteredOccupations.map((item) => (
-                    <TouchableOpacity
-                      key={item.code}
-                      style={styles.listItem}
-                      onPress={() => {
-                        setOccupation(item.name);
-                        setOccupationSearch(item.name);
-                        closeAllDropdowns();
-                      }}
-                    >
-                      <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Location</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={location}
-              onChangeText={setLocation}
-            />
-          </View>
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Referral Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Referral Code"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              onChangeText={setReferralCode}
-              value={referralCode}
-            />
-          </View>
-        </View>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>Register</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => {
-              console.log("Cancel button clicked");
-              closeModal && closeModal();
-            }}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-
-        {isLoading && (
-          <ActivityIndicator
-            size="large"
-            color="#E82E5F"
-            style={styles.loadingIndicator}
-          />
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -411,11 +451,10 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 30,
     elevation: 5,
-    width: Platform.OS === "android" ? "90%" : "100%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : "100%",
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "#ccc",
-    height: "100%",
   },
   smallScreenContainer: {
     width: 300,
@@ -432,13 +471,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
   row: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
     marginBottom: 10,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "48%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "48%",
     marginBottom: 10,
   },
   fullWidth: {
@@ -457,7 +497,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: Platform.OS === "android" ? "auto" : 20,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? "auto" : 20,
   },
   registerButton: {
     backgroundColor: "#e91e63",

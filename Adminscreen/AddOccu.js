@@ -8,20 +8,63 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
+import { API_URL } from "../data/ApiUrl"; // Import the API URL
 
 const { width } = Dimensions.get("window"); // Get screen width
 const isMobile = width < 600; // Detect mobile devices
 
 const AddOccuModal = ({ closeModal }) => {
-  const [role, setRole] = useState("");
+  const [occupation, setOccupation] = useState(""); // State for occupation name
+  const [code, setCode] = useState(""); // State for occupation code
+
+  // Function to handle adding occupation
+  const handleAddOccupation = async () => {
+    if (!occupation || !code) {
+      Alert.alert("Error", "Please enter both occupation name and code.");
+      return;
+    }
+
+    try {
+      // Make a POST request to the backend using fetch
+      const response = await fetch(`${API_URL}/discons/addoccupation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: occupation,
+          code: code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Occupation added successfully!");
+        closeModal(); // Close the modal after successful addition
+      } else {
+        Alert.alert("Error", data.message || "Failed to add occupation.");
+      }
+    } catch (error) {
+      console.error("Error adding occupation:", error);
+      Alert.alert("Error", "Failed to add occupation. Please try again.");
+    }
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.wrapper}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.wrapper}
+    >
       <View
         style={[
           styles.container,
-          { width: Platform.OS === "web" ? "80%" : "90%", maxWidth: Platform.OS === "web" ? 350 : 400 },
+          {
+            width: Platform.OS === "web" ? "80%" : "90%",
+            maxWidth: Platform.OS === "web" ? 350 : 400,
+          },
         ]}
       >
         {/* Header */}
@@ -29,20 +72,34 @@ const AddOccuModal = ({ closeModal }) => {
           <Text style={styles.headerText}>Add Occupation</Text>
         </View>
 
-        {/* Input Field */}
+        {/* Input Field for Occupation Name */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Occupation</Text>
+          <Text style={styles.label}>Occupation Name</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex. Govt Job"
-            value={role}
-            onChangeText={setRole}
+            value={occupation}
+            onChangeText={setOccupation}
+          />
+        </View>
+
+        {/* Input Field for Occupation Code */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Occupation Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 100"
+            value={code}
+            onChangeText={setCode}
           />
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddOccupation}
+          >
             <Text style={styles.addText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -54,6 +111,7 @@ const AddOccuModal = ({ closeModal }) => {
   );
 };
 
+// Styles remain the same as in your original code
 const styles = StyleSheet.create({
   wrapper: {
     position: "absolute",
@@ -63,7 +121,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // No black overlay on web
     paddingHorizontal: 10,
   },
   container: {

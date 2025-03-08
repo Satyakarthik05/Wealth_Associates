@@ -6,6 +6,8 @@ const {
   getNRI,
   updateNRIDetails,
   geymyNris,
+  deleteReferredMember,
+  editReferredMember,
 } = require("../Controllers/NriController");
 const verifyNriToken = require("../middleWares/NriToken");
 const verifyUser = require("../middleWares/VerifyUser");
@@ -21,5 +23,7 @@ router.post("/nrilogin", NRILogin);
 router.get("/getnri", verifyNriToken, getNRI);
 router.post("/updatenri", updateNRIDetails);
 router.get("/getmynris", verifyUser, geymyNris);
+router.delete("/deletenri/:id", deleteReferredMember);
+router.put("/editnri/:id", editReferredMember);
 
 module.exports = router;

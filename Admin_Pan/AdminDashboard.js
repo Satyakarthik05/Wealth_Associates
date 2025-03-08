@@ -8,10 +8,8 @@ import {
   StyleSheet,
   FlatList,
   Platform,
-  TextInput,
   StatusBar,
   ScrollView,
-  Modal,
   Dimensions,
 } from "react-native";
 // import { API_URL } from "../data/ApiUrl";
@@ -32,7 +30,6 @@ import RequestedPropertyForm from "../Adminscreen/Request";
 import ViewPostedProperties from "../Adminscreen/View_posted";
 import RequestedProperties from "../Adminscreen/View_Req";
 import ViewAllProperties from "../Adminscreen/AllProp";
-import ExpertPanel from "../Adminscreen/ViewExpert";
 import Rskill from "../Adminscreen/Skilled Labour/Rskill";
 import ViewSkilledLabours from "../Adminscreen/Skilled Labour/ViewSkilledLabours";
 import Core_Clients from "../Adminscreen/ViewCoreCli";
@@ -61,6 +58,8 @@ import ViewInvesters from "../Adminscreen/Investors/ViewInvestors";
 import ViewAllInvesters from "../Adminscreen/Investors/ViewAllInvestors";
 import AddCoreMember from "../Adminscreen/Core Member/AddCoreMember";
 import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
+import ExpertRoute from "../Adminscreen/Expert Panel/ExpertRoute";
+import ExpertDetails from "../Adminscreen/Expert Panel/ExpertDetails";
 
 const menuItems = [
   {
@@ -141,15 +140,13 @@ const menuItems = [
     title: "Master Data",
     icon: "settings-outline",
     subItems: [
-      "Add User",
-      "Add Roles",
       "Add Districts",
       "Add Constituencies",
       "Add Expertise",
       "Add Occupation",
       "Add Property Type",
-      "Add Expert Types",
-      "Add Countries",
+      // "Add Expert Types",
+      // "Add Countries",
       "Add Skill",
     ],
   },
@@ -195,13 +192,15 @@ const AdminDashboard = () => {
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isViewReferral, setIsViewReferral] = useState(false);
   const [isAddReferral, setIsAddReferral] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("A");
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
   const [AddInvestor, setAddInvestor] = useState(false);
   const [ViewInvester, setViewInvester] = useState(false);
   const [ViewAllInvester, setAllViewInvester] = useState(false);
   const [isAddCoreMember, setIsCoreMember] = useState(false);
   const [isViewCoreMember, setIsViewCoreMember] = useState(false);
+  const [isExpertPanelVisible, setIsExpertPanelVisible] = useState(false);
+  const [isExperDetails, setIsExpertDetails] = useState(false);
+  const [expertType, setExpertType] = useState(null);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -218,6 +217,12 @@ const AdminDashboard = () => {
     if (Platform.OS === "android" && !isSidebarExpanded) {
       setIsSidebarExpanded(true);
     }
+  };
+
+  const handleExpertDetails = (expertType) => {
+    setIsExpertDetails(true);
+    setSelectedSubItem("expert details");
+    setExpertType(expertType); // Store the expertType
   };
 
   const handleSubItemClick = (subItem) => {
@@ -261,6 +266,7 @@ const AdminDashboard = () => {
     setIsAddReferral(false);
     setIsCoreMember(false);
     setIsViewCoreMember(false);
+    setIsExpertPanelVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -287,8 +293,6 @@ const AdminDashboard = () => {
       setIsViewReqVisible(true);
     } else if (subItem === "View All Properties") {
       setIsAllPropVisible(true);
-    } else if (subItem === "View Expert Panel") {
-      setIsAddExpertVisible(true);
     } else if (subItem === "Register Skilled Labour") {
       setIsRegSkillVisible(true);
     } else if (subItem === "View Skilled Labour") {
@@ -345,6 +349,10 @@ const AdminDashboard = () => {
       setIsCoreMember(true);
     } else if (subItem === "View Core Members") {
       setIsViewCoreMember(true);
+    } else if (subItem === "expert details") {
+      setIsExpertDetails(true);
+    } else if (subItem === "View Expert Panel") {
+      setIsExpertPanelVisible(true);
     }
   };
 
@@ -393,7 +401,7 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     if (isViewCustVisible) return <ViewCustomers />;
-    if (isAddExpertVisible) return <ExpertPanel />;
+    if (isExpertPanelVisible) return <ExpertRoute />;
     if (isViewAgentVisible) return <ViewAgents />;
     if (isViewpostVisible) return <ViewPostedProperties />;
     if (isViewReqVisible) return <RequestedProperties />;
@@ -408,6 +416,8 @@ const AdminDashboard = () => {
     if (ViewAllInvester) return <ViewAllInvesters />;
     if (isViewReferral) return <ViewReferralAgents />;
     if (isViewCoreMember) return <ViewCoreMembers />;
+    if (isExperDetails) return <ExpertDetails expertType={expertType} />;
+
     return <Dashboard />;
   };
 
@@ -475,46 +485,49 @@ const AdminDashboard = () => {
                 : styles.collapsedSidebar),
           ]}
         >
-          <FlatList
-            data={menuItems}
-            keyExtractor={(item) => item.title}
-            renderItem={({ item }) => (
-              <View>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => toggleMenuItem(item.title)}
-                >
-                  <Ionicons name={item.icon} size={24} color="#555" />
-                  {isSidebarExpanded && (
-                    <Text style={styles.menuText}>{item.title}</Text>
-                  )}
-                  {isSidebarExpanded && (
-                    <Ionicons
-                      name={
-                        expandedItems[item.title]
-                          ? "chevron-up-outline"
-                          : "chevron-down-outline"
-                      }
-                      size={16}
-                      color="#555"
-                    />
-                  )}
-                </TouchableOpacity>
-                {isSidebarExpanded &&
-                  expandedItems[item.title] &&
-                  item.subItems &&
-                  item.subItems.map((sub, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleSubItemClick(sub)}
-                    >
-                      <Text style={styles.subMenuText}>{sub}</Text>
-                    </TouchableOpacity>
-                  ))}
-              </View>
-            )}
-          />
-          <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
+          <ScrollView style={{ maxHeight: 600, minHeight: 200 }}>
+            <FlatList
+              data={menuItems}
+              keyExtractor={(item) => item.title}
+              scrollEnabled={false} // Disable scrolling for FlatList
+              renderItem={({ item }) => (
+                <View>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => toggleMenuItem(item.title)}
+                  >
+                    <Ionicons name={item.icon} size={24} color="#555" />
+                    {isSidebarExpanded && (
+                      <Text style={styles.menuText}>{item.title}</Text>
+                    )}
+                    {isSidebarExpanded && (
+                      <Ionicons
+                        name={
+                          expandedItems[item.title]
+                            ? "chevron-up-outline"
+                            : "chevron-down-outline"
+                        }
+                        size={16}
+                        color="#555"
+                      />
+                    )}
+                  </TouchableOpacity>
+                  {isSidebarExpanded &&
+                    expandedItems[item.title] &&
+                    item.subItems &&
+                    item.subItems.map((sub, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => handleSubItemClick(sub)}
+                      >
+                        <Text style={styles.subMenuText}>{sub}</Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              )}
+            />
+            <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
+          </ScrollView>
         </View>
 
         {/* Main Content Area */}

@@ -73,6 +73,13 @@ app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);
 
+app.get("/admindata", (req, res) => {
+  const UserName = "1234";
+  const Password = "1234";
+
+  res.status(200).json({ UserName, Password });
+});
+
 app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });

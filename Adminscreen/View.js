@@ -10,6 +10,8 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Modal,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
@@ -19,6 +21,15 @@ const { width } = Dimensions.get("window");
 export default function ViewAgents() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [editedAgent, setEditedAgent] = useState({
+    FullName: "",
+    District: "",
+    Contituency: "",
+    MobileNumber: "",
+    MyRefferalCode: "",
+  });
 
   // Fetch agents from the API
   useEffect(() => {
@@ -84,6 +95,48 @@ export default function ViewAgents() {
     }
   };
 
+  // Handle edit agent
+  const handleEditAgent = (agent) => {
+    setSelectedAgent(agent);
+    setEditedAgent({
+      FullName: agent.FullName,
+      District: agent.District,
+      Contituency: agent.Contituency,
+      MobileNumber: agent.MobileNumber,
+      MyRefferalCode: agent.MyRefferalCode,
+    });
+    setEditModalVisible(true);
+  };
+
+  // Handle save edited agent
+  const handleSaveEditedAgent = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/agent/updateagent/${selectedAgent._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedAgent),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to update agent");
+
+      const updatedAgent = await response.json();
+      setAgents((prevAgents) =>
+        prevAgents.map((agent) =>
+          agent._id === selectedAgent._id ? updatedAgent.data : agent
+        )
+      );
+      setEditModalVisible(false);
+      Alert.alert("Success", "Agent updated successfully.");
+    } catch (error) {
+      console.error("Error updating agent:", error);
+      Alert.alert("Error", "Failed to update agent.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -106,10 +159,17 @@ export default function ViewAgents() {
                 <Text style={styles.agentText}>
                   Constituency: {agent.Contituency}
                 </Text>
+                <Text style={styles.agentText}>Phno: {agent.MobileNumber}</Text>
                 <Text style={styles.agentText}>
                   Referral Code: {agent.MyRefferalCode}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => handleEditAgent(agent)}
+              >
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteAgent(agent._id)}
@@ -122,6 +182,72 @@ export default function ViewAgents() {
           <Text style={styles.message}>No agents found.</Text>
         )}
       </ScrollView>
+
+      {/* Edit Modal */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>Edit Agent</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={editedAgent.FullName}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, FullName: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="District"
+              value={editedAgent.District}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, District: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Constituency"
+              value={editedAgent.Contituency}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, Contituency: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              value={editedAgent.MobileNumber}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, MobileNumber: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Referral Code"
+              value={editedAgent.MyRefferalCode}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, MyRefferalCode: text })
+              }
+            />
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSaveEditedAgent}
+            >
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setEditModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -184,6 +310,19 @@ const styles = StyleSheet.create({
     color: "#555",
     marginTop: 20,
   },
+  editButton: {
+    backgroundColor: "#4CAF50",
+    padding: 8,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
   deleteButton: {
     backgroundColor: "#ff4444",
     padding: 8,
@@ -194,6 +333,57 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: "#fff",
     fontSize: 14,
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "50%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalHeading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "#ff4444",
+    padding: 12,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "bold",
   },
 });

@@ -15,5 +15,6 @@ app.post("/VerifyOtp", ForgetPassword.VerifyOtp);
 app.post("/updatepassword", ForgetPassword.resetPassword);
 app.get("/allagents", AgentController.getAllAgents);
 app.delete("/deleteagent/:id", AgentController.deleteAgent);
+app.put("/updateagent/:id", AgentController.updateAgentByadmin);
 
 module.exports = app;

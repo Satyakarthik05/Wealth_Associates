@@ -131,6 +131,33 @@ const geymyNris = async (req, res) => {
   }
 };
 
+// DELETE /nri/referred-members/:id
+const deleteReferredMember = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedMember = await NRIMember.findByIdAndDelete(id);
+    if (!deletedMember) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+    res.status(200).json({ message: "Member deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting member", error });
+  }
+};
+
+const editReferredMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedMember = await NRIMember.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.status(200).json(updatedMember);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating member", error });
+  }
+};
+
 module.exports = {
   NRIMemberSign,
   fetchReferredNRIMembers,
@@ -138,4 +165,6 @@ module.exports = {
   updateNRIDetails,
   NRILogin,
   geymyNris,
+  deleteReferredMember,
+  editReferredMember,
 };
