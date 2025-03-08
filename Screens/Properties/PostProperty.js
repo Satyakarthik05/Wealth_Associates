@@ -327,9 +327,10 @@ const PostProperty = ({ closeModal }) => {
 // Styles
 const styles = StyleSheet.create({
   container: {
+    marginTop: Platform.OS === "ios" ? 90 : 0,
     flex: 1,
     backgroundColor: "#fff",
-    width: Platform.OS === "android" ? "90%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : "40%",
     borderRadius: 30,
   },
   scrollContainer: { flexGrow: 1, padding: 20 },
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   formContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,

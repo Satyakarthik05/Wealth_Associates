@@ -13,6 +13,8 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -186,6 +188,10 @@ const Register_screen = () => {
 
   return (
     <View style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         nestedScrollEnabled={true}
@@ -514,7 +520,7 @@ const Register_screen = () => {
             >
               <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} disabled={isLoading}>
+            <TouchableOpacity style={styles.cancelButton} disabled={isLoading} >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -546,6 +552,7 @@ const Register_screen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+    </KeyboardAvoidingView>
       <StatusBar style="auto" />
     </View>
   );
@@ -587,7 +594,7 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   scrollView: {
-    maxHeight: 200, // Adjust this height as per your UI
+    maxHeight: 400, // Adjust this height as per your UI
   },
 
   inputRow: {
@@ -621,8 +628,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
   },
   logo: {
-    width: Platform.OS === "android" ? 200 : 200,
-    height: Platform.OS === "android" ? 200 : 200,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 200,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 200,
   },
   icon: {
     position: "absolute",

@@ -103,7 +103,7 @@ const ViewAllProperties = () => {
 const styles = StyleSheet.create({
   container: { backgroundColor: "#f5f5f5", padding: 15 },
   header: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" ||Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },

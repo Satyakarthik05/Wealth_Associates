@@ -11,6 +11,9 @@ import {
   ActivityIndicator,
   BackHandler,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Keyboard
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -91,7 +94,16 @@ export default function Login_screen() {
   // );
 
   return (
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
+  >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
     <SafeAreaView style={styles.container}>
+      
       <View style={styles.card}>
         {Platform.OS !== "android" && Platform.OS !== "ios" && (
           <View style={styles.leftSection}>
@@ -195,14 +207,16 @@ export default function Login_screen() {
             style={styles.signupContainer}
             onPress={() => navigation.navigate("Register")}
           >
-            <Text style={styles.signupText}>
+            {/* <Text style={styles.signupText}>
               Don't have an account?{" "}
               <Text style={styles.signupLink}>Sign up here</Text>
-            </Text>
+            </Text> */}
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
+    </ScrollView>
+  </KeyboardAvoidingView>
   );
 }
 

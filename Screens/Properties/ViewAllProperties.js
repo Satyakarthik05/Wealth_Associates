@@ -101,9 +101,9 @@ const ViewAllProperties = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f5f5f5", padding: 15 },
+  container: { backgroundColor: "#f5f5f5", padding: 15 }, 
   header: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" ||Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     elevation: 3,
-    height: Platform.OS === "android" ? 50 : 40,
+    height: Platform.OS === "android"||Platform.OS === "ios" ? 50 : 40,
   },
   picker: { height: "100%", width: 180, fontSize: 14 },
   loader: { marginTop: 50 },

@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
@@ -51,87 +53,87 @@ export default function ForgotPassword() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollView}
-        keyboardShouldPersistTaps="handled" // Ensures taps are handled properly
-      >
-        <View style={styles.card}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../assets/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-
-          <View
-            style={
-              Platform.OS === "web"
-                ? styles.webContentContainer
-                : styles.contentContainer
-            }
+       <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
           >
-            <Image
-              source={require("../../assets/forgot_password.png")}
-              style={styles.illustration}
-              resizeMode="contain"
-            />
+            <ScrollView
+              contentContainerStyle={styles.scrollView}
+              keyboardShouldPersistTaps="handled" // Ensures taps are handled properly
+            >
+          <View style={styles.card}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("../../assets/logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
 
-            <View style={styles.formContainer}>
-              <Text style={styles.title}>Forgot Password</Text>
+            <View
+              style={
+                Platform.OS === "web"
+                  ? styles.webContentContainer
+                  : styles.contentContainer
+              }
+            >
+              <Image
+                source={require("../../assets/forgot_password.png")}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
 
-              <View style={styles.inputGroup}>
-                {errorMessage ? (
-                  <Text style={styles.errorText}>{errorMessage}</Text>
-                ) : null}
-                <Text style={styles.label}>Mobile Number</Text>
+              <View style={styles.formContainer}>
+                <Text style={styles.title}>Forgot Password</Text>
 
-                {/* Wrapped TextInput inside a View */}
-                <View style={{ width: "100%" }}>
-                  <TextInput
-                    style={[styles.input, { textAlignVertical: "center" }]}
-                    keyboardType="phone-pad"
-                    placeholder="Ex: 9063392872"
-                    value={mobileNo}
-                    onChangeText={setMobileNumber}
-                    returnKeyType="done"
-                  />
+                <View style={styles.inputGroup}>
+                  {errorMessage ? (
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                  ) : null}
+                  <Text style={styles.label}>Mobile Number</Text>
+
+                  {/* Wrapped TextInput inside a View */}
+                  <View style={{ width: "100%" }}>
+                    <TextInput
+                      style={[styles.input, { textAlignVertical: "center" }]}
+                      keyboardType="phone-pad"
+                      placeholder="Ex: 9063392872"
+                      value={mobileNo}
+                      onChangeText={setMobileNumber}
+                      returnKeyType="done"
+                    />
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  style={styles.getOtpButton}
-                  onPress={handleSubmit}
-                  disabled={loading}
-                >
-                  <Text style={styles.getOtpButtonText}>Get OTP</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonGroup}>
+                  <TouchableOpacity
+                    style={styles.getOtpButton}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                  >
+                    <Text style={styles.getOtpButtonText}>Get OTP</Text>
+                  </TouchableOpacity>
 
-                {/* <TouchableOpacity
+                  {/* <TouchableOpacity
                   style={styles.cancelButton}
                   // onPress={navigation.navigate("Login")}
                 >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity> */}
-              </View>
+                </View>
 
-              {loading && (
-                <ActivityIndicator
-                  size="small"
-                  color="#ee3b7b"
-                  style={styles.loading}
-                />
-              )}
+                {loading && (
+                  <ActivityIndicator
+                    size="small"
+                    color="#ee3b7b"
+                    style={styles.loading}
+                  />
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
   );
 }
 
@@ -160,6 +162,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logo: {
+    position : "relative",
+    top: Platform.OS === "web" ? "0%" : "3%",
     width: 150,
     height: 150,
   },
@@ -176,8 +180,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   illustration: {
-    width: Platform.OS === "web" ? 350 : 300,
-    height: Platform.OS === "web" ? 400 : 150,
+    width: Platform.OS === "web" || Platform.OS === "ios"  ? 350 : 300,
+    height: Platform.OS === "web"|| Platform.OS === "ios" ? 300 : 150,
     marginBottom: Platform.OS === "web" ? 0 : 16,
   },
   formContainer: {
