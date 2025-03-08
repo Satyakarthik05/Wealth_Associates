@@ -57,7 +57,7 @@ const ViewAllProperties = () => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -74,9 +74,9 @@ const ViewAllProperties = () => {
   useEffect(() => {
     getDetails();
   }, []);
+
   const handleBuyNow = async (PostedBy, propertyType, location, price) => {
     try {
-      // Send the details to the backend
       const response = await fetch(`${API_URL}/buy/buyproperty`, {
         method: "POST",
         headers: {
@@ -88,7 +88,7 @@ const ViewAllProperties = () => {
           price,
           PostedBy,
           WantedBy: Details.MobileNumber,
-          WantedUserType: "CoreMember",
+          WantedUserType: "WealthAssociate",
         }),
       });
 
@@ -108,6 +108,32 @@ const ViewAllProperties = () => {
         "Error",
         "An error occurred while sending the purchase request."
       );
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getPropertyTag = (createdAt) => {
+    const currentDate = new Date();
+    const propertyDate = new Date(createdAt);
+    const timeDifference = currentDate - propertyDate;
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (daysDifference <= 3) {
+      return "Regular Property";
+    } else if (daysDifference >= 4 && daysDifference <= 17) {
+      return "Approved Property";
+    } else if (daysDifference >= 18 && daysDifference <= 25) {
+      return "Wealth Property";
+    } else {
+      return "Listed Property";
     }
   };
 
@@ -140,15 +166,25 @@ const ViewAllProperties = () => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
                 : require("../../../assets/logo.png");
+              const propertyTag = getPropertyTag(item.createdAt);
 
               return (
                 <View key={item._id} style={styles.card}>
                   <Image source={imageUri} style={styles.image} />
+                  <View style={styles.approvedBadge}>
+                    <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                  </View>
                   <View style={styles.details}>
-                    <Text style={styles.title}>{item.propertyType}</Text>
+                    <View style={styles.titleContainer}>
+                      <Text style={styles.title}>{item.propertyType}</Text>
+                      {/* <Text style={styles.tag}>{propertyTag}</Text> */}
+                    </View>
                     <Text style={styles.info}>Location: {item.location}</Text>
                     <Text style={styles.budget}>
                       ₹ {parseInt(item.price).toLocaleString()}
+                    </Text>
+                    <Text style={styles.postedOn}>
+                      Posted on: {formatDate(item.createdAt)}
                     </Text>
                     <TouchableOpacity
                       style={styles.buyNowButton}
@@ -214,7 +250,22 @@ const styles = StyleSheet.create({
   },
   image: { width: "100%", height: 150, borderRadius: 8 },
   details: { marginTop: 10 },
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   title: { fontSize: 16, fontWeight: "bold" },
+  tag: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#fff",
+    backgroundColor: "#3498db",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  postedOn: { fontSize: 15, color: "black" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
   buyNowButton: {
@@ -229,6 +280,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  approvedBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "green",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+  badgeText: { color: "#fff", fontSize: 12 },
 });
 
 export default ViewAllProperties;
