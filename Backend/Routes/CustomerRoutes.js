@@ -25,5 +25,6 @@ app.get(
   verifyUser,
   CustomerController.getMyInvestorCustomers
 );
+app.put("/updatecustomer/:id", CustomerController.updatecustomerAdmin);
 
 module.exports = app;

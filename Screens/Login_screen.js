@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -25,9 +25,34 @@ export default function Login_screen() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
   const navigation = useNavigation();
+  const [adminData, setAdminData] = useState(null);
+  // const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  const fetchAdminData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/admindata`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch admin data");
+      }
+      const data = await response.json();
+      setAdminData(data);
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      Alert.alert("Error", "Failed to fetch admin data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
-    if (mobileNumber === "1234567890" && password === "1234") {
+    if (
+      mobileNumber === `${adminData.UserName}` &&
+      password === `${adminData.Password}`
+    ) {
       navigation.navigate("Admin"); // Redirects to Dashboard after login
     } else {
       if (!mobileNumber || !password) {

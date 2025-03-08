@@ -8,6 +8,7 @@ const {
   SkillLogin,
   getSkilled,
   updateSkilledDetails,
+  UpdateSkillAdmin,
 } = require("../Controllers/SkillController");
 const verifySkilledToken = require("../middleWares/SkillToken");
 const verifyUser = require("../middleWares/VerifyUser");
@@ -25,5 +26,6 @@ router.delete("/delete/:id", deleteSkillLabour);
 router.post("/skilllogin", SkillLogin);
 router.post("/updateskill", updateSkilledDetails);
 router.get("/getskilled", verifySkilledToken, getSkilled);
+router.put("/update/:id", UpdateSkillAdmin);
 
 module.exports = router;
