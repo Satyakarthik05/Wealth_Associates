@@ -45,6 +45,8 @@ import ExpertDetails from "./ExpertPanel/ExpertDetails";
 import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
 import AddInvestor from "./Investors/AddInvestors";
 import ViewAllInvesters from "./Investors/ViewAllInvestors";
+import AddNRIMember from "./NRI/AddNri";
+import ViewNri from "./NRI/ViewNri";
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -86,6 +88,11 @@ const menuItems = [
     title: "Core Clients",
     icon: "business-outline",
     subItems: ["View Core Clients", "View Core Projects"],
+  },
+  {
+    title: "NRI Club",
+    icon: "globe-outline",
+    subItems: ["Add NRI Member", "View NRI Members"],
   },
   {
     title: "Skilled Club",
@@ -133,6 +140,8 @@ const Admin_panel = () => {
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
   const [isAddinvest, setIsAddinvest] = useState(false);
   const [isviewAllinvestors, setIsviewAllinvestors] = useState(false);
+  const [isNriVisible, setIsNriVisible] = useState(false);
+  const [isViewNriVisible, setIsViewNriVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -191,6 +200,8 @@ const Admin_panel = () => {
     setisRsSkill(false);
     setIsAddinvest(false);
     setIsviewAllinvestors(false);
+    setIsNriVisible(false);
+    setIsViewNriVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -234,6 +245,10 @@ const Admin_panel = () => {
       setIsAddinvest(true);
     } else if (subItem === "View All Investors") {
       setIsviewAllinvestors(true);
+    } else if (subItem === "Add NRI Member") {
+      setIsNriVisible(true);
+    } else if (subItem === "View NRI Members") {
+      setIsViewNriVisible(true);
     }
   };
 
@@ -257,6 +272,8 @@ const Admin_panel = () => {
     setisRsSkill(false);
     setIsAddinvest(false);
     setIsviewAllinvestors(false);
+    setIsNriVisible(false);
+    setIsViewNriVisible(false);
   };
 
   const renderContent = () => {
@@ -272,6 +289,7 @@ const Admin_panel = () => {
     if (isAgentProfile) return <Agent_Profile />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
+    if (isViewNriVisible) return <ViewNri/>
 
     return (
       <ScrollView
@@ -349,6 +367,8 @@ const Admin_panel = () => {
             setIsAddinvest(false);
             setIsviewAllinvestors(false);
             setAllSkilledLabour(false);
+            setIsNriVisible(false);
+            setIsViewNriVisible(false);
           }}
         >
           <Image
@@ -384,6 +404,8 @@ const Admin_panel = () => {
                 setIsAddinvest(false);
                 setIsviewAllinvestors(false);
                 setAllSkilledLabour(false);
+                setIsNriVisible(false);
+                setIsViewNriVisible(false);
               }}
             />
           </View>
@@ -504,6 +526,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
         <ViewAllInvesters closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
+        <AddNRIMember closeModal={closeModal} />
       </CustomModal>
     </View>
   );
