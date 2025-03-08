@@ -7,17 +7,28 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  Modal,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TouchableOpacity } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 export default function AllSkilledLabours() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [formData, setFormData] = useState({
+    FullName: "",
+    SelectSkill: "",
+    MobileNumber: "",
+    Location: "",
+  });
 
+  // Fetch skilled labours
   useEffect(() => {
     const fetchSkilledLabours = async () => {
       try {
@@ -51,6 +62,7 @@ export default function AllSkilledLabours() {
     fetchSkilledLabours();
   }, []);
 
+  // Handle delete
   const handleDelete = async (id) => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -67,7 +79,6 @@ export default function AllSkilledLabours() {
       });
 
       if (response.ok) {
-        // Remove the deleted agent from the state
         setAgents((prevAgents) =>
           prevAgents.filter((agent) => agent._id !== id)
         );
@@ -79,11 +90,61 @@ export default function AllSkilledLabours() {
     }
   };
 
-  const handleEdit = (id) => {
-    // Navigate to the edit screen (you can use React Navigation for this)
-    console.log("Edit agent with id:", id);
+  // Handle edit button click
+  const handleEdit = (agent) => {
+    setSelectedAgent(agent);
+    setFormData({
+      FullName: agent.FullName,
+      SelectSkill: agent.SelectSkill,
+      MobileNumber: agent.MobileNumber,
+      Location: agent.Location,
+    });
+    setEditModalVisible(true);
   };
 
+  // Handle form input changes
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle save after editing
+  const handleSave = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/skillLabour/update/${selectedAgent._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            token: `${token}` || "",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (response.ok) {
+        const updatedAgent = await response.json();
+        setAgents((prevAgents) =>
+          prevAgents.map((agent) =>
+            agent._id === updatedAgent._id ? updatedAgent : agent
+          )
+        );
+        setEditModalVisible(false); // Close the modal
+      } else {
+        console.error("Failed to update agent");
+      }
+    } catch (error) {
+      console.error("Error updating agent:", error);
+    }
+  };
+
+  // Render agent card
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
       <Image source={require("../../assets/man.png")} style={styles.avatar} />
@@ -107,7 +168,7 @@ export default function AllSkilledLabours() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.editButton]}
-            onPress={() => handleEdit(item._id)}
+            onPress={() => handleEdit(item)}
           >
             <Text style={styles.buttonText}>Edit</Text>
           </TouchableOpacity>
@@ -136,6 +197,57 @@ export default function AllSkilledLabours() {
           <Text style={styles.emptyText}>No skilled labours found.</Text>
         )}
       </ScrollView>
+
+      {/* Edit Modal */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Skilled Labour</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={formData.FullName}
+              onChangeText={(text) => handleChange("FullName", text)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Skill Type"
+              value={formData.SelectSkill}
+              onChangeText={(text) => handleChange("SelectSkill", text)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              value={formData.MobileNumber}
+              onChangeText={(text) => handleChange("MobileNumber", text)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Location"
+              value={formData.Location}
+              onChangeText={(text) => handleChange("Location", text)}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.saveButton]}
+                onPress={handleSave}
+              >
+                <Text style={styles.buttonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -232,5 +344,48 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "50%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  cancelButton: {
+    backgroundColor: "#F44336",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 10,
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginLeft: 10,
   },
 });

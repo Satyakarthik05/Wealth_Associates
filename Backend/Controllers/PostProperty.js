@@ -189,11 +189,35 @@ const editProperty = async (req, res) => {
   }
 };
 
+const updatePropertyAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedProperty = await Property.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
+
+    if (!updatedProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.status(200).json({
+      message: "Property updated successfully",
+      property: updatedProperty,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   createProperty,
   GetAllPropertys,
   GetMyPropertys,
   AdminProperties,
   deletProperty,
-  editProperty, // Add the edit property function to exports
+  editProperty,
+  updatePropertyAdmin,
 };

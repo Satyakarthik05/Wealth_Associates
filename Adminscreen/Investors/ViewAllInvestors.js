@@ -7,49 +7,59 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  Modal,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TouchableOpacity } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 export default function ViewAllInvesters() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentAgent, setCurrentAgent] = useState(null);
+  const [formData, setFormData] = useState({
+    FullName: "",
+    SelectSkill: "",
+    MobileNumber: "",
+    Location: "",
+  });
 
   useEffect(() => {
-    const fetchSkilledLabours = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("No token found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/investors/list`, {
-          method: "GET",
-          headers: {
-            token: `${token}` || "",
-          },
-        });
-
-        const data = await response.json();
-        if (response.ok && Array.isArray(data.skilledLabours)) {
-          setAgents(data.skilledLabours);
-        } else {
-          setAgents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching agents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSkilledLabours();
   }, []);
+
+  const fetchSkilledLabours = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/investors/list`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok && Array.isArray(data.skilledLabours)) {
+        setAgents(data.skilledLabours);
+      } else {
+        setAgents([]);
+      }
+    } catch (error) {
+      console.error("Error fetching agents:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -67,7 +77,6 @@ export default function ViewAllInvesters() {
       });
 
       if (response.ok) {
-        // Remove the deleted agent from the state
         setAgents((prevAgents) =>
           prevAgents.filter((agent) => agent._id !== id)
         );
@@ -79,9 +88,46 @@ export default function ViewAllInvesters() {
     }
   };
 
-  const handleEdit = (id) => {
-    // Navigate to the edit screen (you can use React Navigation for this)
-    console.log("Edit agent with id:", id);
+  const handleEdit = (agent) => {
+    setCurrentAgent(agent);
+    setFormData({
+      FullName: agent.FullName,
+      SelectSkill: agent.SelectSkill,
+      MobileNumber: agent.MobileNumber,
+      Location: agent.Location,
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/investors/update/${currentAgent._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            token: `${token}` || "",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (response.ok) {
+        fetchSkilledLabours(); // Refresh the list
+        setEditModalVisible(false);
+      } else {
+        console.error("Failed to update agent");
+      }
+    } catch (error) {
+      console.error("Error updating agent:", error);
+    }
   };
 
   const renderAgentCard = (item) => (
@@ -107,7 +153,7 @@ export default function ViewAllInvesters() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.editButton]}
-            onPress={() => handleEdit(item._id)}
+            onPress={() => handleEdit(item)}
           >
             <Text style={styles.buttonText}>Edit</Text>
           </TouchableOpacity>
@@ -136,6 +182,65 @@ export default function ViewAllInvesters() {
           <Text style={styles.emptyText}>No skilled labours found.</Text>
         )}
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Agent</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={formData.FullName}
+              onChangeText={(text) =>
+                setFormData({ ...formData, FullName: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Skill Type"
+              value={formData.SelectSkill}
+              onChangeText={(text) =>
+                setFormData({ ...formData, SelectSkill: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              value={formData.MobileNumber}
+              onChangeText={(text) =>
+                setFormData({ ...formData, MobileNumber: text })
+              }
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Location"
+              value={formData.Location}
+              onChangeText={(text) =>
+                setFormData({ ...formData, Location: text })
+              }
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.updateButton]}
+                onPress={handleUpdate}
+              >
+                <Text style={styles.modalButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -229,6 +334,53 @@ const styles = StyleSheet.create({
     backgroundColor: "#F44336",
   },
   buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: width > 600 ? "50%" : "90%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#ccc",
+  },
+  updateButton: {
+    backgroundColor: "#4CAF50",
+  },
+  modalButtonText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",

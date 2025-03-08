@@ -134,6 +134,31 @@ const getCore = async (req, res) => {
     console.log(error);
   }
 };
+const updateCoreDetails = async (req, res) => {
+  const { MobileNumber, FullName, Email, Locations, Occupation, Password } =
+    req.body;
+
+  try {
+    const existingAgent = await core.findOne({ MobileNumber });
+    if (!existingAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    // Update agent details
+    existingAgent.FullName = FullName || existingAgent.FullName;
+    existingAgent.Email = Email || existingAgent.Email;
+    existingAgent.Locations = Locations || existingAgent.Locations;
+    existingAgent.Occupation = Occupation || existingAgent.Occupation;
+    existingAgent.Password = Password || existingAgent.Password;
+
+    await existingAgent.save();
+
+    res.status(200).json({ message: "Customer details updated successfully" });
+  } catch (error) {
+    console.error("Error updating agent details:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 const fetchReferredAgents = async (req, res) => {
   try {
@@ -179,10 +204,71 @@ const fetchReferredCustomers = async (req, res) => {
   }
 };
 
+const getAllCoreMembers = async (req, res) => {
+  try {
+    const coreMembers = await core.find({});
+    res.status(200).json(coreMembers);
+  } catch (error) {
+    console.error("Error fetching core members:", error);
+    throw error; // Rethrow the error if you want to handle it elsewhere
+  }
+};
+
+const deleteCore = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find and delete the agent by ID
+    const deletedAgent = await core.findByIdAndDelete(id);
+
+    if (!deletedAgent) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Agent deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+const updateCoreByadmin = async (req, res) => {
+  const { id } = req.params;
+  const { FullName, District, Contituency, MobileNumber, MyRefferalCode } =
+    req.body;
+
+  try {
+    const updatedAgent = await core.findByIdAndUpdate(
+      id,
+      { FullName, District, Contituency, MobileNumber, MyRefferalCode },
+      { new: true }
+    );
+
+    if (!updatedAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Agent updated successfully", data: updatedAgent });
+  } catch (error) {
+    console.error("Error updating agent:", error);
+    res.status(500).json({ message: "Failed to update agent" });
+  }
+};
+
 module.exports = {
   CoreSign,
   coreLogin,
   getCore,
   fetchReferredAgents,
   fetchReferredCustomers,
+  getAllCoreMembers,
+  updateCoreDetails,
+  deleteCore,
+  updateCoreByadmin,
 };

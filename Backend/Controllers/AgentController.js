@@ -249,6 +249,31 @@ const deleteAgent = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+const updateAgentByadmin = async (req, res) => {
+  const { id } = req.params;
+  const { FullName, District, Contituency, MobileNumber, MyRefferalCode } =
+    req.body;
+
+  try {
+    const updatedAgent = await AgentSchema.findByIdAndUpdate(
+      id,
+      { FullName, District, Contituency, MobileNumber, MyRefferalCode },
+      { new: true }
+    );
+
+    if (!updatedAgent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Agent updated successfully", data: updatedAgent });
+  } catch (error) {
+    console.error("Error updating agent:", error);
+    res.status(500).json({ message: "Failed to update agent" });
+  }
+};
 module.exports = {
   AgentSign,
   AgentLogin,
@@ -257,4 +282,5 @@ module.exports = {
   updateAgentDetails,
   getAllAgents,
   deleteAgent,
+  updateAgentByadmin,
 };

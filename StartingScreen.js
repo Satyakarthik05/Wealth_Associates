@@ -38,24 +38,24 @@ const StartingScreen = () => {
     {
       name: "Referral",
       icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
-      navigateTo: "ReferralDashboard", // Navigate to ReferralDashboard
+      navigateTo: "Login", // Navigate to ReferralDashboard
     },
     {
       name: "Investor",
       icon: (
         <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
       ),
-      navigateTo: "InvestorDashboard", // Navigate to InvestorDashboard
+      navigateTo: "InvestorDashboard",
     },
     {
       name: "NRI",
       icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
-      navigateTo: "NRIDashboard", // Navigate to NRIDashboard
+      navigateTo: "NriDashboard", // Navigate to NRIDashboard
     },
     {
       name: "Skilled Resource",
       icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
-      navigateTo: "SkilledResourceDashboard", // Navigate to SkilledResourceDashboard
+      navigateTo: "SkillDashboard", // Navigate to SkilledResourceDashboard
     },
   ];
 
@@ -65,7 +65,7 @@ const StartingScreen = () => {
       <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
       <Text style={styles.loginAsText}>Login as</Text>
 
-      {Platform.OS === "web" ? (
+      {Platform.OS === "web"  ? (
         <View style={styles.card}>
           <View style={styles.gridContainer}>
             {loginOptions.map((option, index) => (
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     alignItems: "center",
-    paddingTop: hp("5%"),
+    paddingTop: Platform.OS === "ios" ? hp("2%") : hp("5%"),
   },
   logo: {
     width: wp("50%"),
@@ -112,15 +112,15 @@ const styles = StyleSheet.create({
     marginBottom: hp("3%"),
   },
   welcomeText: {
-    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? hp("2.59%") : hp("3%"),
     fontWeight: "bold",
     color: "#D81B60",
     marginBottom: hp("1%"),
   },
   loginAsText: {
-    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
+    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? hp("3%") : hp("3%"),
     fontWeight: "600",
-    marginBottom: Platform.OS === "android" ? hp("2%") : hp("2%"),
+    marginBottom: Platform.OS === "android" || Platform.OS === "ios" ? hp("2%") : hp("2%"),
   },
   card: {
     backgroundColor: "#fff",
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    width: Platform.OS === "web" ? "100%" : "40px",
+    width: Platform.OS === "web"  ? "100%" : "40px",
   },
   button: {
     width: Platform.OS === "web" ? "15%" : wp("38%"),
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
         : { width: 0, height: 0 },
     shadowOpacity: Platform.OS === "ios" || Platform.OS === "web" ? 0.2 : 0,
     shadowRadius: Platform.OS === "ios" || Platform.OS === "web" ? 5 : 0,
-    marginBottom: Platform.OS === "android" ? hp("0%") : hp("10%"),
+    marginBottom: Platform.OS === "android" || Platform.OS === "ios" ? hp("0%") : hp("10%"),
   },
   buttonText: {
     color: "white",

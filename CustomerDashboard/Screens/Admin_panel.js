@@ -43,6 +43,11 @@ import Modify_Deatils from "./Agent/Modify_Details";
 import ExpertRoute from "./ExpertPanel/ExpertRoute";
 import ExpertDetails from "./ExpertPanel/ExpertDetails";
 import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
+import ViewAllInvesters from "./Investors/ViewAllInvestors";
+import ViewInvesters from "./Investors/ViewInvestors";
+import AddNRIMember from "./NRI/AddNri";
+import ViewNri from "./NRI/ViewNri";
+import AddInvestor from "./Investors/AddInvestors";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -88,10 +93,20 @@ const menuItems = [
       "All Skilled Labours",
     ],
   },
+  // {
+  //   title: "Refer",
+  //   icon: "trophy-outline",
+  //   subItems: ["Refer a Member"],
+  // },
   {
-    title: "Refer",
-    icon: "trophy-outline",
-    subItems: ["Refer a Member"],
+    title: "Investors",
+    icon: "business-outline",
+    subItems: ["Add Investor", "View Investors", "View All Investors"],
+  },
+  {
+    title: "NRI Club",
+    icon: "globe-outline", // 🌍 Represents an international community
+    subItems: ["Add NRI Member", "View NRI Members"],
   },
 ];
 
@@ -128,9 +143,15 @@ const Admin_panel = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [expertType, setExpertType] = useState(null);
   const [AllSkilledLabour, setAllSkilledLabour] = useState(false);
+  const [isViewAllInvestersVisible, setIsViewAllInvestersVisible] =
+    useState(false);
+  const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
+  const [isAddNriVisible, setIsAddNriVisible] = useState(false);
+  const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isAddInvestVisible, setIsAddInvestVisible] = useState(false);
 
   const toggleSidebar = () => {
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded((prev) => !prev);
     }
   };
@@ -157,7 +178,7 @@ const Admin_panel = () => {
       [title]: !prev[title],
     }));
 
-    if (Platform.OS === "android" && !isSidebarExpanded) {
+    if ((Platform.OS === "android" || Platform.OS === "ios" && !isSidebarExpanded)) {
       setIsSidebarExpanded(true);
     }
   };
@@ -183,8 +204,13 @@ const Admin_panel = () => {
     setCoreClients(false);
     setCoreProjects(false);
     setisRsSkill(false);
+    setIsViewAllInvestersVisible(false);
+    setIsViewInvestVisible(false);
+    setIsAddNriVisible(false);
+    setIsViewNriVisible(false);
+    setIsAddInvestVisible(false);
 
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
     }
 
@@ -222,6 +248,16 @@ const Admin_panel = () => {
       setIsExpertDetails(true);
     } else if (subItem === "All Skilled Labours") {
       setAllSkilledLabour(true);
+    } else if (subItem === "View All Investors") {
+      setIsViewAllInvestersVisible(true);
+    } else if (subItem === "View Investors") {
+      setIsViewInvestVisible(true);
+    } else if (subItem === "Add NRI Member") {
+      setIsAddNriVisible(true);
+    } else if (subItem === "View NRI Members") {
+      setIsViewNriVisible(true);
+    } else if (subItem === "Add Investor") {
+      setIsAddInvestVisible(true);
     }
   };
 
@@ -243,6 +279,11 @@ const Admin_panel = () => {
     setIsRequestExpertVisible(false);
     setAddPost(false);
     setisRsSkill(false);
+    setIsViewAllInvestersVisible(false);
+    setIsViewInvestVisible(false);
+    setIsAddNriVisible(false);
+    setIsViewNriVisible(false);
+    setIsAddInvestVisible(false);
   };
 
   const renderContent = () => {
@@ -258,6 +299,9 @@ const Admin_panel = () => {
     if (isAgentProfile) return <Agent_Profile />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
+    if (isViewAllInvestersVisible) return <ViewAllInvesters />;
+    if (isViewInvestVisible) return <ViewInvesters />;
+    if (isViewNriVisible) return <ViewNri />;
 
     return (
       <ScrollView
@@ -308,7 +352,7 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {Platform.OS === "android" && (
+      {(Platform.OS === "android"|| Platform.OS === "ios") && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
@@ -332,6 +376,12 @@ const Admin_panel = () => {
             setisRsSkill(false);
             setIsAgentProfile(false);
             setSelectedSubItem(null);
+            setIsViewAllInvestersVisible(false);
+            setIsViewInvestVisible(false);
+            setIsAddNriVisible(false);
+            setIsViewNriVisible(false);
+            setIsAddInvestVisible(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image
@@ -364,6 +414,11 @@ const Admin_panel = () => {
                 setCoreClients(false);
                 setCoreProjects(false);
                 setisRsSkill(false);
+                setIsViewAllInvestersVisible(false);
+                setIsViewInvestVisible(false);
+                setIsAddNriVisible(false);
+                setIsViewNriVisible(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>
@@ -374,7 +429,7 @@ const Admin_panel = () => {
         <View
           style={[
             styles.sidebar,
-            Platform.OS === "android" &&
+            (Platform.OS === "android" || Platform.OS === "ios") &&
               (isSidebarExpanded
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
@@ -446,7 +501,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {Platform.OS === "android" && (
+      {(Platform.OS === "android"|| Platform.OS === "ios" )&& (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons
             name={isSidebarExpanded ? "close-circle-outline" : "menu-outline"}
@@ -479,6 +534,12 @@ const Admin_panel = () => {
       <CustomModal isVisible={isRskill} closeModal={closeModal}>
         <Rskill closeModal={closeModal} />
       </CustomModal>
+      <CustomModal isVisible={isAddNriVisible} closeModal={closeModal}>
+        <AddNRIMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddInvestVisible} closeModal={closeModal}>
+        <AddInvestor closeModal={closeModal} />
+      </CustomModal>
     </View>
   );
 };
@@ -488,7 +549,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" ? 0 : StatusBar.currentHeight,
+    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",
@@ -498,7 +559,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#ddd",
     justifyContent: "space-between",
-    marginTop: -10,
+    marginTop: Platform.OS === "ios" ? 25 : -10
   },
   logo: {
     width: 100,
@@ -516,7 +577,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: Platform.OS === "web" ? 0 : "10%",
     gap: Platform.OS === "web" ? "10px" : 10,
-    marginLeft: Platform.OS === "android" ? -15 : "0",
+    marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? -15 : "0",
   },
   icon: {
     width: 20,
@@ -536,7 +597,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRightWidth: 1,
     borderColor: "#ddd",
-    width: Platform.OS === "android" ? 300 : 250,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 300 : 250,
     ...(Platform.OS === "web" && { minHeight: "100vh" }),
   },
   expandedSidebar: {
@@ -580,16 +641,16 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     position: "absolute",
-    top: 18,
+    top: Platform.OS === "ios" ? 49 : 14,
     left: 10,
     zIndex: 1000,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 30,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    // shadowColor: "#000",
+    // shadowOpacity: 0.1,
+    // shadowRadius: 5,
+    // shadowOffset: { width: 0, height: 2 },
   },
   modalOverlay: {
     flex: 1,

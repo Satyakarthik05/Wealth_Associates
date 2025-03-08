@@ -93,7 +93,7 @@ export default function ViewAllInvesters() {
           <Text style={styles.value}>: {item.FullName}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Skill Type</Text>
+          <Text style={styles.label}>Category</Text>
           <Text style={styles.value}>: {item.SelectSkill}</Text>
         </View>
         <View style={styles.row}>
@@ -124,7 +124,7 @@ export default function ViewAllInvesters() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.heading}>Skilled labours</Text>
+      <Text style={styles.heading}>Investors</Text>
       <ScrollView contentContainerStyle={styles.gridContainer}>
         {loading ? (
           <Text style={styles.emptyText}>Loading...</Text>

@@ -11,6 +11,10 @@ import {
   ActivityIndicator,
   BackHandler,
   Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -51,7 +55,8 @@ export default function Login_screen() {
 
       if (response.status === 200) {
         const token = data.token; // Assuming the token is in the 'token' field
-        await AsyncStorage.setItem("authToken", token); // Store the token in AsyncStorage
+        await AsyncStorage.setItem("authToken", token);
+        await AsyncStorage.setItem("userType", "Coremember");
         console.log("Token stored in AsyncStorage:", token);
 
         navigation.navigate("Home");
@@ -67,27 +72,36 @@ export default function Login_screen() {
       setLoading(false);
     }
   };
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const onBackPress = () => {
-  //       Alert.alert("Exit App", "Are you sure you want to exit?", [
-  //         { text: "Cancel", style: "cancel" },
-  //         { text: "Exit", onPress: () => BackHandler.exitApp() },
-  //       ]);
-  //       return true; // Prevent navigating back
-  //     };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert("Exit App", "Are you sure you want to exit?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Exit", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; // Prevent navigating back
+      };
 
-  //     BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
-  //     return () =>
-  //       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  //   }, [])
-  // );
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
 
   return (
+     <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        {Platform.OS !== "android" && (
+        {Platform.OS !== "android" && Platform.OS !== "ios" && (
           <View style={styles.leftSection}>
             <Image
               source={require("../../assets/logo2.png")}
@@ -195,6 +209,9 @@ export default function Login_screen() {
         </View>
       </View>
     </SafeAreaView>
+    </ScrollView>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

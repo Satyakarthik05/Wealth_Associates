@@ -58,5 +58,6 @@ router.put(
   upload.single("photo"),
   PostPropertyController.editProperty
 );
+router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
 
 module.exports = router;

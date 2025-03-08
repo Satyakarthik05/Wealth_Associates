@@ -9,7 +9,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  TouchableWithoutFeedback, // Import TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -25,9 +25,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import nested action components
 import AddCustomer from "./Add_Agent";
-import AddInvestor from "./Add_Agent";
-import AddNR from "../Customer/Regicus";
-import AddBuilder from "../Customer/Regicus";
+import AddInvestor from "../Investors/AddInvestors";
+import AddNRI from "../NRI/AddNri";
+import AddSkilled from "../SkilledLabour/Rskill";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -55,8 +55,8 @@ const actionButtons = [
 const nestedActionButtons = [
   { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
   { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
-  { title: "Add a NR", icon: "account-clock", component: AddNR },
-  { title: "Add a Builder", icon: "account-hard-hat", component: AddBuilder },
+  { title: "Add a NRI", icon: "account-clock", component: AddNRI },
+  { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
 ];
 
 const coreClients = [
@@ -84,6 +84,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
   const [propertiess, setPropertiess] = useState([]);
+  const [coreClients, setCoreClients] = useState([]);
+  const [coreProjects, setCoreProjectes] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreClients = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/coreproject/getallcoreprojects`
+        );
+        const data = await response.json();
+        setCoreProjectes(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreClients();
+  }, []);
+  useEffect(() => {
+    // Fetch data from the backend
+    const fetchCoreCProject = async () => {
+      try {
+        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+        const data = await response.json();
+        setCoreClients(data);
+      } catch (error) {
+        console.error("Error fetching core clients:", error);
+      }
+    };
+
+    fetchCoreCProject();
+  }, []);
 
   useEffect(() => {
     fetchPropertiess();
@@ -115,6 +148,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         location: item.location,
         budget: `₹${item.Budget.toLocaleString()}`,
         image: getImageByPropertyType(item.propertyType),
+        createdAt: item.createdAt,
       }));
       setPropertiess(formattedProperties);
       setLoading(false);
@@ -157,6 +191,23 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       console.error("Error fetching properties:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getPropertyTag = (createdAt) => {
+    const currentDate = new Date();
+    const propertyDate = new Date(createdAt);
+    const timeDifference = currentDate - propertyDate;
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (daysDifference <= 3) {
+      return "Regular Property";
+    } else if (daysDifference >= 4 && daysDifference <= 17) {
+      return "Approved Property";
+    } else if (daysDifference >= 18 && daysDifference <= 25) {
+      return "Wealth Property";
+    } else {
+      return "Listed Property";
     }
   };
 
@@ -253,7 +304,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreClients.map((client, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={client.logo}
+                source={{ uri: `${API_URL}${client.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -271,10 +322,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {coreProjects.map((project, index) => (
             <View key={index} style={styles.card}>
               <Image
-                source={project.logo}
+                source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
             </View>
           ))}
         </ScrollView>
@@ -293,20 +347,25 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </View>
           ) : (
             <View style={styles.requestedPropertiesRow}>
-              {[...propertiess].reverse().map((item) => (
-                <View key={item.id} style={styles.requestcard}>
-                  <Image source={item.image} style={styles.images} />
-                  <View style={styles.approvedBadge}>
-                    <Text style={styles.badgeText}>✔ Approved</Text>
+              {[...propertiess].reverse().map((item) => {
+                const propertyTag = getPropertyTag(item.createdAt);
+                return (
+                  <View key={item.id} style={styles.requestcard}>
+                    <Image source={item.image} style={styles.images} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓)Approved</Text>
+                    </View>
+                    <View style={styles.details}>
+                      <Text style={styles.title}>{item.title}</Text>
+                      <Text style={styles.text}>
+                        Property Type: {item.type}
+                      </Text>
+                      <Text style={styles.text}>Location: {item.location}</Text>
+                      <Text style={styles.text}>Budget: {item.budget}</Text>
+                    </View>
                   </View>
-                  <View style={styles.details}>
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.text}>Property Type: {item.type}</Text>
-                    <Text style={styles.text}>Location: {item.location}</Text>
-                    <Text style={styles.text}>Budget: {item.budget}</Text>
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
         </ScrollView>
@@ -334,12 +393,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
@@ -365,12 +425,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
 
                 return (
                   <View key={index} style={styles.propertyCard}>
                     <Image source={imageUri} style={styles.propertyImage} />
                     <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>Approved</Text>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
                     </View>
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}

@@ -160,6 +160,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logo: {
+    position : "relative",
+    top: Platform.OS === "web" ? "0%" : "3%",
     width: 150,
     height: 150,
   },
@@ -176,8 +178,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   illustration: {
-    width: Platform.OS === "web" ? 350 : 300,
-    height: Platform.OS === "web" ? 400 : 150,
+    width: Platform.OS === "web" || Platform.OS === "ios"  ? 350 : 300,
+    height: Platform.OS === "web"|| Platform.OS === "ios" ? 300 : 150,
     marginBottom: Platform.OS === "web" ? 0 : 16,
   },
   formContainer: {

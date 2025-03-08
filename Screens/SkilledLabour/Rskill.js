@@ -4,10 +4,12 @@ import {
   View,
   Text,
   TextInput,
+  ScrollView, 
   TouchableOpacity,
   StyleSheet,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
@@ -83,7 +85,7 @@ const Rskill = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber, // Ensure this is correctly set
+          AddedBy: Details.MobileNumber,
           RegisteredBy: "WealthAssociate",
         }),
       });
@@ -106,6 +108,11 @@ const Rskill = ({ closeModal }) => {
   };
 
   return (
+    <KeyboardAvoidingView
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  style={{ flex: 1 }}
+>
+    
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Register Skilled Labour</Text>
@@ -169,6 +176,7 @@ const Rskill = ({ closeModal }) => {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -179,6 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     maxWidth: 400,
+    marginTop: 50,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,

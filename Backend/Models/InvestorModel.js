@@ -5,6 +5,10 @@ const AddSInvestorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  Password: {
+    type: String,
+    required: true,
+  },
   SelectSkill: {
     type: String,
     required: true,
