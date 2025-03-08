@@ -46,6 +46,7 @@ import AllSkilledLabours from "./SkilledLabour/AllSkilledLabours";
 import AddInvestor from "./Investors/AddInvestors";
 import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import AddNRIMember from "./NRI/AddNri";
+import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -108,7 +109,7 @@ const menuItems = [
 const Admin_panel = () => {
   const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    (Platform.OS !== "android" && Platform.OS === "ios")
+    Platform.OS !== "android" && Platform.OS === "ios"
   );
   const [expandedItems, setExpandedItems] = useState({});
   const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);
@@ -142,6 +143,7 @@ const Admin_panel = () => {
   const [isviewAllinvestors, setIsviewAllinvestors] = useState(false);
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isViewInvesters, setViewInvesters] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -172,7 +174,10 @@ const Admin_panel = () => {
       [title]: !prev[title],
     }));
 
-    if ((Platform.OS === "android" || Platform.OS === "ios") && !isSidebarExpanded) {
+    if (
+      (Platform.OS === "android" || Platform.OS === "ios") &&
+      !isSidebarExpanded
+    ) {
       setIsSidebarExpanded(true);
     }
   };
@@ -202,6 +207,7 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setIsNriVisible(false);
     setIsViewNriVisible(false);
+    setViewInvesters(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -249,6 +255,8 @@ const Admin_panel = () => {
       setIsNriVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
+    } else if (subItem === "View Investors") {
+      setViewInvesters(true);
     }
   };
 
@@ -289,7 +297,9 @@ const Admin_panel = () => {
     if (isAgentProfile) return <Agent_Profile />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
-    if (isViewNriVisible) return <ViewNri/>
+    if (isViewNriVisible) return <ViewNri />;
+    if (isviewAllinvestors) return <ViewAllInvesters />;
+    if (isViewInvesters) return <ViewInvesters />;
 
     return (
       <ScrollView
@@ -340,7 +350,7 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {(Platform.OS === "android" || Platform.OS === "ios" )&& (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
@@ -369,6 +379,7 @@ const Admin_panel = () => {
             setAllSkilledLabour(false);
             setIsNriVisible(false);
             setIsViewNriVisible(false);
+            setViewInvesters(false);
           }}
         >
           <Image
@@ -416,7 +427,7 @@ const Admin_panel = () => {
         <View
           style={[
             styles.sidebar,
-            (Platform.OS === "android" || Platform.OS === "ios" )&&
+            (Platform.OS === "android" || Platform.OS === "ios") &&
               (isSidebarExpanded
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
@@ -488,7 +499,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {(Platform.OS === "android" || Platform.OS === "ios" )&& (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons
             name={isSidebarExpanded ? "close-circle-outline" : "menu-outline"}
@@ -524,9 +535,9 @@ const Admin_panel = () => {
       <CustomModal isVisible={isAddinvest} closeModal={closeModal}>
         <AddInvestor closeModal={closeModal} />
       </CustomModal>
-      <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
+      {/* <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
         <ViewAllInvesters closeModal={closeModal} />
-      </CustomModal>
+      </CustomModal> */}
       <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
         <AddNRIMember closeModal={closeModal} />
       </CustomModal>
@@ -539,7 +550,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
+    paddingTop:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? 0
+        : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",

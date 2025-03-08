@@ -127,21 +127,16 @@ const ViewNri = () => {
   };
 
   return (
-    <FlatList
-      data={nriMembers}
-      keyExtractor={(item) => item._id.toString()}
-      renderItem={({ item }) => (
+    <View style={isWebView ? styles.webContainer : styles.listContainer}>
+      {nriMembers.map((item) => (
         <ViewNriCard
+          key={item._id.toString()}
           viewNri={item}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
-      )}
-      contentContainerStyle={
-        isWebView ? styles.webContainer : styles.listContainer
-      }
-      numColumns={isWebView ? 3 : 1}
-    />
+      ))}
+    </View>
   );
 };
 

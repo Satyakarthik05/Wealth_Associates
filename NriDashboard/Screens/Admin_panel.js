@@ -47,15 +47,12 @@ import AddInvestor from "./Investors/AddInvestors";
 import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
+import ViewInvesters from "../../CoreDashboard/Screens/Investors/ViewInvestors";
+
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const menuItems = [
-  // {
-  //   title: "Agents",
-  //   icon: "person-add-outline",
-  //   subItems: ["Register Agent", "View Agents"],
-  // },
   {
     title: "Customers",
     icon: "people-outline",
@@ -77,7 +74,6 @@ const menuItems = [
     icon: "cog-outline",
     subItems: ["View Expert Panel", "Request Expert Panel"],
   },
-
   {
     title: "Investors",
     icon: "business-outline",
@@ -88,7 +84,6 @@ const menuItems = [
     icon: "globe-outline",
     subItems: ["Add NRI Member", "View NRI Members"],
   },
-
   {
     title: "Core Clients",
     icon: "business-outline",
@@ -142,6 +137,7 @@ const Admin_panel = () => {
   const [isviewAllinvestors, setIsviewAllinvestors] = useState(false);
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [isViewInvesters, setViewInvesters] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -154,12 +150,12 @@ const Admin_panel = () => {
   const handleExpertDetails = (expertType) => {
     setIsExpertDetails(true);
     setSelectedSubItem("expert details");
-    setExpertType(expertType); // Store the expertType
+    setExpertType(expertType);
   };
 
   const handleDetailsUpdated = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Increment key to force re-render
-    getDetails(); // Re-fetch details from the API
+    setRefreshKey((prevKey) => prevKey + 1);
+    getDetails();
   };
 
   useEffect(() => {
@@ -202,6 +198,8 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setIsNriVisible(false);
     setIsViewNriVisible(false);
+    setIsviewAllinvestors(false);
+    setViewInvesters(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -249,11 +247,9 @@ const Admin_panel = () => {
       setIsNriVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
+    } else if (subItem === "View Investors") {
+      setViewInvesters(true);
     }
-  };
-
-  const handleSearch = (text) => {
-    setSearchQuery(text);
   };
 
   const closeModal = () => {
@@ -290,6 +286,8 @@ const Admin_panel = () => {
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
     if (isViewNriVisible) return <ViewNri />;
+    if (isviewAllinvestors) return <ViewAllInvesters />;
+    if (isViewInvesters) return <ViewInvesters />;
 
     return (
       <ScrollView
@@ -368,6 +366,9 @@ const Admin_panel = () => {
             setIsviewAllinvestors(false);
             setIsNriVisible(false);
             setIsViewNriVisible(false);
+            setAllSkilledLabour(false);
+            setIsviewAllinvestors(false);
+            setViewInvesters(false);
           }}
         >
           <Image
@@ -419,7 +420,7 @@ const Admin_panel = () => {
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
           ]}
-          {...panResponder.panHandlers} // Attach PanResponder to the sidebar
+          {...panResponder.panHandlers}
         >
           <FlatList
             data={menuItems}
@@ -473,7 +474,6 @@ const Admin_panel = () => {
                     {Details.Name ? Details.Name : "yourname"}
                   </Text>
                 </Text>
-                {/* <Text style={styles.usersContentText}>YourReferralcode:</Text> */}
                 {renderContent()}
               </View>
             </ScrollView>
@@ -516,9 +516,6 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isAddinvest} closeModal={closeModal}>
         <AddInvestor closeModal={closeModal} />
-      </CustomModal>
-      <CustomModal isVisible={isviewAllinvestors} closeModal={closeModal}>
-        <ViewAllInvesters closeModal={closeModal} />
       </CustomModal>
       <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
         <AddNRIMember closeModal={closeModal} />
@@ -565,7 +562,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 15,
-    // marginRight: 5,
   },
   language: {
     marginRight: 10,
@@ -639,11 +635,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: Platform.OS === "web" ? "65%" : "100%",
-    // backgroundColor: "#fff",
     backgroundColor: "transparent",
     borderRadius: 10,
     padding: 20,
@@ -672,7 +666,6 @@ const styles = StyleSheet.create({
   usersContentText: {
     fontSize: 16,
     fontWeight: "bold",
-    // color: "#E82E5F",
   },
 });
 
