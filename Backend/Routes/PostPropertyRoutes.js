@@ -6,6 +6,7 @@ const CustomerToken = require("../middleWares/VerifyCustomerToken");
 const CoreToken = require("../middleWares/VerifyCoreToken");
 const verifyUser = require("../middleWares/VerifyUser");
 const CoreClients = require("../Controllers/CoreClientsController");
+const ApprovedProperty = require("../Controllers/ApprovedProprerty");
 
 const router = express.Router();
 
@@ -59,5 +60,7 @@ router.put(
   PostPropertyController.editProperty
 );
 router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
+router.get("/getApproveProperty", ApprovedProperty.GetAllApprovdPropertys);
+router.post("/approve/:id", ApprovedProperty.approveProperty);
 
 module.exports = router;

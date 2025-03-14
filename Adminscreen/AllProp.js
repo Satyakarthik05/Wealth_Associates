@@ -140,6 +140,58 @@ const ViewAllProperties = () => {
     }
   };
 
+  const handleApprove = async (id) => {
+    let confirmApprove;
+
+    if (Platform.OS === "web") {
+      confirmApprove = window.confirm(
+        "Are you sure you want to approve this property?"
+      );
+    } else {
+      confirmApprove = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to approve this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Approve", onPress: () => resolve(true) },
+          ]
+        );
+      });
+    }
+
+    if (!confirmApprove) return;
+
+    try {
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        if (Platform.OS === "web") {
+          alert("Property approved successfully.");
+        } else {
+          Alert.alert("Success", "Property approved successfully.");
+        }
+        // Optionally, you can update the state to reflect the approval
+        fetchProperties();
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to approve.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to approve.");
+        }
+      }
+    } catch (error) {
+      console.error("Error approving property:", error);
+      Alert.alert("Error", "An error occurred while approving the property.");
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
@@ -192,6 +244,12 @@ const ViewAllProperties = () => {
                       onPress={() => handleDelete(item._id)}
                     >
                       <Text style={styles.buttonText}>Delete</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.approveButton]}
+                      onPress={() => handleApprove(item._id)}
+                    >
+                      <Text style={styles.buttonText}>Approve</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -325,6 +383,9 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: "red",
+  },
+  approveButton: {
+    backgroundColor: "green",
   },
   buttonText: {
     color: "#fff",

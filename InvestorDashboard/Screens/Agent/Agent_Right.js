@@ -35,7 +35,6 @@ const isWeb = Platform.OS === "web";
 const actionButtons = [
   {
     title: "Post a Property",
-    subtext: "(Free)",
     icon: "home",
     component: PostProperty,
   },
