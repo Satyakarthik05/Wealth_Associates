@@ -22,6 +22,7 @@ const path = require("path");
 const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
 const buyRoutes = require("./Routes/BuyPropertyRoutes");
 const NotificationToken = require("./Routes/NoficationsRoutes");
+const DistrictConstituency = require("./Routes/DistrictConsttuencyRoutes");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),
@@ -74,6 +75,7 @@ app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);
 app.use("/noti", NotificationToken);
+app.use("/alldiscons", DistrictConstituency);
 
 app.get("/admindata", (req, res) => {
   const UserName = "1234";
