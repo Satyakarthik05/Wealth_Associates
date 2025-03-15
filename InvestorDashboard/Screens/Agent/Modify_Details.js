@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StatusBar,
@@ -120,7 +121,14 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.container}
+                  >
+      <ScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    nestedScrollEnabled={true}
+                  >
         <View style={styles.card}>
           <View style={styles.register_main}>
             <Text style={styles.register_text}>Edit Details</Text>
@@ -288,6 +296,7 @@ const Modify_Deatils = ({ closeModal, onDetailsUpdate, onDetailsUpdated }) => {
         </View>
       </ScrollView>
       <StatusBar style="auto" />
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -346,12 +355,12 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   inputRow: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS !== "android"  ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "30%",
+    width: Platform.OS === "android" || Platform.OS !== "android"  ? "100%" : "30%",
     position: "relative",
     zIndex: 1,
   },

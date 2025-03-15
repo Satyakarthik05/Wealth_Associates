@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  KeyboardAvoidingView,
   Platform,
   Alert,
   ActivityIndicator,
@@ -198,7 +199,18 @@ const RegisterExecute = ({ closeModal }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Adjust if needed
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="interactive"
+            resetScrollToCoords={{ x: 0, y: 0 }} // Add this
+          >
       <View
         style={[styles.container, isSmallScreen && styles.smallScreenContainer]}
       >
@@ -397,6 +409,7 @@ const RegisterExecute = ({ closeModal }) => {
         )}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -411,11 +424,10 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 30,
     elevation: 5,
-    width: Platform.OS === "android" ? "90%" : "100%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : "100%",
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "#ccc",
-    height: "100%",
   },
   smallScreenContainer: {
     width: 300,
@@ -432,13 +444,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
   row: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
     marginBottom: 10,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "48%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "48%",
     marginBottom: 10,
   },
   fullWidth: {
@@ -457,7 +469,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: Platform.OS === "android" ? "auto" : 20,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? "auto" : 20,
   },
   registerButton: {
     backgroundColor: "#e91e63",

@@ -5,7 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Alert,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -104,76 +107,87 @@ const AddNRIMember = ({ closeModal }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Add NRI Member</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={100}
+      style={{ flex: 1 }}
+    >
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.container}>
+          <Text style={styles.header}>Add NRI Member</Text>
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Vijayawada"
-        value={name}
-        onChangeText={setName}
-      />
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Vijayawada"
+            value={name}
+            onChangeText={setName}
+          />
 
-      <Text style={styles.label}>Country</Text>
-      <DropDownPicker
-        open={open}
-        value={country}
-        items={items}
-        setOpen={setOpen}
-        setValue={setCountry}
-        setItems={setItems}
-        placeholder="-- Select Country --"
-        style={styles.dropdown}
-      />
+          <Text style={styles.label}>Country</Text>
+          <DropDownPicker
+            open={open}
+            value={country}
+            items={items}
+            setOpen={setOpen}
+            setValue={setCountry}
+            setItems={setItems}
+            placeholder="-- Select Country --"
+            style={styles.dropdown}
+          />
 
-      <Text style={styles.label}>Locality</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Dallas"
-        value={locality}
-        onChangeText={setLocality}
-      />
+          <Text style={styles.label}>Locality</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Dallas"
+            value={locality}
+            onChangeText={setLocality}
+          />
 
-      <Text style={styles.label}>Occupation</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Software Engineer"
-        value={occupation}
-        onChangeText={setOccupation}
-      />
+          <Text style={styles.label}>Occupation</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Software Engineer"
+            value={occupation}
+            onChangeText={setOccupation}
+          />
 
-      <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. 9063392872"
-        keyboardType="phone-pad"
-        value={mobileIN}
-        onChangeText={setMobileIN}
-      />
+          <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileIN}
+            onChangeText={setMobileIN}
+          />
 
-      <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. 9063392872"
-        keyboardType="phone-pad"
-        value={mobileCountryNo}
-        onChangeText={setMobileCountryNo}
-      />
+          <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileCountryNo}
+            onChangeText={setMobileCountryNo}
+          />
 
-      <View style={styles.buttonContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#E91E63" />
-        ) : (
-          <TouchableOpacity style={styles.addButton} onPress={handleAddMember}>
-            <Text style={styles.buttonText}>Add</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#E91E63" />
+            ) : (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddMember}
+              >
+                <Text style={styles.buttonText}>Add</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

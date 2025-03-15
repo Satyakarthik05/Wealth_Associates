@@ -94,7 +94,7 @@ export default function Login_screen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
@@ -210,7 +210,6 @@ export default function Login_screen() {
       </View>
     </SafeAreaView>
     </ScrollView>
-    </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

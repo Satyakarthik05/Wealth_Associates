@@ -10,10 +10,12 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+const screenHeight = Dimensions.get("window").height;
 const { width } = Dimensions.get("window");
 const isSmallScreen = width < 600;
 
@@ -38,7 +40,24 @@ const RegisterExecute = ({ closeModal }) => {
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+  useEffect(() => {
+      const keyboardDidShowListener = Keyboard.addListener(
+        "keyboardDidShow",
+        () => setKeyboardVisible(true)
+      );
+      const keyboardDidHideListener = Keyboard.addListener(
+        "keyboardDidHide",
+        () => setKeyboardVisible(false)
+      );
+  
+      return () => {
+        keyboardDidShowListener.remove();
+        keyboardDidHideListener.remove();
+      };
+    }, []);
+  
   const fetchDistricts = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/districts`);
@@ -198,10 +217,29 @@ const RegisterExecute = ({ closeModal }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Adjust if needed
+          style={{ flex: 1 }}
+        >
+
+    <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="interactive"
+            resetScrollToCoords={{ x: 0, y: 0 }} // Add this
+          >
       <View
-        style={[styles.container, isSmallScreen && styles.smallScreenContainer]}
-      >
+                style={[
+                  styles.container,
+                  isSmallScreen && styles.smallScreenContainer,
+                  {
+                    minHeight: isKeyboardVisible ? screenHeight * 0.6 : screenHeight * 0.1, // Adjust minHeight dynamically
+                    justifyContent: "flex-start",
+                  },
+                ]}
+              >
         <Text style={styles.title}>Register Customer</Text>
         {/* Display the error message above the input fields */}
         {errorMessage ? (
@@ -397,6 +435,7 @@ const RegisterExecute = ({ closeModal }) => {
         )}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -411,11 +450,10 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 30,
     elevation: 5,
-    width: Platform.OS === "android" ? "90%" : "100%",
+    width: Platform.OS === "android"|| Platform.OS === "ios" ? "90%" : "100%",
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "#ccc",
-    height: "100%",
   },
   smallScreenContainer: {
     width: 300,
@@ -432,13 +470,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
   },
   row: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android"|| Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
     marginBottom: 10,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "48%",
+    width: Platform.OS === "android"|| Platform.OS === "ios" ? "100%" : "48%",
     marginBottom: 10,
   },
   fullWidth: {
@@ -457,7 +495,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: Platform.OS === "android" ? "auto" : 20,
+    marginTop: Platform.OS === "android"|| Platform.OS === "ios" ? "auto" : 20,
   },
   registerButton: {
     backgroundColor: "#e91e63",

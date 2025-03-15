@@ -5,6 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -98,6 +100,12 @@ const AddNRIMember = ({ closeModal }) => {
   };
 
   return (
+     <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={100}
+          style={{ flex: 1 }}
+        >
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
     <View style={styles.container}>
       <Text style={styles.header}>Add NRI Member</Text>
 
@@ -168,6 +176,8 @@ const AddNRIMember = ({ closeModal }) => {
         </TouchableOpacity>
       </View>
     </View>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

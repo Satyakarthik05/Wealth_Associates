@@ -6,6 +6,7 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
   Image,
   Platform,
 } from "react-native";
@@ -119,6 +120,9 @@ const OTP = () => {
   }, [otp]);
 
   return (
+    <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}>
     <View style={styles.container}>
       <View style={styles.card}>
         <Image source={require("../../assets/logo.png")} style={styles.logo} />
@@ -178,6 +182,7 @@ const OTP = () => {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 };
 
