@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, ActivityIndicator, View } from "react-native";
+import { StyleSheet, ActivityIndicator, View, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-// import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+
+// Screens
 import MainScreen from "./Screens/MainScreen";
 import RegisterAsScreen from "./Screens/Register_change";
 import ForgotPassword from "./Screens/ForgetPassword";
@@ -20,18 +23,31 @@ import Admin from "./Admin_Pan/AdminDashboard";
 import SkillDasboard from "./SkillDashboard/SkillDashboard";
 import NriDashboard from "./NriDashboard/NriDashboard";
 import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
-import { NavigationIndependentTree } from "@react-navigation/native";
 import StartingScreen from "./StartingScreen";
+import { API_URL } from "./data/ApiUrl";
+
+// ✅ Keep NavigationIndependentTree
+import { NavigationIndependentTree } from "@react-navigation/native";
 
 const Stack = createStackNavigator();
+const APP_VERSION = "1.0.1"; // Change this when updating the app
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState("Main Screen");
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    const initializeApp = async () => {
       try {
+        // Check if app version has changed
+        const storedVersion = await AsyncStorage.getItem("appVersion");
+        if (storedVersion !== APP_VERSION) {
+          console.log("New version detected, clearing authToken...");
+          await AsyncStorage.removeItem("authToken"); // Clear authToken on first run after update
+          await AsyncStorage.setItem("appVersion", APP_VERSION);
+        }
+
+        // Check login status
         const token = await AsyncStorage.getItem("authToken");
         const userType = await AsyncStorage.getItem("userType");
 
@@ -62,14 +78,17 @@ export default function App() {
               setInitialRoute("Main Screen");
           }
         }
+
+        // Register for push notifications
+        await registerForPushNotificationsAsync();
       } catch (error) {
-        console.error("Error checking login status:", error);
+        console.error("Error during app initialization:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkLoginStatus();
+    initializeApp();
   }, []);
 
   if (isLoading) {
@@ -175,6 +194,47 @@ export default function App() {
   );
 }
 
+// ✅ Push Notification Registration
+async function registerForPushNotificationsAsync() {
+  try {
+    if (!Device.isDevice) {
+      Alert.alert("Error", "Must use a physical device for push notifications");
+      return;
+    }
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      Alert.alert("Error", "Failed to get permission for notifications");
+      return;
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log("Expo Push Token:", token);
+
+    if (token) {
+      await AsyncStorage.setItem("expoPushToken", token);
+
+      // Send token to backend
+      await fetch(`${API_URL}/noti/register-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+    }
+  } catch (error) {
+    console.error("Error registering for push notifications:", error);
+  }
+}
+
+// ✅ Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,

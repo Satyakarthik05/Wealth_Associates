@@ -21,6 +21,7 @@ const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
 const path = require("path");
 const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
 const buyRoutes = require("./Routes/BuyPropertyRoutes");
+const NotificationToken = require("./Routes/NoficationsRoutes");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),
@@ -72,6 +73,7 @@ app.use("/requestexpert", RequestExpertRoute);
 app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);
+app.use("/noti", NotificationToken);
 
 app.get("/admindata", (req, res) => {
   const UserName = "1234";

@@ -2,155 +2,178 @@ import React from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  ImageBackground,
+  Image,
   Platform,
 } from "react-native";
-
-const { width, height } = Dimensions.get("window");
 import { useNavigation } from "@react-navigation/native";
 
-const MainScreen = () => {
+const LoginScreen = () => {
   const navigation = useNavigation();
   return (
-    <View style={styles.container}>
-      {/* Profile Image Positioned Overlapping Card */}
-      <View style={styles.profileContainer}>
+    <ImageBackground
+      source={
+        Platform.OS === "ios"
+          ? require("../assets/exp_and.jpg")
+          : Platform.OS === "android"
+          ? require("../assets/exp_and.jpg")
+          : require("../assets/exp.jpg")
+      }
+      style={styles.container}
+      resizeMode="cover"
+    >
+      {/* Logo */}
+      <View style={styles.logoContainer}>
         <Image
-          source={require("../assets/ped.jpg")}
-          style={styles.profileImage}
+          source={require("../assets/wlogo2.png")} // Company logo
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.quoteContainer}>
+        <Image
+          source={require("../assets/quote.png")} // Company logo
+          style={styles.quote}
+          resizeMode="contain"
         />
       </View>
 
-      {/* Card Section */}
-      <View style={styles.card}>
-        <Image source={require("../assets/wlogo.png")} style={styles.logo} />
+      {/* Card with PNG background */}
+      <ImageBackground
+        source={require("../assets/cardbg.png")} // Your PNG for the glass effect
+        style={styles.card}
+        resizeMode="stretch"
+      >
+        <Text style={styles.welcomeText}>Welcome to Wealth Associates</Text>
 
-        <View style={styles.buttonRow}>
-          <View style={styles.buttonColumn}>
-            <Text style={styles.subText}>Already registered?</Text>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate("Starting Screen")}
-            >
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.buttonColumn}>
-            <Text style={styles.subText}>New account ?</Text>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate("RegisterAS")}
-            >
-              <Text style={styles.buttonText}>Register</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("Starting Screen")}
+          >
+            <Text style={styles.buttonText}> Login </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("RegisterAS")}
+          >
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </View>
+
+        {/* Footer Text */}
+        <View style={styles.footerTextContainer}>
+          <Text style={styles.footerText}>if already registered ?</Text>
+          <Text style={styles.footerText2}>new user ?</Text>
+        </View>
+      </ImageBackground>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
     height: "100%",
-    overflow: "visible", // Prevents cutting off absolute-positioned elements
-  },
-  profileContainer: {
-    position: "absolute",
-    top:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? height * 0.14
-        : height * 0.09, // Adjust positioning to overlap properly
-    left: 0,
-    right: 0,
-    alignItems: "center",
+    width: "100%",
+    flex: 1,
     justifyContent: "center",
-    zIndex: 10, // Ensure it stays above the card
-    elevation: 10, // Required for Android
-  },
-  profileImage: {
-    width:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? width * 0.35
-        : width * 0.1,
-    height:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? width * 0.35
-        : width * 0.1,
-    borderRadius: width * 0.28,
-    borderWidth: 5,
-    borderColor: "#FF3366",
-  },
-  card: {
-    backgroundColor: "#FFF",
-    padding: 30,
-    borderRadius: 28,
     alignItems: "center",
-    width: width > 600 ? "50%" : "90%", // Responsive width for web and mobile
-    maxWidth: 600,
-    height:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? height * 0.58
-        : height * 0.59,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    backgroundColor: "#000",
+  },
+  logoContainer: {
+    position: "absolute",
+    top: Platform.OS === "android" || Platform.OS === "ios" ? 50 : 18,
+    alignItems: "left",
   },
   logo: {
-    width: width * 0.4,
-    height: height * 0.15,
-    resizeMode: "contain",
-    marginBottom: 10,
-    marginTop: 70,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 150 : 200,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 68 : 80,
+    position: "relative",
+    right: Platform.OS === "android" || Platform.OS === "ios" ? -113 : -680,
   },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
+  quoteContainer: {
+    position: "absolute",
+    top: Platform.OS === "android" || Platform.OS === "ios" ? 160 : 30,
+    alignItems: "left",
   },
-  buttonColumn: {
-    alignItems: "center",
-    flex: 1,
+  quote: {
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 250 : 500,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 128 : 280,
+    position: "relative",
+    right: Platform.OS === "android" || Platform.OS === "ios" ? 113 : 630,
+    left: Platform.OS === "android" || Platform.OS === "ios" ? 75 : 324,
   },
-  subText: {
-    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? 10 : 13,
+  card: {
+    position: "relative",
+    top: Platform.OS === "android" || Platform.OS === "ios" ? 90 : 100,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? 325 : 580,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 330,
+    // marginLeft:10,
+    alignItems: "center", // Centers children (text + buttons)
+    justifyContent: "center", // Centers vertically
+  },
+  welcomeText: {
+    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? 15 : 18,
+    color: "#fff",
     fontWeight: "bold",
-    color: "#777",
-    marginBottom: 5,
-    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? 30 : 30,
-    textAlign: "center",
+    // marginBottom: 20,
+    position: "relative",
+    // left:155,
+    bottom: Platform.OS === "android" || Platform.OS === "ios" ? 28 : 69,
+    textShadowColor: "rgba(0, 0, 0, 0.7)", // Dark shadow for depth
+    textShadowOffset: { width: 2, height: 2 }, // Slight offset for natural look
+    textShadowRadius: 5, // Smooth blur effect
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    width: "100%",
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? 1 : 10,
+    justifyContent: "space-evenly",
+    marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? 8 : 18,
   },
   button: {
-    height: 50,
-    width:
-      Platform.OS === "android" || Platform.OS === "ios"
-        ? width * 0.25
-        : width * 0.4,
-    maxWidth: 180,
-    backgroundColor: "#FF3366",
-    paddingVertical: 12,
-    borderRadius: 12,
+    backgroundColor: "#e6005c",
+    paddingVertical:
+      Platform.OS === "android" || Platform.OS === "ios" ? 10 : 15,
+    paddingHorizontal:
+      Platform.OS === "android" || Platform.OS === "ios" ? 25 : 45,
+    borderRadius: 8,
+    shadowColor: "#e6005c",
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
     elevation: 5,
-    alignItems: "center",
-    justifyContent: "center",
   },
   buttonText: {
-    color: "#FFF",
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: 14,
-    textTransform: "uppercase",
+  },
+  footerTextContainer: {
+    flexDirection: "row",
+    width: "100%",
+    marginTop: 15,
+  },
+  footerText: {
+    color: "#fff",
+    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? 12 : 14,
+    marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? 34 : 110,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? -2 : 5,
+    textShadowColor: "rgba(0, 0, 0, 0.7)", // Dark shadow for depth
+    textShadowOffset: { width: 2, height: 2 }, // Slight offset for natural look
+    textShadowRadius: 5, // Smooth blur effect
+  },
+  footerText2: {
+    color: "#fff",
+    fontSize: Platform.OS === "android" || Platform.OS === "ios" ? 12 : 14,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? -2 : 5,
+    marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? 59 : 140,
+    textShadowColor: "rgba(0, 0, 0, 0.7)", // Dark shadow for depth
+    textShadowOffset: { width: 2, height: 2 }, // Slight offset for natural look
+    textShadowRadius: 5, // Smooth blur effect
   },
 });
 
-export default MainScreen;
+export default LoginScreen;

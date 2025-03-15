@@ -73,7 +73,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
@@ -168,7 +168,7 @@ export default function ResetPassword() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+    
   );
 }
 

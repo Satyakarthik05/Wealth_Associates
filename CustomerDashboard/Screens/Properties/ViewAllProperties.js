@@ -29,7 +29,7 @@ const ViewAllProperties = () => {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch(`${API_URL}/properties/getallPropertys`);
+      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data);
@@ -197,7 +197,7 @@ const ViewAllProperties = () => {
                         )
                       }
                     >
-                      <Text style={styles.buyNowButtonText}>Buy Now</Text>
+                      <Text style={styles.buyNowButtonText}>Enquiry Now</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -213,7 +213,8 @@ const ViewAllProperties = () => {
 const styles = StyleSheet.create({
   container: { backgroundColor: "#f5f5f5", padding: 15 },
   header: {
-    flexDirection: Platform.OS === "android" ||Platform.OS === "ios" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },

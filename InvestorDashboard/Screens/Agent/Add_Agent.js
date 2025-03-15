@@ -603,12 +603,12 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   inputRow: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "30%",
+    width: Platform.OS === "android" ||  Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
     zIndex: 1,
   },
