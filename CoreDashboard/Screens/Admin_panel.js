@@ -109,7 +109,7 @@ const menuItems = [
 const Admin_panel = () => {
   const navigation = useNavigation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    Platform.OS !== "android" && Platform.OS === "ios"
+    isWeb ? true : false
   );
   const [expandedItems, setExpandedItems] = useState({});
   const [isAddAgentVisible, setIsAddAgentVisible] = useState(false);

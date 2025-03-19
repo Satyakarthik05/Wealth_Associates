@@ -179,7 +179,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch(`${API_URL}/properties/getallPropertys`);
+      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data.slice(-10));
