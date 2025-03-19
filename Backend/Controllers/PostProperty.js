@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 // Create a new property
 const createProperty = async (req, res) => {
   try {
-    let { propertyType, location, price, PostedBy } = req.body;
+    let { propertyType, location, price, PostedBy, Constituency } = req.body;
     console.log("PostedBy in request:", PostedBy);
 
     // Validate PostedBy
@@ -80,6 +80,7 @@ const createProperty = async (req, res) => {
       photo: photoPath,
       PostedBy: postedByUser.MobileNumber,
       PostedUserType: userType,
+      Constituency,
     });
 
     await newProperty.save();

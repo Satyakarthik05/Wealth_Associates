@@ -96,7 +96,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-
+        formData.append("Constituency","Skilled")
         // Handle image upload
         if (photo) {
           if (Platform.OS === "web") {
