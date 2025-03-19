@@ -33,7 +33,7 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
-
+ 
   // Fetch agent details
   const getDetails = async () => {
     try {
@@ -96,7 +96,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-
+        formData.append("Constituency","Nri")
         // Handle image upload
         if (photo) {
           if (Platform.OS === "web") {
