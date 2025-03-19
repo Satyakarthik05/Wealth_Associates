@@ -37,29 +37,25 @@ router.post(
   CoreClients.createCoreClient
 );
 
-// ✅ **Get All Properties**
 router.get("/getallPropertys", PostPropertyController.GetAllPropertys);
 
-// ✅ **Get Admin Properties**
 router.get("/getAdminProperties", PostPropertyController.AdminProperties);
 
-// ✅ **Delete Property**
 router.delete("/delete/:id", PostPropertyController.deletProperty);
+router.delete("/approvedelete/:id", ApprovedProperty.deletProperty);
 
-// ✅ **Get My Properties**
 router.get(
   "/getMyPropertys",
   verifyUser,
   PostPropertyController.GetMyPropertys
 );
-
-// ✅ **Edit Property (Newly Added)**
 router.put(
   "/editProperty/:id",
   upload.single("photo"),
   PostPropertyController.editProperty
 );
 router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
+router.put("/approveupdate/:id", ApprovedProperty.updatePropertyAdmin);
 router.get("/getApproveProperty", ApprovedProperty.GetAllApprovdPropertys);
 router.post("/approve/:id", ApprovedProperty.approveProperty);
 

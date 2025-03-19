@@ -17,6 +17,7 @@ import {
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../data/ApiUrl";
+import { Picker } from "@react-native-picker/picker";
 
 const { width } = Dimensions.get("window");
 
@@ -38,6 +39,7 @@ const Register_screen = () => {
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [parliaments, setParliaments] = useState([]);
   const [assemblies, setAssemblies] = useState([]);
+  const [expertiseOptions, setExpertiseOptions] = useState([]);
   const mobileRef = useRef(null);
   const emailRef = useRef(null);
   const districtRef = useRef(null);
@@ -56,7 +58,7 @@ const Register_screen = () => {
   );
 
   const filteredConstituencies = assemblies.filter((item) =>
-    item.toLowerCase().includes(constituencySearch.toLowerCase())
+    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
   );
 
   const fetchData = async () => {
@@ -66,6 +68,16 @@ const Register_screen = () => {
       setParliaments(data);
     } catch (error) {
       console.error("Error fetching data:", error);
+    }
+  };
+
+  const fetchExpertise = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/expertise`);
+      const data = await response.json();
+      setExpertiseOptions(data);
+    } catch (error) {
+      console.error("Error fetching expertise:", error);
     }
   };
 
@@ -85,6 +97,13 @@ const Register_screen = () => {
 
     setIsLoading(true);
 
+    const selectedParliament = parliaments.find(
+      (item) => item.parliament === district
+    );
+    const selectedAssembly = assemblies.find(
+      (item) => item.name === constituency
+    );
+
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
@@ -96,7 +115,7 @@ const Register_screen = () => {
       Experience: experience,
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
-      MyRefferalCode: `${district}-${constituency}`,
+      MyRefferalCode: `${selectedParliament.parliamentCode}${selectedAssembly.code}`,
       AgentType: "WealthAssociate",
     };
 
@@ -135,6 +154,7 @@ const Register_screen = () => {
 
   useEffect(() => {
     fetchData();
+    fetchExpertise();
   }, []);
 
   useEffect(() => {
@@ -312,12 +332,12 @@ const Register_screen = () => {
                               key={index}
                               style={styles.listItem}
                               onPress={() => {
-                                setConstituency(item);
-                                setConstituencySearch(item);
+                                setConstituency(item.name);
+                                setConstituencySearch(item.name);
                                 setShowConstituencyList(false);
                               }}
                             >
-                              <Text>{item}</Text>
+                              <Text>{item.name}</Text>
                             </TouchableOpacity>
                           ))}
                         </ScrollView>
@@ -328,17 +348,19 @@ const Register_screen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Select Experience</Text>
                   <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Select Experience"
-                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                      value={experience}
-                      onChangeText={setExperience}
-                      onFocus={() => {
-                        setShowDistrictList(false);
-                        setShowConstituencyList(false);
-                      }}
-                    />
+                    <Picker
+                      selectedValue={experience}
+                      onValueChange={(itemValue) => setExperience(itemValue)}
+                      style={styles.picker}
+                    >
+                      {experienceOptions.map((option) => (
+                        <Picker.Item
+                          key={option.code}
+                          label={option.name}
+                          value={option.code}
+                        />
+                      ))}
+                    </Picker>
                   </View>
                 </View>
               </View>
@@ -348,17 +370,19 @@ const Register_screen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Select Expertise</Text>
                   <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Select Expertise"
-                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                      value={expertise}
-                      onChangeText={setExpertise}
-                      onFocus={() => {
-                        setShowDistrictList(false);
-                        setShowConstituencyList(false);
-                      }}
-                    />
+                    <Picker
+                      selectedValue={expertise}
+                      onValueChange={(itemValue) => setExpertise(itemValue)}
+                      style={styles.picker}
+                    >
+                      {expertiseOptions.map((option) => (
+                        <Picker.Item
+                          key={option.code}
+                          label={option.name}
+                          value={option.code}
+                        />
+                      ))}
+                    </Picker>
                   </View>
                 </View>
                 <View style={styles.inputContainer}>
@@ -587,6 +611,21 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     fontSize: 23,
     marginBottom: -10,
+  },
+  picker: {
+    width: "100%",
+    height: 47,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    elevation: 2,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
 });
 

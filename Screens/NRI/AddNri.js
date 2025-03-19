@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { API_URL } from "../../data/ApiUrl";
@@ -26,10 +27,16 @@ const AddNRIMember = ({ closeModal }) => {
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
-    { label: "USA", value: "usa" },
-    { label: "UK", value: "uk" },
+    { label: "United Arab Emirates", value: "uae" },
+    { label: "United States of America", value: "usa" },
+    { label: "Saudi Arabia", value: "saudi_arabia" },
     { label: "Canada", value: "canada" },
-    { label: "India", value: "india" },
+    { label: "United Kingdom", value: "uk" },
+    { label: "Australia", value: "australia" },
+    { label: "Kuwait", value: "kuwait" },
+    { label: "Qatar", value: "qatar" },
+    { label: "Oman", value: "oman" },
+    { label: "Singapore", value: "singapore" },
   ]);
 
   const getDetails = async () => {
@@ -100,83 +107,86 @@ const AddNRIMember = ({ closeModal }) => {
   };
 
   return (
-     <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={100}
-          style={{ flex: 1 }}
-        >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-    <View style={styles.container}>
-      <Text style={styles.header}>Add NRI Member</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={100}
+      style={{ flex: 1 }}
+    >
+      <View contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.container}>
+          <Text style={styles.header}>Add NRI Member</Text>
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Vijayawada"
-        value={name}
-        onChangeText={setName}
-      />
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Vijayawada"
+            value={name}
+            onChangeText={setName}
+          />
 
-      <Text style={styles.label}>Country</Text>
-      <DropDownPicker
-        open={open}
-        value={country}
-        items={items}
-        setOpen={setOpen}
-        setValue={setCountry}
-        setItems={setItems}
-        placeholder="-- Select Country --"
-        style={styles.dropdown}
-      />
+          <Text style={styles.label}>Country</Text>
+          <DropDownPicker
+            open={open}
+            value={country}
+            items={items}
+            setOpen={setOpen}
+            setValue={setCountry}
+            setItems={setItems}
+            placeholder="-- Select Country --"
+            style={styles.dropdown}
+          />
 
-      <Text style={styles.label}>Locality</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Dallas"
-        value={locality}
-        onChangeText={setLocality}
-      />
+          <Text style={styles.label}>Locality</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Dallas"
+            value={locality}
+            onChangeText={setLocality}
+          />
 
-      <Text style={styles.label}>Occupation</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. Software Engineer"
-        value={occupation}
-        onChangeText={setOccupation}
-      />
+          <Text style={styles.label}>Occupation</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Software Engineer"
+            value={occupation}
+            onChangeText={setOccupation}
+          />
 
-      <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. 9063392872"
-        keyboardType="phone-pad"
-        value={mobileIN}
-        onChangeText={setMobileIN}
-      />
+          <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileIN}
+            onChangeText={setMobileIN}
+          />
 
-      <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex. 9063392872"
-        keyboardType="phone-pad"
-        value={mobileCountryNo}
-        onChangeText={setMobileCountryNo}
-      />
+          <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileCountryNo}
+            onChangeText={setMobileCountryNo}
+          />
 
-      <View style={styles.buttonContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#E91E63" />
-        ) : (
-          <TouchableOpacity style={styles.addButton} onPress={handleAddMember}>
-            <Text style={styles.buttonText}>Add</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#E91E63" />
+            ) : (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={handleAddMember}
+              >
+                <Text style={styles.buttonText}>Add</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-    </View>
-    </ScrollView>
     </KeyboardAvoidingView>
   );
 };

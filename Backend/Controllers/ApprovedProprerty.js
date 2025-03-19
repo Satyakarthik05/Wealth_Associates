@@ -90,4 +90,50 @@ const GetAllApprovdPropertys = async (req, res) => {
     res.status(500).json({ message: "Error fetching properties", error });
   }
 };
-module.exports = { approveProperty, GetAllApprovdPropertys };
+
+const deletProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Received delete request for ID:", id);
+
+    const property = await Property.findByIdAndDelete(id);
+
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.json({ message: "Property deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const updatePropertyAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedProperty = await Property.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
+
+    if (!updatedProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.status(200).json({
+      message: "Property updated successfully",
+      property: updatedProperty,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+module.exports = {
+  approveProperty,
+  GetAllApprovdPropertys,
+  deletProperty,
+  updatePropertyAdmin,
+};

@@ -28,10 +28,25 @@ const RequestedExpert = ({ closeModal }) => {
           style={styles.picker}
           mode="dropdown"
         >
-          <Picker.Item label="--Select Expert--" value="" />
-          <Picker.Item label="Legal" value="legal" />
-          <Picker.Item label="Architect" value="architect" />
-          <Picker.Item label="Engineer" value="engineer" />
+          <Picker.Item label="-- Select Type --" value="" />
+          <Picker.Item label="LEGAL" value="LEGAL" />
+          <Picker.Item label="REVENUE" value="REVENUE" />
+          <Picker.Item label="ENGINEERS" value="ENGINEERS" />
+          <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
+          <Picker.Item label="SURVEY" value="SURVEY" />
+          <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
+          <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
+          <Picker.Item label="BANKING" value="BANKING" />
+          <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
+          <Picker.Item
+            label="REGISTRATION & DOCUMENTATION"
+            value="REGISTRATION & DOCUMENTATION"
+          />
+          <Picker.Item label="DESIGNING" value="DESIGNING" />
+          <Picker.Item
+            label="MATERIALS & CONTRACTS"
+            value="MATERIALS & CONTRACTS"
+          />
         </Picker>
       </View>
 

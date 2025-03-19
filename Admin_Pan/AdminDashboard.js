@@ -60,6 +60,7 @@ import AddCoreMember from "../Adminscreen/Core Member/AddCoreMember";
 import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
 import ExpertRoute from "../Adminscreen/Expert Panel/ExpertRoute";
 import ExpertDetails from "../Adminscreen/Expert Panel/ExpertDetails";
+import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
 
 const menuItems = [
   {
@@ -91,6 +92,7 @@ const menuItems = [
       "View Posted Properties",
       "View Requested Properties",
       "View All Properties",
+      "ViewApprovedProperties",
     ],
   },
   {
@@ -200,6 +202,7 @@ const AdminDashboard = () => {
   const [isViewCoreMember, setIsViewCoreMember] = useState(false);
   const [isExpertPanelVisible, setIsExpertPanelVisible] = useState(false);
   const [isExperDetails, setIsExpertDetails] = useState(false);
+  const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [expertType, setExpertType] = useState(null);
 
   const toggleSidebar = () => {
@@ -267,6 +270,7 @@ const AdminDashboard = () => {
     setIsCoreMember(false);
     setIsViewCoreMember(false);
     setIsExpertPanelVisible(false);
+    setViewApprovedProperties(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -353,6 +357,8 @@ const AdminDashboard = () => {
       setIsExpertDetails(true);
     } else if (subItem === "View Expert Panel") {
       setIsExpertPanelVisible(true);
+    } else if (subItem === "ViewApprovedProperties") {
+      setViewApprovedProperties(true);
     }
   };
 
@@ -417,6 +423,7 @@ const AdminDashboard = () => {
     if (isViewReferral) return <ViewReferralAgents />;
     if (isViewCoreMember) return <ViewCoreMembers />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
+    if (isViewApprovedProperties) return <ViewApprovedProperties />;
 
     return <Dashboard />;
   };

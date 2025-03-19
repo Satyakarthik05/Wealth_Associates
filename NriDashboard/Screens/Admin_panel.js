@@ -168,7 +168,10 @@ const Admin_panel = () => {
       [title]: !prev[title],
     }));
 
-    if (Platform.OS === "android" || Platform.OS === "ios" && !isSidebarExpanded) {
+    if (
+      Platform.OS === "android" ||
+      (Platform.OS === "ios" && !isSidebarExpanded)
+    ) {
       setIsSidebarExpanded(true);
     }
   };
@@ -201,10 +204,9 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setViewInvesters(false);
 
-    if (Platform.OS === "android") {
+    if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
     }
-
     if (subItem === "Register Agent") {
       setIsAddAgentVisible(true);
     } else if (subItem === "View Agents") {
@@ -338,7 +340,7 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {Platform.OS === "android" || Platform.OS === "ios" && (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
@@ -415,7 +417,7 @@ const Admin_panel = () => {
         <View
           style={[
             styles.sidebar,
-            Platform.OS === "android" || Platform.OS === "ios" && 
+            (Platform.OS === "android" || Platform.OS === "ios") &&
               (isSidebarExpanded
                 ? styles.expandedSidebar
                 : styles.collapsedSidebar),
@@ -481,7 +483,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {Platform.OS === "android" ||  Platform.OS === "ios" && (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons
             name={isSidebarExpanded ? "close-circle-outline" : "menu-outline"}
@@ -529,7 +531,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
+    paddingTop:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? 0
+        : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",
@@ -541,7 +546,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: Platform.OS === "ios" ? 25 : -10,
   },
-  
+
   logo: {
     width: 100,
     height: 60,
@@ -627,7 +632,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 30,
-    
   },
   modalOverlay: {
     flex: 1,

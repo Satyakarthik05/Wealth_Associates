@@ -24,7 +24,7 @@ import RequestedProperties from "../../Screens/Properties/ViewRequestedPropertie
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import nested action components
-import AddCustomer from "./Add_Agent";
+import AddCustomer from "../Customer/Regicus";
 import AddInvestor from "../Investors/AddInvestors";
 import AddNRI from "../NRI/AddNri";
 import AddSkilled from "../SkilledLabour/Rskill";

@@ -23,6 +23,7 @@ const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
 const buyRoutes = require("./Routes/BuyPropertyRoutes");
 const NotificationToken = require("./Routes/NoficationsRoutes");
 const DistrictConstituency = require("./Routes/DistrictConsttuencyRoutes");
+const Constituency = require("./Models/DistrictsConstituencysModel");
 
 // const options = {
 //   key: fs.readFileSync("privatekey.pem"),

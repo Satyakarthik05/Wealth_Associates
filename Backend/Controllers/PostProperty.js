@@ -9,15 +9,17 @@ const mongoose = require("mongoose");
 // Create a new property
 const createProperty = async (req, res) => {
   try {
-    const { propertyType, location, price, PostedBy } = req.body;
+    let { propertyType, location, price, PostedBy } = req.body;
     console.log("PostedBy in request:", PostedBy);
 
+    // Validate PostedBy
     if (!PostedBy) {
       return res
         .status(400)
         .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
+    // Validate photo
     let photoPath = null;
     if (req.file) {
       photoPath = `/uploads/${req.file.filename}`;
@@ -25,7 +27,23 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Check if the user exists in AgentSchema, CoreSchema, or CustomerSchema
+    // Clean and validate price
+    if (typeof price === "string") {
+      price = price.replace(/,/g, "").trim();
+
+      const parts = price.split(".");
+      if (parts.length > 2) {
+        price = parts[0] + "." + parts[1]; // Keep only the first decimal part
+      }
+    }
+
+    // Convert to number
+    price = parseFloat(price);
+    if (isNaN(price)) {
+      return res.status(400).json({ message: "Invalid price format." });
+    }
+
+    // Find user by PostedBy number
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
     const coreUser = await CoreSchema.findOne({ MobileNumber: PostedBy });
     const customerUser = await CustomerSchema.findOne({
@@ -45,11 +63,16 @@ const createProperty = async (req, res) => {
       postedByUser = customerUser;
       userType = "customerMember";
     } else {
-      postedByUser = { MobileNumber: "998877" }; // Default admin number
+      postedByUser = {
+        MobileNumber: "998877",
+        FullName: "Admin",
+        Email: "",
+        MyRefferalCode: "",
+      };
       userType = "admin";
     }
 
-    // Create the new property
+    // Create and save new property
     const newProperty = new Property({
       propertyType,
       location,
@@ -61,6 +84,7 @@ const createProperty = async (req, res) => {
 
     await newProperty.save();
 
+    // Optional: Send data to call center API
     try {
       const callCenterResponse = await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/86b467c1-3e77-48c2-8c52-821ba2d27eb4/leads",
@@ -69,23 +93,29 @@ const createProperty = async (req, res) => {
             name: postedByUser.FullName,
             mobile: postedByUser.MobileNumber,
             email: postedByUser.Email,
-            detail1: `ProprtyType:${propertyType},Location:${location},price:${price},reffralCode:${postedByUser.MyRefferalCode}`, // Adjust this as necessary
+            detail1: `PropertyType:${propertyType}, Location:${location}, Price:${price}, ReferralCode:${postedByUser.MyRefferalCode}`,
           },
         }
       );
-
       console.log("Call center API response:", callCenterResponse.data);
-    } catch (error) {
-      console.error("Failed to call call center API:", error.message);
+    } catch (apiError) {
+      console.error("Failed to call call center API:", apiError.message);
     }
-    res
-      .status(200)
-      .json({ message: "Property added successfully", newProperty });
+
+    return res.status(200).json({
+      message: "Property added successfully",
+      newProperty,
+    });
   } catch (error) {
     console.error("Error in createProperty:", error);
-    res.status(500).json({ message: "Error adding property", error });
+    return res.status(500).json({
+      message: "Error adding property",
+      error,
+    });
   }
 };
+
+// module.exports = { createProperty };
 
 // Get all properties
 const GetAllPropertys = async (req, res) => {

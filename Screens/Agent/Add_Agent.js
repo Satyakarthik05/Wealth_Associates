@@ -13,7 +13,6 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
-  FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -43,7 +42,7 @@ const Add_Agent = ({ closeModal }) => {
   const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [showExperienceList, setShowExperienceList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
   const [expertiseOptions, setExpertiseOptions] = useState([]);
   const [Details, setDetails] = useState({});
 
@@ -53,36 +52,30 @@ const Add_Agent = ({ closeModal }) => {
 
   const navigation = useNavigation();
 
-  const fetchDistricts = async () => {
+  // Fetch all districts and constituencies from the API
+  const fetchDistrictsAndConstituencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
       const data = await response.json();
-      setDistricts(data);
+      setDistricts(data); // Set the fetched data to districts
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching districts and constituencies:", error);
     }
   };
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+
+  // Fetch expertise
   const fetchExpertise = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/expertise`);
       const data = await response.json();
       setExpertiseOptions(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching expertise:", error);
     }
   };
+
   useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
+    fetchDistrictsAndConstituencies();
     fetchExpertise();
   }, []);
 
@@ -93,14 +86,20 @@ const Add_Agent = ({ closeModal }) => {
     { name: "5+ years", code: "04" },
   ];
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
+  // Filter expertise and experience
   const filteredExpertise = expertiseOptions.filter((item) =>
     item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
   );
@@ -109,25 +108,18 @@ const Add_Agent = ({ closeModal }) => {
     item.name.toLowerCase().includes(experienceSearch.toLowerCase())
   );
 
+  // Fetch agent details
   const getDetails = async () => {
     try {
-      // Await the token retrieval from AsyncStorage
       const token = await AsyncStorage.getItem("authToken");
-
-      // Make the fetch request
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
-          token: `${token}` || "", // Fallback to an empty string if token is null
+          token: `${token}` || "",
         },
       });
-
-      // Parse the response
       const newDetails = await response.json();
-
-      // Update state with the details
       setDetails(newDetails);
-      console.log(Details);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -136,9 +128,10 @@ const Add_Agent = ({ closeModal }) => {
   useEffect(() => {
     getDetails();
   }, []);
+
   useEffect(() => {
     if (Details.MyRefferalCode) {
-      setReferralCode(Details.MyRefferalCode); // Pre-fill the referralCode state
+      setReferralCode(Details.MyRefferalCode);
     }
   }, [Details]);
 
@@ -159,12 +152,18 @@ const Add_Agent = ({ closeModal }) => {
 
     setIsLoading(true);
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedAssembly = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
     );
 
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
+    if (!selectedDistrict || !selectedAssembly) {
+      Alert.alert("Error", "Invalid district or constituency selected.");
+      setIsLoading(false);
+      return;
+    }
+
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedAssembly.code}`;
 
     const userData = {
       FullName: fullname,
@@ -175,7 +174,7 @@ const Add_Agent = ({ closeModal }) => {
       Locations: location,
       Expertise: expertise,
       Experience: experience,
-      ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
+      ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
       AgentType: "WealthAssociate",
@@ -313,12 +312,12 @@ const Add_Agent = ({ closeModal }) => {
               {/* Row 2 */}
               <View style={styles.inputRow}>
                 <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Select District</Text>
+                  <Text style={styles.label}>Select Parliament</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
                       ref={districtRef}
                       style={styles.input}
-                      placeholder="Search District"
+                      placeholder="Search Parliament"
                       placeholderTextColor="rgba(25, 25, 25, 0.5)"
                       value={districtSearch}
                       onChangeText={(text) => {
@@ -332,19 +331,17 @@ const Add_Agent = ({ closeModal }) => {
                         <ScrollView style={styles.scrollView}>
                           {filteredDistricts.map((item) => (
                             <TouchableOpacity
-                              key={`${item.name}-${item.code}`}
+                              key={item.parliament}
                               style={styles.listItem}
                               onPress={() => {
-                                setDistrict(item.name);
-                                setDistrictSearch(item.name);
+                                setDistrict(item.parliament);
+                                setDistrictSearch(item.parliament);
                                 setShowDistrictList(false);
-                              }}
-                              onFocus={() => {
-                                setShowExperienceList(true);
-                                setShowConstituencyList(false);
+                                setConstituencySearch(""); // Reset constituency search
+                                setConstituency(""); // Reset selected constituency
                               }}
                             >
-                              <Text>{item.name}</Text>
+                              <Text>{item.parliament}</Text>
                             </TouchableOpacity>
                           ))}
                         </ScrollView>
@@ -353,11 +350,11 @@ const Add_Agent = ({ closeModal }) => {
                   </View>
                 </View>
                 <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Select Constituency</Text>
+                  <Text style={styles.label}>Select Assembly</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
                       style={styles.input}
-                      placeholder="Search Constituency"
+                      placeholder="Search Assembly"
                       placeholderTextColor="rgba(25, 25, 25, 0.5)"
                       value={constituencySearch}
                       onChangeText={(text) => {
@@ -372,18 +369,14 @@ const Add_Agent = ({ closeModal }) => {
                     {showConstituencyList && (
                       <View style={styles.dropdownContainer}>
                         <ScrollView style={styles.scrollView}>
-                          {filteredConstituencies.map((item) => (
+                          {filteredConstituencies.map((item, index) => (
                             <TouchableOpacity
-                              key={item.code}
+                              key={index}
                               style={styles.listItem}
                               onPress={() => {
                                 setConstituency(item.name);
                                 setConstituencySearch(item.name);
                                 setShowConstituencyList(false);
-                              }}
-                              onFocus={() => {
-                                setShowExperienceList(true);
-                                setShowDistrictList(false);
                               }}
                             >
                               <Text>{item.name}</Text>
@@ -510,7 +503,6 @@ const Add_Agent = ({ closeModal }) => {
                         setShowExpertiseList(false);
                         setShowExperienceList(false);
                       }}
-                      // defaultValue="WA0000000001"
                       value={referralCode}
                     />
                     <MaterialIcons
@@ -702,6 +694,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 5,
+    backgroundColor: "#e6708e",
   },
   list: {
     maxHeight: 150,
