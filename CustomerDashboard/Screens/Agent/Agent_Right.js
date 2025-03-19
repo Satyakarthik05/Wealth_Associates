@@ -9,7 +9,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  TouchableWithoutFeedback, // Import TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -52,7 +52,6 @@ const actionButtons = [
 ];
 
 const nestedActionButtons = [
-  // { title: "Add a Customer", icon: "account-plus", component: AddCustomer },
   { title: "Add an Investor", icon: "account-cash", component: AddInvestor },
   { title: "Add a NRI", icon: "account-clock", component: AddNRI },
   { title: "Add a Skilled", icon: "account-hard-hat", component: AddSkilled },
@@ -69,43 +68,85 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [propertiess, setPropertiess] = useState([]);
   const [coreClients, setCoreClients] = useState([]);
   const [coreProjects, setCoreProjectes] = useState([]);
+  const [Details, setDetails] = useState({ Constituency: "" }); // Default value for Constituency
+  const [nearbyProperties, setNearbyProperties] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(true); // Loading state for Details
 
-  useEffect(() => {
-    // Fetch data from the backend
-    const fetchCoreClients = async () => {
-      try {
-        const response = await fetch(
-          `${API_URL}/coreproject/getallcoreprojects`
-        );
-        const data = await response.json();
-        setCoreProjectes(data);
-      } catch (error) {
-        console.error("Error fetching core clients:", error);
+  // Fetch agent details
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      console.log("Agent Details API Response:", newDetails); // Log the response
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    } finally {
+      setLoadingDetails(false); // Set loading to false after fetching
+    }
+  };
+
+  // Fetch nearby properties
+  const fetchNearbyProperties = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
+        return;
       }
-    };
 
-    fetchCoreClients();
-  }, []);
+      const response = await fetch(
+        `${API_URL}/properties/nearby/${Details.Contituency}`,
+        {
+          method: "GET",
+          headers: {
+            token: `${token}` || "",
+          },
+        }
+      );
 
-  useEffect(() => {
-    // Fetch data from the backend
-    const fetchCoreCProject = async () => {
-      try {
-        const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
-        const data = await response.json();
-        setCoreClients(data);
-      } catch (error) {
-        console.error("Error fetching core clients:", error);
+      const data = await response.json();
+      console.log("Nearby Properties API Response:", data);
+
+      if (data && Array.isArray(data.properties)) {
+        setNearbyProperties(data.properties);
+      } else {
+        console.log("No nearby properties found.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching nearby properties:", error);
+    }
+  };
 
-    fetchCoreCProject();
-  }, []);
+  // Fetch core clients
+  const fetchCoreClients = async () => {
+    try {
+      const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
+      const data = await response.json();
+      setCoreClients(data);
+    } catch (error) {
+      console.error("Error fetching core clients:", error);
+    }
+  };
 
-  useEffect(() => {
-    fetchPropertiess();
-  }, []);
+  // Fetch core projects
+  const fetchCoreProjects = async () => {
+    try {
+      const response = await fetch(`${API_URL}/coreproject/getallcoreprojects`);
+      const data = await response.json();
+      setCoreProjectes(data);
+    } catch (error) {
+      console.error("Error fetching core projects:", error);
+    }
+  };
 
+  // Fetch requested properties
   const fetchPropertiess = async () => {
     try {
       setLoading(true);
@@ -141,6 +182,8 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       setLoading(false);
     }
   };
+
+  // Get property tag based on creation date
   const getPropertyTag = (createdAt) => {
     const currentDate = new Date();
     const propertyDate = new Date(createdAt);
@@ -158,6 +201,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
+  // Get image by property type
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
@@ -173,10 +217,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
+  // Fetch all properties
   const fetchProperties = async () => {
     try {
       const response = await fetch(`${API_URL}/properties/getallPropertys`);
@@ -194,9 +235,9 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
+  // Handle action button clicks
   const handleActionButtonClick = (btn) => {
     if (btn.title === "Add a member") {
-      // Open nested modal for "Add a member"
       setModalContent(
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.nestedModalContent}>
@@ -221,7 +262,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       );
       setModalVisible(true);
     } else {
-      // Handle other action buttons
       const ModalComponent = btn.component;
       setModalContent(
         <ModalComponent title={btn.title} closeModal={closeModal} />
@@ -230,6 +270,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
+  // Handle nested action button clicks
   const handleNestedActionButtonClick = (nestedBtn) => {
     const ModalComponent = nestedBtn.component;
     setModalContent(
@@ -238,14 +279,33 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     setModalVisible(true);
   };
 
+  // Close modal
   const closeModal = () => {
     setModalVisible(false);
   };
 
+  // Handle view all properties
   const handleViewAllProperties = () => {
     onViewAllPropertiesClick();
   };
 
+  // Fetch data on component mount
+  useEffect(() => {
+    getDetails();
+    fetchCoreClients();
+    fetchCoreProjects();
+    fetchProperties();
+  }, []);
+
+  // Fetch nearby properties when Constituency is available
+  useEffect(() => {
+    if (!loadingDetails && Details.Contituency) {
+      console.log("Constituency:", Details.Contituency);
+      fetchNearbyProperties();
+    }
+  }, [loadingDetails, Details.Contituency]);
+
+  // Define firstRowProperties and secondRowProperties
   const firstRowProperties = properties.slice(0, 5);
   const secondRowProperties = properties.slice(5, 10);
 
@@ -281,6 +341,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           {modalContent}
         </CustomModal>
         <Dashboard />
+
         {/* Core Clients */}
         <Text style={styles.sectionTitle}>Core Clients</Text>
         <View style={styles.cardContainer}>
@@ -315,6 +376,43 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </View>
           ))}
         </ScrollView>
+
+        {/* Nearby Properties */}
+        {nearbyProperties.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Nearby Properties</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.requestedPropertiesContainer}
+            >
+              {nearbyProperties.map((property, index) => {
+                const imageUri = property.photo
+                  ? { uri: `${API_URL}${property.photo}` }
+                  : require("../../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
+
+                return (
+                  <View key={index} style={styles.propertyCard}>
+                    <Image source={imageUri} style={styles.propertyImage} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                    </View>
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyInfo}>
+                      Location: {property.location}
+                    </Text>
+                    <Text style={styles.propertyBudget}>
+                      ₹ {parseInt(property.price).toLocaleString()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
 
         {/* Requested Properties */}
         <Text style={styles.sectionTitle}>Requested Properties</Text>
@@ -367,7 +465,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               showsHorizontalScrollIndicator={false}
               style={styles.propertyScroll}
             >
-              {[...firstRowProperties].reverse().map((property, index) => {
+              {firstRowProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");
@@ -399,7 +497,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               showsHorizontalScrollIndicator={false}
               style={styles.propertyScroll}
             >
-              {[...secondRowProperties].reverse().map((property, index) => {
+              {secondRowProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
                   : require("../../../assets/logo.png");

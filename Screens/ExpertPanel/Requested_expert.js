@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,72 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { API_URL } from "../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RequestedExpert = ({ closeModal }) => {
   const [selectedExpert, setSelectedExpert] = useState("");
+  const [reason, setReason] = useState("");
+  const [Details, setDetails] = useState({});
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
+  const handleRequest = async () => {
+    if (!selectedExpert) {
+      Alert.alert("Error", "Please select an expert type.");
+      return;
+    }
+
+    const requestData = {
+      expertType: selectedExpert,
+      reason: reason,
+      WantedBy: Details ? Details.MobileNumber : "Number",
+      UserType: "Agent",
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/direqexp/direqexp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", "Request submitted successfully!");
+        closeModal();
+      } else {
+        Alert.alert("Error", result.message || "Failed to submit request.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while submitting the request.");
+      console.error(error);
+    }
+  };
 
   return (
     <View style={styles.modalContent}>
@@ -57,11 +118,13 @@ const RequestedExpert = ({ closeModal }) => {
         placeholder="Enter Your Message..."
         placeholderTextColor="#999"
         multiline
+        value={reason}
+        onChangeText={setReason}
       />
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.requestButton}>
+        <TouchableOpacity style={styles.requestButton} onPress={handleRequest}>
           <Text style={styles.buttonText}>Request</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -71,6 +134,8 @@ const RequestedExpert = ({ closeModal }) => {
     </View>
   );
 };
+
+// ... (styles remain the same)
 
 const styles = StyleSheet.create({
   modalContent: {

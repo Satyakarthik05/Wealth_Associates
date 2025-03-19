@@ -241,6 +241,32 @@ const updatePropertyAdmin = async (req, res) => {
   }
 };
 
+const getNearbyProperties = async (req, res) => {
+  try {
+    const { constituency } = req.params;
+
+    if (!constituency) {
+      return res
+        .status(400)
+        .json({ message: "Constituency is required in params" });
+    }
+
+    // Fetch properties from database that match the constituency
+    console.log(constituency);
+    const properties = await Property.find({ Constituency: constituency });
+
+    if (properties.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No properties found in this constituency" });
+    }
+
+    res.status(200).json({ properties });
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 module.exports = {
   createProperty,
   GetAllPropertys,
@@ -249,4 +275,5 @@ module.exports = {
   deletProperty,
   editProperty,
   updatePropertyAdmin,
+  getNearbyProperties,
 };

@@ -58,5 +58,6 @@ router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
 router.put("/approveupdate/:id", ApprovedProperty.updatePropertyAdmin);
 router.get("/getApproveProperty", ApprovedProperty.GetAllApprovdPropertys);
 router.post("/approve/:id", ApprovedProperty.approveProperty);
+router.get("/nearby/:constituency", PostPropertyController.getNearbyProperties);
 
 module.exports = router;
