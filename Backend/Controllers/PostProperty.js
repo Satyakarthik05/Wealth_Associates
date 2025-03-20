@@ -10,15 +10,17 @@ const axios =require("axios")
 // Create a new property
 const createProperty = async (req, res) => {
   try {
-    const { propertyType, location, price, PostedBy } = req.body;
+    let { propertyType, location, price, PostedBy, Constituency } = req.body;
     console.log("PostedBy in request:", PostedBy);
 
+    // Validate PostedBy
     if (!PostedBy) {
       return res
         .status(400)
         .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
+    // Validate photo
     let photoPath = null;
     if (req.file) {
       photoPath = `/uploads/${req.file.filename}`;
@@ -26,7 +28,23 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Check if the user exists in AgentSchema, CoreSchema, or CustomerSchema
+    // Clean and validate price
+    if (typeof price === "string") {
+      price = price.replace(/,/g, "").trim();
+
+      const parts = price.split(".");
+      if (parts.length > 2) {
+        price = parts[0] + "." + parts[1]; // Keep only the first decimal part
+      }
+    }
+
+    // Convert to number
+    price = parseFloat(price);
+    if (isNaN(price)) {
+      return res.status(400).json({ message: "Invalid price format." });
+    }
+
+    // Find user by PostedBy number
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
     const coreUser = await CoreSchema.findOne({ MobileNumber: PostedBy });
     const customerUser = await CustomerSchema.findOne({
@@ -46,11 +64,16 @@ const createProperty = async (req, res) => {
       postedByUser = customerUser;
       userType = "customerMember";
     } else {
-      postedByUser = { MobileNumber: "998877" }; // Default admin number
+      postedByUser = {
+        MobileNumber: "998877",
+        FullName: "Admin",
+        Email: "",
+        MyRefferalCode: "",
+      };
       userType = "admin";
     }
 
-    // Create the new property
+    // Create and save new property
     const newProperty = new Property({
       propertyType,
       location,
@@ -58,9 +81,12 @@ const createProperty = async (req, res) => {
       photo: photoPath,
       PostedBy: postedByUser.MobileNumber,
       PostedUserType: userType,
+      Constituency,
     });
 
     await newProperty.save();
+
+    // Optional: Send data to call center API
     try {
       const callCenterResponse = await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/dfbba5ed-861d-488f-9150-24c7d45ac64c/leads",
@@ -69,25 +95,29 @@ const createProperty = async (req, res) => {
             name: postedByUser.FullName,
             mobile: postedByUser.MobileNumber,
             email: postedByUser.Email,
-            detail: `${propertyType}`,
-            detail2: `${location}`,
-            detail3:`${price}`
+            detail1: `PropertyType:${propertyType}, Location:${location}, Price:${price}, ReferralCode:${postedByUser.MyRefferalCode}`,
           },
         }
       );
-
       console.log("Call center API response:", callCenterResponse.data);
-    } catch (error) {
-      console.error("Failed to call call center API:", error.message);
+    } catch (apiError) {
+      console.error("Failed to call call center API:", apiError.message);
     }
-    res
-      .status(200)
-      .json({ message: "Property added successfully", newProperty });
+
+    return res.status(200).json({
+      message: "Property added successfully",
+      newProperty,
+    });
   } catch (error) {
     console.error("Error in createProperty:", error);
-    res.status(500).json({ message: "Error adding property", error });
+    return res.status(500).json({
+      message: "Error adding property",
+      error,
+    });
   }
 };
+
+// module.exports = { createProperty };
 
 // Get all properties
 const GetAllPropertys = async (req, res) => {
@@ -212,6 +242,32 @@ const updatePropertyAdmin = async (req, res) => {
   }
 };
 
+const getNearbyProperties = async (req, res) => {
+  try {
+    const { constituency } = req.params;
+
+    if (!constituency) {
+      return res
+        .status(400)
+        .json({ message: "Constituency is required in params" });
+    }
+
+    // Fetch properties from database that match the constituency
+    console.log(constituency);
+    const properties = await Property.find({ Constituency: constituency });
+
+    if (properties.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No properties found in this constituency" });
+    }
+
+    res.status(200).json({ properties });
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 module.exports = {
   createProperty,
   GetAllPropertys,
@@ -220,4 +276,5 @@ module.exports = {
   deletProperty,
   editProperty,
   updatePropertyAdmin,
+  getNearbyProperties,
 };

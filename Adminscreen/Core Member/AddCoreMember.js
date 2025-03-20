@@ -35,7 +35,7 @@ const AddCoreMember = ({ closeModal }) => {
   const [showDistrictList, setShowDistrictList] = useState(false);
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
   const [Details, setDetails] = useState({});
 
   const mobileRef = useRef(null);
@@ -46,39 +46,35 @@ const AddCoreMember = ({ closeModal }) => {
   const referredByRef = useRef(null);
   const referralCodeRef = useRef(null);
 
-  const fetchDistricts = async () => {
+  // Fetch all districts and constituencies from the API
+  const fetchDistrictsAndConstituencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
       const data = await response.json();
-      setDistricts(data);
+      setDistricts(data); // Set the fetched data to districts
     } catch (error) {
-      console.error("Error fetching districts:", error);
-    }
-  };
-
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching constituencies:", error);
+      console.error("Error fetching districts and constituencies:", error);
     }
   };
 
   useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
+    fetchDistrictsAndConstituencies();
   }, []);
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
+  // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -120,6 +116,19 @@ const AddCoreMember = ({ closeModal }) => {
 
     setIsLoading(true);
 
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedAssembly = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
+    );
+
+    if (!selectedDistrict || !selectedAssembly) {
+      Alert.alert("Error", "Invalid district or constituency selected.");
+      setIsLoading(false);
+      return;
+    }
+
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedAssembly.code}`;
+
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
@@ -128,7 +137,7 @@ const AddCoreMember = ({ closeModal }) => {
       Locations: location,
       Occupation: occupation,
       ReferredBy: referredBy || "WA0000000001",
-      MyRefferalCode: referralCode,
+      MyRefferalCode: referenceId,
     };
 
     try {
@@ -244,19 +253,15 @@ const AddCoreMember = ({ closeModal }) => {
                       <ScrollView style={styles.scrollView}>
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
-                            key={item.name}
+                            key={item.parliament}
                             style={styles.listItem}
                             onPress={() => {
-                              setDistrict(item.name);
-                              setDistrictSearch(item.name);
+                              setDistrict(item.parliament);
+                              setDistrictSearch(item.parliament);
                               setShowDistrictList(false);
                             }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
-                              setShowConstituencyList(false);
-                            }}
                           >
-                            <Text>{item.name}</Text>
+                            <Text>{item.parliament}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -284,18 +289,14 @@ const AddCoreMember = ({ closeModal }) => {
                   {showConstituencyList && (
                     <View style={styles.dropdownContainer}>
                       <ScrollView style={styles.scrollView}>
-                        {filteredConstituencies.map((item) => (
+                        {filteredConstituencies.map((item, index) => (
                           <TouchableOpacity
-                            key={item.code}
+                            key={index}
                             style={styles.listItem}
                             onPress={() => {
                               setConstituency(item.name);
                               setConstituencySearch(item.name);
                               setShowConstituencyList(false);
-                            }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
-                              setShowDistrictList(false);
                             }}
                           >
                             <Text>{item.name}</Text>
@@ -322,7 +323,6 @@ const AddCoreMember = ({ closeModal }) => {
                     value={location}
                     returnKeyType="next"
                     onSubmitEditing={() => occupationRef.current.focus()}
-                    onFocus={()=>{setShowConstituencyList(false)}}
                   />
                   <MaterialIcons
                     name="location-on"
@@ -501,7 +501,6 @@ const styles = StyleSheet.create({
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    // gap: 20,
     marginTop: 25,
   },
   inputRow: {

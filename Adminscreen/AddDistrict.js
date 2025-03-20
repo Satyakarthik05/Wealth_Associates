@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,31 +9,61 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
+  ScrollView,
 } from "react-native";
 import { API_URL } from "../data/ApiUrl";
 
-const { width } = Dimensions.get("window"); // Get screen width
-const isMobile = width < 600; // Detect mobile devices
+const { width } = Dimensions.get("window");
 
 const AddDistrictModal = ({ closeModal }) => {
-  const [districtName, setDistrictName] = useState("");
-  const [districtCode, setDistrictCode] = useState("");
+  const [districts, setDistricts] = useState([]);
+  const [addingNew, setAddingNew] = useState(false);
+  const [parliamentName, setParliamentName] = useState("");
+  const [parliamentCode, setParliamentCode] = useState("");
+  const [assemblies, setAssemblies] = useState(
+    Array(7).fill({ name: "", code: "" })
+  );
+
+  useEffect(() => {
+    fetchDistricts();
+  }, []);
+
+  const fetchDistricts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setDistricts(data);
+    } catch (error) {
+      Alert.alert("Error", "Failed to load districts");
+    }
+  };
+
+  const handleAssemblyChange = (index, field, value) => {
+    const updated = [...assemblies];
+    updated[index] = { ...updated[index], [field]: value };
+    setAssemblies(updated);
+  };
 
   const handleAddDistrict = async () => {
-    if (!districtName || !districtCode) {
-      Alert.alert("Error", "Please fill in all fields");
+    if (
+      !parliamentName ||
+      !parliamentCode ||
+      assemblies.some((a) => !a.name || !a.code)
+    ) {
+      Alert.alert("Error", "Please fill all fields including 7 assemblies");
       return;
     }
 
     try {
-      const response = await fetch(`${API_URL}/discons/addDistrict`, {
+      const response = await fetch(`${API_URL}/alldiscons/addDistrict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: districtName,
-          code: districtCode,
+          parliament: parliamentName,
+          parliamentCode,
+          assemblies,
         }),
       });
 
@@ -41,9 +71,11 @@ const AddDistrictModal = ({ closeModal }) => {
 
       if (response.status === 201) {
         Alert.alert("Success", "District added successfully");
-        setDistrictName("");
-        setDistrictCode("");
-        closeModal(); // Close the modal after successful addition
+        setParliamentName("");
+        setParliamentCode("");
+        setAssemblies(Array(7).fill({ name: "", code: "" }));
+        setAddingNew(false);
+        fetchDistricts(); // Refresh list
       } else {
         Alert.alert("Error", data.message || "Failed to add district");
       }
@@ -57,133 +89,204 @@ const AddDistrictModal = ({ closeModal }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.wrapper}
     >
-      <View
-        style={[
-          styles.container,
-          {
-            width: Platform.OS === "web" ? "80%" : "90%",
-            maxWidth: Platform.OS === "web" ? 350 : 400,
-          },
-        ]}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Add Districts</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Districts</Text>
+          </View>
 
-        {/* Input Fields */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>District</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. Palnadu"
-            value={districtName}
-            onChangeText={setDistrictName}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Code</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. 01"
-            value={districtCode}
-            onChangeText={setDistrictCode}
-          />
-        </View>
+          {/* List Existing Parliaments */}
+          {districts.map((district) => (
+            <View key={district._id} style={styles.districtCard}>
+              <Text style={styles.districtTitle}>
+                {district.parliament} ({district.parliamentCode})
+              </Text>
+              {district.assemblies?.map((assembly) => (
+                <Text key={assembly._id} style={styles.assemblyText}>
+                  {assembly.name} - {assembly.code}
+                </Text>
+              ))}
+            </View>
+          ))}
 
-        {/* Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAddDistrict}
-          >
-            <Text style={styles.addText}>Add</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-            <Text style={styles.cancelText}>Cancel</Text>
+          {/* Add New Button */}
+          {!addingNew && (
+            <TouchableOpacity
+              style={styles.addNewBtn}
+              onPress={() => setAddingNew(true)}
+            >
+              <Text style={styles.addText}>+ Add New District</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Add New Form */}
+          {addingNew && (
+            <>
+              <Text style={styles.label}>Parliament</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. Srikakulam"
+                value={parliamentName}
+                onChangeText={setParliamentName}
+              />
+
+              <Text style={styles.label}>Parliament Code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. 01"
+                value={parliamentCode}
+                onChangeText={setParliamentCode}
+              />
+
+              {assemblies.map((assembly, index) => (
+                <View key={index} style={styles.assemblyGroup}>
+                  <Text style={styles.label}>Assembly {index + 1}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Name"
+                    value={assembly.name}
+                    onChangeText={(val) =>
+                      handleAssemblyChange(index, "name", val)
+                    }
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Code"
+                    value={assembly.code}
+                    onChangeText={(val) =>
+                      handleAssemblyChange(index, "code", val)
+                    }
+                  />
+                </View>
+              ))}
+
+              {/* Submit & Cancel */}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={handleAddDistrict}
+                >
+                  <Text style={styles.addText}>Submit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setAddingNew(false)}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* Close Modal */}
+          <TouchableOpacity onPress={closeModal} style={styles.closeBtn}>
+            <Text style={styles.cancelText}>Close</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   wrapper: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
+    backgroundColor: Platform.OS === "web" ? "white" : "rgba(0,0,0,0.4)",
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Platform.OS === "web" ? "transparent" : "rgba(0,0,0,0.5)", // Add overlay for mobile
-    paddingHorizontal: 10,
+    paddingVertical: 20,
   },
   container: {
     backgroundColor: "white",
     borderRadius: 15,
     padding: 20,
-    alignItems: "center",
+    width: Platform.OS === "web" ? "1000px" : "90%",
+    maxWidth: 500,
+    elevation: 5,
   },
   header: {
-    width: "100%",
     backgroundColor: "#C73D5D",
-    paddingVertical: 15,
+    padding: 15,
+    borderRadius: 10,
     alignItems: "center",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    marginBottom: 15,
   },
   headerText: {
     color: "white",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
   },
-  formGroup: {
-    width: "100%",
+  districtCard: {
     marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#f4f4f4",
+    borderRadius: 10,
   },
-  label: {
-    fontSize: 14,
+  districtTitle: {
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 5,
+  },
+  assemblyText: {
+    fontSize: 14,
     color: "#333",
-    marginTop: 5,
     marginLeft: 10,
   },
+  label: {
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+  },
   input: {
-    width: "100%",
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: "#ccc",
     borderRadius: 25,
-    padding: 12,
-    backgroundColor: "#FFF",
+    padding: 10,
+    marginBottom: 10,
+  },
+  assemblyGroup: {
+    marginBottom: 10,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
-    marginTop: 10,
+    marginTop: 15,
   },
   addButton: {
     backgroundColor: "#C73D5D",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
+    padding: 12,
+    borderRadius: 25,
+  },
+  cancelButton: {
+    backgroundColor: "#000",
+    padding: 12,
     borderRadius: 25,
   },
   addText: {
     color: "white",
     fontWeight: "bold",
   },
-  cancelButton: {
-    backgroundColor: "#000",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-  },
   cancelText: {
     color: "white",
     fontWeight: "bold",
+  },
+  addNewBtn: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 25,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  closeBtn: {
+    backgroundColor: "#888",
+    marginTop: 15,
+    padding: 10,
+    borderRadius: 25,
+    alignItems: "center",
   },
 });
 

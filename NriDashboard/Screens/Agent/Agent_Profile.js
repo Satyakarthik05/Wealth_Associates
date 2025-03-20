@@ -31,7 +31,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   }, []);
 
   const handleDetailsUpdate = () => {
-    getDetails(); // Fetch the updated details
+    getDetails();
   };
 
   const getDetails = async () => {
@@ -74,7 +74,6 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
                 source={require("../../../assets/man2.png")}
                 style={styles.avatar}
               />
-              {/* <Text style={styles.profileName}>{Details.FullName}</Text> */}
             </View>
             <View style={styles.profileCard}>
               <View style={styles.profileForm}>

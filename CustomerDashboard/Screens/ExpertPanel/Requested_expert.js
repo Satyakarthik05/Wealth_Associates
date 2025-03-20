@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,72 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { API_URL } from "../../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RequestedExpert = ({ closeModal }) => {
   const [selectedExpert, setSelectedExpert] = useState("");
+  const [reason, setReason] = useState("");
+  const [Details, setDetails] = useState({});
+
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
+  const handleRequest = async () => {
+    if (!selectedExpert) {
+      Alert.alert("Error", "Please select an expert type.");
+      return;
+    }
+
+    const requestData = {
+      expertType: selectedExpert,
+      reason: reason,
+      WantedBy: Details ? Details.MobileNumber : "Number",
+      UserType: "Customer",
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/direqexp/direqexp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", "Request submitted successfully!");
+        closeModal();
+      } else {
+        Alert.alert("Error", result.message || "Failed to submit request.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while submitting the request.");
+      console.error(error);
+    }
+  };
 
   return (
     <View style={styles.modalContent}>
@@ -28,10 +89,25 @@ const RequestedExpert = ({ closeModal }) => {
           style={styles.picker}
           mode="dropdown"
         >
-          <Picker.Item label="--Select Expert--" value="" />
-          <Picker.Item label="Legal" value="legal" />
-          <Picker.Item label="Architect" value="architect" />
-          <Picker.Item label="Engineer" value="engineer" />
+          <Picker.Item label="-- Select Type --" value="" />
+          <Picker.Item label="LEGAL" value="LEGAL" />
+          <Picker.Item label="REVENUE" value="REVENUE" />
+          <Picker.Item label="ENGINEERS" value="ENGINEERS" />
+          <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
+          <Picker.Item label="SURVEY" value="SURVEY" />
+          <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
+          <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
+          <Picker.Item label="BANKING" value="BANKING" />
+          <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
+          <Picker.Item
+            label="REGISTRATION & DOCUMENTATION"
+            value="REGISTRATION & DOCUMENTATION"
+          />
+          <Picker.Item label="DESIGNING" value="DESIGNING" />
+          <Picker.Item
+            label="MATERIALS & CONTRACTS"
+            value="MATERIALS & CONTRACTS"
+          />
         </Picker>
       </View>
 
@@ -42,11 +118,13 @@ const RequestedExpert = ({ closeModal }) => {
         placeholder="Enter Your Message..."
         placeholderTextColor="#999"
         multiline
+        value={reason}
+        onChangeText={setReason}
       />
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.requestButton}>
+        <TouchableOpacity style={styles.requestButton} onPress={handleRequest}>
           <Text style={styles.buttonText}>Request</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
@@ -57,10 +135,12 @@ const RequestedExpert = ({ closeModal }) => {
   );
 };
 
+// ... (styles remain the same)
+
 const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
-    width: Platform.OS === "android" || Platform.OS === "ios"  ? "100%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "40%",
     marginLeft: 20,
     // height: 360,
     borderRadius: 15,

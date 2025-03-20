@@ -145,41 +145,62 @@ export default function ViewAgents() {
         {loading ? (
           <Text style={styles.message}>Loading...</Text>
         ) : agents.length > 0 ? (
-          agents.map((agent) => (
-            <View key={agent._id} style={styles.agentCard}>
-              <Image
-                source={require("../Admin_Pan/assets/man.png")}
-                style={styles.agentImage}
-              />
-              <View style={styles.agentDetails}>
-                <Text style={styles.agentText}>{agent.FullName}</Text>
-                <Text style={styles.agentText}>
-                  Parliament : {agent.District}
-                </Text>
-                <Text style={styles.agentText}>
-                  Constituency: {agent.Contituency}
-                </Text>
-                <Text style={styles.agentText}>Phno: {agent.MobileNumber}</Text>
-                <Text style={styles.agentText}>
-                  Referral Code: {agent.MyRefferalCode}
-                </Text>
+          <View style={styles.cardContainer}>
+            {agents.map((agent) => (
+              <View key={agent._id} style={styles.card}>
+                <Image
+                  source={require("../assets/man.png")}
+                  style={styles.avatar}
+                />
+                <View style={styles.infoContainer}>
+                  {agent.FullName && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Name</Text>
+                      <Text style={styles.value}>: {agent.FullName}</Text>
+                    </View>
+                  )}
+                  {agent.District && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>District</Text>
+                      <Text style={styles.value}>: {agent.District}</Text>
+                    </View>
+                  )}
+                  {agent.Contituency && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Constituency</Text>
+                      <Text style={styles.value}>: {agent.Contituency}</Text>
+                    </View>
+                  )}
+                  {agent.MobileNumber && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Mobile</Text>
+                      <Text style={styles.value}>: {agent.MobileNumber}</Text>
+                    </View>
+                  )}
+                  {agent.MyRefferalCode && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referral Code</Text>
+                      <Text style={styles.value}>: {agent.MyRefferalCode}</Text>
+                    </View>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleEditAgent(agent)}
+                >
+                  <Text style={styles.editText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteAgent(agent._id)}
+                >
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditAgent(agent)}
-              >
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteAgent(agent._id)}
-              >
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+            ))}
+          </View>
         ) : (
-          <Text style={styles.message}>No agents found.</Text>
+          <Text style={styles.noAgentsText}>No agents found.</Text>
         )}
       </ScrollView>
 
@@ -192,7 +213,7 @@ export default function ViewAgents() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalHeading}>Edit Agent</Text>
+            <Text style={styles.modalTitle}>Edit Agent</Text>
             <TextInput
               style={styles.input}
               placeholder="Full Name"
@@ -237,13 +258,13 @@ export default function ViewAgents() {
               style={styles.saveButton}
               onPress={handleSaveEditedAgent}
             >
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={styles.saveText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setEditModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -255,84 +276,91 @@ export default function ViewAgents() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
     backgroundColor: "#f2f2f2",
+    paddingHorizontal: 10,
   },
   scrollContainer: {
-    width: "100%",
-    alignItems: "center",
-    paddingVertical: 20,
+    paddingBottom: 20,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#333",
-    width: "90%",
     textAlign: "left",
-    marginBottom: 20,
-    marginTop: Platform.OS === "android" ? "10%" : 0,
+    marginVertical: 15,
+    paddingLeft: 10,
   },
-  agentCard: {
+  cardContainer: {
+    flexDirection: "row", // Display cards in a row
+    flexWrap: "wrap", // Allow cards to wrap to the next line
+    justifyContent: "space-between", // Add space between cards
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    width: width > 600 ? "30%" : "100%", // Adjust width for responsiveness
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 3,
+    marginBottom: 15,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+    backgroundColor: "#ddd",
+  },
+  infoContainer: {
+    width: "100%",
+    alignItems: "flex-start",
+    paddingHorizontal: 10,
+  },
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    width: "90%",
-    maxWidth: 1000,
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: Platform.OS === "ios" ? 0.1 : 0,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: Platform.OS === "android" ? 2 : 0,
+    marginBottom: 5,
+    width: "100%",
   },
-  agentImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 15,
-  },
-  agentDetails: {
-    flex: 1,
-    justifyContent: "space-between",
-    flexDirection: Platform.OS === "android" ? "column" : "row",
-  },
-  agentText: {
+  label: {
+    fontWeight: "bold",
     fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
-    marginBottom: 4,
+    width: 120,
   },
-  message: {
+  value: {
+    fontSize: 14,
+  },
+  noAgentsText: {
     textAlign: "center",
-    fontSize: 16,
-    color: "#555",
     marginTop: 20,
+    fontSize: 16,
+    color: "#666",
   },
   editButton: {
-    backgroundColor: "#4CAF50",
-    padding: 8,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
+    marginTop: 10,
+    backgroundColor: "blue",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
   },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
+  editText: {
+    color: "white",
     fontWeight: "bold",
   },
   deleteButton: {
-    backgroundColor: "#ff4444",
-    padding: 8,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
+    marginTop: 10,
+    backgroundColor: "red",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 14,
+  deleteText: {
+    color: "white",
     fontWeight: "bold",
   },
   modalContainer: {
@@ -342,48 +370,43 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "50%",
+    width: width > 600 ? "50%" : "90%",
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
   },
-  modalHeading: {
+  modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 20,
+    textAlign: "center",
   },
   input: {
-    height: 40,
-    borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    marginBottom: 16,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
   },
   saveButton: {
-    backgroundColor: "#4CAF50",
-    padding: 12,
-    borderRadius: 6,
-    justifyContent: "center",
+    backgroundColor: "blue",
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 16,
+  saveText: {
+    color: "white",
     fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: "#ff4444",
-    padding: 12,
-    borderRadius: 6,
-    justifyContent: "center",
+    backgroundColor: "red",
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: "center",
   },
-  cancelButtonText: {
-    color: "#fff",
-    fontSize: 16,
+  cancelText: {
+    color: "white",
     fontWeight: "bold",
   },
 });

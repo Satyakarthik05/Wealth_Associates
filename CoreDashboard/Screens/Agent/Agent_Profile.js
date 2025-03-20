@@ -64,7 +64,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.agentProfileText}>Customer Profile</Text>
+        <Text style={styles.agentProfileText}>Core Profile</Text>
         {loading ? (
           <ActivityIndicator
             size="large"

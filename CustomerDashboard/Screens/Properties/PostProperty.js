@@ -33,7 +33,7 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
-
+  const[Constituency,setConstituency]=useState("");
   // Fetch agent details
   const getDetails = async () => {
     try {
@@ -48,6 +48,7 @@ const PostProperty = ({ closeModal }) => {
       const newDetails = await response.json();
       setPostedBy(newDetails.MobileNumber);
       setDetails(newDetails);
+      setConstituency(newDetails.Contituency)
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -96,6 +97,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
+        formData.append("Constituency",Constituency)
 
         // Handle image upload
         if (photo) {

@@ -7,6 +7,7 @@ const propertySchema = new mongoose.Schema(
     price: { type: Number, required: true },
     photo: { type: String, required: true },
     PostedBy: { type: Number, required: true },
+    Constituency:{type:String,required:true},
     PostedUserType: { type: String },
     editedAt: { type: Date },
   },

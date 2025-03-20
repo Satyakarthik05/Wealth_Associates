@@ -96,7 +96,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-
+        formData.append("Constituency","Skilled")
         // Handle image upload
         if (photo) {
           if (Platform.OS === "web") {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    width: Platform.OS === "android" ? "90%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios"  ? "90%" : "40%",
     borderRadius: 30,
   },
   scrollContainer: { flexGrow: 1, padding: 20 },

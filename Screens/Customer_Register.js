@@ -35,57 +35,52 @@ const RegisterCustomer = ({ closeModal }) => {
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [showOccupationList, setShowOccupationList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fetchDistricts = async () => {
+  // Fetch all districts and constituencies from the new API
+  const fetchDistrictsAndConstituencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
       const data = await response.json();
-      setDistricts(data);
+      setDistricts(data); // Set the fetched data to districts
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching districts and constituencies:", error);
     }
   };
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+
+  // Fetch occupations (unchanged)
   const fetchOccupations = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/occupations`);
       const data = await response.json();
       setOccupationOptions(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching occupations:", error);
     }
   };
 
   useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
+    fetchDistrictsAndConstituencies();
     fetchOccupations();
   }, []);
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
-  const filteredOccupations = occupationOptions.filter((item) =>
-    item.name.toLowerCase().includes(occupationSearch.toLowerCase())
-  );
-
+  // Fetch agent details (unchanged)
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -134,10 +129,9 @@ const RegisterCustomer = ({ closeModal }) => {
     setIsLoading(true);
     setErrorMessage("");
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
-    );
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedConstituency =
+      selectedDistrict?.assemblies.includes(constituency);
 
     if (!selectedDistrict || !selectedConstituency) {
       Alert.alert("Error", "Invalid district or constituency selected.");
@@ -145,7 +139,7 @@ const RegisterCustomer = ({ closeModal }) => {
       return;
     }
 
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
+    const referenceId = `${selectedDistrict.code}${constituency}`;
 
     const userData = {
       FullName: fullname,
@@ -267,15 +261,17 @@ const RegisterCustomer = ({ closeModal }) => {
                       <ScrollView style={styles.scrollView}>
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
-                            key={item.name}
+                            key={item.parliament}
                             style={styles.listItem}
                             onPress={() => {
-                              setDistrict(item.name);
-                              setDistrictSearch(item.name);
+                              setDistrict(item.parliament);
+                              setDistrictSearch(item.parliament);
                               setShowDistrictList(false);
+                              setConstituencySearch(""); // Reset constituency search
+                              setConstituency(""); // Reset selected constituency
                             }}
                           >
-                            <Text>{item.name}</Text>
+                            <Text>{item.parliament}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -307,17 +303,17 @@ const RegisterCustomer = ({ closeModal }) => {
                   {showConstituencyList && (
                     <View style={styles.dropdownContainer}>
                       <ScrollView style={styles.scrollView}>
-                        {filteredConstituencies.map((item) => (
+                        {filteredConstituencies.map((item, index) => (
                           <TouchableOpacity
-                            key={item.code}
+                            key={index}
                             style={styles.listItem}
                             onPress={() => {
-                              setConstituency(item.name);
-                              setConstituencySearch(item.name);
+                              setConstituency(item);
+                              setConstituencySearch(item);
                               setShowConstituencyList(false);
                             }}
                           >
-                            <Text>{item.name}</Text>
+                            <Text>{item}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -492,11 +488,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
-    zIndex: 1, // Ensure the input container has a zIndex
+    zIndex: 1,
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1, // Ensure the input wrapper has a zIndex
+    zIndex: 1,
   },
   input: {
     width: "100%",
@@ -569,6 +565,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 5,
+    backgroundColor: "#e6708e",
   },
   listItem: {
     padding: 10,

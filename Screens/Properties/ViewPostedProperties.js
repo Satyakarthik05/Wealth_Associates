@@ -76,17 +76,26 @@ const ViewPostedProperties = () => {
     }
   };
 
-  const handleFilterChange = (value) => {
+  const handleFilterChange = async (value) => {
     setSelectedFilter(value);
-    const sortedProperties =
-      value === "highToLow"
-        ? [...properties].sort((a, b) => b.price - a.price)
-        : value === "lowToHigh"
-        ? [...properties].sort((a, b) => a.price - b.price)
-        : fetchProperties();
-    setProperties(sortedProperties);
+  
+    if (value === "highToLow") {
+      setProperties((prevProperties) =>
+        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
+          (a, b) => b.price - a.price
+        )
+      );
+    } else if (value === "lowToHigh") {
+      setProperties((prevProperties) =>
+        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
+          (a, b) => a.price - b.price
+        )
+      );
+    } else {
+      await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
+    }
   };
-
+  
   const handleEditPress = (property) => {
     setSelectedProperty(property);
     setEditedData({

@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const screenHeight = Dimensions.get("window").height;
 const { width } = Dimensions.get("window");
 const isSmallScreen = width < 600;
@@ -36,12 +37,10 @@ const RegisterExecute = ({ closeModal }) => {
   const [showConstituencyList, setShowConstituencyList] = useState(false);
   const [showOccupationList, setShowOccupationList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
- 
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -59,52 +58,47 @@ const RegisterExecute = ({ closeModal }) => {
     };
   }, []);
 
-  const fetchDistricts = async () => {
+  // Fetch all districts and constituencies from the API
+  const fetchDistrictsAndConstituencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
       const data = await response.json();
-      setDistricts(data);
+      setDistricts(data); // Set the fetched data to districts
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching districts and constituencies:", error);
     }
   };
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+
+  // Fetch occupations
   const fetchOccupations = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/occupations`);
       const data = await response.json();
       setOccupationOptions(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching occupations:", error);
     }
   };
 
   useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
+    fetchDistrictsAndConstituencies();
     fetchOccupations();
   }, []);
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
-  const filteredOccupations = occupationOptions.filter((item) =>
-    item.name.toLowerCase().includes(occupationSearch.toLowerCase())
-  );
-
+  // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -138,14 +132,6 @@ const RegisterExecute = ({ closeModal }) => {
   };
 
   const handleRegister = async () => {
-    console.log("Full Name:", fullname);
-    console.log("Mobile:", mobile);
-    console.log("Email:", email);
-    console.log("District:", district);
-    console.log("Constituency:", constituency);
-    console.log("Location:", location);
-    console.log("Occupation:", occupation);
-
     if (
       !fullname.trim() ||
       !mobile.trim() ||
@@ -161,18 +147,18 @@ const RegisterExecute = ({ closeModal }) => {
     setIsLoading(true);
     setErrorMessage(""); // Clear any previous error message
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedAssembly = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
     );
 
-    if (!selectedDistrict || !selectedConstituency) {
+    if (!selectedDistrict || !selectedAssembly) {
       Alert.alert("Error", "Invalid district or constituency selected.");
       setIsLoading(false);
       return;
     }
 
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedAssembly.code}`;
 
     const userData = {
       FullName: fullname,
@@ -218,7 +204,6 @@ const RegisterExecute = ({ closeModal }) => {
   };
 
   return (
-    
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // Adjust if needed
@@ -236,7 +221,9 @@ const RegisterExecute = ({ closeModal }) => {
             styles.container,
             isSmallScreen && styles.smallScreenContainer,
             {
-              minHeight: isKeyboardVisible ? screenHeight * 0.6 : screenHeight * 0.1, // Adjust minHeight dynamically
+              minHeight: isKeyboardVisible
+                ? screenHeight * 0.6
+                : screenHeight * 0.1, // Adjust minHeight dynamically
               justifyContent: "flex-start",
             },
           ]}
@@ -273,10 +260,10 @@ const RegisterExecute = ({ closeModal }) => {
 
           <View style={styles.row}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Select District</Text>
+              <Text style={styles.label}>Select Parliament</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Search District"
+                placeholder="Search Parliament"
                 value={districtSearch}
                 onChangeText={(text) => {
                   setDistrictSearch(text);
@@ -293,15 +280,15 @@ const RegisterExecute = ({ closeModal }) => {
                   <ScrollView style={styles.scrollView}>
                     {filteredDistricts.map((item) => (
                       <TouchableOpacity
-                        key={item.name}
+                        key={item.parliament}
                         style={styles.listItem}
                         onPress={() => {
-                          setDistrict(item.name);
-                          setDistrictSearch(item.name);
+                          setDistrict(item.parliament);
+                          setDistrictSearch(item.parliament);
                           closeAllDropdowns();
                         }}
                       >
-                        <Text>{item.name}</Text>
+                        <Text>{item.parliament}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -309,10 +296,10 @@ const RegisterExecute = ({ closeModal }) => {
               )}
             </View>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Select Constituency</Text>
+              <Text style={styles.label}>Select Assembly</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Search Constituency"
+                placeholder="Search Assembly"
                 value={constituencySearch}
                 onChangeText={(text) => {
                   setConstituencySearch(text);
@@ -327,9 +314,9 @@ const RegisterExecute = ({ closeModal }) => {
               {showConstituencyList && (
                 <View style={styles.dropdownContainer}>
                   <ScrollView style={styles.scrollView}>
-                    {filteredConstituencies.map((item) => (
+                    {filteredConstituencies.map((item, index) => (
                       <TouchableOpacity
-                        key={item.code}
+                        key={index}
                         style={styles.listItem}
                         onPress={() => {
                           setConstituency(item.name);
@@ -366,7 +353,7 @@ const RegisterExecute = ({ closeModal }) => {
               {showOccupationList && (
                 <View style={styles.dropdownContainer}>
                   <ScrollView style={styles.scrollView}>
-                    {filteredOccupations.map((item) => (
+                    {occupationOptions.map((item) => (
                       <TouchableOpacity
                         key={item.code}
                         style={styles.listItem}

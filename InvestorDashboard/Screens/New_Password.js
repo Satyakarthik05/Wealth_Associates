@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  KeyboardAvoidingView,
   Alert,
   Platform,
 } from "react-native";
@@ -70,6 +71,10 @@ export default function ResetPassword() {
   };
 
   return (
+    <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+          >
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.logoContainer}>
@@ -159,6 +164,7 @@ export default function ResetPassword() {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -171,7 +177,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    width: Platform.OS === "web" ? "60%" : "90%",
+    width: Platform.OS === "web" || Platform.OS === "ios" ? "100%" : "110%",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 16,
@@ -189,17 +195,17 @@ const styles = StyleSheet.create({
     width: 200,
   },
   contentContainer: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   illustration: {
-    height: Platform.OS === "android" ? 200 : 400,
-    width: Platform.OS === "android" ? "80%" : 500,
-    marginBottom: Platform.OS === "android" ? 16 : 0,
+    height: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 400,
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "80%" : 500,
+    marginBottom: Platform.OS === "android" || Platform.OS === "ios" ? 16 : 0,
   },
   form: {
-    width: Platform.OS === "android" ? "100%" : "auto",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "auto",
   },
   errorText: {
     color: "#ff4d4d",

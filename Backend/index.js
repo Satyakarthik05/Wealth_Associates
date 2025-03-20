@@ -21,6 +21,10 @@ const CoreClientRoutes = require("./Routes/CoreClientsRoutes");
 const path = require("path");
 const CoreProjectRoutes = require("./Routes/CoreProjectsRoutes");
 const buyRoutes = require("./Routes/BuyPropertyRoutes");
+const NotificationToken = require("./Routes/NoficationsRoutes");
+const DistrictConstituency = require("./Routes/DistrictConsttuencyRoutes");
+const Constituency = require("./Models/DistrictsConstituencysModel");
+const ReqExp = require("./Routes/ReqExpRoutes");
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -72,6 +76,9 @@ app.use("/requestexpert", RequestExpertRoute);
 app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);
+app.use("/noti", NotificationToken);
+app.use("/alldiscons", DistrictConstituency);
+app.use("/direqexp", ReqExp);
 
 app.get("/admindata", (req, res) => {
   const UserName = "1234567890";
@@ -98,8 +105,8 @@ http
   })
   .listen(80, () => {
     console.log("Redirecting HTTP to HTTPS");
-//   });
+  });
 
 // app.listen("3000", () => {
 //   console.log("Server is running succssfully");
-});
+// });
