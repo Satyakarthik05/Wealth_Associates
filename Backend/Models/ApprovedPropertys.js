@@ -6,6 +6,7 @@ const ApprovedpropertySchema = new mongoose.Schema(
     location: { type: String, required: true },
     price: { type: Number, required: true },
     photo: { type: String, required: true },
+    Constituency: { type: String, required: true },
     PostedBy: { type: Number, required: true },
     PostedUserType: { type: String },
     editedAt: { type: Date },
