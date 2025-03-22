@@ -89,25 +89,32 @@ const AddInvestor = ({ closeModal }) => {
 
   const renderDropdown = () => {
     return (
-      <ScrollView style={styles.dropdown}>
-        {skills.map((item) => (
-          <TouchableOpacity
-            key={item}
-            style={styles.dropdownItem}
-            onPress={() => {
-              setSkill(item);
-              setShowDropdown(false);
-            }}
-          >
-            <Text>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.dropdownContainer}>
+        <ScrollView style={styles.dropdown}>
+          {skills.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={styles.dropdownItem}
+              onPress={() => {
+                setSkill(item);
+                setShowDropdown(false);
+              }}
+            >
+              <Text>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     );
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        setShowDropdown(false);
+      }}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Register Investor</Text>
@@ -121,13 +128,14 @@ const AddInvestor = ({ closeModal }) => {
             placeholder="Full Name"
           />
           <Text style={styles.label}>Select Category</Text>
-          <TextInput
-            value={skill}
-            onFocus={() => setShowDropdown(true)}
+          <TouchableOpacity
+            onPress={() => setShowDropdown(!showDropdown)}
             style={styles.input}
-            placeholder="-- Select Skill Type --"
-            editable={false}
-          />
+          >
+            <Text style={{ color: skill ? "#000" : "#aaa" }}>
+              {skill || "-- Select Skill Type --"}
+            </Text>
+          </TouchableOpacity>
           {showDropdown && renderDropdown()}
           <Text style={styles.label}>Location</Text>
           <TextInput
@@ -204,12 +212,19 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
+  dropdownContainer: {
+    position: "absolute",
+    top: 160, // Adjust this value based on your layout
+    left: 20,
+    right: 20,
+    zIndex: 999, // Ensure the dropdown is on top
+  },
   dropdown: {
     maxHeight: 150,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    marginBottom: 15,
+    backgroundColor: "#fff",
   },
   dropdownItem: {
     padding: 10,

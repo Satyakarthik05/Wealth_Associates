@@ -108,20 +108,22 @@ const AddNRIMember = ({ closeModal }) => {
 
   const renderDropdown = () => {
     return (
-      <ScrollView style={styles.dropdown}>
-        {countries.map((item) => (
-          <TouchableOpacity
-            key={item.value}
-            style={styles.dropdownItem}
-            onPress={() => {
-              setCountry(item.value);
-              setShowDropdown(false);
-            }}
-          >
-            <Text>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.dropdownContainer}>
+        <ScrollView style={styles.dropdown}>
+          {countries.map((item) => (
+            <TouchableOpacity
+              key={item.value}
+              style={styles.dropdownItem}
+              onPress={() => {
+                setCountry(item.value);
+                setShowDropdown(false);
+              }}
+            >
+              <Text>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     );
   };
 
@@ -131,8 +133,13 @@ const AddNRIMember = ({ closeModal }) => {
       keyboardVerticalOffset={100}
       style={{ flex: 1 }}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View contentContainerStyle={{ flexGrow: 1 }}>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          Keyboard.dismiss();
+          setShowDropdown(false);
+        }}
+      >
+        <View style={{ flex: 1 }}>
           <View style={styles.container}>
             <Text style={styles.header}>Add NRI Member</Text>
 
@@ -145,15 +152,16 @@ const AddNRIMember = ({ closeModal }) => {
             />
 
             <Text style={styles.label}>Country</Text>
-            <TextInput
+            <TouchableOpacity
+              onPress={() => setShowDropdown(!showDropdown)}
               style={styles.input}
-              placeholder="-- Select Country --"
-              value={
-                countries.find((item) => item.value === country)?.label || ""
-              }
-              onFocus={() => setShowDropdown(true)}
-              editable={false}
-            />
+            >
+              <Text style={{ color: country ? "#000" : "#aaa" }}>
+                {countries.find((item) => item.value === country)?.label ||
+                  "-- Select Country --"}
+              </Text>
+            </TouchableOpacity>
+
             {showDropdown && renderDropdown()}
 
             <Text style={styles.label}>Locality</Text>
@@ -251,12 +259,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
+  dropdownContainer: {
+    position: "absolute",
+    top: 220, // Adjust this value based on your layout
+    left: 20,
+    right: 20,
+    zIndex: 999, // Ensure the dropdown is on top
+  },
   dropdown: {
     maxHeight: 150,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    marginBottom: 10,
+    backgroundColor: "#fff",
   },
   dropdownItem: {
     padding: 10,
