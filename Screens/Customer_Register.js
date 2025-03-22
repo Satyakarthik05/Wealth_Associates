@@ -40,7 +40,7 @@ const RegisterCustomer = ({ closeModal }) => {
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Fetch all districts and constituencies from the new API
+  // Fetch all districts and constituencies
   const fetchDistrictsAndConstituencies = async () => {
     try {
       const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -51,7 +51,7 @@ const RegisterCustomer = ({ closeModal }) => {
     }
   };
 
-  // Fetch occupations (unchanged)
+  // Fetch occupations
   const fetchOccupations = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/occupations`);
@@ -77,10 +77,10 @@ const RegisterCustomer = ({ closeModal }) => {
     districts
       .find((item) => item.parliament === district)
       ?.assemblies.filter((assembly) =>
-        assembly.toLowerCase().includes(constituencySearch.toLowerCase())
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
       ) || [];
 
-  // Fetch agent details (unchanged)
+  // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -130,8 +130,9 @@ const RegisterCustomer = ({ closeModal }) => {
     setErrorMessage("");
 
     const selectedDistrict = districts.find((d) => d.parliament === district);
-    const selectedConstituency =
-      selectedDistrict?.assemblies.includes(constituency);
+    const selectedConstituency = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
+    );
 
     if (!selectedDistrict || !selectedConstituency) {
       Alert.alert("Error", "Invalid district or constituency selected.");
@@ -139,7 +140,7 @@ const RegisterCustomer = ({ closeModal }) => {
       return;
     }
 
-    const referenceId = `${selectedDistrict.code}${constituency}`;
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedConstituency.code}`;
 
     const userData = {
       FullName: fullname,
@@ -240,11 +241,11 @@ const RegisterCustomer = ({ closeModal }) => {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select District</Text>
+                <Text style={styles.label}>Select parliament </Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Search District"
+                    placeholder="Search parliament"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     value={districtSearch}
                     onChangeText={(text) => {
@@ -261,7 +262,7 @@ const RegisterCustomer = ({ closeModal }) => {
                       <ScrollView style={styles.scrollView}>
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
-                            key={item.parliament}
+                            key={item._id}
                             style={styles.listItem}
                             onPress={() => {
                               setDistrict(item.parliament);
@@ -284,11 +285,11 @@ const RegisterCustomer = ({ closeModal }) => {
             {/* Row 2 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Constituency</Text>
+                <Text style={styles.label}>Select Assemblie</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Search Constituency"
+                    placeholder="Select Assemblie"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
                     value={constituencySearch}
                     onChangeText={(text) => {
@@ -308,12 +309,12 @@ const RegisterCustomer = ({ closeModal }) => {
                             key={index}
                             style={styles.listItem}
                             onPress={() => {
-                              setConstituency(item);
-                              setConstituencySearch(item);
+                              setConstituency(item.name);
+                              setConstituencySearch(item.name);
                               setShowConstituencyList(false);
                             }}
                           >
-                            <Text>{item}</Text>
+                            <Text>{item.name}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -341,7 +342,7 @@ const RegisterCustomer = ({ closeModal }) => {
                   {showOccupationList && (
                     <View style={styles.dropdownContainer}>
                       <ScrollView style={styles.scrollView}>
-                        {filteredOccupations.map((item) => (
+                        {occupationOptions.map((item) => (
                           <TouchableOpacity
                             key={item.code}
                             style={styles.listItem}

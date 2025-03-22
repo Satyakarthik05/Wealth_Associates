@@ -7,10 +7,11 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_URL } from "../../data/ApiUrl";
 import { API_URL } from "../../data/ApiUrl";
 
 const AddInvestor = ({ closeModal }) => {
@@ -21,6 +22,7 @@ const AddInvestor = ({ closeModal }) => {
   const [loading, setLoading] = useState(false);
   const [Details, setDetails] = useState(null);
   const [skills, setSkills] = useState(["Land Lord", "Investor"]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const getDetails = async () => {
     try {
@@ -85,66 +87,80 @@ const AddInvestor = ({ closeModal }) => {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Register Investor</Text>
-      </View>
-      <View style={styles.form}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Select Category</Text>
-        <View
-          style={
-            Platform.OS === "web"
-              ? styles.pickerWebContainer
-              : styles.pickerContainer
-          }
-        >
-          <Picker
-            selectedValue={skill}
-            onValueChange={setSkill}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Skill Type --" value="" />
-            {skills.map((item) => (
-              <Picker.Item key={item} label={item} value={item} />
-            ))}
-          </Picker>
-        </View>
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          value={location}
-          onChangeText={setLocation}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Mobile Number</Text>
-        <TextInput
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <View style={styles.buttonContainer}>
+  const renderDropdown = () => {
+    return (
+      <ScrollView style={styles.dropdown}>
+        {skills.map((item) => (
           <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={loading}
+            key={item}
+            style={styles.dropdownItem}
+            onPress={() => {
+              setSkill(item);
+              setShowDropdown(false);
+            }}
           >
-            <Text style={styles.buttonText}>
-              {loading ? "Registering..." : "Register"}
-            </Text>
+            <Text>{item}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Register Investor</Text>
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            value={fullName}
+            onChangeText={setFullName}
+            style={styles.input}
+            placeholder="Full Name"
+          />
+          <Text style={styles.label}>Select Category</Text>
+          <TextInput
+            value={skill}
+            onFocus={() => setShowDropdown(true)}
+            style={styles.input}
+            placeholder="-- Select Skill Type --"
+            editable={false}
+          />
+          {showDropdown && renderDropdown()}
+          <Text style={styles.label}>Location</Text>
+          <TextInput
+            value={location}
+            onChangeText={setLocation}
+            style={styles.input}
+            placeholder="Location"
+          />
+          <Text style={styles.label}>Mobile Number</Text>
+          <TextInput
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="Mobile Number"
+          />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? "Registering..." : "Register"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -188,16 +204,17 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
-  pickerContainer: {
+  dropdown: {
+    maxHeight: 150,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 25,
-    overflow: "hidden",
+    borderRadius: 5,
     marginBottom: 15,
   },
-  picker: {
-    height: 50,
-    width: "100%",
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   buttonContainer: {
     flexDirection: "row",

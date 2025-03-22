@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  StyleSheet,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
 
@@ -10,6 +19,14 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [location, setLocation] = useState("");
   const [budget, setBudget] = useState("");
   const [Details, setDetails] = useState({});
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const propertyTypes = [
+    { label: "Residential", value: "residential" },
+    { label: "Commercial", value: "commercial" },
+    { label: "Villa", value: "villa" },
+    { label: "Land", value: "land" },
+  ];
 
   const getDetails = async () => {
     try {
@@ -18,13 +35,12 @@ const RequestedPropertyForm = ({ closeModal }) => {
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
-          token: `${token}` || "",
+          token: token || "",
         },
       });
 
       const newDetails = await response.json();
       setDetails(newDetails);
-      console.log(Details);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -45,7 +61,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: Details.MobileNumber,
     };
 
     try {
@@ -63,7 +79,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", result.message);
-        closeModal(); // Close the modal after successful submission
+        closeModal();
       } else {
         Alert.alert("Error", result.message || "Failed to request property.");
       }
@@ -74,83 +90,100 @@ const RequestedPropertyForm = ({ closeModal }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Requested Property</Text>
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        setShowDropdown(false);
+      }}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>Requested Property</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Property Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. Need 10 acres land"
-          value={propertyTitle}
-          onChangeText={setPropertyTitle}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Property Type</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={propertyType}
-            onValueChange={(itemValue) => setPropertyType(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Type --" value="" />
-            <Picker.Item label="Residential" value="residential" />
-            <Picker.Item label="Commercial" value="commercial" />
-            <Picker.Item label="Villa" value="Villa" />
-            <Picker.Item label="Land" value="land" />
-          </Picker>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Property Title</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Need 10 acres land"
+            value={propertyTitle}
+            onChangeText={setPropertyTitle}
+          />
         </View>
-      </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. Vijayawada"
-          value={location}
-          onChangeText={setLocation}
-        />
-      </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Property Type</Text>
+          <TouchableOpacity
+            onPress={() => setShowDropdown(!showDropdown)}
+            style={styles.input}
+          >
+            <Text style={{ color: propertyType ? "#000" : "#aaa" }}>
+              {propertyTypes.find((item) => item.value === propertyType)
+                ?.label || "-- Select Type --"}
+            </Text>
+          </TouchableOpacity>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Budget</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. 50,00,000"
-          keyboardType="numeric"
-          value={budget}
-          onChangeText={setBudget}
-        />
-      </View>
+          {showDropdown && (
+            <View style={styles.dropdown}>
+              {propertyTypes.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  onPress={() => {
+                    setPropertyType(item.value);
+                    setShowDropdown(false);
+                  }}
+                  style={styles.dropdownItem}
+                >
+                  <Text>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.postButton} onPress={handleSubmit}>
-          <Text style={styles.postButtonText}>Post</Text>
-        </TouchableOpacity>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Location</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Vijayawada"
+            value={location}
+            onChangeText={setLocation}
+          />
+        </View>
 
-        <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Budget</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 50,00,000"
+            keyboardType="numeric"
+            value={budget}
+            onChangeText={setBudget}
+          />
+        </View>
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.postButton}>
+            <Text style={styles.buttonText}>Post</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={closeModal} style={styles.cancelButton}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
     padding: 20,
     borderRadius: 15,
-    width: 320,
+    width: "90%",
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
     borderWidth: 0.5,
     borderColor: "black",
+    elevation: 5,
   },
   header: {
     fontSize: 18,
@@ -162,7 +195,7 @@ const styles = {
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
-  inputContainer: {
+  inputGroup: {
     marginTop: 12,
   },
   label: {
@@ -179,26 +212,24 @@ const styles = {
     fontSize: 14,
     backgroundColor: "#fff",
   },
-  pickerContainer: {
-    borderWidth: 2,
-    borderColor: "#bbb",
-    borderRadius: 25,
+  dropdown: {
+    position: "absolute",
+    top: 60, // Adjust this value based on your layout
+    left: 0,
+    right: 0,
     backgroundColor: "#fff",
-    overflow: "hidden",
-    height: 55,
-    justifyContent: "center",
-    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    zIndex: 999, // Ensure the dropdown is on top
+    elevation: 5, // For Android shadow
   },
-  picker: {
-    height: 55,
-    width: "100%",
-    borderWidth: 0,
-    backgroundColor: "transparent",
-    fontSize: 16,
-    textAlignVertical: "center",
-    paddingBottom: 6,
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
-  buttonContainer: {
+  buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
@@ -209,22 +240,16 @@ const styles = {
     paddingHorizontal: 30,
     borderRadius: 25,
   },
-  postButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
   cancelButton: {
     backgroundColor: "#333",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 25,
   },
-  cancelButtonText: {
+  buttonText: {
     color: "white",
     fontWeight: "bold",
-    textAlign: "center",
   },
-};
+});
 
 export default RequestedPropertyForm;

@@ -37,6 +37,8 @@ const Register_screen = () => {
   const [constituencySearch, setConstituencySearch] = useState("");
   const [showDistrictList, setShowDistrictList] = useState(false);
   const [showConstituencyList, setShowConstituencyList] = useState(false);
+  const [showExperienceList, setShowExperienceList] = useState(false);
+  const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [parliaments, setParliaments] = useState([]);
   const [assemblies, setAssemblies] = useState([]);
   const [expertiseOptions, setExpertiseOptions] = useState([]);
@@ -348,19 +350,40 @@ const Register_screen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Select Experience</Text>
                   <View style={styles.inputWrapper}>
-                    <Picker
-                      selectedValue={experience}
-                      onValueChange={(itemValue) => setExperience(itemValue)}
-                      style={styles.picker}
-                    >
-                      {experienceOptions.map((option) => (
-                        <Picker.Item
-                          key={option.code}
-                          label={option.name}
-                          value={option.code}
-                        />
-                      ))}
-                    </Picker>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Search Experience"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={experience}
+                      onChangeText={(text) => {
+                        setExperience(text);
+                        setShowExperienceList(true);
+                      }}
+                      onFocus={() => {
+                        setShowExperienceList(true);
+                        setShowExpertiseList(false);
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                      }}
+                    />
+                    {showExperienceList && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView style={styles.scrollView}>
+                          {experienceOptions.map((option) => (
+                            <TouchableOpacity
+                              key={option.code}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setExperience(option.name);
+                                setShowExperienceList(false);
+                              }}
+                            >
+                              <Text>{option.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
                   </View>
                 </View>
               </View>
@@ -370,19 +393,40 @@ const Register_screen = () => {
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Select Expertise</Text>
                   <View style={styles.inputWrapper}>
-                    <Picker
-                      selectedValue={expertise}
-                      onValueChange={(itemValue) => setExpertise(itemValue)}
-                      style={styles.picker}
-                    >
-                      {expertiseOptions.map((option) => (
-                        <Picker.Item
-                          key={option.code}
-                          label={option.name}
-                          value={option.code}
-                        />
-                      ))}
-                    </Picker>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Search Expertise"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={expertise}
+                      onChangeText={(text) => {
+                        setExpertise(text);
+                        setShowExpertiseList(true);
+                      }}
+                      onFocus={() => {
+                        setShowExpertiseList(true);
+                        setShowExperienceList(false);
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                      }}
+                    />
+                    {showExpertiseList && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView style={styles.scrollView}>
+                          {expertiseOptions.map((option) => (
+                            <TouchableOpacity
+                              key={option.code}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setExpertise(option.name);
+                                setShowExpertiseList(false);
+                              }}
+                            >
+                              <Text>{option.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={styles.inputContainer}>
