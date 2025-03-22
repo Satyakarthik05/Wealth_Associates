@@ -11,6 +11,7 @@ import {
   ScrollView,
   Dimensions,
   Platform,
+  Alert,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { API_URL } from "../../data/ApiUrl";
@@ -59,6 +60,26 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
     const token = await AsyncStorage.removeItem("authToken");
     navigation.navigate("Main Screen");
   };
+  const LogOuts = async () => {
+    // Show a confirmation alert
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete your account?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            Alert.alert("Your delete account request is successfuly submited our executive will reach  you out soon to confirm")
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -103,6 +124,9 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
                   <Text style={styles.buttonTexts}>Logout </Text>
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity style={{display:"flex",alignItems:"center", justifyContent:"center",marginTop:10}} onPress={LogOuts}>
+                  <Text style={styles.buttonTexts}>Delete Your Account </Text>
+              </TouchableOpacity>
             </View>
 
             <CustomModal

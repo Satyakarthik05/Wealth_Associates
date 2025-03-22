@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   rightIcons: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: Platform.OS === "web" ? 0 : "10%",
+    // marginTop: Platform.OS === "web" ? 0 : "10%",
     gap: Platform.OS === "web" ? "10px" : 10,
     marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? -15 : "0",
   },
