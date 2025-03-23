@@ -11,12 +11,14 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropertyCard from "./PropertyCard"; // Import the PropertyCard component
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +27,7 @@ const PostProperty = ({ closeModal }) => {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [photo, setPhoto] = useState(null);
-  const [file, setFile] = useState(null); // Added for web file handling
+  const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
@@ -34,6 +36,7 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
+  const [postedProperty, setPostedProperty] = useState(null); // State to store the posted property
 
   // Fetch agent details
   const getDetails = async () => {
@@ -48,7 +51,7 @@ const PostProperty = ({ closeModal }) => {
 
       const newDetails = await response.json();
       setPostedBy(newDetails.MobileNumber);
-      setConstituency(newDetails.Contituency)
+      setConstituency(newDetails.Contituency);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
@@ -98,7 +101,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("Constituency",Constituency)
+        formData.append("Constituency", Constituency);
 
         // Handle image upload
         if (photo) {
@@ -137,7 +140,16 @@ const PostProperty = ({ closeModal }) => {
         const result = await response.json();
         if (response.ok) {
           alert("Success: Property Posted!");
-          closeModal();
+          // closeModal();
+          setPostedProperty({
+            photo,
+            location,
+            price,
+            propertyType,
+            PostedBy,
+            fullName: `${Details.FullName}`,
+          });
+          // closeModal();
         } else {
           alert(`Error: ${result.message}`);
         }
@@ -336,6 +348,18 @@ const PostProperty = ({ closeModal }) => {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal to display the PropertyCard after successful posting */}
+      <Modal
+        visible={!!postedProperty}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPostedProperty(null)}
+      >
+        <View style={styles.modalContainer}>
+          <PropertyCard property={postedProperty} closeModal={closeModal} />
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -469,6 +493,12 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginTop: 20,
     alignSelf: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
