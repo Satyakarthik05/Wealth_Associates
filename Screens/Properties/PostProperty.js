@@ -36,7 +36,23 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
-  const [postedProperty, setPostedProperty] = useState(null); // State to store the posted property
+  const [postedProperty, setPostedProperty] = useState(null);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [priceDropdownVisible, setPriceDropdownVisible] = useState(false);
+  const [selectedPriceRange, setSelectedPriceRange] = useState("");
+
+  const priceRanges = [
+    "Below 1 Lakh",
+    "10-20 Lakh",
+    "20-40 Lakh",
+    "40-50 Lakh",
+    "50 Lakh - 1 Crore",
+    "1 Crore - 2 Crore",
+    "Above 2 Crore",
+    "Above 5 Crore",
+  ];
 
   // Fetch agent details
   const getDetails = async () => {
@@ -69,14 +85,33 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Fetch constituencies data
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
     fetchPropertyTypes();
+    fetchData();
   }, []);
 
   // Filter property types based on search input
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
   );
 
   // Validate form inputs
@@ -140,7 +175,6 @@ const PostProperty = ({ closeModal }) => {
         const result = await response.json();
         if (response.ok) {
           alert("Success: Property Posted!");
-          // closeModal();
           setPostedProperty({
             photo,
             location,
@@ -149,7 +183,6 @@ const PostProperty = ({ closeModal }) => {
             PostedBy,
             fullName: `${Details.FullName}`,
           });
-          // closeModal();
         } else {
           alert(`Error: ${result.message}`);
         }
@@ -305,23 +338,68 @@ const PostProperty = ({ closeModal }) => {
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
           <Text style={styles.label}>Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. Vijayawada"
-            value={location}
-            onChangeText={setLocation}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => {
+                setShowLocationList(true);
+              }}
+            />
+            {showLocationList && (
+              <View style={styles.dropdownContainer}>
+                {filteredConstituencies.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.code}-${item.name}`}
+                    style={styles.listItem}
+                    onPress={() => {
+                      setLocation(item.name);
+                      setLocationSearch(item.name);
+                      setShowLocationList(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.location && (
             <Text style={styles.errorText}>{errors.location}</Text>
           )}
           <Text style={styles.label}>Price</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. 50,00,000"
-            keyboardType="numeric"
-            value={price}
-            onChangeText={setPrice}
-          />
+          <View style={styles.inputWrapper}>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={() => setPriceDropdownVisible(!priceDropdownVisible)}
+            >
+              <Text style={selectedPriceRange ? {} : styles.placeholderText}>
+                {selectedPriceRange || "Select Price Range"}
+              </Text>
+            </TouchableOpacity>
+            {priceDropdownVisible && (
+              <View style={styles.dropdownContainer}>
+                {priceRanges.map((range, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.listItem}
+                    onPress={() => {
+                      setSelectedPriceRange(range);
+                      setPrice(range); // Set the price state if needed
+                      setPriceDropdownVisible(false);
+                    }}
+                  >
+                    <Text>{range}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -419,12 +497,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: "#FFF",
+    backgroundColor: "#e6708e",
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 5,
     maxHeight: 200,
+    minHeight: 320,
     overflow: "scroll",
   },
   listItem: {
