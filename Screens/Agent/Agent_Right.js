@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  Modal,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -22,6 +23,7 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropertyCard from "./PropertyCard";
 
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
@@ -42,11 +44,6 @@ const actionButtons = [
     title: "Request a Property",
     icon: "home-search",
     component: RequestProperty,
-  },
-  {
-    title: "Add a member",
-    icon: "account-plus",
-    component: AddClubMember,
   },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
@@ -85,11 +82,14 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [propertiess, setPropertiess] = useState([]);
   const [coreClients, setCoreClients] = useState([]);
   const [coreProjects, setCoreProjectes] = useState([]);
-  const [Details, setDetails] = useState({ Constituency: "" }); // Default value for Constituency
+  const [Details, setDetails] = useState({ Constituency: "" });
   const [nearbyProperties, setNearbyProperties] = useState([]);
-  const [loadingDetails, setLoadingDetails] = useState(true); // Loading state for Details
+  const [loadingDetails, setLoadingDetails] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isPropertyModalVisible, setPropertyModalVisible] = useState(false);
+  const [postedProperty, setPostedProperty] = useState(null);
+  const [referredInfo, setReferredInfo] = useState(null);
 
-  // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -100,16 +100,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         },
       });
       const newDetails = await response.json();
-      console.log("Agent Details API Response:", newDetails); // Log the response
+      console.log("Agent Details API Response:", newDetails);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     } finally {
-      setLoadingDetails(false); // Set loading to false after fetching
+      setLoadingDetails(false);
     }
   };
 
-  // Fetch nearby properties
   const fetchNearbyProperties = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -141,7 +140,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Fetch core clients
   const fetchCoreClients = async () => {
     try {
       const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
@@ -152,7 +150,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Fetch core projects
   const fetchCoreProjects = async () => {
     try {
       const response = await fetch(`${API_URL}/coreproject/getallcoreprojects`);
@@ -163,7 +160,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Get image by property type
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
@@ -179,7 +175,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Fetch requested properties
   const fetchPropertiess = async () => {
     try {
       setLoading(true);
@@ -205,7 +200,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         type: item.propertyType,
         location: item.location,
         budget: `₹${item.Budget.toLocaleString()}`,
-        image: getImageByPropertyType(item.propertyType), // Use the function here
+        image: getImageByPropertyType(item.propertyType),
         createdAt: item.createdAt,
       }));
       setPropertiess(formattedProperties);
@@ -216,7 +211,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Fetch all properties
   const fetchProperties = async () => {
     try {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
@@ -234,7 +228,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Get property tag based on creation date
   const getPropertyTag = (createdAt) => {
     const currentDate = new Date();
     const propertyDate = new Date(createdAt);
@@ -252,7 +245,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Handle action button clicks
   const handleActionButtonClick = (btn) => {
     if (btn.title === "Add a member") {
       setModalContent(
@@ -287,7 +279,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  // Handle nested action button clicks
   const handleNestedActionButtonClick = (nestedBtn) => {
     const ModalComponent = nestedBtn.component;
     setModalContent(
@@ -296,17 +287,64 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     setModalVisible(true);
   };
 
-  // Close modal
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // Handle view all properties
   const handleViewAllProperties = () => {
     onViewAllPropertiesClick();
   };
 
-  // Fetch data on component mount
+  const handleEnquiryNow = (property) => {
+    // setSelectedProperty(property);
+    setPropertyModalVisible(true);
+  };
+
+  useEffect(() => {
+    const fetchReferredDetails = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/properties/getPropertyreffered`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              referredBy: Details ? Details.ReferredBy : "agent",
+            }),
+          }
+        );
+
+        const data = await response.json();
+        setReferredInfo(data.referredByDetails); // Expecting { name, email, role, etc. }
+      } catch (error) {
+        console.error("Error fetching referredBy info:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReferredDetails();
+  }, []);
+
+  const handleShare = (property, closeModal) => {
+    const fullImageUri = property.photo ? `${API_URL}${property.photo}` : null;
+    setPostedProperty({
+      propertyType: property.propertyType,
+      photo: fullImageUri,
+      location: property.location,
+      price: property.price,
+    });
+    if (closeModal) closeModal();
+  };
+
+  const handleIHave = (property) => {
+    setSelectedProperty(property);
+    setPropertyModalVisible(true);
+  };
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
   useEffect(() => {
     getDetails();
     fetchCoreClients();
@@ -314,7 +352,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     fetchProperties();
   }, []);
 
-  // Fetch nearby properties when Constituency is available
   useEffect(() => {
     if (!loadingDetails && Details.Contituency) {
       console.log("Constituency:", Details.Contituency);
@@ -322,14 +359,22 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   }, [loadingDetails, Details.Constituency]);
 
-  // Define firstRowProperties and secondRowProperties
-  const firstRowProperties = properties.slice(0, 5);
-  const secondRowProperties = properties.slice(5, 10);
+  const regularProperties = properties.filter(
+    (property) => getPropertyTag(property.createdAt) === "Regular Property"
+  );
+  const approvedProperties = properties.filter(
+    (property) => getPropertyTag(property.createdAt) === "Approved Property"
+  );
+  const wealthProperties = properties.filter(
+    (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+  );
+  const listedProperties = properties.filter(
+    (property) => getPropertyTag(property.createdAt) === "Listed Property"
+  );
 
   return (
     <View style={styles.container}>
       <View contentContainerStyle={styles.contentContainer}>
-        {/* Action Buttons */}
         <View style={styles.actionContainer}>
           {actionButtons.map((btn, index) => (
             <TouchableOpacity
@@ -341,7 +386,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                 <Icon
                   name={btn.icon}
                   size={Platform.OS === "web" ? 40 : 30}
-                  color="#E91E63"
+                  color={btn.icon === "home-search" ? "green" : "#E91E63"}
                 />
               </View>
               <Text style={styles.actionText}>{btn.title}</Text>
@@ -350,47 +395,10 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           ))}
         </View>
 
-        {/* Render the CustomModal */}
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
 
-        {/* Core Clients */}
-        <Text style={styles.sectionTitle}>Core Clients</Text>
-        <View style={styles.cardContainer}>
-          {coreClients.map((client, index) => (
-            <View key={index} style={styles.card}>
-              <Image
-                source={{ uri: `${API_URL}${client.photo}` }}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-            </View>
-          ))}
-        </View>
-
-        {/* Core Projects */}
-        <Text style={styles.sectionTitle}>Core Projects</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.projectScroll}
-        >
-          {coreProjects.map((project, index) => (
-            <View key={index} style={styles.card}>
-              <Image
-                source={{ uri: `${API_URL}${project.photo}` }}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <View>
-                <Text>{project.city}</Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Nearby Properties */}
         {nearbyProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Nearby Properties</Text>
@@ -420,6 +428,20 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                     <Text style={styles.propertyBudget}>
                       ₹ {parseInt(property.price).toLocaleString()}
                     </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.enquiryButton}
+                        onPress={() => handleEnquiryNow(property)}
+                      >
+                        <Text style={styles.buttonText}>Enquiry Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={() => handleShare(property)}
+                      >
+                        <Text style={styles.buttonText}>Share</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 );
               })}
@@ -427,7 +449,314 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           </>
         )}
 
-        {/* Requested Properties */}
+        {regularProperties.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Regular Properties</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.requestedPropertiesContainer}
+            >
+              {regularProperties.map((property, index) => {
+                const imageUri = property.photo
+                  ? { uri: `${API_URL}${property.photo}` }
+                  : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
+                const propertyId = getLastFourChars(property._id);
+
+                return (
+                  <View key={index} style={styles.propertyCard}>
+                    <Image source={imageUri} style={styles.propertyImage} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                    </View>
+                    <View
+                      style={{
+                        alignItems: "flex-end",
+                        paddingRight: 5,
+                        top: 5,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "green",
+                          borderRadius: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontWeight: "600",
+                          }}
+                        >
+                          ID: {propertyId}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyInfo}>
+                      Location: {property.location}
+                    </Text>
+                    <Text style={styles.propertyBudget}>
+                      ₹ {parseInt(property.price).toLocaleString()}
+                    </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.enquiryButton}
+                        onPress={() => handleEnquiryNow(property)}
+                      >
+                        <Text style={styles.buttonText}>Enquiry Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={() => handleShare(property)}
+                      >
+                        <Text style={styles.buttonText}>Share</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
+        {approvedProperties.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Approved Properties</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.requestedPropertiesContainer}
+            >
+              {approvedProperties.map((property, index) => {
+                const imageUri = property.photo
+                  ? { uri: `${API_URL}${property.photo}` }
+                  : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
+                const propertyId = getLastFourChars(property._id);
+
+                return (
+                  <View key={index} style={styles.propertyCard}>
+                    <Image source={imageUri} style={styles.propertyImage} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                    </View>
+                    <View
+                      style={{
+                        alignItems: "flex-end",
+                        paddingRight: 5,
+                        top: 5,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "green",
+                          borderRadius: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontWeight: "600",
+                          }}
+                        >
+                          ID: {propertyId}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyInfo}>
+                      Location: {property.location}
+                    </Text>
+                    <Text style={styles.propertyBudget}>
+                      ₹ {parseInt(property.price).toLocaleString()}
+                    </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.enquiryButton}
+                        onPress={() => handleEnquiryNow(property)}
+                      >
+                        <Text style={styles.buttonText}>Enquiry Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={() => handleShare(property)}
+                      >
+                        <Text style={styles.buttonText}>Share</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
+        {wealthProperties.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Wealth Properties</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.requestedPropertiesContainer}
+            >
+              {wealthProperties.map((property, index) => {
+                const imageUri = property.photo
+                  ? { uri: `${API_URL}${property.photo}` }
+                  : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
+                const propertyId = getLastFourChars(property._id);
+
+                return (
+                  <View key={index} style={styles.propertyCard}>
+                    <Image source={imageUri} style={styles.propertyImage} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                    </View>
+                    <View
+                      style={{
+                        alignItems: "flex-end",
+                        paddingRight: 5,
+                        top: 5,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "green",
+                          borderRadius: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontWeight: "600",
+                          }}
+                        >
+                          ID: {propertyId}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyInfo}>
+                      Location: {property.location}
+                    </Text>
+                    <Text style={styles.propertyBudget}>
+                      ₹ {parseInt(property.price).toLocaleString()}
+                    </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.enquiryButton}
+                        onPress={() => handleEnquiryNow(property)}
+                      >
+                        <Text style={styles.buttonText}>Enquiry Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={() => handleShare(property)}
+                      >
+                        <Text style={styles.buttonText}>Share</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
+        {listedProperties.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Listed Properties</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.requestedPropertiesContainer}
+            >
+              {listedProperties.map((property, index) => {
+                const imageUri = property.photo
+                  ? { uri: `${API_URL}${property.photo}` }
+                  : require("../../assets/logo.png");
+                const propertyTag = getPropertyTag(property.createdAt);
+                const propertyId = getLastFourChars(property._id);
+
+                return (
+                  <View key={index} style={styles.propertyCard}>
+                    <Image source={imageUri} style={styles.propertyImage} />
+                    <View style={styles.approvedBadge}>
+                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                    </View>
+                    <View
+                      style={{
+                        alignItems: "flex-end",
+                        paddingRight: 5,
+                        top: 5,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "green",
+                          borderRadius: 8,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontWeight: "600",
+                          }}
+                        >
+                          ID: {propertyId}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyInfo}>
+                      Location: {property.location}
+                    </Text>
+                    <Text style={styles.propertyBudget}>
+                      ₹ {parseInt(property.price).toLocaleString()}
+                    </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={styles.enquiryButton}
+                        onPress={() => handleEnquiryNow(property)}
+                      >
+                        <Text style={styles.buttonText}>Enquiry Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.shareButton}
+                        onPress={() => handleShare(property)}
+                      >
+                        <Text style={styles.buttonText}>Share</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
         <Text style={styles.sectionTitle}>Requested Properties</Text>
         <ScrollView
           horizontal
@@ -457,6 +786,12 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                       <Text style={styles.text}>Location: {item.location}</Text>
                       <Text style={styles.text}>Budget: {item.budget}</Text>
                     </View>
+                    <TouchableOpacity
+                      style={styles.iHaveButton}
+                      onPress={() => handleIHave(item)}
+                    >
+                      <Text style={styles.buttonText}>I Have</Text>
+                    </TouchableOpacity>
                   </View>
                 );
               })}
@@ -464,86 +799,39 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           )}
         </ScrollView>
 
-        {/* Properties */}
-        <View style={styles.propertiesHeader}>
-          <Text style={styles.sectionTitle}>Properties</Text>
+        <Text style={styles.sectionTitle}>Core Clients</Text>
+        <View style={styles.cardContainer}>
+          {coreClients.map((client, index) => (
+            <View key={index} style={styles.card}>
+              <Image
+                source={{ uri: `${API_URL}${client.photo}` }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+          ))}
         </View>
 
-        {loading ? (
-          <ActivityIndicator
-            size="large"
-            color="#3498db"
-            style={styles.loader}
-          />
-        ) : (
-          <>
-            {/* First Row of Properties */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.propertyScroll}
-            >
-              {firstRowProperties.map((property, index) => {
-                const imageUri = property.photo
-                  ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
-                const propertyTag = getPropertyTag(property.createdAt);
+        <Text style={styles.sectionTitle}>Core Projects</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.projectScroll}
+        >
+          {coreProjects.map((project, index) => (
+            <View key={index} style={styles.card}>
+              <Image
+                source={{ uri: `${API_URL}${project.photo}` }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <View>
+                <Text>{project.city}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
 
-                return (
-                  <View key={index} style={styles.propertyCard}>
-                    <Image source={imageUri} style={styles.propertyImage} />
-                    <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
-                    </View>
-                    <Text style={styles.propertyTitle}>
-                      {property.propertyType}
-                    </Text>
-                    <Text style={styles.propertyInfo}>
-                      Location: {property.location}
-                    </Text>
-                    <Text style={styles.propertyBudget}>
-                      ₹ {parseInt(property.price).toLocaleString()}
-                    </Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
-
-            {/* Second Row of Properties */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.propertyScroll}
-            >
-              {secondRowProperties.map((property, index) => {
-                const imageUri = property.photo
-                  ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
-                const propertyTag = getPropertyTag(property.createdAt);
-
-                return (
-                  <View key={index} style={styles.propertyCard}>
-                    <Image source={imageUri} style={styles.propertyImage} />
-                    <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
-                    </View>
-                    <Text style={styles.propertyTitle}>
-                      {property.propertyType}
-                    </Text>
-                    <Text style={styles.propertyInfo}>
-                      Location: {property.location}
-                    </Text>
-                    <Text style={styles.propertyBudget}>
-                      ₹ {parseInt(property.price).toLocaleString()}
-                    </Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </>
-        )}
-
-        {/* View All Properties Button */}
         <TouchableOpacity
           style={styles.viewAllButton}
           onPress={handleViewAllProperties}
@@ -551,9 +839,51 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           <Text style={styles.viewAllButtonText}>View All Properties</Text>
         </TouchableOpacity>
 
-        {/* Version Info */}
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
       </View>
+
+      <Modal
+        visible={isPropertyModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPropertyModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {referredDetails && (
+              <>
+                <Text style={styles.modalTitle}>Referred By</Text>
+                <Text style={styles.modalText}>
+                  Name: {referredDetails.name}
+                </Text>
+                <Text style={styles.modalText}>
+                  Mobile: {referredDetails.Number}
+                </Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setPropertyModalVisible(false)}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={!!postedProperty}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPostedProperty(null)}
+      >
+        <View style={styles.modalContainer}>
+          <PropertyCard
+            property={postedProperty}
+            closeModal={() => setPostedProperty(null)}
+          />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -636,7 +966,7 @@ const styles = StyleSheet.create({
   },
   propertyScroll: { marginVertical: 10 },
   propertyCard: {
-    width: isWeb ? 250 : 180,
+    width: isWeb ? 250 : 220,
     backgroundColor: "#fff",
     borderRadius: 10,
     marginRight: 10,
@@ -669,6 +999,33 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 5,
     color: "green",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 10,
+  },
+  enquiryButton: {
+    backgroundColor: "#E91E63",
+    padding: 10,
+    borderRadius: 5,
+  },
+  shareButton: {
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 5,
+  },
+  iHaveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 5,
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   viewAllButton: {
     backgroundColor: "#E82E5F",
@@ -736,21 +1093,48 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-evenly",
     padding: 20,
-    backgroundColor: "#fff", // Light gray background
-    borderRadius: 20, // Rounded corners
+    backgroundColor: "#fff",
+    borderRadius: 20,
     margin: 0,
   },
   nestedActionButton: {
-    // backgroundColor: "#e0f7fa",
     alignItems: "center",
     margin: 10,
     width: isWeb ? 100 : 100,
     borderRadius: 10,
     padding: 10,
-    // shadowColor: "#000",
-    // shadowOpacity: 0.1,
-    // shadowRadius: 5,
-    // elevation: 3,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  closeButton: {
+    backgroundColor: "#E91E63",
+    padding: 10,
+    borderRadius: 5,
+    alignSelf: "flex-end",
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
 

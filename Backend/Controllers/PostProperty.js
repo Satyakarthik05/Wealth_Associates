@@ -9,7 +9,14 @@ const mongoose = require("mongoose");
 // Create a new property
 const createProperty = async (req, res) => {
   try {
-    let { propertyType, location, price, PostedBy, Constituency } = req.body;
+    let {
+      propertyType,
+      location,
+      price,
+      PostedBy,
+      Constituency,
+      propertyDetails,
+    } = req.body;
     console.log("PostedBy in request:", PostedBy);
 
     // Validate PostedBy
@@ -79,6 +86,7 @@ const createProperty = async (req, res) => {
       price,
       photo: photoPath,
       PostedBy: postedByUser.MobileNumber,
+      propertyDetails,
       PostedUserType: userType,
       Constituency,
     });
@@ -267,6 +275,42 @@ const getNearbyProperties = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+const getReferredByDetails = async (req, res) => {
+  const { referredBy } = req.body;
+
+  if (!referredBy) {
+    return res.status(400).json({ error: "referredBy is required" });
+  }
+
+  try {
+    let result =
+      (await AgentSchema.findOne({ MyRefferalCode: referredBy })) ||
+      (await CustomerSchema.findOne({ MyRefferalCode: referredBy })) ||
+      (await CoreSchema.findOne({ MyRefferalCode: referredBy }));
+
+    if (result) {
+      return res.status(200).json({
+        status: "success",
+        referredByDetails: {
+          name: result.FullName,
+          Number: result.MobileNumber, // You can adjust role logic if needed
+        },
+      });
+    } else {
+      return res.status(200).json({
+        status: "default",
+        referredByDetails: {
+          name: "Wealth Associate",
+          Number: 7796356789,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error finding referredBy:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
 module.exports = {
   createProperty,
   GetAllPropertys,
@@ -276,4 +320,5 @@ module.exports = {
   editProperty,
   updatePropertyAdmin,
   getNearbyProperties,
+  getReferredByDetails,
 };
