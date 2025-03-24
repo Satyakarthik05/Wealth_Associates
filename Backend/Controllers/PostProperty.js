@@ -6,6 +6,7 @@ const CustomerSchema = require("../Models/Customer");
 const CoreSchema = require("../Models/CoreModel");
 const mongoose = require("mongoose");
 const axios =require("axios")
+const getNearbyProperty= require("../Models/ApprovedPropertys")
 
 // Create a new property
 const createProperty = async (req, res) => {
@@ -29,20 +30,20 @@ const createProperty = async (req, res) => {
     }
 
     // Clean and validate price
-    if (typeof price === "string") {
-      price = price.replace(/,/g, "").trim();
+    // if (typeof price === "string") {
+    //   price = price.replace(/,/g, "").trim();
 
-      const parts = price.split(".");
-      if (parts.length > 2) {
-        price = parts[0] + "." + parts[1]; // Keep only the first decimal part
-      }
-    }
+    //   const parts = price.split(".");
+    //   if (parts.length > 2) {
+    //     price = parts[0] + "." + parts[1]; // Keep only the first decimal part
+    //   }
+    // }
 
     // Convert to number
-    price = parseFloat(price);
-    if (isNaN(price)) {
-      return res.status(400).json({ message: "Invalid price format." });
-    }
+    // price = parseFloat(price);
+    // if (isNaN(price)) {
+    //   return res.status(400).json({ message: "Invalid price format." });
+    // }
 
     // Find user by PostedBy number
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
@@ -254,7 +255,7 @@ const getNearbyProperties = async (req, res) => {
 
     // Fetch properties from database that match the constituency
     console.log(constituency);
-    const properties = await Property.find({ Constituency: constituency });
+    const properties = await getNearbyProperty.find({ Constituency: constituency });
 
     if (properties.length === 0) {
       return res

@@ -18,6 +18,7 @@ const approveProperty = async (req, res) => {
       location: property.location,
       price: property.price,
       photo: property.photo,
+      Constituency: property.Constituency,
       PostedBy: property.PostedBy,
       PostedUserType: property.PostedUserType,
     });
