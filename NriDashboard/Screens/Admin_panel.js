@@ -77,7 +77,7 @@ const menuItems = [
   {
     title: "Investors",
     icon: "business-outline",
-    subItems: ["Add Investor", "View Investors", "View All Investors"],
+    subItems: ["Add Investor", "View Investors"],
   },
   {
     title: "NRI Club",

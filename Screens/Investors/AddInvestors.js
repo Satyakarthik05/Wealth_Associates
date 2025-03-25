@@ -5,11 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   ActivityIndicator,
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
@@ -23,6 +23,9 @@ const AddInvestor = ({ closeModal }) => {
   const [Details, setDetails] = useState(null);
   const [skills, setSkills] = useState(["Land Lord", "Investor"]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
 
   const getDetails = async () => {
     try {
@@ -42,16 +45,37 @@ const AddInvestor = ({ closeModal }) => {
 
   useEffect(() => {
     getDetails();
+    fetchConstituencies();
   }, []);
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching constituencies:", error);
+    }
+  };
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
 
   const handleRegister = async () => {
     if (!fullName || !skill || !location || !mobileNumber) {
-      alert("All fields are required");
+      Alert.alert("Error", "All fields are required");
       return;
     }
 
     if (!Details || !Details.MobileNumber) {
-      alert("Agent details are not available. Please try again.");
+      Alert.alert(
+        "Error",
+        "Agent details are not available. Please try again."
+      );
       return;
     }
 
@@ -71,17 +95,17 @@ const AddInvestor = ({ closeModal }) => {
       });
       const data = await response.json();
       if (response.ok) {
-        alert("Registration successful");
+        Alert.alert("Success", "Registration successful");
         setFullName("");
         setSkill("");
         setLocation("");
         setMobileNumber("");
         closeModal();
       } else {
-        alert(data.message || "Registration failed");
+        Alert.alert("Error", data.message || "Registration failed");
       }
     } catch (error) {
-      alert("Error: " + error.message);
+      Alert.alert("Error", "Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -113,6 +137,7 @@ const AddInvestor = ({ closeModal }) => {
       onPress={() => {
         Keyboard.dismiss();
         setShowDropdown(false);
+        setShowLocationList(false);
       }}
     >
       <View style={styles.container}>
@@ -127,9 +152,13 @@ const AddInvestor = ({ closeModal }) => {
             style={styles.input}
             placeholder="Full Name"
           />
+
           <Text style={styles.label}>Select Category</Text>
           <TouchableOpacity
-            onPress={() => setShowDropdown(!showDropdown)}
+            onPress={() => {
+              setShowDropdown(!showDropdown);
+              setShowLocationList(false);
+            }}
             style={styles.input}
           >
             <Text style={{ color: skill ? "#000" : "#aaa" }}>
@@ -137,13 +166,40 @@ const AddInvestor = ({ closeModal }) => {
             </Text>
           </TouchableOpacity>
           {showDropdown && renderDropdown()}
+
           <Text style={styles.label}>Location</Text>
-          <TextInput
-            value={location}
-            onChangeText={setLocation}
-            style={styles.input}
-            placeholder="Location"
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => setShowLocationList(true)}
+            />
+            {showLocationList && (
+              <View style={styles.locationListContainer}>
+                <ScrollView style={styles.locationList}>
+                  {filteredConstituencies.map((item) => (
+                    <TouchableOpacity
+                      key={`${item.code}-${item.name}`}
+                      style={styles.locationListItem}
+                      onPress={() => {
+                        setLocation(item.name);
+                        setLocationSearch(item.name);
+                        setShowLocationList(false);
+                      }}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+
           <Text style={styles.label}>Mobile Number</Text>
           <TextInput
             value={mobileNumber}
@@ -152,6 +208,7 @@ const AddInvestor = ({ closeModal }) => {
             style={styles.input}
             placeholder="Mobile Number"
           />
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.registerButton}
@@ -212,12 +269,15 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
+  inputContainer: {
+    marginBottom: 15,
+  },
   dropdownContainer: {
     position: "absolute",
-    top: 160, // Adjust this value based on your layout
+    top: 160,
     left: 20,
     right: 20,
-    zIndex: 999, // Ensure the dropdown is on top
+    zIndex: 999,
   },
   dropdown: {
     maxHeight: 150,
@@ -230,6 +290,23 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
+  },
+  locationListContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
+    marginTop: -10,
+    marginBottom: 5,
+  },
+  locationList: {
+    maxHeight: 200,
+  },
+  locationListItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",

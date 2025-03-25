@@ -112,7 +112,7 @@ const Add_Agent = ({ closeModal }) => {
       const token = await AsyncStorage.getItem("authToken");
 
       // Make the fetch request
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "", // Fallback to an empty string if token is null

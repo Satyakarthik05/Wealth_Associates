@@ -19,11 +19,15 @@ const AddNRIMember = ({ closeModal }) => {
   const [name, setName] = useState("");
   const [country, setCountry] = useState(null);
   const [locality, setLocality] = useState("");
+  const [indianLocation, setIndianLocation] = useState("");
   const [occupation, setOccupation] = useState("");
   const [mobileIN, setMobileIN] = useState("");
   const [mobileCountryNo, setMobileCountryNo] = useState("");
   const [loading, setLoading] = useState(false);
   const [Details, setDetails] = useState({});
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
@@ -50,7 +54,6 @@ const AddNRIMember = ({ closeModal }) => {
       });
       const newDetails = await response.json();
       setDetails(newDetails);
-      console.log(Details);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -58,13 +61,32 @@ const AddNRIMember = ({ closeModal }) => {
 
   useEffect(() => {
     getDetails();
+    fetchConstituencies();
   }, []);
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching constituencies:", error);
+    }
+  };
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
 
   const handleAddMember = async () => {
     if (
       !name ||
       !country ||
       !locality ||
+      !indianLocation ||
       !occupation ||
       !mobileIN ||
       !mobileCountryNo
@@ -83,13 +105,14 @@ const AddNRIMember = ({ closeModal }) => {
           Name: name,
           Country: country,
           Locality: locality,
+          IndianLocation: indianLocation,
           Occupation: occupation,
           MobileIN: mobileIN,
           MobileCountryNo: mobileCountryNo,
           AddedBy: Details.MobileNumber
             ? Details.MobileNumber
             : "Wealthassociate",
-          RegisteredBy: "SkilledLabour",
+          RegisteredBy: "Customer",
         }),
       });
 
@@ -112,14 +135,14 @@ const AddNRIMember = ({ closeModal }) => {
       keyboardVerticalOffset={100}
       style={{ flex: 1 }}
     >
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <Text style={styles.header}>Add NRI Member</Text>
 
           <Text style={styles.label}>Name</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ex. Vijayawada"
+            placeholder="Enter full name"
             value={name}
             onChangeText={setName}
           />
@@ -136,13 +159,46 @@ const AddNRIMember = ({ closeModal }) => {
             style={styles.dropdown}
           />
 
-          <Text style={styles.label}>Locality</Text>
+          <Text style={styles.label}>Locality (Abroad)</Text>
           <TextInput
             style={styles.input}
             placeholder="Ex. Dallas"
             value={locality}
             onChangeText={setLocality}
           />
+
+          <Text style={styles.label}>Location in India</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => setShowLocationList(true)}
+            />
+            {showLocationList && (
+              <View style={styles.locationListContainer}>
+                <ScrollView style={styles.locationList}>
+                  {filteredConstituencies.map((item) => (
+                    <TouchableOpacity
+                      key={`${item.code}-${item.name}`}
+                      style={styles.locationListItem}
+                      onPress={() => {
+                        setIndianLocation(item.name);
+                        setLocationSearch(item.name);
+                        setShowLocationList(false);
+                      }}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
 
           <Text style={styles.label}>Occupation</Text>
           <TextInput
@@ -218,12 +274,14 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 5,
   },
+  inputContainer: {
+    marginBottom: 10,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#000",
     borderRadius: 15,
     padding: 10,
-    marginBottom: 10,
     fontSize: 14,
     color: "#333",
   },
@@ -231,6 +289,23 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 15,
     marginBottom: 10,
+  },
+  locationListContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
+    // marginTop: -10,
+    marginBottom: 5,
+  },
+  locationList: {
+    maxHeight: 200,
+  },
+  locationListItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",

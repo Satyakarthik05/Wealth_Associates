@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Modal,
+  Linking,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -24,6 +25,8 @@ import { API_URL } from "../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCard from "./PropertyCard";
+import { Ionicons } from "@expo/vector-icons";
+import logo from "../../assets/man.png";
 
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
@@ -82,8 +85,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const [propertiess, setPropertiess] = useState([]);
   const [coreClients, setCoreClients] = useState([]);
   const [coreProjects, setCoreProjectes] = useState([]);
-  const [Details, setDetails] = useState({ Constituency: "" });
-  const [nearbyProperties, setNearbyProperties] = useState([]);
+  const [Details, setDetails] = useState({ Contituency: "" });
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPropertyModalVisible, setPropertyModalVisible] = useState(false);
@@ -109,37 +111,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
-  const fetchNearbyProperties = async () => {
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        console.error("Token not found in AsyncStorage");
-        return;
-      }
-
-      const response = await fetch(
-        `${API_URL}/properties/nearby/${Details.Contituency}`,
-        {
-          method: "GET",
-          headers: {
-            token: `${token}` || "",
-          },
-        }
-      );
-
-      const data = await response.json();
-      console.log("Nearby Properties API Response:", data);
-
-      if (data && Array.isArray(data.properties)) {
-        setNearbyProperties(data.properties);
-      } else {
-        console.log("No nearby properties found.");
-      }
-    } catch (error) {
-      console.error("Error fetching nearby properties:", error);
-    }
-  };
-
   const fetchCoreClients = async () => {
     try {
       const response = await fetch(`${API_URL}/coreclient/getallcoreclients`);
@@ -157,6 +128,16 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       setCoreProjectes(data);
     } catch (error) {
       console.error("Error fetching core projects:", error);
+    }
+  };
+  const handleOpenLink = (url) => {
+    if (url) {
+      Linking.openURL(url).catch((err) =>
+        console.error("Couldn't load page", err)
+      );
+    } else {
+      // Handle case where website is not available
+      alert("Website link not available");
     }
   };
 
@@ -245,6 +226,20 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     }
   };
 
+  // Function to sort properties with constituency first
+  const sortPropertiesByConstituency = (properties) => {
+    if (!Details.Contituency) return properties;
+
+    return [...properties].sort((a, b) => {
+      const aInConstituency = a.location?.includes(Details.Contituency);
+      const bInConstituency = b.location?.includes(Details.Contituency);
+
+      if (aInConstituency && !bInConstituency) return -1;
+      if (!aInConstituency && bInConstituency) return 1;
+      return 0;
+    });
+  };
+
   const handleActionButtonClick = (btn) => {
     if (btn.title === "Add a member") {
       setModalContent(
@@ -296,35 +291,46 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   };
 
   const handleEnquiryNow = (property) => {
-    // setSelectedProperty(property);
     setPropertyModalVisible(true);
   };
 
   useEffect(() => {
     const fetchReferredDetails = async () => {
+      if (!Details?.ReferredBy) return;
+
       try {
         const response = await fetch(
           `${API_URL}/properties/getPropertyreffered`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              token: (await AsyncStorage.getItem("authToken")) || "",
+            },
             body: JSON.stringify({
-              referredBy: Details ? Details.ReferredBy : "agent",
+              referredBy: Details.ReferredBy,
             }),
           }
         );
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        setReferredInfo(data.referredByDetails); // Expecting { name, email, role, etc. }
+
+        if (data.status === "success") {
+          setReferredInfo(data.referredByDetails);
+        } else {
+          console.error("API returned unsuccessful status:", data);
+        }
       } catch (error) {
         console.error("Error fetching referredBy info:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchReferredDetails();
-  }, []);
+  }, [Details?.ReferredBy]);
 
   const handleShare = (property, closeModal) => {
     const fullImageUri = property.photo ? `${API_URL}${property.photo}` : null;
@@ -338,11 +344,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   };
 
   const handleIHave = (property) => {
-    setSelectedProperty(property);
+    // setSelectedProperty(property);
     setPropertyModalVisible(true);
   };
   const getLastFourChars = (id) => {
     return id ? id.slice(-4) : "N/A";
+  };
+  const getLastFourCharss = (id) => {
+    if (!id) return "N/A";
+    return id.length > 4 ? id.slice(-4) : id;
   };
 
   useEffect(() => {
@@ -352,24 +362,25 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     fetchProperties();
   }, []);
 
-  useEffect(() => {
-    if (!loadingDetails && Details.Contituency) {
-      console.log("Constituency:", Details.Contituency);
-      fetchNearbyProperties();
-    }
-  }, [loadingDetails, Details.Constituency]);
-
-  const regularProperties = properties.filter(
-    (property) => getPropertyTag(property.createdAt) === "Regular Property"
+  const regularProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Regular Property"
+    )
   );
-  const approvedProperties = properties.filter(
-    (property) => getPropertyTag(property.createdAt) === "Approved Property"
+  const approvedProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Approved Property"
+    )
   );
-  const wealthProperties = properties.filter(
-    (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+  const wealthProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+    )
   );
-  const listedProperties = properties.filter(
-    (property) => getPropertyTag(property.createdAt) === "Listed Property"
+  const listedProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Listed Property"
+    )
   );
 
   return (
@@ -394,61 +405,9 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </TouchableOpacity>
           ))}
         </View>
-
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-
-        {nearbyProperties.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Nearby Properties</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.requestedPropertiesContainer}
-            >
-              {nearbyProperties.map((property, index) => {
-                const imageUri = property.photo
-                  ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
-                const propertyTag = getPropertyTag(property.createdAt);
-
-                return (
-                  <View key={index} style={styles.propertyCard}>
-                    <Image source={imageUri} style={styles.propertyImage} />
-                    <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>(✓){propertyTag}</Text>
-                    </View>
-                    <Text style={styles.propertyTitle}>
-                      {property.propertyType}
-                    </Text>
-                    <Text style={styles.propertyInfo}>
-                      Location: {property.location}
-                    </Text>
-                    <Text style={styles.propertyBudget}>
-                      ₹ {parseInt(property.price).toLocaleString()}
-                    </Text>
-                    <View style={styles.buttonContainer}>
-                      <TouchableOpacity
-                        style={styles.enquiryButton}
-                        onPress={() => handleEnquiryNow(property)}
-                      >
-                        <Text style={styles.buttonText}>Enquiry Now</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.shareButton}
-                        onPress={() => handleShare(property)}
-                      >
-                        <Text style={styles.buttonText}>Share</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </>
-        )}
-
         {regularProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Regular Properties</Text>
@@ -525,7 +484,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </ScrollView>
           </>
         )}
-
         {approvedProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Approved Properties</Text>
@@ -602,7 +560,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </ScrollView>
           </>
         )}
-
         {wealthProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Wealth Properties</Text>
@@ -679,7 +636,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </ScrollView>
           </>
         )}
-
         {listedProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Listed Properties</Text>
@@ -756,7 +712,6 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </ScrollView>
           </>
         )}
-
         <Text style={styles.sectionTitle}>Requested Properties</Text>
         <ScrollView
           horizontal
@@ -770,48 +725,82 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
             </View>
           ) : (
             <View style={styles.requestedPropertiesRow}>
-              {[...propertiess].reverse().map((item) => {
-                const propertyTag = getPropertyTag(item.createdAt);
-                return (
-                  <View key={item.id} style={styles.requestcard}>
-                    <Image source={item.image} style={styles.images} />
-                    <View style={styles.approvedBadge}>
-                      <Text style={styles.badgeText}>(✓)Approved</Text>
+              {sortPropertiesByConstituency([...propertiess].reverse()).map(
+                (item) => {
+                  const propertyTag = getPropertyTag(item.createdAt);
+                  const propertyId = getLastFourCharss(item.id); // Changed from propertiess._id to item._id
+                  return (
+                    <View key={item.id} style={styles.requestcard}>
+                      <Image source={item.image} style={styles.images} />
+                      <View
+                        style={{
+                          alignItems: "flex-end",
+                          paddingRight: 5,
+                          top: 5,
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "green",
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ID: {propertyId}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.details}>
+                        <Text style={styles.title}>{item.title}</Text>
+                        <Text style={styles.text}>
+                          Property Type: {item.type}
+                        </Text>
+                        <Text style={styles.text}>
+                          Location: {item.location}
+                        </Text>
+                        <Text style={styles.text}>Budget: {item.budget}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.iHaveButton}
+                        onPress={() => handleIHave(item)}
+                      >
+                        <Text style={styles.buttonText}>I Have</Text>
+                      </TouchableOpacity>
                     </View>
-                    <View style={styles.details}>
-                      <Text style={styles.title}>{item.title}</Text>
-                      <Text style={styles.text}>
-                        Property Type: {item.type}
-                      </Text>
-                      <Text style={styles.text}>Location: {item.location}</Text>
-                      <Text style={styles.text}>Budget: {item.budget}</Text>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.iHaveButton}
-                      onPress={() => handleIHave(item)}
-                    >
-                      <Text style={styles.buttonText}>I Have</Text>
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
+                  );
+                }
+              )}
             </View>
           )}
         </ScrollView>
-
         <Text style={styles.sectionTitle}>Core Clients</Text>
         <View style={styles.cardContainer}>
           {coreClients.map((client, index) => (
-            <View key={index} style={styles.card}>
+            <TouchableOpacity
+              key={index}
+              style={styles.card}
+              onPress={() => handleOpenLink(client.website)}
+            >
               <Image
                 source={{ uri: `${API_URL}${client.photo}` }}
                 style={styles.logo}
                 resizeMode="contain"
               />
-            </View>
+              {client.website && (
+                <View style={styles.linkIndicator}>
+                  {/* <Icon name="open-in-new" size={16} color="#2196F3" /> */}
+                </View>
+              )}
+            </TouchableOpacity>
           ))}
         </View>
-
         <Text style={styles.sectionTitle}>Core Projects</Text>
         <ScrollView
           horizontal
@@ -819,7 +808,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
           style={styles.projectScroll}
         >
           {coreProjects.map((project, index) => (
-            <View key={index} style={styles.card}>
+            <TouchableOpacity
+              key={index}
+              style={styles.card}
+              onPress={() => handleOpenLink(project.website)}
+            >
               <Image
                 source={{ uri: `${API_URL}${project.photo}` }}
                 style={styles.logo}
@@ -828,17 +821,20 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               <View>
                 <Text>{project.city}</Text>
               </View>
-            </View>
+              {project.website && (
+                <View style={styles.linkIndicator}>
+                  {/* <Icon name="open-in-new" size={16} color="#2196F3" /> */}
+                </View>
+              )}
+            </TouchableOpacity>
           ))}
         </ScrollView>
-
         <TouchableOpacity
           style={styles.viewAllButton}
           onPress={handleViewAllProperties}
         >
           <Text style={styles.viewAllButtonText}>View All Properties</Text>
         </TouchableOpacity>
-
         <Text style={styles.version}>Version : 1.0.0.2025</Text>
       </View>
 
@@ -850,15 +846,23 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {referredDetails && (
+            {!referredInfo ? (
+              <ActivityIndicator size="large" color="#007bff" />
+            ) : (
               <>
+                <Image source={logo} style={styles.agentLogo} />
                 <Text style={styles.modalTitle}>Referred By</Text>
+                <Text style={styles.modalText}>Name: {referredInfo.name}</Text>
                 <Text style={styles.modalText}>
-                  Name: {referredDetails.name}
+                  Mobile: {referredInfo.Number}
                 </Text>
-                <Text style={styles.modalText}>
-                  Mobile: {referredDetails.Number}
-                </Text>
+                <TouchableOpacity
+                  style={styles.callButton}
+                  onPress={() => Linking.openURL(`tel:${referredInfo.Number}`)}
+                >
+                  <Ionicons name="call" size={20} color="white" />
+                  <Text style={styles.callButtonText}>Call Now</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={() => setPropertyModalVisible(false)}
@@ -1021,6 +1025,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignSelf: "center",
     marginTop: 10,
+    marginBottom: 10,
+    width: 80,
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
@@ -1107,34 +1116,56 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    width: "80%",
-    backgroundColor: "#fff",
+    margin: 20,
+    backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
+    elevation: 5,
+  },
+  agentLogo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignSelf: "center",
+    marginBottom: 15,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 10,
   },
   modalText: {
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: 16,
+    marginVertical: 4,
+  },
+  callButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  callButtonText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 8,
   },
   closeButton: {
-    backgroundColor: "#E91E63",
+    marginTop: 10,
     padding: 10,
-    borderRadius: 5,
-    alignSelf: "flex-end",
+    borderRadius: 8,
+    backgroundColor: "#dc3545",
+    alignItems: "center",
   },
   closeButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
+    color: "white",
+    fontSize: 16,
   },
 });
 

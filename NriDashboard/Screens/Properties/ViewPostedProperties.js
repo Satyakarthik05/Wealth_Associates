@@ -15,7 +15,9 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3; // Set number of properties per row
@@ -53,13 +55,22 @@ const ViewPostedProperties = () => {
         },
       });
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
       const data = await response.json();
-      setProperties(data.length > 0 ? data : []);
+
+      // ✅ Ensure `data` is an array
+      if (Array.isArray(data)) {
+        setProperties(data);
+      } else {
+        setProperties([]); // Set an empty array if response is not an array
+        console.error("Unexpected API response:", data);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setProperties([]); // Set default empty array on failure
     } finally {
       setLoading(false);
     }
@@ -67,7 +78,7 @@ const ViewPostedProperties = () => {
 
   const handleFilterChange = async (value) => {
     setSelectedFilter(value);
-  
+
     if (value === "highToLow") {
       setProperties((prevProperties) =>
         [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
@@ -84,7 +95,6 @@ const ViewPostedProperties = () => {
       await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
     }
   };
-  
 
   const handleEditPress = (property) => {
     setSelectedProperty(property);
@@ -224,84 +234,85 @@ const ViewPostedProperties = () => {
 
 const styles = StyleSheet.create({
   container: {
-      flexGrow: 1,
-      padding: 15,
-      backgroundColor: "#f5f5f5",
-      alignItems: "center",
-    },
-    header: {
-      flexDirection: Platform.OS === "android" || Platform.OS === "ios"  ? "column" : "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: "100%",
-      marginBottom: 15,
-    },
-    heading: {
-      fontSize: 22,
-      fontWeight: "bold",
-      textAlign: "left",
-    },
-    filterContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    filterLabel: { fontSize: 16, marginRight: 5 },
-    pickerWrapper: {
-      backgroundColor: "#fff",
-      borderRadius: 8,
-      elevation: 3,
-      height: Platform.OS === "android" ? 50 : 40,
-    },
-    picker: { height: "100%", width: 180, fontSize: 14 },
-    loader: { marginTop: 50 },
-  
-    /** 🟢 Updated Grid & Card Styles for Vertical List **/
-    grid: {
-      flexDirection: "column", // 🔹 Stack cards vertically
-      width: "100%", // Take full width
-      alignItems: "center", // Center cards horizontally
-    },
-    card: {
-      backgroundColor: "#fff",
-      borderRadius: 10,
-      padding: 10,
-      marginVertical: 8, // 🔹 Space between cards
-      width: "90%", // Make it occupy most of the screen width
-      shadowColor: "#000",
-      shadowOpacity: 0.2,
-      shadowRadius: 5,
-      elevation: 3,
-    },
-  
-    image: { width: "100%", height: 150, borderRadius: 8 },
-    details: { marginTop: 10 },
-    title: { fontSize: 16, fontWeight: "bold" },
-    info: { fontSize: 14, color: "#555" },
-    budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-  
-    editButton: {
-      marginTop: 10,
-      backgroundColor: "#007bff",
-      padding: 8,
-      borderRadius: 5,
-      alignItems: "center",
-    },
-    editButtonText: { color: "white", fontSize: 14 },
-    modalContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.5)",
-    },
-    modalContent: {
-      backgroundColor: "white",
-      padding: 20,
-      borderRadius: 10,
-      width: 300,
-    },
-    modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-    input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
+    flexGrow: 1,
+    padding: 15,
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+  },
+  header: {
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 15,
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  filterLabel: { fontSize: 16, marginRight: 5 },
+  pickerWrapper: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 3,
+    height: Platform.OS === "android" ? 50 : 40,
+  },
+  picker: { height: "100%", width: 180, fontSize: 14 },
+  loader: { marginTop: 50 },
+
+  /** 🟢 Updated Grid & Card Styles for Vertical List **/
+  grid: {
+    flexDirection: "column", // 🔹 Stack cards vertically
+    width: "100%", // Take full width
+    alignItems: "center", // Center cards horizontally
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    marginVertical: 8, // 🔹 Space between cards
+    width: "90%", // Make it occupy most of the screen width
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+
+  image: { width: "100%", height: 150, borderRadius: 8 },
+  details: { marginTop: 10 },
+  title: { fontSize: 16, fontWeight: "bold" },
+  info: { fontSize: 14, color: "#555" },
+  budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+
+  editButton: {
+    marginTop: 10,
+    backgroundColor: "#007bff",
+    padding: 8,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  editButtonText: { color: "white", fontSize: 14 },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: 300,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
 });
 
 export default ViewPostedProperties;

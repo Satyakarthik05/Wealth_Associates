@@ -114,7 +114,7 @@ const Add_Agent = ({ closeModal }) => {
       const token = await AsyncStorage.getItem("authToken");
 
       // Make the fetch request
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "", // Fallback to an empty string if token is null
@@ -603,12 +603,13 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   inputRow: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ||  Platform.OS === "ios" ? "100%" : "30%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
     zIndex: 1,
   },

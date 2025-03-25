@@ -40,25 +40,13 @@ const PostProperty = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
-  const [priceDropdownVisible, setPriceDropdownVisible] = useState(false);
-  const [selectedPriceRange, setSelectedPriceRange] = useState("");
-
-  const priceRanges = [
-    "Below 1 Lakh",
-    "10-20 Lakh",
-    "20-40 Lakh",
-    "40-50 Lakh",
-    "50 Lakh - 1 Crore",
-    "1 Crore - 2 Crore",
-    "Above 2 Crore",
-    "Above 5 Crore",
-  ];
+  const [propertyDetails, setPropertyDetails] = useState(""); // New state for property-specific details
 
   // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/nri/getnri`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -66,8 +54,8 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileIN);
-      // setConstituency(newDetails.Contituency);
+      setPostedBy(newDetails.MobileNumber);
+      setConstituency(newDetails.Contituency);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
@@ -122,6 +110,8 @@ const PostProperty = ({ closeModal }) => {
     if (!location) newErrors.location = "Location is required.";
     if (!price) newErrors.price = "Price is required.";
     if (!photo) newErrors.photo = "Please upload a photo.";
+    if (!propertyDetails)
+      newErrors.propertyDetails = "Property details are required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -136,7 +126,8 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("Constituency", "NRI");
+        formData.append("Constituency", Constituency);
+        formData.append("propertyDetails", propertyDetails);
 
         // Handle image upload
         if (photo) {
@@ -181,7 +172,8 @@ const PostProperty = ({ closeModal }) => {
             price,
             propertyType,
             PostedBy,
-            fullName: `${Details.MobileIN}`,
+            fullName: `${Details.FullName}`,
+            // propertyDetails,
           });
         } else {
           alert(`Error: ${result.message}`);
@@ -257,6 +249,24 @@ const PostProperty = ({ closeModal }) => {
       }
     } catch (error) {
       console.error("Error opening camera:", error);
+    }
+  };
+
+  // Get placeholder text for property details input
+  const getPropertyDetailsPlaceholder = () => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return "Enter area in acres";
+      case "apartment":
+        return "Enter area in square feet";
+      case "residential properties":
+        return "Enter number of bedrooms";
+      case "commercial properties":
+        return "Enter area in square feet";
+      case "house":
+        return "Enter number of bedrooms";
+      default:
+        return "Enter property details";
     }
   };
 
@@ -337,6 +347,20 @@ const PostProperty = ({ closeModal }) => {
           {errors.propertyType && (
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
+          {propertyType && (
+            <>
+              <Text style={styles.label}>Property Details</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={getPropertyDetailsPlaceholder()}
+                value={propertyDetails}
+                onChangeText={setPropertyDetails}
+              />
+              {errors.propertyDetails && (
+                <Text style={styles.errorText}>{errors.propertyDetails}</Text>
+              )}
+            </>
+          )}
           <Text style={styles.label}>Location</Text>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -373,33 +397,13 @@ const PostProperty = ({ closeModal }) => {
             <Text style={styles.errorText}>{errors.location}</Text>
           )}
           <Text style={styles.label}>Price</Text>
-          <View style={styles.inputWrapper}>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => setPriceDropdownVisible(!priceDropdownVisible)}
-            >
-              <Text style={selectedPriceRange ? {} : styles.placeholderText}>
-                {selectedPriceRange || "Select Price Range"}
-              </Text>
-            </TouchableOpacity>
-            {priceDropdownVisible && (
-              <View style={styles.dropdownContainers}>
-                {priceRanges.map((range, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setSelectedPriceRange(range);
-                      setPrice(range); // Set the price state if needed
-                      setPriceDropdownVisible(false);
-                    }}
-                  >
-                    <Text>{range}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Price"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -503,22 +507,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
     maxHeight: 200,
-    // minHeight: 320,
-    overflow: "scroll",
-  },
-  dropdownContainers: {
-    position: "absolute",
-    bottom: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#e6708e",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 5,
-    maxHeight: 200,
-    minHeight: 320,
     overflow: "scroll",
   },
   listItem: {
