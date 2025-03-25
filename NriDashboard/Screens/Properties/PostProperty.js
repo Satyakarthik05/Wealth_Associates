@@ -46,7 +46,7 @@ const PostProperty = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -54,7 +54,7 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileNumber);
+      setPostedBy(newDetails.MobileIN);
       setConstituency(newDetails.Contituency);
       setDetails(newDetails);
     } catch (error) {
@@ -126,7 +126,7 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("Constituency", Constituency);
+        formData.append("Constituency", "NRI");
         formData.append("propertyDetails", propertyDetails);
 
         // Handle image upload
@@ -172,7 +172,7 @@ const PostProperty = ({ closeModal }) => {
             price,
             propertyType,
             PostedBy,
-            fullName: `${Details.FullName}`,
+            fullName: `${Details.Name}`,
             // propertyDetails,
           });
         } else {

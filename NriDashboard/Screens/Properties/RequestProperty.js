@@ -31,7 +31,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -92,7 +92,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: Details.MobileIN, // Sending agent's mobile number as PostedBy
     };
 
     setLoading(true);

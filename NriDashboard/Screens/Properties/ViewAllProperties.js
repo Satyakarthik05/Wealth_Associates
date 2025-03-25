@@ -41,7 +41,7 @@ const ViewAllProperties = ({ navigation }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -170,9 +170,7 @@ const ViewAllProperties = ({ navigation }) => {
   const uniquePropertyTypes = [
     ...new Set(properties.map((item) => item.propertyType)),
   ];
-  const uniqueLocations = [
-    ...new Set(properties.map((item) => item.Constituency)),
-  ];
+  const uniqueLocations = [...new Set(properties.map((item) => item.location))];
   const uniquePrices = [
     ...new Set(properties.map((item) => Math.floor(item.price / 100000))),
   ].sort((a, b) => a - b);
@@ -187,9 +185,9 @@ const ViewAllProperties = ({ navigation }) => {
       );
     }
 
-    if (filterCriteria.Constituency) {
+    if (filterCriteria.location) {
       filteredProperties = filteredProperties.filter(
-        (item) => item.Constituency === filterCriteria.Constituency
+        (item) => item.location === filterCriteria.location
       );
     }
 
@@ -205,7 +203,7 @@ const ViewAllProperties = ({ navigation }) => {
 
   // Reset filters
   const resetFilters = () => {
-    setFilterCriteria({ propertyType: "", Constituency: "", price: "" });
+    setFilterCriteria({ propertyType: "", location: "", price: "" });
     fetchProperties();
     setFilterModalVisible(false);
   };
@@ -279,11 +277,12 @@ const ViewAllProperties = ({ navigation }) => {
                 {/* Location Filter */}
                 <Text style={styles.filterLabel}>Location</Text>
                 <Picker
-                  selectedValue={filterCriteria.Constituency}
+                  selectedValue={filterCriteria.location}
                   onValueChange={(value) =>
                     setFilterCriteria({
                       ...filterCriteria,
-                      Constituency: value,
+
+                      location: value,
                     })
                   }
                   style={styles.modalPicker}
@@ -383,6 +382,11 @@ const ViewAllProperties = ({ navigation }) => {
                       <Text style={styles.propertyTitle}>
                         {property.propertyType}
                       </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
                       <Text style={styles.propertyInfo}>
                         Location: {property.location}
                       </Text>
@@ -456,6 +460,11 @@ const ViewAllProperties = ({ navigation }) => {
 
                       <Text style={styles.propertyTitle}>
                         {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
                       </Text>
                       <Text style={styles.propertyInfo}>
                         Location: {property.location}
@@ -531,6 +540,11 @@ const ViewAllProperties = ({ navigation }) => {
                       <Text style={styles.propertyTitle}>
                         {property.propertyType}
                       </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
                       <Text style={styles.propertyInfo}>
                         Location: {property.location}
                       </Text>
@@ -604,6 +618,11 @@ const ViewAllProperties = ({ navigation }) => {
 
                       <Text style={styles.propertyTitle}>
                         {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
                       </Text>
                       <Text style={styles.propertyInfo}>
                         Location: {property.location}

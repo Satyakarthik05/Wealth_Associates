@@ -30,7 +30,7 @@ const AddInvestor = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -89,7 +89,7 @@ const AddInvestor = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber,
+          AddedBy: Details.MobileIN,
           RegisteredBy: "Customer",
         }),
       });

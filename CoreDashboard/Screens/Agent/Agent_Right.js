@@ -461,6 +461,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
                     </Text>
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyDetails
+                        ? property.propertyDetails
+                        : "20 sqfeets"}
+                    </Text>
                     <Text style={styles.propertyInfo}>
                       Location: {property.location}
                     </Text>
@@ -536,6 +541,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyDetails
+                        ? property.propertyDetails
+                        : "20 sqfeets"}
                     </Text>
                     <Text style={styles.propertyInfo}>
                       Location: {property.location}
@@ -613,6 +623,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
                     </Text>
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyDetails
+                        ? property.propertyDetails
+                        : "20 sqfeets"}
+                    </Text>
                     <Text style={styles.propertyInfo}>
                       Location: {property.location}
                     </Text>
@@ -688,6 +703,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
                     <Text style={styles.propertyTitle}>
                       {property.propertyType}
+                    </Text>
+                    <Text style={styles.propertyTitle}>
+                      {property.propertyDetails
+                        ? property.propertyDetails
+                        : "20 sqfeets"}
                     </Text>
                     <Text style={styles.propertyInfo}>
                       Location: {property.location}

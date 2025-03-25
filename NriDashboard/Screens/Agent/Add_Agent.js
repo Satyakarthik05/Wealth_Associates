@@ -114,7 +114,7 @@ const Add_Agent = ({ closeModal }) => {
       const token = await AsyncStorage.getItem("authToken");
 
       // Make the fetch request
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/nri/getnri`, {
         method: "GET",
         headers: {
           token: `${token}` || "", // Fallback to an empty string if token is null
