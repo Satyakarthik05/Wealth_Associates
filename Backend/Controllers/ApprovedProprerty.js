@@ -20,6 +20,9 @@ const approveProperty = async (req, res) => {
       photo: property.photo,
       Constituency: property.Constituency,
       PostedBy: property.PostedBy,
+      propertyDetails: property.propertyDetails
+        ? property.propertyDetails
+        : "no details",
       PostedUserType: property.PostedUserType,
     });
 

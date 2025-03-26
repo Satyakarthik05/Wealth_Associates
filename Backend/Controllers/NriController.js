@@ -4,6 +4,39 @@ const jwt = require("jsonwebtoken");
 const NRIMember = require("../Models/NriModel");
 
 const secret = "Wealth@123";
+const axios = require("axios");
+
+const sendSMS = async (MobileIN, Password, AddedBy) => {
+  try {
+    const apiUrl =
+      process.env.SMS_API_URL || "http://bulksms.astinsoft.com/api/v2/sms/Send";
+    const params = {
+      UserName: process.env.SMS_API_USERNAME || "wealthassociates",
+      APIKey: process.env.SMS_API_KEY || "88F40D9F-0172-4D25-9CF5-5823211E67E7",
+      MobileNo: MobileIN,
+      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${MobileIN}\nPassword: ${Password}\nReferral code: ${AddedBy}\nFor Any Query - 7796356789`,
+      SenderName: process.env.SMS_SENDER_NAME || "WTHASC",
+      TemplateId: process.env.SMS_TEMPLATE_ID || "1707173279362715516",
+      MType: 1,
+    };
+
+    const response = await axios.get(apiUrl, { params });
+
+    if (
+      response.data &&
+      response.data.toLowerCase().includes("sms sent successfully")
+    ) {
+      console.log("SMS Sent Successfully:", response.data);
+      return response.data;
+    } else {
+      console.error("SMS API Error:", response.data || response);
+      throw new Error(response.data || "Failed to send SMS");
+    }
+  } catch (error) {
+    console.error("Error in sendSMS function:", error.message);
+    throw new Error("SMS sending failed");
+  }
+};
 
 const NRIMemberSign = async (req, res) => {
   const {
@@ -34,6 +67,14 @@ const NRIMemberSign = async (req, res) => {
       AddedBy,
       RegisteredBy,
     });
+
+    let smsResponse;
+    try {
+      smsResponse = await sendSMS(MobileIN, Password, AddedBy);
+    } catch (error) {
+      console.error("Failed to send SMS:", error.message);
+      smsResponse = "SMS sending failed";
+    }
 
     await newMember.save();
 

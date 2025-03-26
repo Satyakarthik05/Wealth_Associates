@@ -11,12 +11,14 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropertyCard from "./PropertyCard"; // Import the PropertyCard component
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +27,7 @@ const PostProperty = ({ closeModal }) => {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [photo, setPhoto] = useState(null);
-  const [file, setFile] = useState(null); // Added for web file handling
+  const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
@@ -34,6 +36,11 @@ const PostProperty = ({ closeModal }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
+  const [postedProperty, setPostedProperty] = useState(null);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [propertyDetails, setPropertyDetails] = useState(""); // New state for property-specific details
 
   // Fetch agent details
   const getDetails = async () => {
@@ -48,7 +55,7 @@ const PostProperty = ({ closeModal }) => {
 
       const newDetails = await response.json();
       setPostedBy(newDetails.MobileNumber);
-      setConstituency(newDetails.Contituency)
+      setConstituency(newDetails.Contituency);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
@@ -66,14 +73,33 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Fetch constituencies data
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
     fetchPropertyTypes();
+    fetchData();
   }, []);
 
   // Filter property types based on search input
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
   );
 
   // Validate form inputs
@@ -84,6 +110,8 @@ const PostProperty = ({ closeModal }) => {
     if (!location) newErrors.location = "Location is required.";
     if (!price) newErrors.price = "Price is required.";
     if (!photo) newErrors.photo = "Please upload a photo.";
+    if (!propertyDetails)
+      newErrors.propertyDetails = "Property details are required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -98,7 +126,8 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("Constituency",Constituency)
+        formData.append("Constituency", Constituency);
+        formData.append("propertyDetails", propertyDetails);
 
         // Handle image upload
         if (photo) {
@@ -137,7 +166,15 @@ const PostProperty = ({ closeModal }) => {
         const result = await response.json();
         if (response.ok) {
           alert("Success: Property Posted!");
-          closeModal();
+          setPostedProperty({
+            photo,
+            location,
+            price,
+            propertyType,
+            PostedBy,
+            fullName: `${Details.FullName}`,
+            // propertyDetails,
+          });
         } else {
           alert(`Error: ${result.message}`);
         }
@@ -212,6 +249,24 @@ const PostProperty = ({ closeModal }) => {
       }
     } catch (error) {
       console.error("Error opening camera:", error);
+    }
+  };
+
+  // Get placeholder text for property details input
+  const getPropertyDetailsPlaceholder = () => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return "Enter area in acres";
+      case "apartment":
+        return "Enter area in square feet";
+      case "residential properties":
+        return "Enter number of bedrooms";
+      case "commercial properties":
+        return "Enter area in square feet";
+      case "house":
+        return "Enter number of bedrooms";
+      default:
+        return "Enter property details";
     }
   };
 
@@ -292,23 +347,62 @@ const PostProperty = ({ closeModal }) => {
           {errors.propertyType && (
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
+          {propertyType && (
+            <>
+              <Text style={styles.label}>Property Details</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={getPropertyDetailsPlaceholder()}
+                value={propertyDetails}
+                onChangeText={setPropertyDetails}
+              />
+              {errors.propertyDetails && (
+                <Text style={styles.errorText}>{errors.propertyDetails}</Text>
+              )}
+            </>
+          )}
           <Text style={styles.label}>Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. Vijayawada"
-            value={location}
-            onChangeText={setLocation}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => {
+                setShowLocationList(true);
+              }}
+            />
+            {showLocationList && (
+              <View style={styles.dropdownContainer}>
+                {filteredConstituencies.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.code}-${item.name}`}
+                    style={styles.listItem}
+                    onPress={() => {
+                      setLocation(item.name);
+                      setLocationSearch(item.name);
+                      setShowLocationList(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.location && (
             <Text style={styles.errorText}>{errors.location}</Text>
           )}
           <Text style={styles.label}>Price</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ex. 50,00,000"
-            keyboardType="numeric"
+            placeholder="Enter Price"
             value={price}
             onChangeText={setPrice}
+            keyboardType="numeric"
           />
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
           <View style={styles.buttonContainer}>
@@ -336,6 +430,18 @@ const PostProperty = ({ closeModal }) => {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal to display the PropertyCard after successful posting */}
+      <Modal
+        visible={!!postedProperty}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPostedProperty(null)}
+      >
+        <View style={styles.modalContainer}>
+          <PropertyCard property={postedProperty} closeModal={closeModal} />
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -395,7 +501,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: "#FFF",
+    backgroundColor: "#e6708e",
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
@@ -469,6 +575,12 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginTop: 20,
     alignSelf: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
