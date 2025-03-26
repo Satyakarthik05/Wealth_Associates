@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
+import { useNavigation } from "@react-navigation/native";
 
 //importing components
 import ViewCustomers from "../Adminscreen/Customer";
@@ -211,8 +212,6 @@ const AdminDashboard = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [expertType, setExpertType] = useState(null);
-  const [isAddCallVisible, setIsAddCallVisible] = useState(false);
-  const [isViewCallVisible, setIsViewCallVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -308,9 +307,9 @@ const AdminDashboard = () => {
       setIsViewReqVisible(true);
     } else if (subItem === "View All Properties") {
       setIsAllPropVisible(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Register Skilled Resource") {
       setIsRegSkillVisible(true);
-    } else if (subItem === "View Skilled Labour") {
+    } else if (subItem === "View Skilled Resource") {
       setIsViewSkillVisible(true);
     } else if (subItem === "View Core Clients") {
       setIsViewClientVisible(true);
@@ -348,7 +347,7 @@ const AdminDashboard = () => {
       setIsAddCoreProVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
-    } else if (subItem === "All Skilled Labours") {
+    } else if (subItem === "All Skilled Resources") {
       setAllSkilledLabour(true);
     } else if (subItem === "Add Investor") {
       setAddInvestor(true);
@@ -473,6 +472,10 @@ const AdminDashboard = () => {
   //   useEffect(() => {
   //     getDetails();
   //   }, []);
+  useEffect(() => {
+    AsyncStorage.setItem("userType", "Admin");
+    AsyncStorage.setItem("authToken", "Admin");
+  });
 
   return (
     <View style={styles.container}>
@@ -491,9 +494,21 @@ const AdminDashboard = () => {
               style={styles.icon}
             />
             <Text style={styles.language}>English</Text>
-            <Ionicons name="moon-outline" size={24} color="#000" />
-            <Ionicons name="notifications-outline" size={24} color="#000" />
-            <Ionicons name="person-circle-outline" size={30} color="#000" />
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Main Screen")}
+              style={{
+                backgroundColor: "pink",
+                width: 60,
+                height: 20,
+                borderRadius: 10,
+                display: "flex",
+                textAlign: "center",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text>Logout</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

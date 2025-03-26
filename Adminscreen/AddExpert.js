@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,36 @@ const AddExpertForm = ({ closeModal }) => {
     location: "",
     mobile: "",
   });
+
+  const [constituencies, setConstituencies] = useState([]);
+
+  // Fetch all constituencies
+  useEffect(() => {
+    const fetchConstituencies = async () => {
+      try {
+        const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch constituencies");
+        }
+        const data = await response.json();
+
+        // Extract all constituencies from all districts
+        const allConstituencies = data.flatMap((district) =>
+          district.assemblies.map((assembly) => ({
+            name: assembly.name,
+            district: district.parliament,
+          }))
+        );
+
+        setConstituencies(allConstituencies);
+      } catch (error) {
+        console.error("Error fetching constituencies:", error);
+        Alert.alert("Error", "Failed to load location data");
+      }
+    };
+
+    fetchConstituencies();
+  }, []);
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
@@ -89,7 +119,7 @@ const AddExpertForm = ({ closeModal }) => {
 
             {/** Form Fields */}
             {[
-              { label: "Name", key: "name", placeholder: "Ex. Vijayawada" },
+              { label: "Name", key: "name", placeholder: "Enter expert name" },
               {
                 label: "Qualification",
                 key: "qualification",
@@ -99,11 +129,6 @@ const AddExpertForm = ({ closeModal }) => {
                 label: "Experience",
                 key: "experience",
                 placeholder: "Ex. 5 Years",
-              },
-              {
-                label: "Location",
-                key: "location",
-                placeholder: "Ex. Vijayawada",
               },
               {
                 label: "Mobile",
@@ -123,6 +148,27 @@ const AddExpertForm = ({ closeModal }) => {
                 />
               </View>
             ))}
+
+            {/** Constituency Picker */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Location (Constituency)</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={form.location}
+                  style={styles.picker}
+                  onValueChange={(value) => handleChange("location", value)}
+                >
+                  <Picker.Item label="-- Select Constituency --" value="" />
+                  {constituencies.map((constituency) => (
+                    <Picker.Item
+                      key={constituency.name}
+                      label={constituency.name}
+                      value={constituency.name}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
 
             {/** Expert Type Picker */}
             <View style={styles.formGroup}>
@@ -182,6 +228,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   keyboardView: {
     flex: 1,
@@ -199,6 +246,8 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     width: "90%",
+    maxWidth: 400,
+    maxHeight: "90%",
   },
   header: {
     width: "100%",
@@ -239,6 +288,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 25,
     backgroundColor: "#F9F9F9",
+    overflow: "hidden",
   },
   picker: {
     width: "100%",

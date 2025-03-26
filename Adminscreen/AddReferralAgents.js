@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Platform,
   ScrollView,
@@ -12,17 +11,15 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
-  FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-// import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
-const AddReferral = ({ closeModal }) => {
+const RegisterExecue = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -43,7 +40,6 @@ const AddReferral = ({ closeModal }) => {
   const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [showExperienceList, setShowExperienceList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
   const [expertiseOptions, setExpertiseOptions] = useState([]);
   const [Details, setDetails] = useState({});
 
@@ -53,36 +49,30 @@ const AddReferral = ({ closeModal }) => {
 
   const navigation = useNavigation();
 
-  const fetchDistricts = async () => {
+  // Fetch all districts and constituencies from the API
+  const fetchDistrictsAndConstituencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
       const data = await response.json();
-      setDistricts(data);
+      setDistricts(data); // Set the fetched data to districts
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching districts and constituencies:", error);
     }
   };
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+
+  // Fetch expertise
   const fetchExpertise = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/expertise`);
       const data = await response.json();
       setExpertiseOptions(data);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching expertise:", error);
     }
   };
+
   useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
+    fetchDistrictsAndConstituencies();
     fetchExpertise();
   }, []);
 
@@ -93,41 +83,31 @@ const AddReferral = ({ closeModal }) => {
     { name: "5+ years", code: "04" },
   ];
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
-  const filteredExpertise = expertiseOptions.filter((item) =>
-    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
-  );
-
-  const filteredExperience = experienceOptions.filter((item) =>
-    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
-  );
-
+  // Fetch agent details
   const getDetails = async () => {
     try {
-      // Await the token retrieval from AsyncStorage
       const token = await AsyncStorage.getItem("authToken");
-
-      // Make the fetch request
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
-          token: `${token}` || "", // Fallback to an empty string if token is null
+          token: `${token}` || "",
         },
       });
-
-      // Parse the response
       const newDetails = await response.json();
-
-      // Update state with the details
       setDetails(newDetails);
-      console.log(Details);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
@@ -136,9 +116,10 @@ const AddReferral = ({ closeModal }) => {
   useEffect(() => {
     getDetails();
   }, []);
+
   useEffect(() => {
     if (Details.MyRefferalCode) {
-      setReferralCode(Details.MyRefferalCode); // Pre-fill the referralCode state
+      setReferralCode(Details.MyRefferalCode);
     }
   }, [Details]);
 
@@ -159,12 +140,18 @@ const AddReferral = ({ closeModal }) => {
 
     setIsLoading(true);
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedAssembly = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
     );
 
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
+    if (!selectedDistrict || !selectedAssembly) {
+      Alert.alert("Error", "Invalid district or constituency selected.");
+      setIsLoading(false);
+      return;
+    }
+
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedAssembly.code}`;
 
     const userData = {
       FullName: fullname,
@@ -175,10 +162,10 @@ const AddReferral = ({ closeModal }) => {
       Locations: location,
       Expertise: expertise,
       Experience: experience,
-      ReferredBy: referralCode || "WA0000000001", // Use referralCode if provided, else default
+      ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
-      AgentType: "ReffferalAgent",
+      AgentType: "WealthAssociate",
     };
 
     try {
@@ -219,7 +206,9 @@ const AddReferral = ({ closeModal }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
           <View style={styles.register_main}>
-            <Text style={styles.register_text}>Add Referral Agent</Text>
+            <Text style={styles.register_text}>
+              Register Referral Associate
+            </Text>
           </View>
           {responseStatus === 400 && (
             <Text style={styles.errorText}>Mobile number already exists.</Text>
@@ -324,19 +313,15 @@ const AddReferral = ({ closeModal }) => {
                       <ScrollView style={styles.scrollView}>
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
-                            key={item.name}
+                            key={item.parliament}
                             style={styles.listItem}
                             onPress={() => {
-                              setDistrict(item.name);
-                              setDistrictSearch(item.name);
+                              setDistrict(item.parliament);
+                              setDistrictSearch(item.parliament);
                               setShowDistrictList(false);
                             }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
-                              setShowConstituencyList(false);
-                            }}
                           >
-                            <Text>{item.name}</Text>
+                            <Text>{item.parliament}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -364,18 +349,14 @@ const AddReferral = ({ closeModal }) => {
                   {showConstituencyList && (
                     <View style={styles.dropdownContainer}>
                       <ScrollView style={styles.scrollView}>
-                        {filteredConstituencies.map((item) => (
+                        {filteredConstituencies.map((item, index) => (
                           <TouchableOpacity
-                            key={item.code}
+                            key={index}
                             style={styles.listItem}
                             onPress={() => {
                               setConstituency(item.name);
                               setConstituencySearch(item.name);
                               setShowConstituencyList(false);
-                            }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
-                              setShowDistrictList(false);
                             }}
                           >
                             <Text>{item.name}</Text>
@@ -406,19 +387,25 @@ const AddReferral = ({ closeModal }) => {
                   />
                   {showExperienceList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {experienceOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(experienceSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExperience(item.name);
+                              setExperienceSearch(item.name);
+                              setShowExperienceList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
@@ -448,19 +435,25 @@ const AddReferral = ({ closeModal }) => {
                   />
                   {showExpertiseList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {expertiseOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(expertiseSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExpertise(item.name);
+                              setExpertiseSearch(item.name);
+                              setShowExpertiseList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
@@ -502,7 +495,6 @@ const AddReferral = ({ closeModal }) => {
                       setShowExpertiseList(false);
                       setShowExperienceList(false);
                     }}
-                    // defaultValue="WA0000000001"
                     value={referralCode}
                   />
                   <MaterialIcons
@@ -703,4 +695,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddReferral;
+export default RegisterExecue;

@@ -14,6 +14,7 @@ import {
   TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
@@ -30,70 +31,38 @@ export default function ViewAgents() {
     MobileNumber: "",
     MyRefferalCode: "",
   });
+  const [districts, setDistricts] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
 
   // Fetch agents from the API
   useEffect(() => {
-    const fetchAgents = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}/agent/allagents`);
-        if (!response.ok) {
+        // Fetch agents
+        const agentsResponse = await fetch(`${API_URL}/agent/allagents`);
+        if (!agentsResponse.ok) {
           throw new Error("Failed to fetch agents");
         }
-        const data = await response.json();
-        setAgents(data.data); // Set the fetched agents
+        const agentsData = await agentsResponse.json();
+        setAgents(agentsData.data);
+
+        // Fetch districts and constituencies
+        const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
+        if (!disConsResponse.ok) {
+          throw new Error("Failed to fetch districts and constituencies");
+        }
+        const disConsData = await disConsResponse.json();
+        setDistricts(disConsData);
+
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching agents:", error);
+        console.error("Error fetching data:", error);
         setLoading(false);
       }
     };
 
-    fetchAgents();
+    fetchData();
   }, []);
-
-  // Handle delete agent
-  const handleDeleteAgent = (agentId) => {
-    if (Platform.OS === "web") {
-      // Use window.confirm on Web
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this agent?"
-      );
-      if (!confirmDelete) return;
-      deleteAgent(agentId);
-    } else {
-      // Use Alert.alert on Mobile
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this agent?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => deleteAgent(agentId),
-          },
-        ]
-      );
-    }
-  };
-
-  // Extracted delete function to avoid duplication
-  const deleteAgent = async (agentId) => {
-    try {
-      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete agent");
-
-      setAgents((prevAgents) =>
-        prevAgents.filter((agent) => agent._id !== agentId)
-      );
-      Alert.alert("Success", "Agent deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting agent:", error);
-      Alert.alert("Error", "Failed to delete agent.");
-    }
-  };
 
   // Handle edit agent
   const handleEditAgent = (agent) => {
@@ -105,6 +74,16 @@ export default function ViewAgents() {
       MobileNumber: agent.MobileNumber,
       MyRefferalCode: agent.MyRefferalCode,
     });
+
+    // Set constituencies for the current district
+    if (agent.District) {
+      const selectedDistrict = districts.find(
+        (item) => item.parliament === agent.District
+      );
+      if (selectedDistrict) {
+        setConstituencies(selectedDistrict.assemblies);
+      }
+    }
     setEditModalVisible(true);
   };
 
@@ -134,6 +113,66 @@ export default function ViewAgents() {
     } catch (error) {
       console.error("Error updating agent:", error);
       Alert.alert("Error", "Failed to update agent.");
+    }
+  };
+
+  // Handle delete agent
+  const handleDeleteAgent = (agentId) => {
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this agent?"
+      );
+      if (!confirmDelete) return;
+      deleteAgent(agentId);
+    } else {
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this agent?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => deleteAgent(agentId),
+          },
+        ]
+      );
+    }
+  };
+
+  const deleteAgent = async (agentId) => {
+    try {
+      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete agent");
+
+      setAgents((prevAgents) =>
+        prevAgents.filter((agent) => agent._id !== agentId)
+      );
+      Alert.alert("Success", "Agent deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      Alert.alert("Error", "Failed to delete agent.");
+    }
+  };
+
+  // Update constituencies when district changes in the modal
+  const handleDistrictChange = (itemValue) => {
+    setEditedAgent({
+      ...editedAgent,
+      District: itemValue,
+      Contituency: "", // Reset constituency when district changes
+    });
+
+    // Update constituencies when district changes
+    const selectedDistrict = districts.find(
+      (item) => item.parliament === itemValue
+    );
+    if (selectedDistrict) {
+      setConstituencies(selectedDistrict.assemblies);
+    } else {
+      setConstituencies([]);
     }
   };
 
@@ -184,18 +223,20 @@ export default function ViewAgents() {
                     </View>
                   )}
                 </View>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => handleEditAgent(agent)}
-                >
-                  <Text style={styles.editText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteAgent(agent._id)}
-                >
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditAgent(agent)}
+                  >
+                    <Text style={styles.editText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteAgent(agent._id)}
+                  >
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))}
           </View>
@@ -222,22 +263,57 @@ export default function ViewAgents() {
                 setEditedAgent({ ...editedAgent, FullName: text })
               }
             />
-            <TextInput
-              style={styles.input}
-              placeholder="District"
-              value={editedAgent.District}
-              onChangeText={(text) =>
-                setEditedAgent({ ...editedAgent, District: text })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Constituency"
-              value={editedAgent.Contituency}
-              onChangeText={(text) =>
-                setEditedAgent({ ...editedAgent, Contituency: text })
-              }
-            />
+
+            {/* District Dropdown */}
+            <View style={styles.dropdownContainer}>
+              <Text style={styles.dropdownLabel}>District</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={editedAgent.District}
+                  onValueChange={handleDistrictChange}
+                  style={styles.picker}
+                  dropdownIconColor="#000"
+                >
+                  <Picker.Item label="Select District" value="" />
+                  {districts.map((district) => (
+                    <Picker.Item
+                      key={district.parliament}
+                      label={district.parliament}
+                      value={district.parliament}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+            {/* Constituency Dropdown */}
+            <View style={styles.dropdownContainer}>
+              <Text style={styles.dropdownLabel}>Constituency</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={editedAgent.Contituency}
+                  onValueChange={(itemValue) => {
+                    setEditedAgent({
+                      ...editedAgent,
+                      Contituency: itemValue,
+                    });
+                  }}
+                  style={styles.picker}
+                  dropdownIconColor="#000"
+                  enabled={!!editedAgent.District}
+                >
+                  <Picker.Item label="Select Constituency" value="" />
+                  {constituencies.map((constituency) => (
+                    <Picker.Item
+                      key={constituency.name}
+                      label={constituency.name}
+                      value={constituency.name}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
             <TextInput
               style={styles.input}
               placeholder="Mobile Number"
@@ -245,6 +321,7 @@ export default function ViewAgents() {
               onChangeText={(text) =>
                 setEditedAgent({ ...editedAgent, MobileNumber: text })
               }
+              keyboardType="phone-pad"
             />
             <TextInput
               style={styles.input}
@@ -254,18 +331,20 @@ export default function ViewAgents() {
                 setEditedAgent({ ...editedAgent, MyRefferalCode: text })
               }
             />
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSaveEditedAgent}
-            >
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setEditModalVisible(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSaveEditedAgent}
+              >
+                <Text style={styles.buttonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -281,6 +360,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 20,
+    marginBottom: 40,
   },
   heading: {
     fontSize: 20,
@@ -290,14 +370,14 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   cardContainer: {
-    flexDirection: "row", // Display cards in a row
-    flexWrap: "wrap", // Allow cards to wrap to the next line
-    justifyContent: "space-between", // Add space between cards
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "30%" : "100%", // Adjust width for responsiveness
+    width: width > 600 ? "30%" : "100%",
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",
@@ -334,14 +414,11 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 14,
   },
-  noAgentsText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: "#666",
+  buttonContainer: {
+    flexDirection: "row",
+    marginTop: 10,
   },
   editButton: {
-    marginTop: 10,
     backgroundColor: "blue",
     paddingVertical: 8,
     paddingHorizontal: 20,
@@ -353,7 +430,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   deleteButton: {
-    marginTop: 10,
     backgroundColor: "red",
     paddingVertical: 8,
     paddingHorizontal: 20,
@@ -362,6 +438,17 @@ const styles = StyleSheet.create({
   deleteText: {
     color: "white",
     fontWeight: "bold",
+  },
+  noAgentsText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
+  },
+  message: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
@@ -387,26 +474,48 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 15,
+    fontSize: 16,
+  },
+  dropdownContainer: {
+    marginBottom: 15,
+  },
+  dropdownLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: "#333",
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  picker: {
+    width: "100%",
+    height: 30,
+    backgroundColor: "#fff",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
   },
   saveButton: {
-    backgroundColor: "blue",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  saveText: {
-    color: "white",
-    fontWeight: "bold",
+    backgroundColor: "#4CAF50",
   },
   cancelButton: {
-    backgroundColor: "red",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
+    backgroundColor: "#f44336",
   },
-  cancelText: {
+  buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
 });

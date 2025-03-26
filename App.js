@@ -72,11 +72,14 @@ export default function App() {
             case "SkilledLabour":
               setInitialRoute("SkillDashboard");
               break;
-              case "CallCenter":
-                setInitialRoute("CallCenterDashboard");
-                break;
+            case "CallCenter":
+              setInitialRoute("CallCenterDashboard");
+              break;
             case "Nri":
               setInitialRoute("NriDashboard");
+              break;
+            case "Admin":
+              setInitialRoute("Admin");
               break;
             default:
               setInitialRoute("Main Screen");
