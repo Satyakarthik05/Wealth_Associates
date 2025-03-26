@@ -93,9 +93,9 @@ const menuItems = [
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
+      "Register Skilled Resource",
+      "View Skilled Resource",
+      "All Skilled Resources",
     ],
   },
 ];
@@ -225,7 +225,7 @@ const Admin_panel = () => {
       setIsExpertPanelVisible(true);
     } else if (subItem === "Add Customer") {
       setIsRegiCusVisible(true);
-    } else if (subItem === "View Skilled Labour") {
+    } else if (subItem === "View Skilled Resource") {
       setIsViewSkilledLabourVisible(true);
     } else if (subItem === "Request Expert Panel") {
       setIsRequestExpertVisible(true);
@@ -235,11 +235,11 @@ const Admin_panel = () => {
       setCoreClients(true);
     } else if (subItem === "View Core Projects") {
       setCoreProjects(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Register Skilled Resource") {
       setisRsSkill(true);
     } else if (subItem === "expert details") {
       setIsExpertDetails(true);
-    } else if (subItem === "All Skilled Labours") {
+    } else if (subItem === "All Skilled Resources") {
       setAllSkilledLabour(true);
     } else if (subItem === "Add Investor") {
       setIsAddinvest(true);
