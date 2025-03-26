@@ -130,9 +130,9 @@ const menuItems = [
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
+      "Register Skilled Resource",
+      "View Skilled Resource",
+      "All Skilled Resource",
     ],
   },
   {
