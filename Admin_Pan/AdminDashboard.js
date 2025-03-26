@@ -62,7 +62,8 @@ import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
 import ExpertRoute from "../Adminscreen/Expert Panel/ExpertRoute";
 import ExpertDetails from "../Adminscreen/Expert Panel/ExpertDetails";
 import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
+import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
 
 const menuItems = [
   {
@@ -141,6 +142,11 @@ const menuItems = [
     subItems: ["Add Investor", "View Investors", "View All Investors"],
   },
   {
+    title: "Call Executive",
+    icon: "business-outline",
+    subItems: ["Add Call Executive", "View Call Executive"]
+  },
+  {
     title: "Master Data",
     icon: "settings-outline",
     subItems: [
@@ -206,7 +212,6 @@ const AdminDashboard = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [expertType, setExpertType] = useState(null);
-  const navigation = useNavigation();
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -274,6 +279,8 @@ const AdminDashboard = () => {
     setIsViewCoreMember(false);
     setIsExpertPanelVisible(false);
     setViewApprovedProperties(false);
+    setIsAddCallVisible(false);
+    setIsViewCallVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -362,6 +369,10 @@ const AdminDashboard = () => {
       setIsExpertPanelVisible(true);
     } else if (subItem === "ViewApprovedProperties") {
       setViewApprovedProperties(true);
+    } else if (subItem === "Add Call Executive") {
+      setIsAddCallVisible(true);
+    } else if (subItem === "View Call Executive") {
+      setIsViewCallVisible(true);
     }
   };
 
@@ -406,6 +417,8 @@ const AdminDashboard = () => {
     setIsViewReferral(false);
     setIsAddReferral(false);
     setIsCoreMember(false);
+    setIsAddCallVisible(false);
+    setIsViewCallVisible(false);
   };
 
   const renderContent = () => {
@@ -427,6 +440,7 @@ const AdminDashboard = () => {
     if (isViewCoreMember) return <ViewCoreMembers />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
+    if (isViewCallVisible) return <ViewCallExecutives />;
 
     return <Dashboard />;
   };
@@ -667,6 +681,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCoreMember} closeModal={closeModal}>
         <AddCoreMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCallVisible} closeModal={closeModal}>
+        <AddCallExecutive closeModal={closeModal} />
       </CustomModal>
     </View>
   );
