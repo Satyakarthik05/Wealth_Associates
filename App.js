@@ -24,6 +24,7 @@ import SkillDasboard from "./SkillDashboard/SkillDashboard";
 import NriDashboard from "./NriDashboard/NriDashboard";
 import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
 import StartingScreen from "./StartingScreen";
+import CallCenterDashboard from "./CallCenterDash/CallCenterDashboard";
 import { API_URL } from "./data/ApiUrl";
 
 // ✅ Keep NavigationIndependentTree
@@ -71,6 +72,9 @@ export default function App() {
             case "SkilledLabour":
               setInitialRoute("SkillDashboard");
               break;
+              case "CallCenter":
+                setInitialRoute("CallCenterDashboard");
+                break;
             case "Nri":
               setInitialRoute("NriDashboard");
               break;
@@ -186,6 +190,11 @@ export default function App() {
           <Stack.Screen
             name="InvestorDashboard"
             component={InvestorDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CallCenterDashboard"
+            component={CallCenterDashboard}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
