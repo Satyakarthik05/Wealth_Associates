@@ -77,7 +77,7 @@ export default function AllSkilledLabours() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.heading}>Skilled labours</Text>
+      <Text style={styles.heading}>Skilled Resource</Text>
       <ScrollView contentContainerStyle={styles.gridContainer}>
         {loading ? (
           <Text style={styles.emptyText}>Loading...</Text>
@@ -86,7 +86,7 @@ export default function AllSkilledLabours() {
             {agents.map((item) => renderAgentCard(item))}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No skilled labours found.</Text>
+          <Text style={styles.emptyText}>No skilled Resources found.</Text>
         )}
       </ScrollView>
     </SafeAreaView>

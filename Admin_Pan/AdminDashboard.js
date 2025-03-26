@@ -300,9 +300,9 @@ const AdminDashboard = () => {
       setIsViewReqVisible(true);
     } else if (subItem === "View All Properties") {
       setIsAllPropVisible(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Register Skilled Resource") {
       setIsRegSkillVisible(true);
-    } else if (subItem === "View Skilled Labour") {
+    } else if (subItem === "View Skilled Resource") {
       setIsViewSkillVisible(true);
     } else if (subItem === "View Core Clients") {
       setIsViewClientVisible(true);
@@ -340,7 +340,7 @@ const AdminDashboard = () => {
       setIsAddCoreProVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
-    } else if (subItem === "All Skilled Labours") {
+    } else if (subItem === "All Skilled Resources") {
       setAllSkilledLabour(true);
     } else if (subItem === "Add Investor") {
       setAddInvestor(true);

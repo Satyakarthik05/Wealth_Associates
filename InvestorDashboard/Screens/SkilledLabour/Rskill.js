@@ -140,7 +140,7 @@ const Rskill = ({ closeModal }) => {
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Register Skilled Labour</Text>
+          <Text style={styles.headerText}>Register Skilled Resource</Text>
         </View>
         <View style={styles.form}>
           <Text style={styles.label}>Full Name</Text>

@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
 
 const Rskill = ({ closeModal }) => {
+const Rskill = ({ closeModal }) => {
   const [fullName, setFullName] = useState("");
   const [skill, setSkill] = useState("");
   const [location, setLocation] = useState("");
