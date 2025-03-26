@@ -21,6 +21,7 @@ const { width } = Dimensions.get("window");
 const ViewAllProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
@@ -29,14 +30,7 @@ const ViewAllProperties = () => {
     price: "",
     photo: "",
   });
-  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false); // State for filter modal
-  const [filterCriteria, setFilterCriteria] = useState({
-    propertyType: "",
-    location: "",
-    price: "",
-  }); // State for filter criteria
 
-  // Fetch properties data
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -57,59 +51,65 @@ const ViewAllProperties = () => {
     }
   };
 
-  // Get unique property types and locations from properties
-  const uniquePropertyTypes = [
-    ...new Set(properties.map((item) => item.propertyType)),
-  ];
-  const uniqueLocations = [...new Set(properties.map((item) => item.location))];
-
-  // Price options for dropdown
-  const priceOptions = [
-    { label: "1 Lakh", value: "100000" },
-    { label: "2 Lakh", value: "200000" },
-    { label: "5 Lakh", value: "500000" },
-    { label: "10 Lakh", value: "1000000" },
-    { label: "20 Lakh", value: "2000000" },
-  ];
-
-  // Apply all filters simultaneously
-  const applyFilters = () => {
-    let filteredProperties = [...properties];
-
-    // Filter by property type
-    if (filterCriteria.propertyType) {
-      filteredProperties = filteredProperties.filter(
-        (item) => item.propertyType === filterCriteria.propertyType
+  const handleDelete = async (id) => {
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this property?"
       );
+      if (!confirmDelete) return;
+    } else {
+      const confirmDelete = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to delete this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Delete", onPress: () => resolve(true) },
+          ]
+        );
+      });
+      if (!confirmDelete) return;
     }
 
-    // Filter by location
-    if (filterCriteria.location) {
-      filteredProperties = filteredProperties.filter(
-        (item) => item.location === filterCriteria.location
+    try {
+      const response = await fetch(
+        `${API_URL}/properties/approvedelete/${id}`,
+        {
+          method: "DELETE",
+        }
       );
-    }
 
-    // Filter by price
-    if (filterCriteria.price) {
-      filteredProperties = filteredProperties.filter(
-        (item) => item.price <= parseFloat(filterCriteria.price)
-      );
+      const result = await response.json();
+      if (response.ok) {
+        setProperties(properties.filter((item) => item._id !== id));
+        if (Platform.OS === "web") {
+          alert("Property deleted successfully.");
+        } else {
+          Alert.alert("Success", "Property deleted successfully.");
+        }
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to delete.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to delete.");
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting property:", error);
     }
-
-    return filteredProperties;
   };
 
-  // Reset filters
-  const resetFilters = () => {
-    setFilterCriteria({
-      propertyType: "",
-      location: "",
-      price: "",
+  const handleEdit = (property) => {
+    setSelectedProperty(property);
+    setEditedDetails({
+      propertyType: property.propertyType,
+      location: property.location,
+      price: property.price.toString(),
+      photo: property.photo,
     });
+    setIsModalVisible(true);
   };
 
-  // Handle Save for Edit Modal
   const handleSave = async () => {
     try {
       const response = await fetch(
@@ -143,6 +143,58 @@ const ViewAllProperties = () => {
     }
   };
 
+  const handleApprove = async (id) => {
+    let confirmApprove;
+
+    if (Platform.OS === "web") {
+      confirmApprove = window.confirm(
+        "Are you sure you want to approve this property?"
+      );
+    } else {
+      confirmApprove = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to approve this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Approve", onPress: () => resolve(true) },
+          ]
+        );
+      });
+    }
+
+    if (!confirmApprove) return;
+
+    try {
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        if (Platform.OS === "web") {
+          alert("Property approved successfully.");
+        } else {
+          Alert.alert("Success", "Property approved successfully.");
+        }
+        // Optionally, you can update the state to reflect the approval
+        fetchProperties();
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to approve.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to approve.");
+        }
+      }
+    } catch (error) {
+      console.error("Error approving property:", error);
+      Alert.alert("Error", "An error occurred while approving the property.");
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
@@ -150,19 +202,25 @@ const ViewAllProperties = () => {
       ) : (
         <>
           <View style={styles.header}>
-            <Text style={styles.heading}>Approved Properties</Text>
+            <Text style={styles.heading}>All Properties</Text>
             <View style={styles.filterContainer}>
-              <TouchableOpacity
-                style={styles.filterButton}
-                onPress={() => setIsFilterModalVisible(true)}
-              >
-                <Text style={styles.filterButtonText}>Filter</Text>
-              </TouchableOpacity>
+              <Text style={styles.filterLabel}>Sort by:</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedFilter}
+                  onValueChange={(value) => setSelectedFilter(value)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="-- Select Filter --" value="" />
+                  <Picker.Item label="Price: High to Low" value="lowToHigh" />
+                  <Picker.Item label="Price: Low to High" value="highToLow" />
+                </Picker>
+              </View>
             </View>
           </View>
 
           <View style={styles.grid}>
-            {applyFilters().map((item) => {
+            {properties.map((item) => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
                 : require("../assets/logo.png");
@@ -180,16 +238,7 @@ const ViewAllProperties = () => {
                   <View style={styles.buttonContainer}>
                     <TouchableOpacity
                       style={[styles.button, styles.editButton]}
-                      onPress={() => {
-                        setSelectedProperty(item);
-                        setEditedDetails({
-                          propertyType: item.propertyType,
-                          location: item.location,
-                          price: item.price.toString(),
-                          photo: item.photo,
-                        });
-                        setIsModalVisible(true);
-                      }}
+                      onPress={() => handleEdit(item)}
                     >
                       <Text style={styles.buttonText}>Edit</Text>
                     </TouchableOpacity>
@@ -199,102 +248,17 @@ const ViewAllProperties = () => {
                     >
                       <Text style={styles.buttonText}>Delete</Text>
                     </TouchableOpacity>
+                    {/* <TouchableOpacity
+                      style={[styles.button, styles.approveButton]}
+                      onPress={() => handleApprove(item._id)}
+                    >
+                      <Text style={styles.buttonText}>Approve</Text>
+                    </TouchableOpacity> */}
                   </View>
                 </View>
               );
             })}
           </View>
-
-          {/* Filter Modal */}
-          <Modal
-            visible={isFilterModalVisible}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => setIsFilterModalVisible(false)}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Filter Properties</Text>
-
-                {/* Property Type Dropdown */}
-                <Text style={styles.filterLabel}>Property Type</Text>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={filterCriteria.propertyType}
-                    onValueChange={(value) =>
-                      setFilterCriteria({
-                        ...filterCriteria,
-                        propertyType: value,
-                      })
-                    }
-                  >
-                    <Picker.Item label="Select Property Type" value="" />
-                    {uniquePropertyTypes.map((type, index) => (
-                      <Picker.Item key={index} label={type} value={type} />
-                    ))}
-                  </Picker>
-                </View>
-
-                {/* Location Dropdown */}
-                <Text style={styles.filterLabel}>Location</Text>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={filterCriteria.location}
-                    onValueChange={(value) =>
-                      setFilterCriteria({ ...filterCriteria, location: value })
-                    }
-                  >
-                    <Picker.Item label="Select Location" value="" />
-                    {uniqueLocations.map((location, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={location}
-                        value={location}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                {/* Price Dropdown */}
-                <Text style={styles.filterLabel}>Price</Text>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={filterCriteria.price}
-                    onValueChange={(value) =>
-                      setFilterCriteria({ ...filterCriteria, price: value })
-                    }
-                  >
-                    <Picker.Item label="Select Price" value="" />
-                    {priceOptions.map((option, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={option.label}
-                        value={option.value}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                <View style={styles.modalButtonContainer}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => {
-                      resetFilters();
-                      setIsFilterModalVisible(false);
-                    }}
-                  >
-                    <Text style={styles.modalButtonText}>Reset</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.saveButton]}
-                    onPress={() => setIsFilterModalVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Apply</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
 
           {/* Edit Modal */}
           <Modal
@@ -331,6 +295,14 @@ const ViewAllProperties = () => {
                   }
                   keyboardType="numeric"
                 />
+                {/* <TextInput
+                  style={styles.input}
+                  placeholder="Photo URL"
+                  value={editedDetails.photo}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, photo: text })
+                  }
+                /> */}
                 <View style={styles.modalButtonContainer}>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.cancelButton]}
@@ -355,7 +327,7 @@ const ViewAllProperties = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f5f5f5", padding: 15 },
+  container: { backgroundColor: "#f5f5f5", padding: 15, marginBottom: 30 },
   header: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
@@ -367,25 +339,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  filterButton: {
-    backgroundColor: "#3498db",
-    padding: 10,
-    borderRadius: 5,
-  },
-  filterButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
+  filterLabel: { fontSize: 16, marginRight: 5 },
   pickerWrapper: {
     backgroundColor: "#fff",
     borderRadius: 8,
     elevation: 3,
-    marginBottom: 10,
+    height: Platform.OS === "android" ? 50 : 40,
   },
-  filterLabel: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
+  picker: { height: "100%", width: 180, fontSize: 14 },
   loader: { marginTop: 50 },
   grid: {
     flexDirection: "row",
@@ -426,6 +387,13 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: "red",
   },
+  approveButton: {
+    backgroundColor: "green",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -436,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
-    width: Platform.OS === "web" ? "40%" : "90%",
+    width: "50%",
   },
   modalTitle: {
     fontSize: 18,

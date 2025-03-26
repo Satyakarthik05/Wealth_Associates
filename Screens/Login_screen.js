@@ -13,7 +13,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
-  Keyboard
+  Keyboard,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -56,7 +56,7 @@ export default function Login_screen() {
       mobileNumber === `${adminData.UserName}` &&
       password === `${adminData.Password}`
     ) {
-      navigation.navigate("Admin"); // Redirects to Dashboard after login
+      navigation.navigate("Admin");
     } else {
       if (!mobileNumber || !password) {
         setErrorMessage("Please enter both mobile number and password.");
@@ -121,115 +121,120 @@ export default function Login_screen() {
 
   return (
     <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1 }}
-  >
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-    <SafeAreaView style={styles.container}>
-      
-      <View style={styles.card}>
-        {Platform.OS !== "android" && Platform.OS !== "ios" && (
-          <View style={styles.leftSection}>
-            <Image
-              source={require("../assets/logo2.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-        )}
+        <SafeAreaView style={styles.container}>
+          <View style={styles.card}>
+            {Platform.OS !== "android" && Platform.OS !== "ios" && (
+              <View style={styles.leftSection}>
+                <Image
+                  source={require("../assets/logo2.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
 
-        <View
-          style={[
-            styles.rightSection,
-            Platform.OS === "android" || Platform.OS === "ios"
-              ? { flex: 1 }
-              : null,
-          ]}
-        >
-          <Image
-            source={
-              Platform.OS === "android" || Platform.OS === "ios"
-                ? require("../assets/logo.png")
-                : require("../assets/logo.png")
-            }
-            style={styles.illustration}
-            resizeMode="contain"
-          />
-          <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
-
-          <Text style={styles.welcomeText}>
-            Welcome back! Log in to your account.
-          </Text>
-
-          {errorMessage ? (
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          ) : null}
-
-          <Text style={styles.label}>Mobile Number</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. 9063392872"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              value={mobileNumber}
-              onChangeText={setMobileNumber}
-              keyboardType="phone-pad"
-            />
-            <Icon
-              name="call-outline"
-              size={20}
-              color="red"
-              style={styles.icon}
-            />
-          </View>
-
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Your Password"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Icon
-                name={showPassword ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color="red"
-                style={styles.icon}
+            <View
+              style={[
+                styles.rightSection,
+                Platform.OS === "android" || Platform.OS === "ios"
+                  ? { flex: 1 }
+                  : null,
+              ]}
+            >
+              <Image
+                source={
+                  Platform.OS === "android" || Platform.OS === "ios"
+                    ? require("../assets/logo.png")
+                    : require("../assets/logo.png")
+                }
+                style={styles.illustration}
+                resizeMode="contain"
               />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.actionContainer}>
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              <Text style={styles.loginButtonText}>
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  "Login"
-                )}
+              <Text style={styles.tagline}>
+                Your Trusted Property Consultant
               </Text>
-            </TouchableOpacity>
-            {/* {loading && } */}
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Forgetpassword")}
-            >
-              <Text style={styles.forgotPassword}>Forgot your Password?</Text>
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.welcomeText}>
+                Welcome back! Log in to your account.
+              </Text>
 
-          {/* <TouchableOpacity
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
+
+              <Text style={styles.label}>Mobile Number</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex. 9063392872"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={mobileNumber}
+                  onChangeText={setMobileNumber}
+                  keyboardType="phone-pad"
+                />
+                <Icon
+                  name="call-outline"
+                  size={20}
+                  color="red"
+                  style={styles.icon}
+                />
+              </View>
+
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter Your Password"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Icon
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color="red"
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.actionContainer}>
+                <TouchableOpacity
+                  style={styles.loginButton}
+                  onPress={handleLogin}
+                  disabled={loading}
+                >
+                  <Text style={styles.loginButtonText}>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      "Login"
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                {/* {loading && } */}
+
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Forgetpassword")}
+                >
+                  <Text style={styles.forgotPassword}>
+                    Forgot your Password?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* <TouchableOpacity
             style={styles.signupContainer}
             onPress={() => navigation.navigate("Register")}
           >
@@ -238,11 +243,11 @@ export default function Login_screen() {
               <Text style={styles.signupLink}>Sign up here</Text>
             </Text>
           </TouchableOpacity> */}
-        </View>
-      </View>
-    </SafeAreaView>
-    </ScrollView>
-  </KeyboardAvoidingView>
+            </View>
+          </View>
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

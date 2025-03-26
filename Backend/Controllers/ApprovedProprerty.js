@@ -100,7 +100,7 @@ const deletProperty = async (req, res) => {
     const { id } = req.params;
     console.log("Received delete request for ID:", id);
 
-    const property = await Property.findByIdAndDelete(id);
+    const property = await ApprovedProperty.findByIdAndDelete(id);
 
     if (!property) {
       return res.status(404).json({ message: "Property not found" });
@@ -118,9 +118,13 @@ const updatePropertyAdmin = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const updatedProperty = await Property.findByIdAndUpdate(id, updates, {
-      new: true,
-    });
+    const updatedProperty = await ApprovedProperty.findByIdAndUpdate(
+      id,
+      updates,
+      {
+        new: true,
+      }
+    );
 
     if (!updatedProperty) {
       return res.status(404).json({ message: "Property not found" });
