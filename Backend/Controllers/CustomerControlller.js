@@ -289,6 +289,21 @@ const updatecustomerAdmin = async (req, res) => {
       .json({ message: "Error updating customer", error: error.message });
   }
 };
+const callDone = async (req, res) => {
+  try {
+    const agent = await CustomerSchema.findByIdAndUpdate(
+      req.params.id,
+      { CallExecutiveCall: "Done" },
+      { new: true }
+    );
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    res.json({ message: "Agent marked as done", data: agent });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   CustomerSign,
@@ -300,4 +315,5 @@ module.exports = {
   updateCustomerDetails,
   getMyInvestorCustomers,
   updatecustomerAdmin,
+  callDone,
 };

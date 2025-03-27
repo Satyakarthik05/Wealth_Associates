@@ -41,6 +41,11 @@ const CustomerSchema = new mongoose.Schema({
   RegisteredBY: {
     type: String,
   },
+  CallExecutiveCall: {
+    type: String,
+    enum: ["Pending", "Done"], // Add this to enforce specific values
+    default: "Pending",
+  },
 });
 
 const Customer = mongoose.model("Customers", CustomerSchema);

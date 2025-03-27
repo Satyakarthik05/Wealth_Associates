@@ -30,10 +30,31 @@ const ViewAllProperties = () => {
     price: "",
     photo: "",
   });
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
+  const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [idSearch, setIdSearch] = useState("");
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/propertytype`);
+      const data = await response.json();
+      setPropertyTypes(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const fetchProperties = async () => {
     try {
@@ -50,6 +71,40 @@ const ViewAllProperties = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProperties();
+    fetchPropertyTypes();
+    fetchConstituencies();
+  }, []);
+
+  // Function to get last 4 characters of ID
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
+  // Filter property types based on search input
+  const filteredPropertyTypes = propertyTypes.filter((item) =>
+    item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
+
+  // Filter properties based on ID search
+  const filteredProperties = properties.filter((property) => {
+    const matchesId = idSearch
+      ? getLastFourChars(property._id)
+          .toLowerCase()
+          .includes(idSearch.toLowerCase())
+      : true;
+
+    return matchesId;
+  });
 
   const handleDelete = async (id) => {
     if (Platform.OS === "web") {
@@ -122,7 +177,6 @@ const ViewAllProperties = () => {
 
       const result = await response.json();
       if (response.ok) {
-        // Update the properties list
         const updatedProperties = properties.map((item) =>
           item._id === selectedProperty._id
             ? { ...item, ...editedDetails }
@@ -177,7 +231,6 @@ const ViewAllProperties = () => {
         } else {
           Alert.alert("Success", "Property approved successfully.");
         }
-        // Optionally, you can update the state to reflect the approval
         fetchProperties();
       } else {
         if (Platform.OS === "web") {
@@ -216,17 +269,34 @@ const ViewAllProperties = () => {
             </View>
           </View>
 
+          {/* Search Bar for Property ID */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by last 4 digits of ID"
+              value={idSearch}
+              onChangeText={setIdSearch}
+              maxLength={4}
+            />
+          </View>
+
           <View style={styles.grid}>
-            {properties.map((item) => {
+            {filteredProperties.map((item) => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
                 : require("../assets/logo.png");
+              const propertyId = getLastFourChars(item._id);
 
               return (
                 <View key={item._id} style={styles.card}>
                   <Image source={imageUri} style={styles.image} />
                   <View style={styles.details}>
+                    <View style={styles.idContainer}>
+                      <Text style={styles.idText}>ID: {propertyId}</Text>
+                    </View>
                     <Text style={styles.title}>{item.propertyType}</Text>
+                    <Text style={styles.title}>{item.propertyDetails}</Text>
+                    <Text style={styles.title}>PostedBy:{item.PostedBy}</Text>
                     <Text style={styles.info}>Location: {item.location}</Text>
                     <Text style={styles.budget}>
                       ₹ {parseInt(item.price).toLocaleString()}
@@ -267,22 +337,60 @@ const ViewAllProperties = () => {
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Edit Property</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Property Type"
-                  value={editedDetails.propertyType}
-                  onChangeText={(text) =>
-                    setEditedDetails({ ...editedDetails, propertyType: text })
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Location"
-                  value={editedDetails.location}
-                  onChangeText={(text) =>
-                    setEditedDetails({ ...editedDetails, location: text })
-                  }
-                />
+
+                {/* Property Type Dropdown */}
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.dropdownLabel}>Property Type:</Text>
+                  <View style={styles.dropdown}>
+                    <Picker
+                      selectedValue={editedDetails.propertyType}
+                      onValueChange={(value) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          propertyType: value,
+                        })
+                      }
+                      style={{ height: 40 }}
+                    >
+                      <Picker.Item label="Select Property Type" value="" />
+                      {filteredPropertyTypes.map((type) => (
+                        <Picker.Item
+                          key={type._id}
+                          label={type.name}
+                          value={type.name}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+
+                {/* Location Dropdown */}
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.dropdownLabel}>Location:</Text>
+                  <View style={styles.dropdown}>
+                    <Picker
+                      selectedValue={editedDetails.location}
+                      onValueChange={(value) =>
+                        setEditedDetails({ ...editedDetails, location: value })
+                      }
+                      style={{ height: 40 }}
+                    >
+                      <Picker.Item
+                        label="Select Location"
+                        value=""
+                        style={{ height: 30 }}
+                      />
+                      {filteredConstituencies.map((assembly, index) => (
+                        <Picker.Item
+                          key={`${assembly._id}-${index}`}
+                          label={assembly.name}
+                          value={assembly.name}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+
                 <TextInput
                   style={styles.input}
                   placeholder="Price"
@@ -292,14 +400,7 @@ const ViewAllProperties = () => {
                   }
                   keyboardType="numeric"
                 />
-                {/* <TextInput
-                  style={styles.input}
-                  placeholder="Photo URL"
-                  value={editedDetails.photo}
-                  onChangeText={(text) =>
-                    setEditedDetails({ ...editedDetails, photo: text })
-                  }
-                /> */}
+
                 <View style={styles.modalButtonContainer}>
                   <TouchableOpacity
                     style={[styles.modalButton, styles.cancelButton]}
@@ -324,7 +425,7 @@ const ViewAllProperties = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f5f5f5", padding: 15 },
+  container: { backgroundColor: "#f5f5f5", padding: 15, marginBottom: 40 },
   header: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
@@ -363,6 +464,18 @@ const styles = StyleSheet.create({
   },
   image: { width: "100%", height: 150, borderRadius: 8 },
   details: { marginTop: 10 },
+  idContainer: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: "flex-start",
+    marginBottom: 5,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
@@ -401,7 +514,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
-    width: "50%",
+    width: Platform.OS === "web" ? "50%" : "90%",
   },
   modalTitle: {
     fontSize: 18,
@@ -415,6 +528,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+  },
+  dropdownContainer: {
+    marginBottom: 10,
+  },
+  dropdownLabel: {
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: "bold",
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 5,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#fff",
+    height: 40,
   },
   modalButtonContainer: {
     flexDirection: "row",
@@ -436,6 +571,14 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  pickerItem: {
+    height: "100%",
+    width: "100%",
+  },
+  searchContainer: {
+    marginBottom: 15,
+    paddingHorizontal: 10,
   },
 });
 

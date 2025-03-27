@@ -21,6 +21,13 @@ const RequestExpert = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resolved: {
+    type: Boolean,
+    default: false,
+  },
+  resolvedAt: {
+    type: Date,
+  },
 });
 
 const reqexp = new mongoose.model("RequestedExperts", RequestExpert);

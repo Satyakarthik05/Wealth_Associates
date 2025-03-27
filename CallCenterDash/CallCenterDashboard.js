@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
+import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
 
 //importing components
 import Dashboard from "./Screens/Callcentre";
@@ -25,7 +26,7 @@ import ViewPostedProperties from "./Screens/Properties/ViewPostedProperties";
 import RequestedProperties from "./Screens/Properties/ViewRequestedProperties";
 import ViewAgentsCall from "./Screens/Agent/AgentsCall";
 import ViewCustomersCalls from "./Screens/Customer/ViewCustCalls";
-
+import ExpertPanelReq from "./ExpertPanel/ExpertReq";
 
 const menuItems = [
   {
@@ -33,13 +34,13 @@ const menuItems = [
     icon: "person-outline",
     subItems: [
       "View Agents",
-      "View Agents Contacts"
+      // "View Agents Contacts"
     ],
   },
   {
     title: "Customers",
     icon: "people-outline",
-    subItems: ["View Customers", "View Customer Contacts"],
+    subItems: ["View Customers"],
   },
   {
     title: "Properties",
@@ -53,9 +54,7 @@ const menuItems = [
   {
     title: "Expert Panel",
     icon: "cog-outline",
-    subItems: [
-      "Expert Panel Requests",
-    ],
+    subItems: ["Expert Panel Requests"],
   },
 ];
 
@@ -67,9 +66,12 @@ const CallCenterDashboard = () => {
   const [isViewCustVisible, setIsViewCustVisible] = useState(false);
   const [isViewAgentVisible, setIsViewAgentVisible] = useState(false);
   const [isViewPostPropVisible, setIsViewPostPropVisible] = useState(false);
-  const [isViewRequestedPropVisible, setIsViewRequestedPropVisible] = useState(false);
+  const [isViewRequestedPropVisible, setIsViewRequestedPropVisible] =
+    useState(false);
   const [isViewAgentContVsible, setIsViewAgentContVisible] = useState(false);
   const [isCustCallVisible, setIsCustCallVisible] = useState(false);
+  const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
+  const [isExpertPanelReq, setExpertPanelReq] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -102,23 +104,28 @@ const CallCenterDashboard = () => {
     setIsViewRequestedPropVisible(false);
     setIsViewAgentContVisible(false);
     setIsViewCustVisible(false);
-    
+    setViewApprovedProperties(false);
+    setExpertPanelReq(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
     }
     if (subItem === "View Customers") {
       setIsViewCustVisible(true);
-    } else if(subItem === "View Agents") {
+    } else if (subItem === "View Agents") {
       setIsViewAgentVisible(true);
-    } else if(subItem === "View Posted Properties") {
+    } else if (subItem === "View Posted Properties") {
       setIsViewPostPropVisible(true);
-    } else if(subItem === "View Requested Properties") {
+    } else if (subItem === "View Requested Properties") {
       setIsViewRequestedPropVisible(true);
-    } else if(subItem === "View Agents Contacts") {
+    } else if (subItem === "View Agents Contacts") {
       setIsViewAgentContVisible(true);
-    } else if(subItem === "View Customer Contacts") {
+    } else if (subItem === "View Customer Contacts") {
       setIsCustCallVisible(true);
+    } else if (subItem === "ViewApprovedProperties") {
+      setViewApprovedProperties(true);
+    } else if (subItem === "Expert Panel Requests") {
+      setExpertPanelReq(true);
     }
   };
 
@@ -133,17 +140,18 @@ const CallCenterDashboard = () => {
     setIsViewRequestedPropVisible(false);
     setIsViewAgentContVisible(false);
     setIsCustCallVisible(false);
-    
   };
 
   const renderContent = () => {
     if (isViewAgentVisible) return <ViewAgents />;
-    if (isViewCustVisible) return <ViewCustomers/>;
-    if (isViewPostPropVisible) return <ViewPostedProperties/>;
-    if (isViewRequestedPropVisible) return <RequestedProperties/>;
-    if (isViewAgentContVsible) return <ViewAgentsCall/>;
-    if(isCustCallVisible) return <ViewCustomersCalls/>
-    
+    if (isViewCustVisible) return <ViewCustomers />;
+    if (isViewPostPropVisible) return <ViewPostedProperties />;
+    if (isViewRequestedPropVisible) return <RequestedProperties />;
+    if (isViewAgentContVsible) return <ViewAgentsCall />;
+    if (isCustCallVisible) return <ViewCustomersCalls />;
+    if (isExpertPanelReq) return <ExpertPanelReq />;
+
+    if (isViewApprovedProperties) return <ViewApprovedProperties />;
     return <Dashboard />;
   };
 
@@ -184,7 +192,10 @@ const CallCenterDashboard = () => {
 
       {/* Top Navbar */}
       <View style={styles.navbar}>
-        <Image source={require("../CallCenterDash/assets/logo.png")} style={styles.logo} />
+        <Image
+          source={require("../CallCenterDash/assets/logo.png")}
+          style={styles.logo}
+        />
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
             <Image

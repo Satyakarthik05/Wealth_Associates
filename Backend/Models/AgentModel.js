@@ -49,24 +49,11 @@ const AgentScheme = new mongoose.Schema({
   AgentType: {
     type: String,
   },
-  // PostedPropertys: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Property",
-  //   },
-  // ],
-  // RequestdPropertys: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "RequestProperty",
-  //   },
-  // ],
-  // MyCustomers: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Customers",
-  //   },
-  // ],
+  CallExecutiveCall: {
+    type: String,
+    enum: ["Pending", "Done"], // Add this to enforce specific values
+    default: "Pending",
+  },
 });
 
 const Agent = mongoose.model("Agent_Wealth_Associate", AgentScheme);

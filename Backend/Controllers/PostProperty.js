@@ -5,6 +5,8 @@ const AgentSchema = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
 const CoreSchema = require("../Models/CoreModel");
 const mongoose = require("mongoose");
+const axios =require("axios")
+const getNearbyProperty= require("../Models/ApprovedPropertys")
 
 // Create a new property
 const createProperty = async (req, res) => {
@@ -35,20 +37,20 @@ const createProperty = async (req, res) => {
     }
 
     // Clean and validate price
-    if (typeof price === "string") {
-      price = price.replace(/,/g, "").trim();
+    // if (typeof price === "string") {
+    //   price = price.replace(/,/g, "").trim();
 
-      const parts = price.split(".");
-      if (parts.length > 2) {
-        price = parts[0] + "." + parts[1]; // Keep only the first decimal part
-      }
-    }
+    //   const parts = price.split(".");
+    //   if (parts.length > 2) {
+    //     price = parts[0] + "." + parts[1]; // Keep only the first decimal part
+    //   }
+    // }
 
     // Convert to number
-    price = parseFloat(price);
-    if (isNaN(price)) {
-      return res.status(400).json({ message: "Invalid price format." });
-    }
+    // price = parseFloat(price);
+    // if (isNaN(price)) {
+    //   return res.status(400).json({ message: "Invalid price format." });
+    // }
 
     // Find user by PostedBy number
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
@@ -96,7 +98,7 @@ const createProperty = async (req, res) => {
     // Optional: Send data to call center API
     try {
       const callCenterResponse = await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/86b467c1-3e77-48c2-8c52-821ba2d27eb4/leads",
+        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/dfbba5ed-861d-488f-9150-24c7d45ac64c/leads",
         {
           params: {
             name: postedByUser.FullName,
@@ -261,7 +263,7 @@ const getNearbyProperties = async (req, res) => {
 
     // Fetch properties from database that match the constituency
     console.log(constituency);
-    const properties = await Property.find({ Constituency: constituency });
+    const properties = await getNearbyProperty.find({ Constituency: constituency });
 
     if (properties.length === 0) {
       return res
@@ -299,7 +301,7 @@ const getReferredByDetails = async (req, res) => {
       });
     } else {
       return res.status(200).json({
-        status: "default",
+        status: "success",
         referredByDetails: {
           name: "Wealth Associate",
           Number: 7796356789,

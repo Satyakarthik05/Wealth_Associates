@@ -61,11 +61,12 @@ const AgentSign = async (req, res) => {
 
   try {
     const existingAgent = await AgentSchema.findOne({ MobileNumber });
+    const referredAgent =await AgentSchema.findOne({MyRefferalCode:ReferredBy})
     if (existingAgent) {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
 
-    const Password = "WealthAssociation";
+    const Password = "wa1234";
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
 
@@ -110,7 +111,7 @@ const AgentSign = async (req, res) => {
             name: FullName,
             mobile: MobileNumber,
             email: Email,
-            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
+            detail1: `RefereralCode:${refferedby},ReferredBy:${referredAgent?referredAgent.FullName:"WealthAssociate"}`, // Adjust this as necessary
           },
         }
       );
@@ -273,6 +274,21 @@ const updateAgentByadmin = async (req, res) => {
     res.status(500).json({ message: "Failed to update agent" });
   }
 };
+const callDone = async (req, res) => {
+  try {
+    const agent = await AgentSchema.findByIdAndUpdate(
+      req.params.id,
+      { CallExecutiveCall: "Done" },
+      { new: true }
+    );
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    res.json({ message: "Agent marked as done", data: agent });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports = {
   AgentSign,
   AgentLogin,
@@ -282,4 +298,5 @@ module.exports = {
   getAllAgents,
   deleteAgent,
   updateAgentByadmin,
+  callDone,
 };

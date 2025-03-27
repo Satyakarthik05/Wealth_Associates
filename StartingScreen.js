@@ -55,7 +55,7 @@ const StartingScreen = () => {
     {
       name: "Skilled Resource",
       icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
-      navigateTo: "SkillDashboard", // Navigate to SkilledResourceDashboard
+      navigateTo: "SkillDashboard",
     },
   ];
 

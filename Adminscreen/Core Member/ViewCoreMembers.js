@@ -22,6 +22,7 @@ const { width } = Dimensions.get("window");
 
 export default function ViewCoreMembers() {
   const [coreMembers, setCoreMembers] = useState([]);
+  const [filteredMembers, setFilteredMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -34,6 +35,7 @@ export default function ViewCoreMembers() {
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch core members and districts/constituencies
   useEffect(() => {
@@ -48,6 +50,7 @@ export default function ViewCoreMembers() {
         }
         const membersData = await membersResponse.json();
         setCoreMembers(membersData);
+        setFilteredMembers(membersData);
 
         // Fetch districts and constituencies
         const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -66,6 +69,27 @@ export default function ViewCoreMembers() {
 
     fetchData();
   }, []);
+
+  // Filter core members based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredMembers(coreMembers);
+    } else {
+      const filtered = coreMembers.filter(
+        (member) =>
+          (member.FullName &&
+            member.FullName.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            )) ||
+          (member.MobileNumber && member.MobileNumber.includes(searchQuery)) ||
+          (member.MyRefferalCode &&
+            member.MyRefferalCode.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            ))
+      );
+      setFilteredMembers(filtered);
+    }
+  }, [searchQuery, coreMembers]);
 
   // Handle edit member
   const handleEditMember = (member) => {
@@ -107,6 +131,12 @@ export default function ViewCoreMembers() {
 
       const updatedMember = await response.json();
       setCoreMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member._id === selectedMember._id ? updatedMember : member
+        )
+      );
+      // Also update filtered members
+      setFilteredMembers((prevMembers) =>
         prevMembers.map((member) =>
           member._id === selectedMember._id ? updatedMember : member
         )
@@ -153,6 +183,10 @@ export default function ViewCoreMembers() {
       setCoreMembers((prevMembers) =>
         prevMembers.filter((member) => member._id !== memberId)
       );
+      // Also update filtered members
+      setFilteredMembers((prevMembers) =>
+        prevMembers.filter((member) => member._id !== memberId)
+      );
       Alert.alert("Success", "Core member deleted successfully.");
     } catch (error) {
       console.error("Error deleting core member:", error);
@@ -192,9 +226,19 @@ export default function ViewCoreMembers() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.heading}>Core Members</Text>
 
-        {coreMembers.length > 0 ? (
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, mobile or referral code"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {filteredMembers.length > 0 ? (
           <View style={styles.cardContainer}>
-            {coreMembers.map((member) => (
+            {filteredMembers.map((member) => (
               <View key={member._id} style={styles.card}>
                 <Image
                   source={require("../../Admin_Pan/assets/man.png")}
@@ -252,7 +296,11 @@ export default function ViewCoreMembers() {
             ))}
           </View>
         ) : (
-          <Text style={styles.noMembersText}>No core members found.</Text>
+          <Text style={styles.noMembersText}>
+            {searchQuery
+              ? "No matching core members found"
+              : "No core members found."}
+          </Text>
         )}
       </ScrollView>
 
@@ -384,6 +432,18 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+  },
+  searchContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   cardContainer: {
     flexDirection: "row",

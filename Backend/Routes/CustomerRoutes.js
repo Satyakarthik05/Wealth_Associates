@@ -26,5 +26,6 @@ app.get(
   CustomerController.getMyInvestorCustomers
 );
 app.put("/updatecustomer/:id", CustomerController.updatecustomerAdmin);
+app.put("/markasdone/:id", CustomerController.callDone);
 
 module.exports = app;

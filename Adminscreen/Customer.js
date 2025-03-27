@@ -22,6 +22,7 @@ const { width } = Dimensions.get("window");
 
 export default function ViewCustomers() {
   const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -33,6 +34,7 @@ export default function ViewCustomers() {
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch customers and districts/constituencies
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function ViewCustomers() {
         }
         const customersData = await customersResponse.json();
         setCustomers(customersData.data);
+        setFilteredCustomers(customersData.data);
 
         // Fetch districts and constituencies
         const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -65,6 +68,28 @@ export default function ViewCustomers() {
 
     fetchData();
   }, []);
+
+  // Filter customers based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCustomers(customers);
+    } else {
+      const filtered = customers.filter(
+        (customer) =>
+          (customer.FullName &&
+            customer.FullName.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            )) ||
+          (customer.MobileNumber &&
+            customer.MobileNumber.includes(searchQuery)) ||
+          (customer.MyRefferalCode &&
+            customer.MyRefferalCode.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            ))
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchQuery, customers]);
 
   // Handle edit customer
   const openEditModal = (customer) => {
@@ -107,6 +132,14 @@ export default function ViewCustomers() {
 
       const updatedCustomer = await response.json();
       setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
+          customer._id === selectedCustomer._id
+            ? updatedCustomer.data
+            : customer
+        )
+      );
+      // Also update filtered customers
+      setFilteredCustomers((prevCustomers) =>
         prevCustomers.map((customer) =>
           customer._id === selectedCustomer._id
             ? updatedCustomer.data
@@ -158,6 +191,10 @@ export default function ViewCustomers() {
       setCustomers((prevCustomers) =>
         prevCustomers.filter((customer) => customer._id !== customerId)
       );
+      // Also update filtered customers
+      setFilteredCustomers((prevCustomers) =>
+        prevCustomers.filter((customer) => customer._id !== customerId)
+      );
       Alert.alert("Success", "Customer deleted successfully.");
     } catch (error) {
       console.error("Error deleting customer:", error);
@@ -197,9 +234,19 @@ export default function ViewCustomers() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.heading}>My Customers</Text>
 
-        {customers.length > 0 ? (
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, mobile or referral code"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {filteredCustomers.length > 0 ? (
           <View style={styles.cardContainer}>
-            {customers.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <View key={customer._id} style={styles.card}>
                 <Image
                   source={require("../assets/man.png")}
@@ -265,7 +312,11 @@ export default function ViewCustomers() {
             ))}
           </View>
         ) : (
-          <Text style={styles.noCustomersText}>No customers found.</Text>
+          <Text style={styles.noCustomersText}>
+            {searchQuery
+              ? "No matching customers found"
+              : "No customers found."}
+          </Text>
         )}
       </ScrollView>
 
@@ -405,6 +456,18 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+  },
+  searchContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   cardContainer: {
     flexDirection: "row",

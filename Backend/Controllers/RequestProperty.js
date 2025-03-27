@@ -130,6 +130,36 @@ const UpdateRequestedProperty = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
+const AdminUpdateRequestedProperty = async (req, res) => {
+  try {
+    const { id } = req.params; // Get property ID from the URL
+    const { propertyTitle, propertyType, location, Budget } = req.body;
+    // const mobileNumber = req.mobileNumber;
+
+    const existingProperty = await RequestProperty.findById(id);
+
+    if (!existingProperty) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    existingProperty.propertyTitle =
+      propertyTitle || existingProperty.propertyTitle;
+    existingProperty.propertyType =
+      propertyType || existingProperty.propertyType;
+    existingProperty.location = location || existingProperty.location;
+    existingProperty.Budget = Budget || existingProperty.Budget;
+
+    const updatedProperty = await existingProperty.save();
+
+    res.status(200).json({
+      message: "Property updated successfully",
+      updatedProperty,
+    });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
+};
 
 const DeleteRequestedProperty = async (req, res) => {
   try {
@@ -151,5 +181,6 @@ module.exports = {
   GetMyRequestedPropertys,
   GetRequsestedPropertys,
   UpdateRequestedProperty,
+  AdminUpdateRequestedProperty,
   DeleteRequestedProperty,
 };
