@@ -44,47 +44,46 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 20,
-      backgroundColor: "#F8F8F8",
-      alignItems: "center", // Center content
-      width:"100%",
-    },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      width: "90%", // Reduce overall row width
-      marginBottom: 15,
-    },
-    card: {
-      width: "30%", // Reduce card width
-      padding: 15,
-      backgroundColor: "white",
-      elevation: 5,
-      borderRadius: 10,
-    },
-    fullWidth: {
-      width: "30%", // Expert Requests card will take full row width
-    },
-    cardContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    textContainer: {
-      flex: 1,
-    },
-    value: {
-      fontSize: 22,
-      fontWeight: "bold",
-    },
-    version: {
-      textAlign: "right",
-      marginTop: 10,
-      color: "gray",
-    },
-  });
-  
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#F8F8F8",
+    alignItems: "center", // Center content
+    width: "100%",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "90%", // Reduce overall row width
+    marginBottom: 15,
+  },
+  card: {
+    width: "30%", // Reduce card width
+    padding: 15,
+    backgroundColor: "white",
+    elevation: 5,
+    borderRadius: 10,
+  },
+  fullWidth: {
+    width: "30%", // Expert Requests card will take full row width
+  },
+  cardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  textContainer: {
+    flex: 1,
+  },
+  value: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  version: {
+    textAlign: "right",
+    marginTop: 10,
+    color: "gray",
+  },
+});
 
 export default Dashboard;

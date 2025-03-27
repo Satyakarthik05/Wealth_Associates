@@ -36,7 +36,8 @@ const ViewAllProperties = ({ navigation }) => {
     location: "",
     price: "",
   });
-  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
+    useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -127,9 +128,11 @@ const ViewAllProperties = ({ navigation }) => {
 
   const filterProperties = (properties) => {
     if (!searchQuery) return properties;
-    
-    return properties.filter(property => {
-      const propertyId = property._id ? property._id.slice(-4).toLowerCase() : "";
+
+    return properties.filter((property) => {
+      const propertyId = property._id
+        ? property._id.slice(-4).toLowerCase()
+        : "";
       return propertyId.includes(searchQuery.toLowerCase());
     });
   };
@@ -221,24 +224,32 @@ const ViewAllProperties = ({ navigation }) => {
 
   // Categorize properties with search filtering
   const regularProperties = sortPropertiesByConstituency(
-    filterProperties(properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Regular Property"
-    ))
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Regular Property"
+      )
+    )
   );
   const approvedProperties = sortPropertiesByConstituency(
-    filterProperties(properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Approved Property"
-    ))
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Approved Property"
+      )
+    )
   );
   const wealthProperties = sortPropertiesByConstituency(
-    filterProperties(properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Wealth Property"
-    ))
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+      )
+    )
   );
   const listedProperties = sortPropertiesByConstituency(
-    filterProperties(properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Listed Property"
-    ))
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Listed Property"
+      )
+    )
   );
 
   return (
@@ -285,13 +296,20 @@ const ViewAllProperties = ({ navigation }) => {
                     <View style={styles.inputWrapper}>
                       <TouchableOpacity
                         style={styles.filterButtonDropdown}
-                        onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
+                        onPress={() =>
+                          setShowPropertyTypeDropdown(!showPropertyTypeDropdown)
+                        }
                       >
                         <Text style={styles.filterButtonText}>
-                          {filterCriteria.propertyType || "-- Select Property Type --"}
+                          {filterCriteria.propertyType ||
+                            "-- Select Property Type --"}
                         </Text>
                         <MaterialIcons
-                          name={showPropertyTypeDropdown ? "arrow-drop-up" : "arrow-drop-down"}
+                          name={
+                            showPropertyTypeDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
                           size={24}
                           color="#E82E5F"
                           style={styles.icon}
@@ -303,7 +321,10 @@ const ViewAllProperties = ({ navigation }) => {
                             <TouchableOpacity
                               style={styles.listItem}
                               onPress={() => {
-                                setFilterCriteria({ ...filterCriteria, propertyType: "" });
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  propertyType: "",
+                                });
                                 setShowPropertyTypeDropdown(false);
                               }}
                             >
@@ -314,7 +335,10 @@ const ViewAllProperties = ({ navigation }) => {
                                 key={index}
                                 style={styles.listItem}
                                 onPress={() => {
-                                  setFilterCriteria({ ...filterCriteria, propertyType: type });
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    propertyType: type,
+                                  });
                                   setShowPropertyTypeDropdown(false);
                                 }}
                               >
@@ -335,13 +359,19 @@ const ViewAllProperties = ({ navigation }) => {
                     <View style={styles.inputWrapper}>
                       <TouchableOpacity
                         style={styles.filterButtonDropdown}
-                        onPress={() => setShowLocationDropdown(!showLocationDropdown)}
+                        onPress={() =>
+                          setShowLocationDropdown(!showLocationDropdown)
+                        }
                       >
                         <Text style={styles.filterButtonText}>
                           {filterCriteria.location || "-- Select Location --"}
                         </Text>
                         <MaterialIcons
-                          name={showLocationDropdown ? "arrow-drop-up" : "arrow-drop-down"}
+                          name={
+                            showLocationDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
                           size={24}
                           color="#E82E5F"
                           style={styles.icon}
@@ -353,7 +383,10 @@ const ViewAllProperties = ({ navigation }) => {
                             <TouchableOpacity
                               style={styles.listItem}
                               onPress={() => {
-                                setFilterCriteria({ ...filterCriteria, location: "" });
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  location: "",
+                                });
                                 setShowLocationDropdown(false);
                               }}
                             >
@@ -364,7 +397,10 @@ const ViewAllProperties = ({ navigation }) => {
                                 key={index}
                                 style={styles.listItem}
                                 onPress={() => {
-                                  setFilterCriteria({ ...filterCriteria, location: location });
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    location: location,
+                                  });
                                   setShowLocationDropdown(false);
                                 }}
                               >
@@ -388,10 +424,16 @@ const ViewAllProperties = ({ navigation }) => {
                         onPress={() => setShowPriceDropdown(!showPriceDropdown)}
                       >
                         <Text style={styles.filterButtonText}>
-                          {filterCriteria.price ? `${filterCriteria.price} Lakh` : "-- Select Price --"}
+                          {filterCriteria.price
+                            ? `${filterCriteria.price} Lakh`
+                            : "-- Select Price --"}
                         </Text>
                         <MaterialIcons
-                          name={showPriceDropdown ? "arrow-drop-up" : "arrow-drop-down"}
+                          name={
+                            showPriceDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
                           size={24}
                           color="#E82E5F"
                           style={styles.icon}
@@ -403,7 +445,10 @@ const ViewAllProperties = ({ navigation }) => {
                             <TouchableOpacity
                               style={styles.listItem}
                               onPress={() => {
-                                setFilterCriteria({ ...filterCriteria, price: "" });
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  price: "",
+                                });
                                 setShowPriceDropdown(false);
                               }}
                             >
@@ -414,7 +459,10 @@ const ViewAllProperties = ({ navigation }) => {
                                 key={index}
                                 style={styles.listItem}
                                 onPress={() => {
-                                  setFilterCriteria({ ...filterCriteria, price: price });
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    price: price,
+                                  });
                                   setShowPriceDropdown(false);
                                 }}
                               >
@@ -776,7 +824,10 @@ const ViewAllProperties = ({ navigation }) => {
                   <ActivityIndicator size="large" color="#007bff" />
                 ) : (
                   <>
-                    <Image source={require("../../assets/man.png")} style={styles.agentLogo} />
+                    <Image
+                      source={require("../../assets/man.png")}
+                      style={styles.agentLogo}
+                    />
                     <Text style={styles.modalTitle}>Referred By</Text>
                     <Text style={styles.modalText}>
                       Name: {referredInfo.name}
@@ -848,7 +899,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   filterButtonText: {
-    color: "#ffffff",
+    // color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -857,11 +908,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 40,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   sectionTitle: {
     fontSize: 18,

@@ -25,7 +25,7 @@ import NriDashboard from "./NriDashboard/NriDashboard";
 import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
 import StartingScreen from "./StartingScreen";
 import CallCenterDashboard from "./CallCenterDash/CallCenterDashboard";
-import New_Password from "./Screens/New_Password"
+import New_Password from "./Screens/New_Password";
 import { API_URL } from "./data/ApiUrl";
 
 // ✅ Keep NavigationIndependentTree

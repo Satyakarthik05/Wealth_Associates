@@ -68,6 +68,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
             : "MobileNumber",
           ExpertType: expertType,
           ExpertName: expert.Name,
+          ExpertNo: expert.Mobile,
           RequestedBy: "WealthAssociate",
         }),
       });
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   expertCard: {
-    width: Platform.OS === "web" ? "30%" : "60%",
+    width: Platform.OS === "web" ? "30%" : "90%",
     backgroundColor: "#fff",
     padding: 16,
     margin: 10,

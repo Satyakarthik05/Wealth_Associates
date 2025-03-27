@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   filterButtonText: {
-    color: "#fff",
+    // color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
