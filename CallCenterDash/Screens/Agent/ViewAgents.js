@@ -129,12 +129,9 @@ export default function ViewAgents() {
     if (!(await confirm())) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/agent/markasdone/${agentId}`,
-        {
-          method: "PUT",
-        }
-      );
+      const response = await fetch(`${API_URL}/agent/markasdone/${agentId}`, {
+        method: "PUT",
+      });
 
       if (!response.ok) throw new Error("Failed to update status");
 

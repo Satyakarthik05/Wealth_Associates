@@ -88,7 +88,7 @@ const ExpertList = () => {
   };
 
   const handleResolve = (id) => {
-    fetch(`http://localhost:3000/requestexpert/resolve/${id}`, {
+    fetch(`${API_URL}/requestexpert/resolve/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
