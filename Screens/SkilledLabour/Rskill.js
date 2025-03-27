@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
 
@@ -28,6 +27,9 @@ const Rskill = ({ closeModal }) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+  const [skillSearch, setSkillSearch] = useState("");
+  const [filteredSkills, setFilteredSkills] = useState([]);
+  const [filteredConstituencies, setFilteredConstituencies] = useState([]);
 
   const getDetails = async () => {
     try {
@@ -50,15 +52,12 @@ const Rskill = ({ closeModal }) => {
   }, []);
 
   useEffect(() => {
-    console.log("Updated Details:", Details);
-  }, [Details]);
-
-  useEffect(() => {
     const fetchSkills = async () => {
       try {
         const response = await fetch(`${API_URL}/discons/skills`);
         const data = await response.json();
         setSkills(data.skills);
+        setFilteredSkills(data.skills);
       } catch (error) {
         alert("Error fetching skills: " + error.message);
       } finally {
@@ -71,6 +70,7 @@ const Rskill = ({ closeModal }) => {
         const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
         const data = await response.json();
         setConstituencies(data);
+        setFilteredConstituencies(data.flatMap(item => item.assemblies));
       } catch (error) {
         console.error("Error fetching constituencies:", error);
       }
@@ -80,12 +80,31 @@ const Rskill = ({ closeModal }) => {
     fetchConstituencies();
   }, []);
 
+  // Filter skills based on search input
+  useEffect(() => {
+    if (skillSearch) {
+      const filtered = skills.filter(skillItem =>
+        skillItem.toLowerCase().includes(skillSearch.toLowerCase())
+      );
+      setFilteredSkills(filtered);
+    } else {
+      setFilteredSkills(skills);
+    }
+  }, [skillSearch, skills]);
+
   // Filter constituencies based on search input
-  const filteredConstituencies = constituencies.flatMap((item) =>
-    item.assemblies.filter((assembly) =>
-      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
-    )
-  );
+  useEffect(() => {
+    if (locationSearch) {
+      const filtered = constituencies.flatMap(item =>
+        item.assemblies.filter(assembly =>
+          assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+        )
+      );
+      setFilteredConstituencies(filtered);
+    } else {
+      setFilteredConstituencies(constituencies.flatMap(item => item.assemblies));
+    }
+  }, [locationSearch, constituencies]);
 
   const handleRegister = async () => {
     if (!fullName || !skill || !location || !mobileNumber) {
@@ -94,10 +113,7 @@ const Rskill = ({ closeModal }) => {
     }
 
     if (!Details || !Details.MobileNumber) {
-      Alert.alert(
-        "Error",
-        "Agent details are not available. Please try again."
-      );
+      Alert.alert("Error", "Agent details are not available. Please try again.");
       return;
     }
 
@@ -156,28 +172,62 @@ const Rskill = ({ closeModal }) => {
             <ActivityIndicator size="small" color="#E91E63" />
           ) : (
             <View style={styles.inputContainer}>
-              <TouchableOpacity
-                style={styles.input}
-                onPress={() => setShowSkillDropdown(!showSkillDropdown)}
-              >
-                <Text style={skill ? {} : styles.placeholderText}>
-                  {skill || "-- Select Skill Type --"}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.searchInputContainer}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search and select skill"
+                  value={showSkillDropdown ? skillSearch : skill}
+                  onChangeText={(text) => {
+                    if (showSkillDropdown) {
+                      setSkillSearch(text);
+                    } else {
+                      setSkill(text);
+                      setSkillSearch(text);
+                      setShowSkillDropdown(true);
+                    }
+                  }}
+                  onFocus={() => {
+                    setShowSkillDropdown(true);
+                    setSkillSearch("");
+                  }}
+                />
+                {showSkillDropdown && (
+                  <TouchableOpacity
+                    onPress={() => setShowSkillDropdown(false)}
+                    style={styles.dropdownToggle}
+                  >
+                    <Text style={styles.dropdownToggleText}>▲</Text>
+                  </TouchableOpacity>
+                )}
+                {!showSkillDropdown && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowSkillDropdown(true);
+                      setSkillSearch("");
+                    }}
+                    style={styles.dropdownToggle}
+                  >
+                    <Text style={styles.dropdownToggleText}>▼</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
               {showSkillDropdown && (
                 <View style={styles.dropdownContainer}>
-                  {skills.map((item) => (
-                    <TouchableOpacity
-                      key={item}
-                      style={styles.listItem}
-                      onPress={() => {
-                        setSkill(item);
-                        setShowSkillDropdown(false);
-                      }}
-                    >
-                      <Text>{item}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  <ScrollView style={styles.scrollContainer}>
+                    {filteredSkills.map((item) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setSkill(item);
+                          setSkillSearch("");
+                          setShowSkillDropdown(false);
+                        }}
+                      >
+                        <Text>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
                 </View>
               )}
             </View>
@@ -185,31 +235,62 @@ const Rskill = ({ closeModal }) => {
 
           <Text style={styles.label}>Location</Text>
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={locationSearch}
-              onChangeText={(text) => {
-                setLocationSearch(text);
-                setShowLocationList(true);
-              }}
-              onFocus={() => setShowLocationList(true)}
-            />
+            <View style={styles.searchInputContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search and select location"
+                value={showLocationList ? locationSearch : location}
+                onChangeText={(text) => {
+                  if (showLocationList) {
+                    setLocationSearch(text);
+                  } else {
+                    setLocation(text);
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }
+                }}
+                onFocus={() => {
+                  setShowLocationList(true);
+                  setLocationSearch("");
+                }}
+              />
+              {showLocationList && (
+                <TouchableOpacity
+                  onPress={() => setShowLocationList(false)}
+                  style={styles.dropdownToggle}
+                >
+                  <Text style={styles.dropdownToggleText}>▲</Text>
+                </TouchableOpacity>
+              )}
+              {!showLocationList && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowLocationList(true);
+                    setLocationSearch("");
+                  }}
+                  style={styles.dropdownToggle}
+                >
+                  <Text style={styles.dropdownToggleText}>▼</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             {showLocationList && (
               <View style={styles.dropdownContainer}>
-                {filteredConstituencies.map((item) => (
-                  <TouchableOpacity
-                    key={`${item.code}-${item.name}`}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setLocation(item.name);
-                      setLocationSearch(item.name);
-                      setShowLocationList(false);
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
+                <ScrollView style={styles.scrollContainer}>
+                  {filteredConstituencies.map((item) => (
+                    <TouchableOpacity
+                      key={`${item.code}-${item.name}`}
+                      style={styles.listItem}
+                      onPress={() => {
+                        setLocation(item.name);
+                        setLocationSearch("");
+                        setShowLocationList(false);
+                      }}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             )}
           </View>
@@ -221,6 +302,7 @@ const Rskill = ({ closeModal }) => {
             keyboardType="numeric"
             style={styles.input}
             placeholder="Enter mobile number"
+            maxLength={10}
           />
 
           <View style={styles.buttonContainer}>
@@ -252,7 +334,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 310,
     maxWidth: 400,
-    marginTop: 50,
+    marginTop: "40%",
+    // alignItems:"center",justifyContent:"center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
@@ -288,14 +371,35 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     padding: 12,
   },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 25,
+    paddingRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 12,
+  },
+  dropdownToggle: {
+    padding: 5,
+  },
+  dropdownToggleText: {
+    fontSize: 12,
+    color: "#666",
+  },
   dropdownContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     marginTop: 5,
     maxHeight: 200,
-    overflow: "scroll",
     backgroundColor: "#e6708e",
+  },
+  scrollContainer: {
+    maxHeight: 150,
   },
   listItem: {
     padding: 10,

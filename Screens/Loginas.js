@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import logo from "../assets/logo.png"
 
 const LoginScreen = () => {
   return (
@@ -14,7 +15,7 @@ const LoginScreen = () => {
 
       {/* Card Section */}
       <View style={styles.card}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={logo} style={styles.logo} />
 
         <View style={styles.buttonRow}>
           <View style={styles.buttonColumn}>

@@ -114,11 +114,11 @@ const AddInvestor = ({ closeModal }) => {
   const renderDropdown = () => {
     return (
       <View style={styles.dropdownContainer}>
-        <ScrollView style={styles.dropdown}>
+        <ScrollView style={styles.scrollContainer}>
           {skills.map((item) => (
             <TouchableOpacity
               key={item}
-              style={styles.dropdownItem}
+              style={styles.listItem}
               onPress={() => {
                 setSkill(item);
                 setShowDropdown(false);
@@ -154,41 +154,71 @@ const AddInvestor = ({ closeModal }) => {
           />
 
           <Text style={styles.label}>Select Category</Text>
-          <TouchableOpacity
-            onPress={() => {
-              setShowDropdown(!showDropdown);
-              setShowLocationList(false);
-            }}
-            style={styles.input}
-          >
-            <Text style={{ color: skill ? "#000" : "#aaa" }}>
-              {skill || "-- Select Skill Type --"}
-            </Text>
-          </TouchableOpacity>
-          {showDropdown && renderDropdown()}
+          <View style={styles.inputContainer}>
+            <View style={styles.searchInputContainer}>
+              <TouchableOpacity
+                style={styles.searchInput}
+                onPress={() => {
+                  setShowDropdown(!showDropdown);
+                  setShowLocationList(false);
+                }}
+              >
+                <Text style={skill ? {} : styles.placeholderText}>
+                  {skill || "-- Select Category --"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowDropdown(!showDropdown)}
+                style={styles.dropdownToggle}
+              >
+                <Text style={styles.dropdownToggleText}>
+                  {showDropdown ? "▲" : "▼"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {showDropdown && renderDropdown()}
+          </View>
 
           <Text style={styles.label}>Location</Text>
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={locationSearch}
-              onChangeText={(text) => {
-                setLocationSearch(text);
-                setShowLocationList(true);
-              }}
-              onFocus={() => setShowLocationList(true)}
-            />
+            <View style={styles.searchInputContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Ex. Vijayawada"
+                value={showLocationList ? locationSearch : location}
+                onChangeText={(text) => {
+                  if (showLocationList) {
+                    setLocationSearch(text);
+                  } else {
+                    setLocation(text);
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }
+                }}
+                onFocus={() => {
+                  setShowLocationList(true);
+                  setLocationSearch("");
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => setShowLocationList(!showLocationList)}
+                style={styles.dropdownToggle}
+              >
+                <Text style={styles.dropdownToggleText}>
+                  {showLocationList ? "▲" : "▼"}
+                </Text>
+              </TouchableOpacity>
+            </View>
             {showLocationList && (
-              <View style={styles.locationListContainer}>
-                <ScrollView style={styles.locationList}>
+              <View style={styles.dropdownContainer}>
+                <ScrollView style={styles.scrollContainer}>
                   {filteredConstituencies.map((item) => (
                     <TouchableOpacity
                       key={`${item.code}-${item.name}`}
-                      style={styles.locationListItem}
+                      style={styles.listItem}
                       onPress={() => {
                         setLocation(item.name);
-                        setLocationSearch(item.name);
+                        setLocationSearch("");
                         setShowLocationList(false);
                       }}
                     >
@@ -207,17 +237,20 @@ const AddInvestor = ({ closeModal }) => {
             keyboardType="numeric"
             style={styles.input}
             placeholder="Mobile Number"
+            maxLength={10}
           />
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.registerButton}
+              style={[styles.registerButton, loading && styles.disabledButton]}
               onPress={handleRegister}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>
-                {loading ? "Registering..." : "Register"}
-              </Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Register</Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
               <Text style={styles.buttonText}>Cancel</Text>
@@ -272,38 +305,37 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 15,
   },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 25,
+    paddingRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 12,
+  },
+  dropdownToggle: {
+    padding: 5,
+  },
+  dropdownToggleText: {
+    fontSize: 12,
+    color: "#666",
+  },
   dropdownContainer: {
-    position: "absolute",
-    top: 160,
-    left: 20,
-    right: 20,
-    zIndex: 999,
-  },
-  dropdown: {
-    maxHeight: 150,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    backgroundColor: "#fff",
-  },
-  dropdownItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  locationListContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
+    marginTop: 5,
+    maxHeight: 200,
     backgroundColor: "#e6708e",
-    maxHeight: 200,
-    marginTop: -10,
-    marginBottom: 5,
   },
-  locationList: {
-    maxHeight: 200,
+  scrollContainer: {
+    maxHeight: 150,
   },
-  locationListItem: {
+  listItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
@@ -329,6 +361,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fff",
     fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  placeholderText: {
+    color: "rgba(0, 0, 0, 0.5)",
   },
 });
 

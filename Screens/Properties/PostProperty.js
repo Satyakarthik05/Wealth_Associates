@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,13 +12,14 @@ import {
   ScrollView,
   ActivityIndicator,
   Modal,
+  TouchableWithoutFeedback
 } from "react-native";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import PropertyCard from "./PropertyCard"; // Import the PropertyCard component
+import PropertyCard from "./PropertyCard";
 
 const { width } = Dimensions.get("window");
 
@@ -40,9 +41,15 @@ const PostProperty = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
-  const [propertyDetails, setPropertyDetails] = useState(""); // New state for property-specific details
+  const [propertyDetails, setPropertyDetails] = useState("");
 
-  // Fetch agent details
+  const modalRef = useRef();
+  const propertyTypeInputRef = useRef();
+  const locationInputRef = useRef();
+  const propertyDetailsInputRef = useRef();
+  const priceInputRef = useRef();
+  const scrollViewRef = useRef();
+
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -62,7 +69,6 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Fetch property types from backend
   const fetchPropertyTypes = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/propertytype`);
@@ -73,7 +79,6 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Fetch constituencies data
   const fetchData = async () => {
     try {
       const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -90,33 +95,27 @@ const PostProperty = ({ closeModal }) => {
     fetchData();
   }, []);
 
-  // Filter property types based on search input
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
   );
 
-  // Filter constituencies based on search input
   const filteredConstituencies = constituencies.flatMap((item) =>
     item.assemblies.filter((assembly) =>
       assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
     )
   );
 
-  // Validate form inputs
   const validateForm = () => {
     const newErrors = {};
-    if (!propertyType)
-      newErrors.propertyType = "Please select a property type.";
+    if (!propertyType) newErrors.propertyType = "Please select a property type.";
     if (!location) newErrors.location = "Location is required.";
     if (!price) newErrors.price = "Price is required.";
     if (!photo) newErrors.photo = "Please upload a photo.";
-    if (!propertyDetails)
-      newErrors.propertyDetails = "Property details are required.";
+    if (!propertyDetails) newErrors.propertyDetails = "Property details are required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle property posting
   const handlePost = async () => {
     if (validateForm()) {
       setLoading(true);
@@ -129,38 +128,28 @@ const PostProperty = ({ closeModal }) => {
         formData.append("Constituency", Constituency);
         formData.append("propertyDetails", propertyDetails);
 
-        // Handle image upload
         if (photo) {
           if (Platform.OS === "web") {
             if (file) {
-              // Append the file for web
               formData.append("photo", file);
             } else if (typeof photo === "string" && photo.startsWith("blob:")) {
-              // Convert Blob URL to File
               const response = await fetch(photo);
               const blob = await response.blob();
               const file = new File([blob], "photo.jpg", { type: blob.type });
               formData.append("photo", file);
             }
           } else {
-            // Append the image URI for mobile
             formData.append("photo", {
               uri: photo,
               name: "photo.jpg",
               type: "image/jpeg",
             });
           }
-        } else {
-          console.error("No photo selected.");
-          return;
         }
 
         const response = await fetch(`${API_URL}/properties/addProperty`, {
           method: "POST",
           body: formData,
-          headers: {
-            // Don't set Content-Type for FormData, it is automatically set by the browser
-          },
         });
 
         const result = await response.json();
@@ -173,7 +162,6 @@ const PostProperty = ({ closeModal }) => {
             propertyType,
             PostedBy,
             fullName: `${Details.FullName}`,
-            // propertyDetails,
           });
         } else {
           alert(`Error: ${result.message}`);
@@ -187,11 +175,9 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Select image from gallery
   const selectImageFromGallery = async () => {
     try {
       if (Platform.OS === "web") {
-        // Handle image selection for web
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
@@ -199,16 +185,13 @@ const PostProperty = ({ closeModal }) => {
           const file = event.target.files[0];
           if (file) {
             const imageUrl = URL.createObjectURL(file);
-            setPhoto(imageUrl); // Set the image URL for display
-            setFile(file); // Store the file for FormData
+            setPhoto(imageUrl);
+            setFile(file);
           }
         };
         input.click();
       } else {
-        // Handle image selection for mobile
-        const permissionResult =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.status !== "granted") {
           alert("Permission is required to upload a photo.");
           return;
@@ -228,11 +211,9 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Take photo with camera
   const takePhotoWithCamera = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
       if (status !== "granted") {
         alert("Camera permission is required to take a photo.");
         return;
@@ -252,207 +233,242 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Get placeholder text for property details input
   const getPropertyDetailsPlaceholder = () => {
     switch (propertyType.toLowerCase()) {
-      case "land":
-        return "Enter area in acres";
-      case "apartment":
-        return "Enter area in square feet";
-      case "residential properties":
-        return "Enter number of bedrooms";
-      case "commercial properties":
-        return "Enter area in square feet";
-      case "house":
-        return "Enter number of bedrooms";
-      default:
-        return "Enter property details";
+      case "land": return "Enter area in acres";
+      case "apartment": return "Enter area in square feet";
+      case "residential properties": return "Enter number of bedrooms";
+      case "commercial properties": return "Enter area in square feet";
+      case "house": return "Enter number of bedrooms";
+      default: return "Enter property details";
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Post a Property</Text>
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Upload Photo</Text>
-          <View style={styles.uploadSection}>
-            {photo ? (
-              <View>
-                <Image source={{ uri: photo }} style={styles.uploadedImage} />
-                <Button
-                  mode="outlined"
-                  style={styles.removeButton}
-                  onPress={() => setPhoto(null)}
-                >
-                  Remove
-                </Button>
-              </View>
-            ) : (
-              <View style={styles.uploadOptions}>
-                <TouchableOpacity
-                  style={styles.uploadPlaceholder}
-                  onPress={selectImageFromGallery}
-                >
-                  <Text style={styles.uploadPlaceholderText}>Gallery</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.uploadPlaceholder}
-                  onPress={takePhotoWithCamera}
-                >
-                  <MaterialIcons name="camera-alt" size={24} color="#555" />
-                  <Text style={styles.uploadPlaceholderText}>Camera</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-          {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
-          <Text style={styles.label}>Property Type</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Search Property Type"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              value={propertyTypeSearch}
-              onChangeText={(text) => {
-                setPropertyTypeSearch(text);
-                setShowPropertyTypeList(true);
-              }}
-              onFocus={() => {
-                setShowPropertyTypeList(true);
-              }}
-            />
-            {showPropertyTypeList && (
-              <View style={styles.dropdownContainer}>
-                {filteredPropertyTypes.map((item) => (
-                  <TouchableOpacity
-                    key={`${item.code}-${item.name}`}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setPropertyType(item.name);
-                      setPropertyTypeSearch(item.name);
-                      setShowPropertyTypeList(false);
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-          {errors.propertyType && (
-            <Text style={styles.errorText}>{errors.propertyType}</Text>
-          )}
-          {propertyType && (
-            <>
-              <Text style={styles.label}>Property Details</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={getPropertyDetailsPlaceholder()}
-                value={propertyDetails}
-                onChangeText={setPropertyDetails}
-              />
-              {errors.propertyDetails && (
-                <Text style={styles.errorText}>{errors.propertyDetails}</Text>
-              )}
-            </>
-          )}
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={locationSearch}
-              onChangeText={(text) => {
-                setLocationSearch(text);
-                setShowLocationList(true);
-              }}
-              onFocus={() => {
-                setShowLocationList(true);
-              }}
-            />
-            {showLocationList && (
-              <View style={styles.dropdownContainer}>
-                {filteredConstituencies.map((item) => (
-                  <TouchableOpacity
-                    key={`${item.code}-${item.name}`}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setLocation(item.name);
-                      setLocationSearch(item.name);
-                      setShowLocationList(false);
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-          {errors.location && (
-            <Text style={styles.errorText}>{errors.location}</Text>
-          )}
-          <Text style={styles.label}>Price</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Price"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-          {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.postButton, loading && styles.disabledButton]}
-              onPress={handlePost}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.postButtonText}>Post</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-          {loading && (
-            <ActivityIndicator
-              style={styles.loadingIndicator}
-              size="large"
-              color="#D81B60"
-            />
-          )}
-        </View>
-      </ScrollView>
+  const handlePropertyTypeFocus = () => {
+    setShowPropertyTypeList(true);
+    setShowLocationList(false);
+  };
 
-      {/* Modal to display the PropertyCard after successful posting */}
-      <Modal
-        visible={!!postedProperty}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setPostedProperty(null)}
-      >
-        <View style={styles.modalContainer}>
-          <PropertyCard property={postedProperty} closeModal={closeModal} />
-        </View>
-      </Modal>
-    </KeyboardAvoidingView>
+  const handleLocationFocus = () => {
+    setShowLocationList(true);
+    setShowPropertyTypeList(false);
+  };
+
+  const handleOtherInputFocus = () => {
+    setShowPropertyTypeList(false);
+    setShowLocationList(false);
+  };
+
+  const handlePropertyTypeSelect = (item) => {
+    setPropertyType(item.name);
+    setPropertyTypeSearch(item.name);
+    setShowPropertyTypeList(false);
+    propertyDetailsInputRef.current?.focus();
+  };
+
+  const handleLocationSelect = (item) => {
+    setLocation(item.name);
+    setLocationSearch(item.name);
+    setShowLocationList(false);
+    priceInputRef.current?.focus();
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={closeModal}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback>
+          <KeyboardAvoidingView
+            style={styles.modalContainer}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+            ref={modalRef}
+          >
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={styles.scrollContainer}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.title}>Post a Property</Text>
+              <View style={styles.formContainer}>
+                <Text style={styles.label}>Upload Photo</Text>
+                <View style={styles.uploadSection}>
+                  {photo ? (
+                    <View>
+                      <Image source={{ uri: photo }} style={styles.uploadedImage} />
+                      <Button
+                        mode="outlined"
+                        style={styles.removeButton}
+                        onPress={() => setPhoto(null)}
+                      >
+                        Remove
+                      </Button>
+                    </View>
+                  ) : (
+                    <View style={styles.uploadOptions}>
+                      <TouchableOpacity
+                        style={styles.uploadPlaceholder}
+                        onPress={selectImageFromGallery}
+                      >
+                        <Text style={styles.uploadPlaceholderText}>Gallery</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.uploadPlaceholder}
+                        onPress={takePhotoWithCamera}
+                      >
+                        <MaterialIcons name="camera-alt" size={24} color="#555" />
+                        <Text style={styles.uploadPlaceholderText}>Camera</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+                {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
+
+                <Text style={styles.label}>Property Type</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    ref={propertyTypeInputRef}
+                    style={styles.input}
+                    placeholder="Search Property Type"
+                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                    value={propertyTypeSearch}
+                    onChangeText={(text) => {
+                      setPropertyTypeSearch(text);
+                      setShowPropertyTypeList(true);
+                    }}
+                    onFocus={handlePropertyTypeFocus}
+                  />
+                  {showPropertyTypeList && (
+                    <View style={styles.dropdownContainer}>
+                      {filteredPropertyTypes.map((item) => (
+                        <TouchableOpacity
+                          key={`${item.code}-${item.name}`}
+                          style={styles.listItem}
+                          onPress={() => handlePropertyTypeSelect(item)}
+                        >
+                          <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+                {errors.propertyType && (
+                  <Text style={styles.errorText}>{errors.propertyType}</Text>
+                )}
+
+                {propertyType && (
+                  <>
+                    <Text style={styles.label}>Property Details</Text>
+                    <TextInput
+                      ref={propertyDetailsInputRef}
+                      style={styles.input}
+                      placeholder={getPropertyDetailsPlaceholder()}
+                      value={propertyDetails}
+                      onChangeText={setPropertyDetails}
+                      onFocus={handleOtherInputFocus}
+                    />
+                    {errors.propertyDetails && (
+                      <Text style={styles.errorText}>{errors.propertyDetails}</Text>
+                    )}
+                  </>
+                )}
+
+                <Text style={styles.label}>Location</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    ref={locationInputRef}
+                    style={styles.input}
+                    placeholder="Ex. Vijayawada"
+                    value={locationSearch}
+                    onChangeText={(text) => {
+                      setLocationSearch(text);
+                      setShowLocationList(true);
+                    }}
+                    onFocus={handleLocationFocus}
+                  />
+                  {showLocationList && (
+                    <View style={styles.dropdownContainer}>
+                      {filteredConstituencies.map((item) => (
+                        <TouchableOpacity
+                          key={`${item.code}-${item.name}`}
+                          style={styles.listItem}
+                          onPress={() => handleLocationSelect(item)}
+                        >
+                          <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+                {errors.location && (
+                  <Text style={styles.errorText}>{errors.location}</Text>
+                )}
+
+                <Text style={styles.label}>Price</Text>
+                <TextInput
+                  ref={priceInputRef}
+                  style={styles.input}
+                  placeholder="Enter Price"
+                  value={price}
+                  onChangeText={setPrice}
+                  keyboardType="numeric"
+                  onFocus={handleOtherInputFocus}
+                />
+                {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.postButton, loading && styles.disabledButton]}
+                    onPress={handlePost}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.postButtonText}>Post</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+
+        <Modal
+          visible={!!postedProperty}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setPostedProperty(null)}
+        >
+          <View style={styles.modalContainer}>
+            <PropertyCard property={postedProperty} closeModal={closeModal} />
+          </View>
+        </Modal>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
-// Styles (unchanged)
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: '100%',
+  },
+  modalContainer: {
+    width: Platform.OS === "web" ? "40%" : "90%",
+    maxHeight: Dimensions.get('window').height * 0.9,
+    backgroundColor: "#fff",
+    borderRadius: 30,
     marginTop: Platform.OS === "ios" ? 90 : 0,
+  },
+  container: {
     flex: 1,
     backgroundColor: "#fff",
-    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : "40%",
     borderRadius: 30,
   },
   scrollContainer: { flexGrow: 1, padding: 20 },
@@ -575,12 +591,6 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     marginTop: 20,
     alignSelf: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
