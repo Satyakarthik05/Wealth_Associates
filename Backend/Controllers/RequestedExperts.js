@@ -38,4 +38,25 @@ const getAllRequestedExperts = async (req, res) => {
   }
 };
 
-module.exports = { registerExpertRequest, getAllRequestedExperts };
+const resolvedRequest = async (req, res) => {
+  try {
+    const expert = await RequestedExpert.findById(req.params.id);
+    if (!expert) {
+      return res.status(404).json({ message: "Expert request not found" });
+    }
+
+    expert.resolved = true;
+    expert.resolvedAt = new Date();
+    const updatedExpert = await expert.save();
+
+    res.json(updatedExpert);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+module.exports = {
+  registerExpertRequest,
+  getAllRequestedExperts,
+  resolvedRequest,
+};

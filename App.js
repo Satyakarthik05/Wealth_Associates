@@ -44,7 +44,7 @@ export default function App() {
         const storedVersion = await AsyncStorage.getItem("appVersion");
         if (storedVersion !== APP_VERSION) {
           console.log("New version detected, clearing authToken...");
-          await AsyncStorage.removeItem("authToken"); // Clear authToken on first run after update
+          await AsyncStorage.removeItem("authToken");
           await AsyncStorage.setItem("appVersion", APP_VERSION);
         }
 

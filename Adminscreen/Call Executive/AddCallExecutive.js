@@ -8,46 +8,148 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
 const isMobile = width < 600;
 
-const AddCallExecutive = ({ closeModal }) => {
+const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleAddExecutive = async () => {
+    if (!name || !phone || !location || !password) {
+      Alert.alert("Error", "Please fill all fields");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setErrorMessage(""); // Clear any previous error messages
+
+      const response = await fetch(
+        "http://localhost:3000/callexe/addcall-executives",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            phone,
+            location,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          setErrorMessage("Mobile number already exists");
+        } else {
+          throw new Error(data.message || "Failed to add call executive");
+        }
+        return;
+      }
+
+      Alert.alert("Success", "Call executive added successfully");
+      setName("");
+      setPhone("");
+      setLocation("");
+      setPassword("");
+      // fetchCallExecutives();
+      closeModal();
+    } catch (error) {
+      console.error("Error adding call executive:", error);
+      Alert.alert("Error", error.message || "Failed to add call executive");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.wrapper}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.wrapper}
+    >
       <View style={[styles.container, { width: "90%", maxWidth: 400 }]}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Add Call Executive</Text>
         </View>
 
+        {/* Error message display */}
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Name</Text>
-          <TextInput style={styles.input} placeholder="Enter Name" value={name} onChangeText={setName} />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Name"
+            value={name}
+            onChangeText={setName}
+          />
         </View>
         <View style={styles.formGroup}>
           <Text style={styles.label}>Phone Number</Text>
-          <TextInput style={styles.input} placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Phone Number"
+            value={phone}
+            onChangeText={(text) => {
+              setPhone(text);
+              setErrorMessage(""); // Clear error when user starts typing
+            }}
+            keyboardType="phone-pad"
+            maxLength={10}
+          />
         </View>
         <View style={styles.formGroup}>
           <Text style={styles.label}>Location</Text>
-          <TextInput style={styles.input} placeholder="Enter Location" value={location} onChangeText={setLocation} />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Location"
+            value={location}
+            onChangeText={setLocation}
+          />
         </View>
         <View style={styles.formGroup}>
           <Text style={styles.label}>Password</Text>
-          <TextInput style={styles.input} placeholder="Enter Password" value={password} onChangeText={setPassword} secureTextEntry />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            minLength={6}
+          />
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addText}>Add</Text>
+          <TouchableOpacity
+            style={[styles.addButton, isLoading && styles.disabledButton]}
+            onPress={handleAddExecutive}
+            disabled={isLoading}
+          >
+            <Text style={styles.addText}>
+              {isLoading ? "Adding..." : "Add"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+          <TouchableOpacity
+            style={[styles.cancelButton, isLoading && styles.disabledButton]}
+            onPress={closeModal}
+            disabled={isLoading}
+          >
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -129,6 +231,21 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: "white",
+    fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  errorContainer: {
+    width: "100%",
+    backgroundColor: "#FFEBEE",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: "#D32F2F",
+    textAlign: "center",
     fontWeight: "bold",
   },
 });

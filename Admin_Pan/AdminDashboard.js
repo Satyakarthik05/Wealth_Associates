@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //importing components
 import ViewCustomers from "../Adminscreen/Customer";
@@ -144,7 +145,7 @@ const menuItems = [
   {
     title: "Call Executive",
     icon: "business-outline",
-    subItems: ["Add Call Executive", "View Call Executive"]
+    subItems: ["Add Call Executive", "View Call Executive"],
   },
   {
     title: "Master Data",
@@ -212,6 +213,9 @@ const AdminDashboard = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [expertType, setExpertType] = useState(null);
+  const [isViewCallVisible, setIsViewCallVisible] = useState(false);
+  const [isAddCallVisible, setIsAddCallVisible] = useState(false);
+  const navigation = useNavigation();
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -495,7 +499,10 @@ const AdminDashboard = () => {
             />
             <Text style={styles.language}>English</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("Main Screen")}
+              onPress={() => {
+                navigation.navigate("Main Screen"),
+                  AsyncStorage.removeItem("userType");
+              }}
               style={{
                 backgroundColor: "pink",
                 width: 60,

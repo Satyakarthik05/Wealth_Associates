@@ -14,7 +14,7 @@ import {
   TextInput,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -52,13 +52,13 @@ const ViewAllProperties = () => {
       const data = await response.json();
       setConstituencies(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching constituencies:", error);
     }
   };
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch(`${API_URL}/properties/getallPropertys`);
+      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data);
@@ -83,19 +83,17 @@ const ViewAllProperties = () => {
     return id ? id.slice(-4) : "N/A";
   };
 
-  // Filter property types based on search input
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
   );
 
-  // Filter constituencies based on search input
   const filteredConstituencies = constituencies.flatMap((item) =>
     item.assemblies.filter((assembly) =>
       assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
     )
   );
 
-  // Filter properties based on ID search
+  // Filter properties based on search criteria
   const filteredProperties = properties.filter((property) => {
     const matchesId = idSearch
       ? getLastFourChars(property._id)
@@ -127,9 +125,12 @@ const ViewAllProperties = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/properties/delete/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `${API_URL}/properties/approvedelete/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       const result = await response.json();
       if (response.ok) {
@@ -165,7 +166,7 @@ const ViewAllProperties = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(
-        `${API_URL}/properties/update/${selectedProperty._id}`,
+        `${API_URL}/properties/approveupdate/${selectedProperty._id}`,
         {
           method: "PUT",
           headers: {
@@ -284,7 +285,7 @@ const ViewAllProperties = () => {
             {filteredProperties.map((item) => {
               const imageUri = item.photo
                 ? { uri: `${API_URL}${item.photo}` }
-                : require("../assets/logo.png");
+                : require("../../../assets/logo.png");
               const propertyId = getLastFourChars(item._id);
 
               return (
@@ -295,8 +296,8 @@ const ViewAllProperties = () => {
                       <Text style={styles.idText}>ID: {propertyId}</Text>
                     </View>
                     <Text style={styles.title}>{item.propertyType}</Text>
-                    <Text style={styles.title}>{item.propertyDetails}</Text>
                     <Text style={styles.title}>PostedBy:{item.PostedBy}</Text>
+                    <Text style={styles.title}>{item.propertyDetails}</Text>
                     <Text style={styles.info}>Location: {item.location}</Text>
                     <Text style={styles.budget}>
                       ₹ {parseInt(item.price).toLocaleString()}
@@ -314,12 +315,6 @@ const ViewAllProperties = () => {
                       onPress={() => handleDelete(item._id)}
                     >
                       <Text style={styles.buttonText}>Delete</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.button, styles.approveButton]}
-                      onPress={() => handleApprove(item._id)}
-                    >
-                      <Text style={styles.buttonText}>Approve</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -350,7 +345,7 @@ const ViewAllProperties = () => {
                           propertyType: value,
                         })
                       }
-                      style={{ height: 40 }}
+                      style={styles.picker}
                     >
                       <Picker.Item label="Select Property Type" value="" />
                       {filteredPropertyTypes.map((type) => (
@@ -373,13 +368,9 @@ const ViewAllProperties = () => {
                       onValueChange={(value) =>
                         setEditedDetails({ ...editedDetails, location: value })
                       }
-                      style={{ height: 40 }}
+                      style={styles.picker}
                     >
-                      <Picker.Item
-                        label="Select Location"
-                        value=""
-                        style={{ height: 30 }}
-                      />
+                      <Picker.Item label="Select Location" value="" />
                       {filteredConstituencies.map((assembly, index) => (
                         <Picker.Item
                           key={`${assembly._id}-${index}`}
@@ -425,7 +416,7 @@ const ViewAllProperties = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f5f5f5", padding: 15, marginBottom: 40 },
+  container: { backgroundColor: "#f5f5f5", padding: 15, marginBottom: 30 },
   header: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
@@ -530,26 +521,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dropdownContainer: {
-    marginBottom: 10,
+    marginBottom: 15,
   },
   dropdownLabel: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 5,
     fontWeight: "bold",
-  },
-  searchInput: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 5,
   },
   dropdown: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
+    height: 50,
+    justifyContent: "center",
     backgroundColor: "#fff",
-    height: 40,
   },
   modalButtonContainer: {
     flexDirection: "row",
@@ -572,13 +557,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  pickerItem: {
-    height: "100%",
-    width: "100%",
-  },
   searchContainer: {
     marginBottom: 15,
     paddingHorizontal: 10,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    backgroundColor: "#fff",
   },
 });
 

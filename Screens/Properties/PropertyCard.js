@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,19 +7,35 @@ import {
   Linking,
   StyleSheet,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FontAwesome } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import logo from "../../assets/logo.png";
-import { FontAwesome } from "@expo/vector-icons"; // ✅ Add this
+import defaultAgentImage from "../../assets/man.png";
 
 const PropertyCard = ({ property, closeModal }) => {
   const { photo, location, price, propertyType, PostedBy, fullName } = property;
   const viewShotRef = useRef();
+  const [agentImage, setAgentImage] = useState(null);
 
-  const handleVisitSite = () => {
-    Linking.openURL("https://www.wealthassociate.in");
-  };
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      try {
+        const savedImage = await AsyncStorage.getItem("@profileImage");
+        if (savedImage) {
+          setAgentImage({ uri: savedImage });
+        } else {
+          setAgentImage(defaultAgentImage); // Set default image if no saved image
+        }
+      } catch (error) {
+        console.error("Error loading profile image:", error);
+        setAgentImage(defaultAgentImage); // Ensure fallback in case of error
+      }
+    };
+
+    loadProfileImage();
+  }, []);
 
   const handleShareOnWhatsApp = async () => {
     try {
@@ -41,13 +57,8 @@ const PropertyCard = ({ property, closeModal }) => {
       const caption = `Check out this property in ${location} for ₹${price}.`;
       const url = `whatsapp://send?text=${encodeURIComponent(caption)}`;
       Linking.openURL(url)
-        .then(() => {
-          // ✅ Close modal after WhatsApp is opened
-          closeModal();
-        })
-        .catch(() => {
-          alert("WhatsApp is not installed on your device.");
-        });
+        .then(() => closeModal())
+        .catch(() => alert("WhatsApp is not installed on your device."));
     } catch (error) {
       console.error("Error sharing property:", error);
       alert("Failed to share property.");
@@ -59,46 +70,15 @@ const PropertyCard = ({ property, closeModal }) => {
       <ViewShot
         ref={viewShotRef}
         options={{ format: "jpg", quality: 0.9 }}
-        // style={styles.templateContainer}
+        style={{ backgroundColor: "#5a89cc", borderRadius: 10, padding: 10 }}
       >
-        <Text
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlign: "center",
-            fontSize: 25,
-            fontWeight: "600",
-            marginBottom: 20,
-            color: "white",
-          }}
-        >
-          Property For Sale
-        </Text>
+        <Text style={styles.title}>Property For Sale</Text>
         <View style={styles.header}>
-          <View style={{ display: "flex", flexDirection: "column" }}>
+          <View style={{ flexDirection: "column" }}>
             <Text style={styles.propertyType}>{propertyType}</Text>
-            <Text style={styles.locationText}>Location:{location}</Text>
+            <Text style={styles.locationText}>Location: {location}</Text>
           </View>
-          <View>
-            <Image
-              source={logo}
-              style={{
-                width: 80,
-                height: 80,
-                position: "relative",
-                // left: "20%",
-                top: 10,
-                left: -10,
-              }}
-            />
-            <Image
-              source={{
-                uri: "https://www.wealthassociate.in/images/logo.png",
-              }}
-              style={styles.logo}
-            />
-          </View>
+          <Image source={logo} style={styles.logo} />
         </View>
 
         <View style={styles.imageSection}>
@@ -110,25 +90,21 @@ const PropertyCard = ({ property, closeModal }) => {
 
         <View style={styles.footer}>
           <View style={styles.agentInfo}>
-            <View style={styles.agentImageCircle}>
-              <Text style={styles.agentImgText}>agent img</Text>
-            </View>
+            <Image source={agentImage} style={styles.agentImage} />
             <View style={styles.agentDetails}>
               <Text style={styles.agentName}>{fullName}</Text>
               <Text style={styles.agentPhone}>{PostedBy}</Text>
             </View>
           </View>
-          {/* <View style={styles.locationBox}></View> */}
         </View>
       </ViewShot>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => closeModal()}>
+        <TouchableOpacity style={styles.button} onPress={closeModal}>
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleShareOnWhatsApp}>
           <FontAwesome name="whatsapp" size={24} color="#25D366" />
-
           <Text style={styles.buttonText}>Share on WhatsApp</Text>
         </TouchableOpacity>
       </View>
@@ -144,13 +120,20 @@ const styles = StyleSheet.create({
     margin: 10,
     width: "100%",
   },
+  title: {
+    textAlign: "center",
+    fontSize: 25,
+    fontWeight: "600",
+    marginBottom: 20,
+    color: "white",
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#eee",
-    // padding: 10,
     borderRadius: 8,
+    padding: 10,
   },
   propertyType: {
     fontSize: 18,
@@ -167,8 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     borderRadius: 15,
     overflow: "hidden",
-    // paddingBottom: 10,
-    position: "relative",
     alignItems: "center",
   },
   propertyImage: {
@@ -202,22 +183,14 @@ const styles = StyleSheet.create({
     flex: 2,
     marginRight: 5,
   },
-  agentImageCircle: {
+  agentImage: {
     width: 80,
     height: 80,
     borderRadius: 50,
     borderWidth: 2,
     borderColor: "#e653b3",
     backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
     marginRight: 10,
-    position: "relative",
-    right: 5,
-  },
-  agentImgText: {
-    fontSize: 10,
-    textAlign: "center",
   },
   agentDetails: {
     justifyContent: "center",
@@ -230,14 +203,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
   },
-  // locationBox: {
-  //   flex: 1,
-  //   backgroundColor: "#eee",
-  //   borderRadius: 10,
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   padding: 10,
-  // },
   locationText: {
     fontSize: 16,
     fontWeight: "700",
