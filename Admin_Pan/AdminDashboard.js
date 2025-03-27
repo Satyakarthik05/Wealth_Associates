@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //importing components
 import ViewCustomers from "../Adminscreen/Customer";
@@ -62,7 +63,8 @@ import ViewCoreMembers from "../Adminscreen/Core Member/ViewCoreMembers";
 import ExpertRoute from "../Adminscreen/Expert Panel/ExpertRoute";
 import ExpertDetails from "../Adminscreen/Expert Panel/ExpertDetails";
 import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
+import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
 
 const menuItems = [
   {
@@ -130,15 +132,20 @@ const menuItems = [
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
+      "Register Skilled Resource",
+      "View Skilled Resource",
+      "All Skilled Resource",
     ],
   },
   {
     title: "Investors",
     icon: "business-outline",
     subItems: ["Add Investor", "View Investors", "View All Investors"],
+  },
+  {
+    title: "Call Executive",
+    icon: "business-outline",
+    subItems: ["Add Call Executive", "View Call Executive"],
   },
   {
     title: "Master Data",
@@ -206,6 +213,8 @@ const AdminDashboard = () => {
   const [isExperDetails, setIsExpertDetails] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [expertType, setExpertType] = useState(null);
+  const [isViewCallVisible, setIsViewCallVisible] = useState(false);
+  const [isAddCallVisible, setIsAddCallVisible] = useState(false);
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -274,6 +283,8 @@ const AdminDashboard = () => {
     setIsViewCoreMember(false);
     setIsExpertPanelVisible(false);
     setViewApprovedProperties(false);
+    setIsAddCallVisible(false);
+    setIsViewCallVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -362,6 +373,10 @@ const AdminDashboard = () => {
       setIsExpertPanelVisible(true);
     } else if (subItem === "ViewApprovedProperties") {
       setViewApprovedProperties(true);
+    } else if (subItem === "Add Call Executive") {
+      setIsAddCallVisible(true);
+    } else if (subItem === "View Call Executive") {
+      setIsViewCallVisible(true);
     }
   };
 
@@ -406,6 +421,8 @@ const AdminDashboard = () => {
     setIsViewReferral(false);
     setIsAddReferral(false);
     setIsCoreMember(false);
+    setIsAddCallVisible(false);
+    setIsViewCallVisible(false);
   };
 
   const renderContent = () => {
@@ -427,6 +444,7 @@ const AdminDashboard = () => {
     if (isViewCoreMember) return <ViewCoreMembers />;
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
+    if (isViewCallVisible) return <ViewCallExecutives />;
 
     return <Dashboard />;
   };
@@ -481,7 +499,10 @@ const AdminDashboard = () => {
             />
             <Text style={styles.language}>English</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("Main Screen")}
+              onPress={() => {
+                navigation.navigate("Main Screen"),
+                  AsyncStorage.removeItem("userType");
+              }}
               style={{
                 backgroundColor: "pink",
                 width: 60,
@@ -667,6 +688,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCoreMember} closeModal={closeModal}>
         <AddCoreMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddCallVisible} closeModal={closeModal}>
+        <AddCallExecutive closeModal={closeModal} />
       </CustomModal>
     </View>
   );

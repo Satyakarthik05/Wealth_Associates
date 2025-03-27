@@ -20,5 +20,9 @@ app.put(
   verifyUser,
   RequestProperty.UpdateRequestedProperty
 );
+app.put(
+  "/adminupdateProperty/:id",
+  RequestProperty.AdminUpdateRequestedProperty
+);
 
 module.exports = app;

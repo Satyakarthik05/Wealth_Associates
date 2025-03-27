@@ -12,32 +12,147 @@ import {
   Dimensions,
   Platform,
   Alert,
-
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Add_Agent from "./Add_Agent";
+import * as ImagePicker from "expo-image-picker";
 import Modify_Deatils from "./Modify_Details";
 import CustomModal from "../../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
-// import App from "../../../App";
 
 const { width } = Dimensions.get("window");
 
 const Agent_Profile = ({ onDetailsUpdates }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [Details, setDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
     getDetails();
+    loadProfileImage();
+    requestPermissions();
   }, []);
 
+  const requestPermissions = async () => {
+    if (Platform.OS !== "web") {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera roll permissions to make this work!");
+      }
+
+      const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraStatus.status !== "granted") {
+        alert("Sorry, we need camera permissions to make this work!");
+      }
+    }
+  };
+
+  const loadProfileImage = async () => {
+    try {
+      const savedImage = await AsyncStorage.getItem("@profileImage");
+      if (savedImage !== null) {
+        setProfileImage(savedImage);
+      }
+    } catch (error) {
+      console.error("Error loading profile image:", error);
+    }
+  };
+
+  const handleImagePicker = () => {
+    if (Platform.OS === "web") {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            saveImage(event.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert("Select Image", "Choose an option", [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Gallery",
+          onPress: async () => {
+            let result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              saveImage(result.assets[0].uri);
+            }
+          },
+        },
+        {
+          text: "Camera",
+          onPress: async () => {
+            let result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 1,
+            });
+
+            if (!result.canceled) {
+              saveImage(result.assets[0].uri);
+            }
+          },
+        },
+      ]);
+    }
+  };
+
+  const saveImage = async (uri) => {
+    try {
+      await AsyncStorage.setItem("@profileImage", uri);
+      setProfileImage(uri);
+    } catch (error) {
+      console.error("Error saving profile image:", error);
+    }
+  };
+
+  const deleteProfileImage = async () => {
+    Alert.alert(
+      "Delete Profile Image",
+      "Are you sure you want to remove your profile image?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem("@profileImage");
+              setProfileImage(null);
+            } catch (error) {
+              console.error("Error deleting profile image:", error);
+              Alert.alert("Error", "Failed to remove profile image");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleDetailsUpdate = () => {
-    getDetails(); // Fetch the updated details
+    getDetails();
   };
 
   const getDetails = async () => {
@@ -59,25 +174,27 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
   };
 
   const LogOut = async () => {
-    const token = await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("authToken");
     navigation.navigate("App");
   };
+
   const LogOuts = async () => {
-    // Show a confirmation alert
     Alert.alert(
       "Confirm Delete",
       "Are you sure you want to delete your account?",
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "OK",
           onPress: async () => {
-            Alert.alert("Your delete account request is successfuly submited our executive will reach  you out soon to confirm")
-          }
-        }
+            Alert.alert(
+              "Your delete account request is successfuly submited our executive will reach  you out soon to confirm"
+            );
+          },
+        },
       ],
       { cancelable: false }
     );
@@ -96,14 +213,34 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
         ) : (
           <>
             <View style={styles.profileHeader}>
-              <Image
-                source={require("../../../assets/man2.png")}
-                style={styles.avatar}
-              />
+              <View style={{ position: "relative" }}>
+                <Image
+                  source={
+                    profileImage
+                      ? { uri: profileImage }
+                      : require("../../../assets/man2.png")
+                  }
+                  style={styles.avatar}
+                />
+                <TouchableOpacity
+                  style={styles.cameraButton}
+                  onPress={handleImagePicker}
+                >
+                  <FontAwesome name="camera" size={20} color="white" />
+                </TouchableOpacity>
+
+                {profileImage && (
+                  <TouchableOpacity
+                    style={styles.deleteImageButton}
+                    onPress={deleteProfileImage}
+                  >
+                    <MaterialIcons name="delete" size={20} color="white" />
+                  </TouchableOpacity>
+                )}
+              </View>
               <Text style={styles.profileName}>{Details.name}</Text>
             </View>
             <View style={styles.profileCard}>
-              {/* <Text style={styles.sectionTitle}>My Profile</Text> */}
               <View style={styles.profileForm}>
                 {profileFields.map(({ label, icon, key }) => (
                   <CustomInput
@@ -126,24 +263,16 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
                   <Text style={styles.buttonTexts}>Logout </Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={{display:"flex",alignItems:"center", justifyContent:"center",marginTop:10}} onPress={()=>{Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete your account?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "OK",
-          onPress: async () => {
-            Alert.alert("Your delete account request is successfuly submited our executive will reach  you out soon to confirm")
-          }
-        }
-      ],
-      { cancelable: false }
-    );}}>
-                  <Text style={styles.buttonTexts}>Delete Your Account </Text>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 10,
+                }}
+                onPress={LogOuts}
+              >
+                <Text style={styles.buttonTexts}>Delete Your Account </Text>
               </TouchableOpacity>
             </View>
 
@@ -171,7 +300,6 @@ const profileFields = [
   { label: "Select Constituency", icon: "location-arrow", key: "Contituency" },
   { label: "Location", icon: "map", key: "Locations" },
   { label: "Select Occupation", icon: "briefcase", key: "Occupation" },
-  // { label: "Select Experience", icon: "calendar", key: "Experience" },
   { label: "Referral Code", icon: "users", key: "MyRefferalCode" },
 ];
 
@@ -225,7 +353,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     elevation: 3,
-    width: Platform.OS === "web" ? "100%" : 280,
+    width: Platform.OS === "web" ? "100%" : 240,
   },
   input: {
     flex: 1,
@@ -284,6 +412,57 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 40,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  loader: {
+    marginTop: 50,
+  },
+  profileHeader: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  profileCard: {
+    width: Platform.OS === "web" ? "80%" : "100%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  cameraButton: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    backgroundColor: "#FF3366",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteImageButton: {
+    position: "absolute",
+    left: 10,
+    bottom: 10,
+    backgroundColor: "#ff4444",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

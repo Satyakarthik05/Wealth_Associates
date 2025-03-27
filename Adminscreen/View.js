@@ -21,6 +21,7 @@ const { width } = Dimensions.get("window");
 
 export default function ViewAgents() {
   const [agents, setAgents] = useState([]);
+  const [filteredAgents, setFilteredAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -33,6 +34,7 @@ export default function ViewAgents() {
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch agents from the API
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function ViewAgents() {
         }
         const agentsData = await agentsResponse.json();
         setAgents(agentsData.data);
+        setFilteredAgents(agentsData.data);
 
         // Fetch districts and constituencies
         const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -63,6 +66,25 @@ export default function ViewAgents() {
 
     fetchData();
   }, []);
+
+  // Filter agents based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredAgents(agents);
+    } else {
+      const filtered = agents.filter(
+        (agent) =>
+          (agent.FullName &&
+            agent.FullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (agent.MobileNumber && agent.MobileNumber.includes(searchQuery)) ||
+          (agent.MyRefferalCode &&
+            agent.MyRefferalCode.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            ))
+      );
+      setFilteredAgents(filtered);
+    }
+  }, [searchQuery, agents]);
 
   // Handle edit agent
   const handleEditAgent = (agent) => {
@@ -181,11 +203,21 @@ export default function ViewAgents() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.heading}>My Agents</Text>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, mobile or referral code"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
         {loading ? (
           <Text style={styles.message}>Loading...</Text>
-        ) : agents.length > 0 ? (
+        ) : filteredAgents.length > 0 ? (
           <View style={styles.cardContainer}>
-            {agents.map((agent) => (
+            {filteredAgents.map((agent) => (
               <View key={agent._id} style={styles.card}>
                 <Image
                   source={require("../assets/man.png")}
@@ -241,7 +273,9 @@ export default function ViewAgents() {
             ))}
           </View>
         ) : (
-          <Text style={styles.noAgentsText}>No agents found.</Text>
+          <Text style={styles.noAgentsText}>
+            {searchQuery ? "No matching agents found" : "No agents found."}
+          </Text>
         )}
       </ScrollView>
 
@@ -368,6 +402,18 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+  },
+  searchContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   cardContainer: {
     flexDirection: "row",

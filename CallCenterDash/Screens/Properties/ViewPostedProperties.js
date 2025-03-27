@@ -2,255 +2,436 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
+  ScrollView,
   Image,
   ActivityIndicator,
   StyleSheet,
+  Platform,
   Dimensions,
+  TouchableOpacity,
+  Alert,
   Modal,
   TextInput,
-  Platform,
-  Button,
-  TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_URL } from "../../data/ApiUrl";
-import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
-const numColumns = 3; // Set number of properties per row
 
-const ViewPostedProperties = () => {
+const ViewAllProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
-  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const [editedData, setEditedData] = useState({
+  const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
     location: "",
     price: "",
+    photo: "",
   });
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
+  const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [idSearch, setIdSearch] = useState("");
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/propertytype`);
+      const data = await response.json();
+      setPropertyTypes(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const fetchProperties = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        console.warn("No token found in AsyncStorage.");
-        setLoading(false);
-        return;
-      }
-  
-      const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
-        method: "GET",
-        headers: {
-          token: `${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
+      const response = await fetch(`${API_URL}/properties/getallPropertys`);
       const data = await response.json();
-  
-      // ✅ Ensure `data` is an array
-      if (Array.isArray(data)) {
+      if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data);
       } else {
-        setProperties([]); // Set an empty array if response is not an array
-        console.error("Unexpected API response:", data);
+        console.warn("API returned empty data.");
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
-      setProperties([]); // Set default empty array on failure
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = async (value) => {
-    setSelectedFilter(value);
-  
-    if (value === "highToLow") {
-      setProperties((prevProperties) =>
-        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
-          (a, b) => b.price - a.price
-        )
+  useEffect(() => {
+    fetchProperties();
+    fetchPropertyTypes();
+    fetchConstituencies();
+  }, []);
+
+  // Function to get last 4 characters of ID
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
+  // Filter property types based on search input
+  const filteredPropertyTypes = propertyTypes.filter((item) =>
+    item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
+  );
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
+
+  // Filter properties based on ID search
+  const filteredProperties = properties.filter((property) => {
+    const matchesId = idSearch
+      ? getLastFourChars(property._id)
+          .toLowerCase()
+          .includes(idSearch.toLowerCase())
+      : true;
+
+    return matchesId;
+  });
+
+  const handleDelete = async (id) => {
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this property?"
       );
-    } else if (value === "lowToHigh") {
-      setProperties((prevProperties) =>
-        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
-          (a, b) => a.price - b.price
-        )
-      );
+      if (!confirmDelete) return;
     } else {
-      await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
+      const confirmDelete = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to delete this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Delete", onPress: () => resolve(true) },
+          ]
+        );
+      });
+      if (!confirmDelete) return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/properties/delete/${id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setProperties(properties.filter((item) => item._id !== id));
+        if (Platform.OS === "web") {
+          alert("Property deleted successfully.");
+        } else {
+          Alert.alert("Success", "Property deleted successfully.");
+        }
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to delete.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to delete.");
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting property:", error);
     }
   };
-  
-  const handleEditPress = (property) => {
+
+  const handleEdit = (property) => {
     setSelectedProperty(property);
-    setEditedData({
+    setEditedDetails({
       propertyType: property.propertyType,
       location: property.location,
       price: property.price.toString(),
+      photo: property.photo,
     });
-    setEditModalVisible(true);
+    setIsModalVisible(true);
   };
 
-  const handleSaveEdit = async () => {
-    if (!selectedProperty) return;
-
+  const handleSave = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        console.error("Token not found");
-        return;
-      }
-
       const response = await fetch(
-        `${API_URL}/properties/editProperty/${selectedProperty._id}`,
+        `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            token: `${token}`,
           },
-          body: JSON.stringify(editedData),
+          body: JSON.stringify(editedDetails),
         }
       );
 
+      const result = await response.json();
       if (response.ok) {
-        console.log("Updated successfully");
-        setEditModalVisible(false);
-        fetchProperties();
+        const updatedProperties = properties.map((item) =>
+          item._id === selectedProperty._id
+            ? { ...item, ...editedDetails }
+            : item
+        );
+        setProperties(updatedProperties);
+        setIsModalVisible(false);
+        Alert.alert("Success", "Property updated successfully.");
       } else {
-        console.error("Failed to update property");
+        Alert.alert("Error", result.message || "Failed to update property.");
       }
     } catch (error) {
       console.error("Error updating property:", error);
+      Alert.alert("Error", "An error occurred while updating the property.");
+    }
+  };
+
+  const handleApprove = async (id) => {
+    let confirmApprove;
+
+    if (Platform.OS === "web") {
+      confirmApprove = window.confirm(
+        "Are you sure you want to approve this property?"
+      );
+    } else {
+      confirmApprove = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to approve this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Approve", onPress: () => resolve(true) },
+          ]
+        );
+      });
+    }
+
+    if (!confirmApprove) return;
+
+    try {
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        if (Platform.OS === "web") {
+          alert("Property approved successfully.");
+        } else {
+          Alert.alert("Success", "Property approved successfully.");
+        }
+        fetchProperties();
+      } else {
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to approve.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to approve.");
+        }
+      }
+    } catch (error) {
+      console.error("Error approving property:", error);
+      Alert.alert("Error", "An error occurred while approving the property.");
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>My Properties</Text>
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Sort by:</Text>
-          <Picker
-            selectedValue={selectedFilter}
-            onValueChange={handleFilterChange}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Filter --" value="" />
-            <Picker.Item label="Price: Low to High" value="lowToHigh" />
-            <Picker.Item label="Price: High to Low" value="highToLow" />
-          </Picker>
-        </View>
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
       ) : (
-        <View style={styles.grid}>
-          {properties.map((item) => {
-            const imageUri = item.photo
-              ? { uri: `${API_URL}${item.photo}` }
-              : require("../../assets/logo.png");
+        <>
+          <View style={styles.header}>
+            <Text style={styles.heading}>All Properties</Text>
+            <View style={styles.filterContainer}>
+              <Text style={styles.filterLabel}>Sort by:</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedFilter}
+                  onValueChange={(value) => setSelectedFilter(value)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="-- Select Filter --" value="" />
+                  <Picker.Item label="Price: High to Low" value="lowToHigh" />
+                  <Picker.Item label="Price: Low to High" value="highToLow" />
+                </Picker>
+              </View>
+            </View>
+          </View>
 
-            return (
-              <View key={item._id} style={styles.card}>
-                <Image source={imageUri} style={styles.image} />
-                <View style={styles.details}>
-                  <Text style={styles.title}>{item.propertyType}</Text>
-                  <Text style={styles.info}>Location: {item.location}</Text>
-                  <Text style={styles.budget}>
-                    ₹ {parseInt(item.price).toLocaleString()}
-                  </Text>
+          {/* Search Bar for Property ID */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by last 4 digits of ID"
+              value={idSearch}
+              onChangeText={setIdSearch}
+              maxLength={4}
+            />
+          </View>
+
+          <View style={styles.grid}>
+            {filteredProperties.map((item) => {
+              const imageUri = item.photo
+                ? { uri: `${API_URL}${item.photo}` }
+                : require("../../../assets/logo.png");
+              const propertyId = getLastFourChars(item._id);
+
+              return (
+                <View key={item._id} style={styles.card}>
+                  <Image source={imageUri} style={styles.image} />
+                  <View style={styles.details}>
+                    <View style={styles.idContainer}>
+                      <Text style={styles.idText}>ID: {propertyId}</Text>
+                    </View>
+                    <Text style={styles.title}>{item.propertyType}</Text>
+                    <Text style={styles.title}>PostedBy:{item.PostedBy}</Text>
+                    <Text style={styles.title}>{item.propertyDetails}</Text>
+                    <Text style={styles.info}>Location: {item.location}</Text>
+                    <Text style={styles.budget}>
+                      ₹ {parseInt(item.price).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.editButton]}
+                      onPress={() => handleEdit(item)}
+                    >
+                      <Text style={styles.buttonText}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.deleteButton]}
+                      onPress={() => handleDelete(item._id)}
+                    >
+                      <Text style={styles.buttonText}>Delete</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.approveButton]}
+                      onPress={() => handleApprove(item._id)}
+                    >
+                      <Text style={styles.buttonText}>Approve</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Edit Modal */}
+          <Modal
+            visible={isModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Edit Property</Text>
+
+                {/* Property Type Dropdown */}
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.dropdownLabel}>Property Type:</Text>
+                  <View style={styles.dropdown}>
+                    <Picker
+                      selectedValue={editedDetails.propertyType}
+                      onValueChange={(value) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          propertyType: value,
+                        })
+                      }
+                      style={{ height: 40 }}
+                    >
+                      <Picker.Item label="Select Property Type" value="" />
+                      {filteredPropertyTypes.map((type) => (
+                        <Picker.Item
+                          key={type._id}
+                          label={type.name}
+                          value={type.name}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+
+                {/* Location Dropdown */}
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.dropdownLabel}>Location:</Text>
+                  <View style={styles.dropdown}>
+                    <Picker
+                      selectedValue={editedDetails.location}
+                      onValueChange={(value) =>
+                        setEditedDetails({ ...editedDetails, location: value })
+                      }
+                      style={{ height: 40 }}
+                    >
+                      <Picker.Item
+                        label="Select Location"
+                        value=""
+                        style={{ height: 30 }}
+                      />
+                      {filteredConstituencies.map((assembly, index) => (
+                        <Picker.Item
+                          key={`${assembly._id}-${index}`}
+                          label={assembly.name}
+                          value={assembly.name}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Price"
+                  value={editedDetails.price}
+                  onChangeText={(text) =>
+                    setEditedDetails({ ...editedDetails, price: text })
+                  }
+                  keyboardType="numeric"
+                />
+
+                <View style={styles.modalButtonContainer}>
                   <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => handleEditPress(item)}
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setIsModalVisible(false)}
                   >
-                    <Text style={styles.editButtonText}>Edit</Text>
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.saveButton]}
+                    onPress={handleSave}
+                  >
+                    <Text style={styles.modalButtonText}>Save</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-            );
-          })}
-        </View>
+            </View>
+          </Modal>
+        </>
       )}
-
-      {/* Edit Property Modal */}
-      <Modal visible={editModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Property</Text>
-            <TextInput
-              style={styles.input}
-              value={editedData.propertyType}
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, propertyType: text })
-              }
-              placeholder="Property Type"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedData.location}
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, location: text })
-              }
-              placeholder="Location"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedData.price}
-              keyboardType="numeric"
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, price: text })
-              }
-              placeholder="Price"
-            />
-            <Button title="Save Changes" onPress={handleSaveEdit} />
-            <Button
-              title="Cancel"
-              color="red"
-              onPress={() => setEditModalVisible(false)}
-            />
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 15,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-  },
+  container: { backgroundColor: "#f5f5f5", padding: 15, marginBottom: 40 },
   header: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios"  ? "column" : "row",
+    flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    marginBottom: 15,
   },
-  heading: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "left",
-  },
+  heading: { fontSize: 22, fontWeight: "bold", textAlign: "left" },
   filterContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -265,54 +446,140 @@ const styles = StyleSheet.create({
   },
   picker: { height: "100%", width: 180, fontSize: 14 },
   loader: { marginTop: 50 },
-
-  /** 🟢 Updated Grid & Card Styles for Vertical List **/
   grid: {
-    flexDirection: "column", // 🔹 Stack cards vertically
-    width: "100%", // Take full width
-    alignItems: "center", // Center cards horizontally
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
-    marginVertical: 8, // 🔹 Space between cards
-    width: "90%", // Make it occupy most of the screen width
+    margin: 10,
+    width: Platform.OS === "web" ? "30%" : "100%",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 3,
   },
-
   image: { width: "100%", height: 150, borderRadius: 8 },
   details: { marginTop: 10 },
+  idContainer: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: "flex-start",
+    marginBottom: 5,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
   title: { fontSize: 16, fontWeight: "bold" },
   info: { fontSize: 14, color: "#555" },
   budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-
-  editButton: {
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 10,
-    backgroundColor: "#007bff",
+  },
+  button: {
     padding: 8,
     borderRadius: 5,
     alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
   },
-  editButtonText: { color: "white", fontSize: 14 },
+  editButton: {
+    backgroundColor: "#3498db",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+  },
+  approveButton: {
+    backgroundColor: "green",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
-    width: 300,
+    width: Platform.OS === "web" ? "50%" : "90%",
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  dropdownContainer: {
+    marginBottom: 10,
+  },
+  dropdownLabel: {
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: "bold",
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 5,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#fff",
+    height: 40,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#ccc",
+  },
+  saveButton: {
+    backgroundColor: "#3498db",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  pickerItem: {
+    height: "100%",
+    width: "100%",
+  },
+  searchContainer: {
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
 });
 
-
-export default ViewPostedProperties;
+export default ViewAllProperties;
