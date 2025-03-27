@@ -88,9 +88,9 @@ const menuItems = [
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
+      "Register Skilled Resource",
+      "View Skilled Resource",
+      "All Skilled Resources",
     ],
   },
   // {
@@ -101,7 +101,7 @@ const menuItems = [
   {
     title: "Investors",
     icon: "business-outline",
-    subItems: ["Add Investor", "View Investors", "View All Investors"],
+    subItems: ["Add Investor", "View Investors"],
   },
   {
     title: "NRI Club",
@@ -178,7 +178,10 @@ const Admin_panel = () => {
       [title]: !prev[title],
     }));
 
-    if ((Platform.OS === "android" || Platform.OS === "ios" && !isSidebarExpanded)) {
+    if (
+      Platform.OS === "android" ||
+      (Platform.OS === "ios" && !isSidebarExpanded)
+    ) {
       setIsSidebarExpanded(true);
     }
   };
@@ -232,7 +235,7 @@ const Admin_panel = () => {
       setIsExpertPanelVisible(true);
     } else if (subItem === "Add Customer") {
       setIsRegiCusVisible(true);
-    } else if (subItem === "View Skilled Labour") {
+    } else if (subItem === "View Skilled Resource") {
       setIsViewSkilledLabourVisible(true);
     } else if (subItem === "Request Expert Panel") {
       setIsRequestExpertVisible(true);
@@ -242,11 +245,11 @@ const Admin_panel = () => {
       setCoreClients(true);
     } else if (subItem === "View Core Projects") {
       setCoreProjects(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Register Skilled Resource") {
       setisRsSkill(true);
     } else if (subItem === "expert details") {
       setIsExpertDetails(true);
-    } else if (subItem === "All Skilled Labours") {
+    } else if (subItem === "All Skilled Resources") {
       setAllSkilledLabour(true);
     } else if (subItem === "View All Investors") {
       setIsViewAllInvestersVisible(true);
@@ -352,7 +355,7 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {(Platform.OS === "android"|| Platform.OS === "ios") && (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       )}
 
@@ -501,7 +504,7 @@ const Admin_panel = () => {
         </View>
       </View>
 
-      {(Platform.OS === "android"|| Platform.OS === "ios" )&& (
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
         <TouchableOpacity style={styles.toggleButton} onPress={toggleSidebar}>
           <Ionicons
             name={isSidebarExpanded ? "close-circle-outline" : "menu-outline"}
@@ -549,7 +552,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
+    paddingTop:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? 0
+        : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",
@@ -559,7 +565,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#ddd",
     justifyContent: "space-between",
-    marginTop: Platform.OS === "ios" ? 25 : -10
+    marginTop: Platform.OS === "ios" ? 25 : -10,
   },
   logo: {
     width: 100,

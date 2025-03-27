@@ -7,15 +7,17 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
-  Platform,
   TextInput,
+  Platform,
   Button,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3; // Set number of properties per row
@@ -53,20 +55,30 @@ const ViewPostedProperties = () => {
         },
       });
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
       const data = await response.json();
-      setProperties(data.length > 0 ? data : []);
+
+      // ✅ Ensure `data` is an array
+      if (Array.isArray(data)) {
+        setProperties(data);
+      } else {
+        setProperties([]); // Set an empty array if response is not an array
+        console.error("Unexpected API response:", data);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setProperties([]); // Set default empty array on failure
     } finally {
       setLoading(false);
     }
   };
+
   const handleFilterChange = async (value) => {
     setSelectedFilter(value);
-  
+
     if (value === "highToLow") {
       setProperties((prevProperties) =>
         [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
@@ -83,7 +95,6 @@ const ViewPostedProperties = () => {
       await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
     }
   };
-  
 
   const handleEditPress = (property) => {
     setSelectedProperty(property);
@@ -229,7 +240,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios"  ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",

@@ -8,14 +8,16 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Platform,
   Button,
   TouchableOpacity,
   ScrollView,
-  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3; // Set number of properties per row
@@ -53,27 +55,45 @@ const ViewPostedProperties = () => {
         },
       });
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
       const data = await response.json();
-      setProperties(data.length > 0 ? data : []);
+
+      // ✅ Ensure `data` is an array
+      if (Array.isArray(data)) {
+        setProperties(data);
+      } else {
+        setProperties([]); // Set an empty array if response is not an array
+        console.error("Unexpected API response:", data);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+      setProperties([]); // Set default empty array on failure
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (value) => {
+  const handleFilterChange = async (value) => {
     setSelectedFilter(value);
-    const sortedProperties =
-      value === "highToLow"
-        ? [...properties].sort((a, b) => b.price - a.price)
-        : value === "lowToHigh"
-        ? [...properties].sort((a, b) => a.price - b.price)
-        : fetchProperties();
-    setProperties(sortedProperties);
+
+    if (value === "highToLow") {
+      setProperties((prevProperties) =>
+        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
+          (a, b) => b.price - a.price
+        )
+      );
+    } else if (value === "lowToHigh") {
+      setProperties((prevProperties) =>
+        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
+          (a, b) => a.price - b.price
+        )
+      );
+    } else {
+      await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
+    }
   };
 
   const handleEditPress = (property) => {
@@ -220,7 +240,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios"  ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",

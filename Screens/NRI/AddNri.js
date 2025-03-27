@@ -5,29 +5,32 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Alert,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddNRIMember = ({ closeModal }) => {
   const [name, setName] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState(null);
   const [locality, setLocality] = useState("");
+  const [indianLocation, setIndianLocation] = useState("");
   const [occupation, setOccupation] = useState("");
   const [mobileIN, setMobileIN] = useState("");
   const [mobileCountryNo, setMobileCountryNo] = useState("");
   const [loading, setLoading] = useState(false);
   const [Details, setDetails] = useState({});
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
 
-  const countries = [
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
     { label: "United Arab Emirates", value: "uae" },
     { label: "United States of America", value: "usa" },
     { label: "Saudi Arabia", value: "saudi_arabia" },
@@ -38,7 +41,7 @@ const AddNRIMember = ({ closeModal }) => {
     { label: "Qatar", value: "qatar" },
     { label: "Oman", value: "oman" },
     { label: "Singapore", value: "singapore" },
-  ];
+  ]);
 
   const getDetails = async () => {
     try {
@@ -58,13 +61,32 @@ const AddNRIMember = ({ closeModal }) => {
 
   useEffect(() => {
     getDetails();
+    fetchConstituencies();
   }, []);
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching constituencies:", error);
+    }
+  };
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
 
   const handleAddMember = async () => {
     if (
       !name ||
       !country ||
       !locality ||
+      !indianLocation ||
       !occupation ||
       !mobileIN ||
       !mobileCountryNo
@@ -83,6 +105,7 @@ const AddNRIMember = ({ closeModal }) => {
           Name: name,
           Country: country,
           Locality: locality,
+          IndianLocation: indianLocation,
           Occupation: occupation,
           MobileIN: mobileIN,
           MobileCountryNo: mobileCountryNo,
@@ -106,119 +129,120 @@ const AddNRIMember = ({ closeModal }) => {
     setLoading(false);
   };
 
-  const renderDropdown = () => {
-    return (
-      <View style={styles.dropdownContainer}>
-        <ScrollView style={styles.dropdown}>
-          {countries.map((item) => (
-            <TouchableOpacity
-              key={item.value}
-              style={styles.dropdownItem}
-              onPress={() => {
-                setCountry(item.value);
-                setShowDropdown(false);
-              }}
-            >
-              <Text>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={100}
       style={{ flex: 1 }}
     >
-      <TouchableWithoutFeedback
-        onPress={() => {
-          Keyboard.dismiss();
-          setShowDropdown(false);
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <View style={styles.container}>
-            <Text style={styles.header}>Add NRI Member</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.container}>
+          <Text style={styles.header}>Add NRI Member</Text>
 
-            <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter full name"
+            value={name}
+            onChangeText={setName}
+          />
+
+          <Text style={styles.label}>Country</Text>
+          <DropDownPicker
+            open={open}
+            value={country}
+            items={items}
+            setOpen={setOpen}
+            setValue={setCountry}
+            setItems={setItems}
+            placeholder="-- Select Country --"
+            style={styles.dropdown}
+          />
+
+          <Text style={styles.label}>Locality (Abroad)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Dallas"
+            value={locality}
+            onChangeText={setLocality}
+          />
+
+          <Text style={styles.label}>Location in India</Text>
+          <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
               placeholder="Ex. Vijayawada"
-              value={name}
-              onChangeText={setName}
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => setShowLocationList(true)}
             />
+            {showLocationList && (
+              <View style={styles.locationListContainer}>
+                <ScrollView style={styles.locationList}>
+                  {filteredConstituencies.map((item) => (
+                    <TouchableOpacity
+                      key={`${item.code}-${item.name}`}
+                      style={styles.locationListItem}
+                      onPress={() => {
+                        setIndianLocation(item.name);
+                        setLocationSearch(item.name);
+                        setShowLocationList(false);
+                      }}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
 
-            <Text style={styles.label}>Country</Text>
-            <TouchableOpacity
-              onPress={() => setShowDropdown(!showDropdown)}
-              style={styles.input}
-            >
-              <Text style={{ color: country ? "#000" : "#aaa" }}>
-                {countries.find((item) => item.value === country)?.label ||
-                  "-- Select Country --"}
-              </Text>
-            </TouchableOpacity>
+          <Text style={styles.label}>Occupation</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. Software Engineer"
+            value={occupation}
+            onChangeText={setOccupation}
+          />
 
-            {showDropdown && renderDropdown()}
+          <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileIN}
+            onChangeText={setMobileIN}
+          />
 
-            <Text style={styles.label}>Locality</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Dallas"
-              value={locality}
-              onChangeText={setLocality}
-            />
+          <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex. 9063392872"
+            keyboardType="phone-pad"
+            value={mobileCountryNo}
+            onChangeText={setMobileCountryNo}
+          />
 
-            <Text style={styles.label}>Occupation</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Software Engineer"
-              value={occupation}
-              onChangeText={setOccupation}
-            />
-
-            <Text style={styles.label}>Mobile IN (WhatsApp No.)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. 9063392872"
-              keyboardType="phone-pad"
-              value={mobileIN}
-              onChangeText={setMobileIN}
-            />
-
-            <Text style={styles.label}>Mobile Country No (WhatsApp No.)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. 9063392872"
-              keyboardType="phone-pad"
-              value={mobileCountryNo}
-              onChangeText={setMobileCountryNo}
-            />
-
-            <View style={styles.buttonContainer}>
-              {loading ? (
-                <ActivityIndicator size="large" color="#E91E63" />
-              ) : (
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={handleAddMember}
-                >
-                  <Text style={styles.buttonText}>Add</Text>
-                </TouchableOpacity>
-              )}
+          <View style={styles.buttonContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color="#E91E63" />
+            ) : (
               <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={closeModal}
+                style={styles.addButton}
+                onPress={handleAddMember}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>Add</Text>
               </TouchableOpacity>
-            </View>
+            )}
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -250,33 +274,38 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 5,
   },
+  inputContainer: {
+    marginBottom: 10,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#000",
     borderRadius: 15,
     padding: 10,
-    marginBottom: 10,
     fontSize: 14,
     color: "#333",
   },
-  dropdownContainer: {
-    position: "absolute",
-    top: 220, // Adjust this value based on your layout
-    left: 20,
-    right: 20,
-    zIndex: 999, // Ensure the dropdown is on top
-  },
   dropdown: {
-    maxHeight: 150,
+    borderColor: "#ccc",
+    borderRadius: 15,
+    marginBottom: 10,
+  },
+  locationListContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    backgroundColor: "#fff",
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
+    // marginTop: -10,
+    marginBottom: 5,
   },
-  dropdownItem: {
+  locationList: {
+    maxHeight: 200,
+  },
+  locationListItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",

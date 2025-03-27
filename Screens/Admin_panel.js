@@ -86,19 +86,19 @@ const menuItems = [
     title: "Skilled Club",
     icon: "trophy-outline",
     subItems: [
-      "Register Skilled Labour",
-      "View Skilled Labour",
-      "All Skilled Labours",
+      "Register Skilled Resource",
+      "View Skilled Resource",
+      "All Skilled Resources",
     ],
   },
   {
     title: "Investors",
     icon: "business-outline",
-    subItems: ["Add Investor", "View Investors", "View All Investors"],
+    subItems: ["Add Investor", "View Investors"],
   },
   {
     title: "NRI Club",
-    icon: "globe-outline", 
+    icon: "globe-outline",
     subItems: ["Add NRI Member", "View NRI Members"],
   },
 ];
@@ -229,7 +229,7 @@ const Admin_panel = () => {
       setIsExpertPanelVisible(true);
     } else if (subItem === "Add Customer") {
       setIsRegiCusVisible(true);
-    } else if (subItem === "View Skilled Labour") {
+    } else if (subItem === "View Skilled Resource") {
       setIsViewSkilledLabourVisible(true);
     } else if (subItem === "Request Expert Panel") {
       setIsRequestExpertVisible(true);
@@ -239,11 +239,11 @@ const Admin_panel = () => {
       setCoreClients(true);
     } else if (subItem === "View Core Projects") {
       setCoreProjects(true);
-    } else if (subItem === "Register Skilled Labour") {
+    } else if (subItem === "Register Skilled Resource") {
       setisRsSkill(true);
     } else if (subItem === "expert details") {
       setIsExpertDetails(true);
-    } else if (subItem === "All Skilled Labours") {
+    } else if (subItem === "All Skilled Resources") {
       setAllSkilledLabour(true);
     } else if (subItem === "Add Investor") {
       setIsAddInvestVisible(true);
@@ -532,8 +532,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
     width: "100%",
-    paddingTop: Platform.OS === "android" || Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
-    
+    paddingTop:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? 0
+        : StatusBar.currentHeight,
   },
   navbar: {
     flexDirection: "row",
@@ -621,7 +623,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F5F5",
     ...(Platform.OS === "web" && { padding: 5 }),
     height: "100vh",
-    
   },
   toggleButton: {
     position: "absolute",
@@ -668,7 +669,6 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
     height: "auto",
-    
   },
   usersContentText: {
     fontSize: 16,

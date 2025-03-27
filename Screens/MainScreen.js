@@ -70,6 +70,9 @@ const LoginScreen = () => {
           <Text style={styles.footerText2}>new user ?</Text>
         </View>
       </ImageBackground>
+      {/* <View>
+        <Text>Ceo:Naresh</Text>
+      </View> */}
     </ImageBackground>
   );
 };

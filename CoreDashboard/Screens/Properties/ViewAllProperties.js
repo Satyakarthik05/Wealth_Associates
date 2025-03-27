@@ -11,55 +11,32 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  Linking,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropertyCards from "./PropertyCards";
+import { Ionicons } from "@expo/vector-icons";
+import logo from "../../../assets/man.png";
 
 const { width } = Dimensions.get("window");
 
-const ViewAllProperties = () => {
+const ViewAllProperties = ({ navigation }) => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFilter, setSelectedFilter] = useState("");
-  const [Details, setDetails] = useState({});
+  const [Details, setDetails] = useState({ Contituency: "" });
+  const [loadingDetails, setLoadingDetails] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isPropertyModalVisible, setPropertyModalVisible] = useState(false);
+  const [postedProperty, setPostedProperty] = useState(null);
+  const [referredInfo, setReferredInfo] = useState(null);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [filterCriteria, setFilterCriteria] = useState({
     propertyType: "",
-    location: "",
+    Constituency: "",
     price: "",
   });
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const fetchProperties = async () => {
-    try {
-      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
-      const data = await response.json();
-      if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data);
-      } else {
-        console.warn("API returned empty data.");
-      }
-    } catch (error) {
-      console.error("Error fetching properties:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFilterChange = (value) => {
-    setSelectedFilter(value);
-    if (value === "highToLow") {
-      setProperties([...properties].sort((a, b) => b.price - a.price));
-    } else if (value === "lowToHigh") {
-      setProperties([...properties].sort((a, b) => a.price - b.price));
-    } else {
-      fetchProperties();
-    }
-  };
 
   const getDetails = async () => {
     try {
@@ -74,56 +51,26 @@ const ViewAllProperties = () => {
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
-  useEffect(() => {
-    getDetails();
-  }, []);
-
-  const handleBuyNow = async (PostedBy, propertyType, location, price) => {
+  const fetchProperties = async () => {
     try {
-      const response = await fetch(`${API_URL}/buy/buyproperty`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          propertyType,
-          location,
-          price,
-          PostedBy,
-          WantedBy: Details.MobileNumber,
-          WantedUserType: "Core Member",
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Success", "Purchase request sent successfully!");
+      setLoading(true);
+      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
+      const data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        setProperties(data);
       } else {
-        Alert.alert(
-          "Error",
-          result.message || "Failed to send purchase request."
-        );
+        console.warn("API returned empty data.");
       }
     } catch (error) {
-      console.error("Error sending purchase request:", error);
-      Alert.alert(
-        "Error",
-        "An error occurred while sending the purchase request."
-      );
+      console.error("Error fetching properties:", error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
   };
 
   const getPropertyTag = (createdAt) => {
@@ -143,6 +90,82 @@ const ViewAllProperties = () => {
     }
   };
 
+  // Function to sort properties with constituency first
+  const sortPropertiesByConstituency = (properties) => {
+    if (!Details.Contituency) return properties;
+
+    return [...properties].sort((a, b) => {
+      const aInConstituency = a.location?.includes(Details.Contituency);
+      const bInConstituency = b.location?.includes(Details.Contituency);
+
+      if (aInConstituency && !bInConstituency) return -1;
+      if (!aInConstituency && bInConstituency) return 1;
+      return 0;
+    });
+  };
+
+  const handleEnquiryNow = (property) => {
+    setPropertyModalVisible(true);
+  };
+
+  const handleShare = (property, closeModal) => {
+    const fullImageUri = property.photo ? `${API_URL}${property.photo}` : null;
+    setPostedProperty({
+      propertyType: property.propertyType,
+      photo: fullImageUri,
+      location: property.location,
+      price: property.price,
+    });
+    if (closeModal) closeModal();
+  };
+
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
+  useEffect(() => {
+    const fetchReferredDetails = async () => {
+      if (!Details?.ReferredBy) return;
+
+      try {
+        const response = await fetch(
+          `${API_URL}/properties/getPropertyreffered`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              token: (await AsyncStorage.getItem("authToken")) || "",
+            },
+            body: JSON.stringify({
+              referredBy: Details.ReferredBy,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.status === "success") {
+          setReferredInfo(data.referredByDetails);
+        } else {
+          console.error("API returned unsuccessful status:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching referredBy info:", error);
+      }
+    };
+
+    fetchReferredDetails();
+  }, [Details?.ReferredBy]);
+
+  useEffect(() => {
+    getDetails();
+    fetchProperties();
+  }, []);
+
   // Extract unique property types, locations, and prices for filtering
   const uniquePropertyTypes = [
     ...new Set(properties.map((item) => item.propertyType)),
@@ -154,7 +177,7 @@ const ViewAllProperties = () => {
 
   // Apply filters based on selected criteria
   const applyFilters = () => {
-    let filteredProperties = properties;
+    let filteredProperties = [...properties]; // Create a copy of the original properties
 
     if (filterCriteria.propertyType) {
       filteredProperties = filteredProperties.filter(
@@ -181,27 +204,46 @@ const ViewAllProperties = () => {
   // Reset filters
   const resetFilters = () => {
     setFilterCriteria({ propertyType: "", location: "", price: "" });
-    setSelectedFilter("");
     fetchProperties();
     setFilterModalVisible(false);
   };
 
+  // Categorize properties
+  const regularProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Regular Property"
+    )
+  );
+  const approvedProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Approved Property"
+    )
+  );
+  const wealthProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+    )
+  );
+  const listedProperties = sortPropertiesByConstituency(
+    properties.filter(
+      (property) => getPropertyTag(property.createdAt) === "Listed Property"
+    )
+  );
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
+        <ActivityIndicator size="large" color="#E91E63" style={styles.loader} />
       ) : (
         <>
           <View style={styles.header}>
             <Text style={styles.heading}>All Properties</Text>
-            <View style={styles.filterContainer}>
-              <TouchableOpacity
-                style={styles.filterButton}
-                onPress={() => setFilterModalVisible(true)}
-              >
-                <Text style={styles.filterButtonText}>Filter</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <Text style={styles.filterButtonText}>Filter</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Filter Modal */}
@@ -239,6 +281,7 @@ const ViewAllProperties = () => {
                   onValueChange={(value) =>
                     setFilterCriteria({
                       ...filterCriteria,
+
                       location: value,
                     })
                   }
@@ -276,13 +319,13 @@ const ViewAllProperties = () => {
                 {/* Apply and Reset Buttons */}
                 <View style={styles.modalButtonContainer}>
                   <TouchableOpacity
-                    style={styles.modalButton}
+                    style={[styles.modalButton, styles.applyButton]}
                     onPress={applyFilters}
                   >
                     <Text style={styles.modalButtonText}>Apply</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.modalButton}
+                    style={[styles.modalButton, styles.resetButton]}
                     onPress={resetFilters}
                   >
                     <Text style={styles.modalButtonText}>Reset</Text>
@@ -292,49 +335,378 @@ const ViewAllProperties = () => {
             </View>
           </Modal>
 
-          {/* Properties Grid */}
-          <View style={styles.grid}>
-            {[...properties].reverse().map((item) => {
-              const imageUri = item.photo
-                ? { uri: `${API_URL}${item.photo}` }
-                : require("../../../assets/logo.png");
-              const propertyTag = getPropertyTag(item.createdAt);
+          {/* Regular Properties */}
+          {regularProperties.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Regular Properties</Text>
+              <View style={styles.propertiesContainer}>
+                {regularProperties.map((property, index) => {
+                  const imageUri = property.photo
+                    ? { uri: `${API_URL}${property.photo}` }
+                    : require("../../../assets/logo.png");
+                  const propertyTag = getPropertyTag(property.createdAt);
+                  const propertyId = getLastFourChars(property._id);
 
-              return (
-                <View key={item._id} style={styles.card}>
-                  <Image source={imageUri} style={styles.image} />
-                  <View style={styles.approvedBadge}>
-                    <Text style={styles.badgeText}>(✓){propertyTag}</Text>
-                  </View>
-                  <View style={styles.details}>
-                    <View style={styles.titleContainer}>
-                      <Text style={styles.title}>{item.propertyType}</Text>
+                  return (
+                    <View key={index} style={styles.propertyCard}>
+                      <Image source={imageUri} style={styles.propertyImage} />
+                      <View style={styles.approvedBadge}>
+                        <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                      </View>
+                      <View
+                        style={{
+                          alignItems: "flex-end",
+                          paddingRight: 5,
+                          top: 5,
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "green",
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ID: {propertyId}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
+                      <Text style={styles.propertyInfo}>
+                        Location: {property.location}
+                      </Text>
+                      <Text style={styles.propertyBudget}>
+                        ₹ {parseInt(property.price).toLocaleString()}
+                      </Text>
+                      <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                          style={styles.enquiryButton}
+                          onPress={() => handleEnquiryNow(property)}
+                        >
+                          <Text style={styles.buttonText}>Enquiry Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={() => handleShare(property)}
+                        >
+                          <Text style={styles.buttonText}>Share</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                    <Text style={styles.info}>Location: {item.location}</Text>
-                    <Text style={styles.budget}>
-                      ₹ {parseInt(item.price).toLocaleString()}
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Approved Properties */}
+          {approvedProperties.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Approved Properties</Text>
+              <View style={styles.propertiesContainer}>
+                {approvedProperties.map((property, index) => {
+                  const imageUri = property.photo
+                    ? { uri: `${API_URL}${property.photo}` }
+                    : require("../../../assets/logo.png");
+                  const propertyTag = getPropertyTag(property.createdAt);
+                  const propertyId = getLastFourChars(property._id);
+
+                  return (
+                    <View key={index} style={styles.propertyCard}>
+                      <Image source={imageUri} style={styles.propertyImage} />
+                      <View style={styles.approvedBadge}>
+                        <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                      </View>
+                      <View
+                        style={{
+                          alignItems: "flex-end",
+                          paddingRight: 5,
+                          top: 5,
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "green",
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ID: {propertyId}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
+                      <Text style={styles.propertyInfo}>
+                        Location: {property.location}
+                      </Text>
+                      <Text style={styles.propertyBudget}>
+                        ₹ {parseInt(property.price).toLocaleString()}
+                      </Text>
+                      <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                          style={styles.enquiryButton}
+                          onPress={() => handleEnquiryNow(property)}
+                        >
+                          <Text style={styles.buttonText}>Enquiry Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={() => handleShare(property)}
+                        >
+                          <Text style={styles.buttonText}>Share</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Wealth Properties */}
+          {wealthProperties.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Wealth Properties</Text>
+              <View style={styles.propertiesContainer}>
+                {wealthProperties.map((property, index) => {
+                  const imageUri = property.photo
+                    ? { uri: `${API_URL}${property.photo}` }
+                    : require("../../../assets/logo.png");
+                  const propertyTag = getPropertyTag(property.createdAt);
+                  const propertyId = getLastFourChars(property._id);
+
+                  return (
+                    <View key={index} style={styles.propertyCard}>
+                      <Image source={imageUri} style={styles.propertyImage} />
+                      <View style={styles.approvedBadge}>
+                        <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                      </View>
+                      <View
+                        style={{
+                          alignItems: "flex-end",
+                          paddingRight: 5,
+                          top: 5,
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "green",
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ID: {propertyId}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
+                      <Text style={styles.propertyInfo}>
+                        Location: {property.location}
+                      </Text>
+                      <Text style={styles.propertyBudget}>
+                        ₹ {parseInt(property.price).toLocaleString()}
+                      </Text>
+                      <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                          style={styles.enquiryButton}
+                          onPress={() => handleEnquiryNow(property)}
+                        >
+                          <Text style={styles.buttonText}>Enquiry Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={() => handleShare(property)}
+                        >
+                          <Text style={styles.buttonText}>Share</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Listed Properties */}
+          {listedProperties.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Listed Properties</Text>
+              <View style={styles.propertiesContainer}>
+                {listedProperties.map((property, index) => {
+                  const imageUri = property.photo
+                    ? { uri: `${API_URL}${property.photo}` }
+                    : require("../../../assets/logo.png");
+                  const propertyTag = getPropertyTag(property.createdAt);
+                  const propertyId = getLastFourChars(property._id);
+
+                  return (
+                    <View key={index} style={styles.propertyCard}>
+                      <Image source={imageUri} style={styles.propertyImage} />
+                      <View style={styles.approvedBadge}>
+                        <Text style={styles.badgeText}>(✓){propertyTag}</Text>
+                      </View>
+                      <View
+                        style={{
+                          alignItems: "flex-end",
+                          paddingRight: 5,
+                          top: 5,
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "green",
+                            borderRadius: 8,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontWeight: "600",
+                            }}
+                          >
+                            ID: {propertyId}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyType}
+                      </Text>
+                      <Text style={styles.propertyTitle}>
+                        {property.propertyDetails
+                          ? property.propertyDetails
+                          : "20 sqfeets"}
+                      </Text>
+                      <Text style={styles.propertyInfo}>
+                        Location: {property.location}
+                      </Text>
+                      <Text style={styles.propertyBudget}>
+                        ₹ {parseInt(property.price).toLocaleString()}
+                      </Text>
+                      <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                          style={styles.enquiryButton}
+                          onPress={() => handleEnquiryNow(property)}
+                        >
+                          <Text style={styles.buttonText}>Enquiry Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.shareButton}
+                          onPress={() => handleShare(property)}
+                        >
+                          <Text style={styles.buttonText}>Share</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Property Modal */}
+          <Modal
+            visible={isPropertyModalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setPropertyModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                {!referredInfo ? (
+                  <ActivityIndicator size="large" color="#007bff" />
+                ) : (
+                  <>
+                    <Image source={logo} style={styles.agentLogo} />
+                    <Text style={styles.modalTitle}>Referred By</Text>
+                    <Text style={styles.modalText}>
+                      Name: {referredInfo.name}
                     </Text>
-                    <Text style={styles.postedOn}>
-                      Posted on: {formatDate(item.createdAt)}
+                    <Text style={styles.modalText}>
+                      Mobile: {referredInfo.Number}
                     </Text>
                     <TouchableOpacity
-                      style={styles.buyNowButton}
+                      style={styles.callButton}
                       onPress={() =>
-                        handleBuyNow(
-                          item.PostedBy,
-                          item.propertyType,
-                          item.location,
-                          item.price
-                        )
+                        Linking.openURL(`tel:${referredInfo.Number}`)
                       }
                     >
-                      <Text style={styles.buyNowButtonText}>Enquiry Now</Text>
+                      <Ionicons name="call" size={20} color="white" />
+                      <Text style={styles.callButtonText}>Call Now</Text>
                     </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={() => setPropertyModalVisible(false)}
+                    >
+                      <Text style={styles.closeButtonText}>Close</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+          </Modal>
+
+          {/* Share Property Modal */}
+          <Modal
+            visible={!!postedProperty}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setPostedProperty(null)}
+          >
+            <View style={styles.modalContainer}>
+              <PropertyCards
+                property={postedProperty}
+                closeModal={() => setPostedProperty(null)}
+              />
+            </View>
+          </Modal>
         </>
       )}
     </ScrollView>
@@ -342,20 +714,24 @@ const ViewAllProperties = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#f5f5f5", padding: 15 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 10,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 15,
   },
-  heading: { fontSize: 22, fontWeight: "bold", textAlign: "left" },
-  filterContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
   },
   filterButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#E91E63",
     padding: 10,
     borderRadius: 5,
   },
@@ -364,83 +740,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-  },
-  modalHeading: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginVertical: 10,
+    color: "#333",
   },
-  modalPicker: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  modalButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  modalButton: {
-    backgroundColor: "#3498db",
-    padding: 10,
-    borderRadius: 5,
-    width: "45%",
-    alignItems: "center",
-  },
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  grid: {
+  propertiesContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  card: {
+  propertyCard: {
+    width: Platform.OS === "web" ? "48%" : "100%",
     backgroundColor: "#fff",
     borderRadius: 10,
-    padding: 10,
-    margin: 10,
-    width: Platform.OS === "web" ? "30%" : "100%",
+    marginBottom: 15,
+    paddingBottom: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
   },
-  image: { width: "100%", height: 150, borderRadius: 8 },
-  details: { marginTop: 10 },
-  titleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  title: { fontSize: 16, fontWeight: "bold" },
-  postedOn: { fontSize: 15, color: "black" },
-  info: { fontSize: 14, color: "#555" },
-  budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-  buyNowButton: {
-    backgroundColor: "#3498db",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-    alignItems: "center",
-  },
-  buyNowButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+  propertyImage: {
+    width: "100%",
+    height: 150,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   approvedBadge: {
     position: "absolute",
@@ -451,7 +777,148 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 5,
   },
-  badgeText: { color: "#fff", fontSize: 12 },
+  badgeText: {
+    color: "#fff",
+    fontSize: 12,
+  },
+  propertyTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    margin: 5,
+    color: "#333",
+  },
+  propertyInfo: {
+    fontSize: 14,
+    marginLeft: 5,
+    color: "#555",
+  },
+  propertyBudget: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 5,
+    color: "green",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 10,
+  },
+  enquiryButton: {
+    backgroundColor: "#E91E63",
+    padding: 10,
+    borderRadius: 5,
+    width: "45%",
+    alignItems: "center",
+  },
+  shareButton: {
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 5,
+    width: "45%",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+  },
+  modalHeading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  filterLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontWeight: "bold",
+  },
+  modalPicker: {
+    backgroundColor: "#f5f5f5",
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  modalButton: {
+    padding: 12,
+    borderRadius: 5,
+    width: "48%",
+    alignItems: "center",
+  },
+  applyButton: {
+    backgroundColor: "#E91E63",
+  },
+  resetButton: {
+    backgroundColor: "#2196F3",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  agentLogo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignSelf: "center",
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    marginVertical: 4,
+  },
+  callButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  callButtonText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  closeButton: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#dc3545",
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "white",
+    fontSize: 16,
+  },
 });
 
 export default ViewAllProperties;

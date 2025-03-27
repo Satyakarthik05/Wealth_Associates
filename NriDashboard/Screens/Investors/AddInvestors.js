@@ -5,10 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   ActivityIndicator,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 
@@ -20,6 +22,10 @@ const AddInvestor = ({ closeModal }) => {
   const [loading, setLoading] = useState(false);
   const [Details, setDetails] = useState(null);
   const [skills, setSkills] = useState(["Land Lord", "Investor"]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
 
   const getDetails = async () => {
     try {
@@ -39,16 +45,37 @@ const AddInvestor = ({ closeModal }) => {
 
   useEffect(() => {
     getDetails();
+    fetchConstituencies();
   }, []);
+
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching constituencies:", error);
+    }
+  };
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
 
   const handleRegister = async () => {
     if (!fullName || !skill || !location || !mobileNumber) {
-      alert("All fields are required");
+      Alert.alert("Error", "All fields are required");
       return;
     }
 
     if (!Details || !Details.MobileNumber) {
-      alert("Agent details are not available. Please try again.");
+      Alert.alert(
+        "Error",
+        "Agent details are not available. Please try again."
+      );
       return;
     }
 
@@ -63,87 +90,142 @@ const AddInvestor = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileIN,
-          RegisteredBy: "Nri",
+          RegisteredBy: "Customer",
         }),
       });
       const data = await response.json();
       if (response.ok) {
-        alert("Registration successful");
+        Alert.alert("Success", "Registration successful");
         setFullName("");
         setSkill("");
         setLocation("");
         setMobileNumber("");
         closeModal();
       } else {
-        alert(data.message || "Registration failed");
+        Alert.alert("Error", data.message || "Registration failed");
       }
     } catch (error) {
-      alert("Error: " + error.message);
+      Alert.alert("Error", "Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Register Investor</Text>
+  const renderDropdown = () => {
+    return (
+      <View style={styles.dropdownContainer}>
+        <ScrollView style={styles.dropdown}>
+          {skills.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={styles.dropdownItem}
+              onPress={() => {
+                setSkill(item);
+                setShowDropdown(false);
+              }}
+            >
+              <Text>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      <View style={styles.form}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Select Category</Text>
-        <View
-          style={
-            Platform.OS === "web"
-              ? styles.pickerWebContainer
-              : styles.pickerContainer
-          }
-        >
-          <Picker
-            selectedValue={skill}
-            onValueChange={setSkill}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Skill Type --" value="" />
-            {skills.map((item) => (
-              <Picker.Item key={item} label={item} value={item} />
-            ))}
-          </Picker>
+    );
+  };
+
+  return (
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        setShowDropdown(false);
+        setShowLocationList(false);
+      }}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Register Investor</Text>
         </View>
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          value={location}
-          onChangeText={setLocation}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Mobile Number</Text>
-        <TextInput
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <View style={styles.buttonContainer}>
+        <View style={styles.form}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            value={fullName}
+            onChangeText={setFullName}
+            style={styles.input}
+            placeholder="Full Name"
+          />
+
+          <Text style={styles.label}>Select Category</Text>
           <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={loading}
+            onPress={() => {
+              setShowDropdown(!showDropdown);
+              setShowLocationList(false);
+            }}
+            style={styles.input}
           >
-            <Text style={styles.buttonText}>
-              {loading ? "Registering..." : "Register"}
+            <Text style={{ color: skill ? "#000" : "#aaa" }}>
+              {skill || "-- Select Skill Type --"}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+          {showDropdown && renderDropdown()}
+
+          <Text style={styles.label}>Location</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => setShowLocationList(true)}
+            />
+            {showLocationList && (
+              <View style={styles.locationListContainer}>
+                <ScrollView style={styles.locationList}>
+                  {filteredConstituencies.map((item) => (
+                    <TouchableOpacity
+                      key={`${item.code}-${item.name}`}
+                      style={styles.locationListItem}
+                      onPress={() => {
+                        setLocation(item.name);
+                        setLocationSearch(item.name);
+                        setShowLocationList(false);
+                      }}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.label}>Mobile Number</Text>
+          <TextInput
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="Mobile Number"
+          />
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? "Registering..." : "Register"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -187,16 +269,44 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    overflow: "hidden",
+  inputContainer: {
     marginBottom: 15,
   },
-  picker: {
-    height: 50,
-    width: "100%",
+  dropdownContainer: {
+    position: "absolute",
+    top: 160,
+    left: 20,
+    right: 20,
+    zIndex: 999,
+  },
+  dropdown: {
+    maxHeight: 150,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#fff",
+  },
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  locationListContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
+    marginTop: -10,
+    marginBottom: 5,
+  },
+  locationList: {
+    maxHeight: 200,
+  },
+  locationListItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",

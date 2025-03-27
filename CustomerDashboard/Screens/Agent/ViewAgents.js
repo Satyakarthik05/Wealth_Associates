@@ -28,7 +28,7 @@ export default function ViewAgents() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/agent/myAgents`, {
+        const response = await fetch(`${API_URL}/customer/getcustomer`, {
           method: "GET",
           headers: {
             token: `${token}` || "", // Fallback to an empty string if token is null

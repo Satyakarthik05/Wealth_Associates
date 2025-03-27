@@ -1,16 +1,18 @@
-// React Native Frontend (Rskill.js)
 import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 
 const Rskill = ({ closeModal }) => {
@@ -20,8 +22,12 @@ const Rskill = ({ closeModal }) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [Details, setDetails] = useState(null); // Initialize as null
+  const [Details, setDetails] = useState(null);
   const [loadingSkills, setLoadingSkills] = useState(true);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false);
 
   const getDetails = async () => {
     try {
@@ -59,17 +65,39 @@ const Rskill = ({ closeModal }) => {
         setLoadingSkills(false);
       }
     };
+
+    const fetchConstituencies = async () => {
+      try {
+        const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+        const data = await response.json();
+        setConstituencies(data);
+      } catch (error) {
+        console.error("Error fetching constituencies:", error);
+      }
+    };
+
     fetchSkills();
+    fetchConstituencies();
   }, []);
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
 
   const handleRegister = async () => {
     if (!fullName || !skill || !location || !mobileNumber) {
-      alert("All fields are required");
+      Alert.alert("Error", "All fields are required");
       return;
     }
 
     if (!Details || !Details.MobileNumber) {
-      alert("Agent details are not available. Please try again.");
+      Alert.alert(
+        "Error",
+        "Agent details are not available. Please try again."
+      );
       return;
     }
 
@@ -83,92 +111,137 @@ const Rskill = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber, // Ensure this is correctly set
+          AddedBy: Details.MobileNumber,
           RegisteredBy: "Customer",
         }),
       });
       const data = await response.json();
       if (response.ok) {
-        alert("Registration successful");
+        Alert.alert("Success", "Registration successful");
         setFullName("");
         setSkill("");
         setLocation("");
         setMobileNumber("");
         closeModal();
       } else {
-        alert(data.message || "Registration failed");
+        Alert.alert("Error", data.message || "Registration failed");
       }
     } catch (error) {
-      alert("Error: " + error.message);
+      Alert.alert("Error", "Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Register Skilled Labour</Text>
-      </View>
-      <View style={styles.form}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Select Skill</Text>
-        {loadingSkills ? (
-          <ActivityIndicator size="small" color="#E91E63" />
-        ) : (
-          <View
-            style={
-              Platform.OS === "web"
-                ? styles.pickerWebContainer
-                : styles.pickerContainer
-            }
-          >
-            <Picker
-              selectedValue={skill}
-              onValueChange={setSkill}
-              style={styles.picker}
-            >
-              <Picker.Item label="-- Select Skill Type --" value="" />
-              {skills.map((item) => (
-                <Picker.Item key={item} label={item} value={item} />
-              ))}
-            </Picker>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Register Skilled Resource</Text>
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            value={fullName}
+            onChangeText={setFullName}
+            style={styles.input}
+            placeholder="Enter full name"
+          />
+
+          <Text style={styles.label}>Select Skill</Text>
+          {loadingSkills ? (
+            <ActivityIndicator size="small" color="#E91E63" />
+          ) : (
+            <View style={styles.inputContainer}>
+              <TouchableOpacity
+                style={styles.input}
+                onPress={() => setShowSkillDropdown(!showSkillDropdown)}
+              >
+                <Text style={skill ? {} : styles.placeholderText}>
+                  {skill || "-- Select Skill Type --"}
+                </Text>
+              </TouchableOpacity>
+              {showSkillDropdown && (
+                <View style={styles.dropdownContainer}>
+                  {skills.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      style={styles.listItem}
+                      onPress={() => {
+                        setSkill(item);
+                        setShowSkillDropdown(false);
+                      }}
+                    >
+                      <Text>{item}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
+          <Text style={styles.label}>Location</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex. Vijayawada"
+              value={locationSearch}
+              onChangeText={(text) => {
+                setLocationSearch(text);
+                setShowLocationList(true);
+              }}
+              onFocus={() => setShowLocationList(true)}
+            />
+            {showLocationList && (
+              <View style={styles.dropdownContainer}>
+                {filteredConstituencies.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.code}-${item.name}`}
+                    style={styles.listItem}
+                    onPress={() => {
+                      setLocation(item.name);
+                      setLocationSearch(item.name);
+                      setShowLocationList(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
-        )}
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          value={location}
-          onChangeText={setLocation}
-          style={styles.input}
-        />
-        <Text style={styles.label}>Mobile Number</Text>
-        <TextInput
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? "Registering..." : "Register"}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+
+          <Text style={styles.label}>Mobile Number</Text>
+          <TextInput
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder="Enter mobile number"
+          />
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.registerButton, loading && styles.disabledButton]}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Register</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -177,8 +250,9 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: "#fff",
     borderRadius: 10,
-    width: "90%",
+    width: 310,
     maxWidth: 400,
+    marginTop: 50,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.2,
@@ -205,35 +279,33 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
+  inputContainer: {
+    marginBottom: 15,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 25,
     padding: 12,
-    marginBottom: 15,
   },
-  pickerContainer: {
+  dropdownContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 25,
-    overflow: "hidden",
-    marginBottom: 15,
+    borderRadius: 5,
+    marginTop: 5,
+    maxHeight: 200,
+    overflow: "scroll",
+    backgroundColor: "#e6708e",
   },
-  pickerWebContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  picker: {
-    height: 50,
-    width: "100%",
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 10,
   },
   registerButton: {
     backgroundColor: "#E91E63",
@@ -252,6 +324,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fff",
     fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  placeholderText: {
+    color: "rgba(0, 0, 0, 0.5)",
   },
 });
 

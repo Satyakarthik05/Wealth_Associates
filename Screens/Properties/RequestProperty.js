@@ -23,22 +23,9 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
-  const [budgetDropdownVisible, setBudgetDropdownVisible] = useState(false);
-  const [selectedBudgetRange, setSelectedBudgetRange] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
-    useState(false); // New state for property type dropdown
-
-  const budgetRanges = [
-    "Below 1 Lakh",
-    "10-20 Lakh",
-    "20-40 Lakh",
-    "40-50 Lakh",
-    "50 Lakh - 1 Crore",
-    "1 Crore - 2 Crore",
-    "Above 2 Crore",
-    "Above 5 Crore",
-  ];
+    useState(false);
 
   // Fetch agent details
   const getDetails = async () => {
@@ -141,16 +128,6 @@ const RequestedPropertyForm = ({ closeModal }) => {
       <Text style={styles.header}>Requested Property</Text>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Property Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. Need 10 acres land"
-          value={propertyTitle}
-          onChangeText={setPropertyTitle}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
         <Text style={styles.label}>Property Type</Text>
         <TouchableOpacity
           style={styles.input}
@@ -164,7 +141,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
           <View style={styles.dropdownContainer}>
             {propertyTypes.map((item) => (
               <TouchableOpacity
-                key={`${item.code}-${item.name}`} // Ensure unique key
+                key={`${item.code}-${item.name}`}
                 style={styles.listItem}
                 onPress={() => {
                   setPropertyType(item.name);
@@ -194,7 +171,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
           <View style={styles.dropdownContainer}>
             {filteredConstituencies.map((item) => (
               <TouchableOpacity
-                key={`${item.code}-${item.name}`} // Ensure unique key
+                key={`${item.code}-${item.name}`}
                 style={styles.listItem}
                 onPress={() => {
                   setLocation(item.name);
@@ -211,31 +188,23 @@ const RequestedPropertyForm = ({ closeModal }) => {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Budget</Text>
-        <TouchableOpacity
+        <TextInput
           style={styles.input}
-          onPress={() => setBudgetDropdownVisible(!budgetDropdownVisible)}
-        >
-          <Text style={selectedBudgetRange ? {} : styles.placeholderText}>
-            {selectedBudgetRange || "Select Budget Range"}
-          </Text>
-        </TouchableOpacity>
-        {budgetDropdownVisible && (
-          <View style={styles.dropdownContainer}>
-            {budgetRanges.map((range) => (
-              <TouchableOpacity
-                key={range} // Use the range string as the key
-                style={styles.listItem}
-                onPress={() => {
-                  setSelectedBudgetRange(range);
-                  setBudget(range);
-                  setBudgetDropdownVisible(false);
-                }}
-              >
-                <Text>{range}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+          placeholder="Enter your budget"
+          value={budget}
+          onChangeText={setBudget}
+          keyboardType="numeric"
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Property Title</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ex. Need 10 acres land"
+          value={propertyTitle}
+          onChangeText={setPropertyTitle}
+        />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -263,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: 20,
     borderRadius: 15,
-    width: 320,
+    width: 310,
     alignSelf: "center",
     shadowColor: "#000",
     shadowOpacity: 0.2,
@@ -304,7 +273,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     marginTop: 5,
-    maxHeight: 150,
+    maxHeight: 200,
     overflow: "scroll",
     backgroundColor: "#e6708e",
   },

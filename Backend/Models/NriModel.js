@@ -17,6 +17,9 @@ const AddNriSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  IndianLocation: {
+    type: String,
+  },
   Occupation: {
     type: String,
     required: true,

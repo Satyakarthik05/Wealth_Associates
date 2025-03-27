@@ -390,19 +390,25 @@ const RegisterEx = ({ closeModal }) => {
                   />
                   {showExperienceList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {experienceOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(experienceSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExperience(item.name);
+                              setExperienceSearch(item.name);
+                              setShowExperienceList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
@@ -432,19 +438,25 @@ const RegisterEx = ({ closeModal }) => {
                   />
                   {showExpertiseList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {expertiseOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(expertiseSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExpertise(item.name);
+                              setExpertiseSearch(item.name);
+                              setShowExpertiseList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
