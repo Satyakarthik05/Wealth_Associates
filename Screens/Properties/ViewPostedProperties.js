@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../../assets/logo.png";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3; // Set number of properties per row
@@ -165,7 +166,7 @@ const ViewPostedProperties = () => {
           {properties.map((item) => {
             const imageUri = item.photo
               ? { uri: `${API_URL}${item.photo}` }
-              : require("../../assets/logo.png");
+              : logo1;
 
             return (
               <View key={item._id} style={styles.card}>

@@ -9,6 +9,12 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../assets/exp_and.jpg"
+import logo2 from "../assets/exp.jpg"
+import logo3 from "../assets/wlogo2.png"
+import logo4 from "../assets/quote.png"
+import logo5 from "../assets/cardbg.png"
+
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -16,10 +22,10 @@ const LoginScreen = () => {
     <ImageBackground
       source={
         Platform.OS === "ios"
-          ? require("../assets/exp_and.jpg")
+          ? logo1
           : Platform.OS === "android"
-          ? require("../assets/exp_and.jpg")
-          : require("../assets/exp.jpg")
+          ? logo2
+          : logo2
       }
       style={styles.container}
       resizeMode="cover"
@@ -27,14 +33,14 @@ const LoginScreen = () => {
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require("../assets/wlogo2.png")} // Company logo
+          source={logo3} // Company logo
           style={styles.logo}
           resizeMode="contain"
         />
       </View>
       <View style={styles.quoteContainer}>
         <Image
-          source={require("../assets/quote.png")} // Company logo
+          source={logo4} // Company logo
           style={styles.quote}
           resizeMode="contain"
         />
@@ -42,7 +48,7 @@ const LoginScreen = () => {
 
       {/* Card with PNG background */}
       <ImageBackground
-        source={require("../assets/cardbg.png")} // Your PNG for the glass effect
+        source={logo5} // Your PNG for the glass effect
         style={styles.card}
         resizeMode="stretch"
       >

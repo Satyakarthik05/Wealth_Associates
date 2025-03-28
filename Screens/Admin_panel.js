@@ -19,7 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
-
+import logo1 from "../assets/logo.png";
 import Agent_Right from "../Screens/Agent/Agent_Right";
 import Add_Agent from "../Screens/Agent/Add_Agent";
 import ViewAgents from "../Screens/Agent/ViewAgents";
@@ -369,7 +369,7 @@ const Admin_panel = () => {
             setAllSkilledLabour(false);
           }}
         >
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
+          <Image source={logo1} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>

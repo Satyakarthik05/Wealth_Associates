@@ -19,6 +19,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCards from "./PropertyCards";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../assets/man.png";
+import logo1 from "../../assets/logo.png";
+
 
 const { width } = Dimensions.get("window");
 
@@ -343,7 +345,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {regularProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../assets/logo.png");
+                    :logo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -422,7 +424,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {approvedProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../assets/logo.png");
+                    : logo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -501,7 +503,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {wealthProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../assets/logo.png");
+                    : logo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -580,7 +582,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {listedProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../assets/logo.png");
+                    : logo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 

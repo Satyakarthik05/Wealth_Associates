@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import logo1 from "../assets/ped.jpeg";
+import logo2 from "../assets/logo.png"
 
 const LoginScreen = () => {
   return (
@@ -7,14 +9,14 @@ const LoginScreen = () => {
       {/* Profile Image Positioned Overlapping Card */}
       <View style={styles.profileContainer}>
         <Image
-          source={require("../assets/ped.jpeg")}
+          source={logo1}
           style={styles.profileImage}
         />
       </View>
 
       {/* Card Section */}
       <View style={styles.card}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={logo2} style={styles.logo} />
 
         <View style={styles.buttonRow}>
           <View style={styles.buttonColumn}>
