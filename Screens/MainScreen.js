@@ -34,7 +34,7 @@ const LoginScreen = () => {
       </View>
       <View style={styles.quoteContainer}>
         <Image
-          source={require("../assets/quote.png")} // Company logo
+          source={require("../assets/quote.png")}
           style={styles.quote}
           resizeMode="contain"
         />
@@ -42,7 +42,7 @@ const LoginScreen = () => {
 
       {/* Card with PNG background */}
       <ImageBackground
-        source={require("../assets/cardbg.png")} // Your PNG for the glass effect
+        source={require("../assets/cardbg.png")}
         style={styles.card}
         resizeMode="stretch"
       >
@@ -69,10 +69,31 @@ const LoginScreen = () => {
           <Text style={styles.footerText}>if already registered ?</Text>
           <Text style={styles.footerText2}>new user ?</Text>
         </View>
+        <Text
+          style={{
+            zIndex: 10,
+            top: "40%",
+            color: "white",
+            fontSize: 20,
+            fontWeight: 600,
+            marginTop: 20,
+          }}
+        >
+          Paritala Naresh
+        </Text>
+        <Text
+          style={{
+            zIndex: 10,
+            top: "40%",
+            color: "white",
+            fontSize: 14,
+            fontWeight: 600,
+            marginTop: 5,
+          }}
+        >
+          Founder & Mentor
+        </Text>
       </ImageBackground>
-      {/* <View>
-        <Text>Ceo:Naresh</Text>
-      </View> */}
     </ImageBackground>
   );
 };
@@ -125,15 +146,15 @@ const styles = StyleSheet.create({
     // marginBottom: 20,
     position: "relative",
     // left:155,
-    bottom: Platform.OS === "android" || Platform.OS === "ios" ? 28 : 69,
-    textShadowColor: "rgba(0, 0, 0, 0.7)", // Dark shadow for depth
-    textShadowOffset: { width: 2, height: 2 }, // Slight offset for natural look
-    textShadowRadius: 5, // Smooth blur effect
+    bottom: Platform.OS === "android" || Platform.OS === "ios" ? -25 : 30,
+    textShadowColor: "rgba(0, 0, 0, 0.7)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   buttonContainer: {
     flexDirection: "row",
     width: "100%",
-    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? 1 : 10,
+    marginTop: Platform.OS === "android" || Platform.OS === "ios" ? "20%" : 10,
     justifyContent: "space-evenly",
     marginLeft: Platform.OS === "android" || Platform.OS === "ios" ? 8 : 18,
   },

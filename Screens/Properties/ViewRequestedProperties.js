@@ -200,12 +200,14 @@ const RequestedProperties = () => {
               }
               placeholder="Budget"
             />
-            <Button title="Save Changes" onPress={handleSaveEdit} />
+            <View style={{display:"flex",width:"100%",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:"4%"}}>
+            <Button title="Save Changes" color="green" onPress={handleSaveEdit} style={{backgroundColor:"green"}} />
             <Button
               title="Cancel"
               color="red"
               onPress={() => setEditModalVisible(false)}
             />
+            </View>
           </View>
         </View>
       </Modal>

@@ -9,7 +9,7 @@ import {
   Image,
   Platform,
   KeyboardAvoidingView,
-  Keyboard,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
@@ -23,7 +23,6 @@ const OTP = () => {
   const inputRefs = useRef([]);
   const navigation = useNavigation();
 
-  // Fetch mobile number from AsyncStorage
   useEffect(() => {
     const fetchMobileNumber = async () => {
       try {
@@ -38,7 +37,6 @@ const OTP = () => {
     fetchMobileNumber();
   }, []);
 
-  // Timer logic
   useEffect(() => {
     if (timer === 0) return;
     const interval = setInterval(() => {
@@ -65,12 +63,7 @@ const OTP = () => {
   };
 
   const verifyOTP = async () => {
-    const otpCode = otp.join("").replace(/\D/g, "").trim(); // Ensure only numbers and remove spaces
-
-    console.log("OTP State:", otp);
-    console.log("Joined OTP:", otpCode);
-    console.log("OTP Length:", otpCode.length);
-    console.log("Mobile Number:", mobileNumber);
+    const otpCode = otp.join("").replace(/\D/g, "").trim();
 
     if (
       otp.every((digit) => digit.trim() !== "") &&
@@ -99,13 +92,6 @@ const OTP = () => {
         Alert.alert("Error", "An error occurred while verifying OTP.");
       }
     } else {
-      console.log("Validation Failed:", {
-        otpCode,
-        isOtpFilled: otp.every((digit) => digit.trim() !== ""),
-        isLengthValid: otpCode.length === 4,
-        isMobilePresent: !!mobileNumber,
-      });
-
       Alert.alert("Invalid OTP", "Please enter a 4-digit OTP.");
     }
   };
@@ -116,73 +102,77 @@ const OTP = () => {
     setOtpSubmitted(false);
     Alert.alert("OTP Resent", "A new OTP has been sent to your mobile.");
   };
-  useEffect(() => {
-    console.log("Updated OTP:", otp.join(""));
-  }, [otp]);
 
   return (
     <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={styles.container}>
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
-        <View style={styles.main}>
-          <View>
-            <Image
-              source={require("../assets/forgot_password.png")}
-              style={styles.logos}
-            />
-          </View>
-          <View>
-            <Text style={styles.header}>Verification</Text>
-            <Text style={styles.subHeader}>Enter OTP</Text>
-
-            <View style={styles.otpInputContainer}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  style={styles.otpBox}
-                  maxLength={1}
-                  keyboardType="number-pad"
-                  onChangeText={(text) => handleOtpChange(text, index)}
-                  value={digit}
-                  autoFocus={index === 0}
-                  onKeyPress={(e) => handleKeyPress(e, index)}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <Image source={require("../assets/logo.png")} style={styles.logo} />
+            <View style={styles.main}>
+              <View>
+                <Image
+                  source={require("../assets/forgot_password.png")}
+                  style={styles.logos}
                 />
-              ))}
+              </View>
+              <View>
+                <Text style={styles.header}>Verification</Text>
+                <Text style={styles.subHeader}>Enter OTP</Text>
+
+                <View style={styles.otpInputContainer}>
+                  {otp.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      ref={(el) => (inputRefs.current[index] = el)}
+                      style={styles.otpBox}
+                      maxLength={1}
+                      keyboardType="number-pad"
+                      onChangeText={(text) => handleOtpChange(text, index)}
+                      value={digit}
+                      autoFocus={index === 0}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                    />
+                  ))}
+                </View>
+
+                <Text style={styles.timerText}>
+                  {timer > 0
+                    ? `00:${timer < 10 ? `0${timer}` : timer} seconds`
+                    : "Time expired!"}
+                </Text>
+
+                <TouchableOpacity
+                  style={[
+                    styles.verifyButton,
+                    otpSubmitted || otp.some((digit) => !digit)
+                      ? styles.disabledButton
+                      : {},
+                  ]}
+                  onPress={verifyOTP}
+                  disabled={otpSubmitted || otp.some((digit) => !digit)}
+                >
+                  <Text style={styles.buttonText}>Verify</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.resendText}>
+                  If you don't receive the code?{" "}
+                  <Text style={styles.resendLink} onPress={resendOTP}>
+                    Resend
+                  </Text>
+                </Text>
+              </View>
             </View>
-
-            <Text style={styles.timerText}>
-              {timer > 0
-                ? `00:${timer < 10 ? `0${timer}` : timer} seconds`
-                : "Time expired!"}
-            </Text>
-
-            <TouchableOpacity
-              style={[
-                styles.verifyButton,
-                otpSubmitted || otp.some((digit) => !digit)
-                  ? styles.disabledButton
-                  : {},
-              ]}
-              onPress={verifyOTP}
-              disabled={otpSubmitted || otp.some((digit) => !digit)}
-            >
-              <Text style={styles.buttonText}>Verify</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.resendText}>
-              If you don't receive the code?{" "}
-              <Text style={styles.resendLink} onPress={resendOTP}>
-                Resend
-              </Text>
-            </Text>
           </View>
         </View>
-      </View>
-    </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -193,7 +183,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f9f9f9",
-    width: "100vw",
+    width: "100%",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 20,
   },
   card: {
     backgroundColor: "#fff",
@@ -256,6 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "80%",
     alignItems: "center",
+    alignSelf: "center",
   },
   disabledButton: {
     backgroundColor: "#f3a0c0",
@@ -269,6 +265,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     fontSize: 14,
     color: "#666",
+    textAlign: "center",
   },
   resendLink: {
     color: "#e6005c",

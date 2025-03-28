@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: 10,
     padding: 20,
-    maxHeight: Platform.OS === "web" ? "80%" : "90%",
+    maxHeight: Platform.OS === "web" ? "80%" : "100%",
     height: 900,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Modal,
+  Dimensions
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
@@ -24,14 +27,15 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
-    useState(false);
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
+  
+  const modalRef = useRef();
 
   // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -92,7 +96,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: Details.MobileNumber,
     };
 
     setLoading(true);
@@ -111,7 +115,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", result.message);
-        closeModal(); // Close the modal after successful submission
+        closeModal();
       } else {
         Alert.alert("Error", result.message || "Failed to request property.");
       }
@@ -123,123 +127,150 @@ const RequestedPropertyForm = ({ closeModal }) => {
     }
   };
 
+  // Handle click outside modal
+  const handleClickOutside = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      closeModal();
+    }
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Requested Property</Text>
+    <TouchableWithoutFeedback onPress={closeModal}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback>
+          <View style={styles.modalContainer} ref={modalRef}>
+            <ScrollView contentContainerStyle={styles.container}>
+              <Text style={styles.header}>Requested Property</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Property Type</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
-        >
-          <Text style={propertyType ? {} : styles.placeholderText}>
-            {propertyType || "Select Property Type"}
-          </Text>
-        </TouchableOpacity>
-        {showPropertyTypeDropdown && (
-          <View style={styles.dropdownContainer}>
-            {propertyTypes.map((item) => (
-              <TouchableOpacity
-                key={`${item.code}-${item.name}`}
-                style={styles.listItem}
-                onPress={() => {
-                  setPropertyType(item.name);
-                  setShowPropertyTypeDropdown(false);
-                }}
-              >
-                <Text>{item.name}</Text>
-              </TouchableOpacity>
-            ))}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Property Type</Text>
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
+                >
+                  <Text style={propertyType ? {} : styles.placeholderText}>
+                    {propertyType || "Select Property Type"}
+                  </Text>
+                </TouchableOpacity>
+                {showPropertyTypeDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    {propertyTypes.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setPropertyType(item.name);
+                          setShowPropertyTypeDropdown(false);
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Location</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex. Vijayawada"
+                  value={locationSearch}
+                  onChangeText={(text) => {
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }}
+                  onFocus={() => setShowLocationList(true)}
+                />
+                {showLocationList && (
+                  <View style={styles.dropdownContainer}>
+                    {filteredConstituencies.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setLocation(item.name);
+                          setLocationSearch(item.name);
+                          setShowLocationList(false);
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Budget</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your budget"
+                  value={budget}
+                  onChangeText={setBudget}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Property Title</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex. Need 10 acres land"
+                  value={propertyTitle}
+                  onChangeText={setPropertyTitle}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.postButton, loading && styles.disabledButton]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.postButtonText}>Post</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        )}
+        </TouchableWithoutFeedback>
       </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. Vijayawada"
-          value={locationSearch}
-          onChangeText={(text) => {
-            setLocationSearch(text);
-            setShowLocationList(true);
-          }}
-          onFocus={() => setShowLocationList(true)}
-        />
-        {showLocationList && (
-          <View style={styles.dropdownContainer}>
-            {filteredConstituencies.map((item) => (
-              <TouchableOpacity
-                key={`${item.code}-${item.name}`}
-                style={styles.listItem}
-                onPress={() => {
-                  setLocation(item.name);
-                  setLocationSearch(item.name);
-                  setShowLocationList(false);
-                }}
-              >
-                <Text>{item.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Budget</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your budget"
-          value={budget}
-          onChangeText={setBudget}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Property Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ex. Need 10 acres land"
-          value={propertyTitle}
-          onChangeText={setPropertyTitle}
-        />
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.postButton, loading && styles.disabledButton]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.postButtonText}>Post</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    height:"100vh",
+    width:"100%",
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: Dimensions.get('window').width * 0.9,
+    maxHeight: Dimensions.get('window').height * 0.8,
+  },
   container: {
     backgroundColor: "white",
     padding: 20,
     borderRadius: 15,
-    width: 310,
+    width: '100%',
     alignSelf: "center",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
     borderWidth: 0.5,
-    borderColor: "black",
+    borderColor: "black"
   },
   header: {
     fontSize: 18,
@@ -273,7 +304,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     marginTop: 5,
-    maxHeight: 200,
+    maxHeight: 300,
     overflow: "scroll",
     backgroundColor: "#e6708e",
   },

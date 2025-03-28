@@ -387,6 +387,12 @@ export default function ViewAgents() {
                       <Text style={styles.value}>: {agent.MyRefferalCode}</Text>
                     </View>
                   )}
+                  {agent.ReferredBy && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referral By</Text>
+                      <Text style={styles.value}>: {agent.ReferredBy}</Text>
+                    </View>
+                  )}
                   <View style={styles.row}>
                     <Text style={styles.label}>Status</Text>
                     <Text
