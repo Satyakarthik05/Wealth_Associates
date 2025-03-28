@@ -61,12 +61,12 @@ const data = [
   },
   {
     id: "11",
-    title: "DESIGNING",
+    title: "AUDITING",
     icon: "https://img.icons8.com/ios/100/paint-brush.png",
   },
   {
     id: "12",
-    title: "MATERIALS &\nCONTRACTS",
+    title: "LIAISONING",
     icon: "https://img.icons8.com/ios/100/handshake.png",
   },
 ];
