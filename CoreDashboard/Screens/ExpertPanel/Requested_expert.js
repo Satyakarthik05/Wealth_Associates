@@ -49,7 +49,7 @@ const RequestedExpert = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/core/getcore`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -76,7 +76,7 @@ const RequestedExpert = ({ closeModal }) => {
       expertType: selectedExpert,
       reason: reason,
       WantedBy: Details ? Details.MobileNumber : "Number",
-      UserType: "Agent",
+      UserType: "Core",
     };
 
     try {

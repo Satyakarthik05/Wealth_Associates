@@ -37,16 +37,29 @@ export default function ViewAgents() {
   const [constituencies, setConstituencies] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [coreMembers, setCoreMembers] = useState([]);
+  const [referrerNames, setReferrerNames] = useState({});
 
-  // Fetch agents data
-  const fetchAgents = async () => {
+  const fetchAllData = async () => {
     try {
       setRefreshing(true);
-      const response = await fetch(`${API_URL}/agent/allagents`);
-      if (!response.ok) throw new Error("Failed to fetch agents");
+      setLoading(true);
 
-      const data = await response.json();
-      const sortedAgents = data.data.sort((a, b) => {
+      const [agentsRes, coreMembersRes, districtsRes] = await Promise.all([
+        fetch(`${API_URL}/agent/allagents`),
+        fetch(`${API_URL}/core/getallcoremembers`),
+        fetch(`${API_URL}/alldiscons/alldiscons`),
+      ]);
+
+      if (!agentsRes.ok) throw new Error("Failed to fetch agents");
+      if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
+      if (!districtsRes.ok) throw new Error("Failed to fetch districts");
+
+      const agentsData = await agentsRes.json();
+      const coreMembersData = await coreMembersRes.json();
+      const districtsData = await districtsRes.json();
+
+      const sortedAgents = agentsData.data.sort((a, b) => {
         if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
           return 1;
         if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
@@ -56,14 +69,66 @@ export default function ViewAgents() {
 
       setAgents(sortedAgents);
       setFilteredAgents(sortedAgents);
+      setCoreMembers(coreMembersData.data || []);
+      setDistricts(districtsData || []);
+
+      loadReferrerNames(sortedAgents, coreMembersData.data || []);
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Error", "Failed to load agents");
+      Alert.alert("Error", "Failed to load data");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
+
+  const loadReferrerNames = (agents = [], coreMembers = []) => {
+    const names = {};
+
+    agents.forEach((agent) => {
+      if (agent?.ReferredBy && !names[agent.ReferredBy]) {
+        names[agent.ReferredBy] = getReferrerName(
+          agent.ReferredBy,
+          agents,
+          coreMembers
+        );
+      }
+    });
+
+    setReferrerNames(names);
+  };
+
+  const getReferrerName = (referredByCode, agents = [], coreMembers = []) => {
+    if (!referredByCode) return "N/A";
+
+    try {
+      // Check in agents first
+      const agentReferrer = agents.find(
+        (a) => a?.MyRefferalCode === referredByCode
+      );
+      if (agentReferrer) return agentReferrer?.FullName || "Agent";
+
+      // Then check in core members
+      const coreReferrer = coreMembers.find(
+        (m) => m?.MyRefferalCode === referredByCode
+      );
+      if (coreReferrer) return coreReferrer?.FullName || "Core Member";
+
+      // Special cases
+      if (referredByCode === "WA0000000001") return "Wealth Associate";
+
+      return "Referrer not found";
+    } catch (error) {
+      console.error("Error in getReferrerName:", error);
+      return "Error loading referrer";
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter agents based on search query
   useEffect(() => {
@@ -84,32 +149,10 @@ export default function ViewAgents() {
     }
   }, [searchQuery, agents]);
 
-  // Fetch districts and constituencies
-  const fetchDistricts = async () => {
-    try {
-      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
-      if (!response.ok) throw new Error("Failed to fetch districts");
-      setDistricts(await response.json());
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
-  };
-
-  // Initial data load
-  useEffect(() => {
-    const loadData = async () => {
-      await fetchDistricts();
-      await fetchAgents();
-    };
-    loadData();
-  }, []);
-
-  // Handle refresh
   const handleRefresh = async () => {
-    await fetchAgents();
+    await fetchAllData();
   };
 
-  // Mark agent as done with confirmation
   const handleMarkAsDone = async (agentId) => {
     const confirm = () => {
       if (Platform.OS === "web") {
@@ -135,7 +178,6 @@ export default function ViewAgents() {
 
       if (!response.ok) throw new Error("Failed to update status");
 
-      // Optimistic UI update
       setAgents((prevAgents) => {
         const updated = prevAgents.map((agent) =>
           agent._id === agentId
@@ -151,7 +193,6 @@ export default function ViewAgents() {
         });
       });
 
-      // Also update filteredAgents if needed
       setFilteredAgents((prevAgents) => {
         const updated = prevAgents.map((agent) =>
           agent._id === agentId
@@ -171,11 +212,9 @@ export default function ViewAgents() {
     } catch (error) {
       console.error("Update error:", error);
       Alert.alert("Error", "Failed to update agent status");
-      fetchAgents(); // Revert to actual data
     }
   };
 
-  // Edit agent functions
   const handleEditAgent = (agent) => {
     setSelectedAgent(agent);
     setEditedAgent({
@@ -186,7 +225,6 @@ export default function ViewAgents() {
       MyRefferalCode: agent.MyRefferalCode,
     });
 
-    // Load constituencies for district
     if (agent.District) {
       const district = districts.find((d) => d.parliament === agent.District);
       setConstituencies(district?.assemblies || []);
@@ -225,8 +263,6 @@ export default function ViewAgents() {
           agent._id === selectedAgent._id ? updatedAgent.data : agent
         )
       );
-
-      // Also update filteredAgents
       setFilteredAgents((prevAgents) =>
         prevAgents.map((agent) =>
           agent._id === selectedAgent._id ? updatedAgent.data : agent
@@ -241,7 +277,6 @@ export default function ViewAgents() {
     }
   };
 
-  // Delete agent functions
   const handleDeleteAgent = (agentId) => {
     const confirmDelete = () => {
       if (Platform.OS === "web") {
@@ -257,11 +292,7 @@ export default function ViewAgents() {
                 onPress: () => resolve(false),
                 style: "cancel",
               },
-              {
-                text: "Delete",
-                onPress: () => resolve(true),
-                style: "destructive",
-              },
+              { text: "Delete", onPress: () => resolve(true) },
             ]
           );
         });
@@ -274,9 +305,7 @@ export default function ViewAgents() {
       try {
         const response = await fetch(
           `${API_URL}/agent/deleteagent/${agentId}`,
-          {
-            method: "DELETE",
-          }
+          { method: "DELETE" }
         );
 
         if (!response.ok) throw new Error("Failed to delete agent");
@@ -305,15 +334,12 @@ export default function ViewAgents() {
               refreshing={refreshing}
               onRefresh={handleRefresh}
               colors={["#0000ff"]}
-              tintColor="#0000ff"
-              progressBackgroundColor="#ffffff"
             />
           ) : undefined
         }
       >
         <Text style={styles.heading}>My Agents</Text>
 
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -389,8 +415,10 @@ export default function ViewAgents() {
                   )}
                   {agent.ReferredBy && (
                     <View style={styles.row}>
-                      <Text style={styles.label}>Referral By</Text>
-                      <Text style={styles.value}>: {agent.ReferredBy}</Text>
+                      <Text style={styles.label}>Referred By</Text>
+                      <Text style={styles.value}>
+                        : {referrerNames[agent.ReferredBy] || "Loading..."}
+                      </Text>
                     </View>
                   )}
                   <View style={styles.row}>
@@ -436,7 +464,6 @@ export default function ViewAgents() {
         )}
       </ScrollView>
 
-      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
@@ -551,7 +578,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 20,
-    marginBottom: 40,
   },
   heading: {
     fontSize: 20,
@@ -589,6 +615,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 50,
+  },
+  noAgentsText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
   },
   refreshButton: {
     backgroundColor: "#2196F3",
@@ -696,18 +727,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 14,
-  },
-  noAgentsText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: "#666",
-  },
-  message: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: "#666",
   },
   modalOverlay: {
     flex: 1,

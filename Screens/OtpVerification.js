@@ -145,7 +145,7 @@ const OTP = () => {
 
                 <Text style={styles.timerText}>
                   {timer > 0
-                    ? `00:${timer < 10 ? `0${timer}` : timer} seconds`
+                    ? `00:${timer < 10 ? 0`${timer}` : timer} seconds`
                     : "Time expired!"}
                 </Text>
 

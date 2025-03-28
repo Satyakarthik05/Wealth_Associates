@@ -38,22 +38,35 @@ export default function ViewCustomers() {
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [referrerNames, setReferrerNames] = useState({});
+  const [agents, setAgents] = useState([]);
+  const [coreMembers, setCoreMembers] = useState([]);
 
-  // Fetch customers and filter by ReferredBy
-  const fetchCustomers = async () => {
+  const fetchAllData = async () => {
     try {
       setRefreshing(true);
-      const response = await fetch(`${API_URL}/customer/allcustomers`);
-      if (!response.ok) throw new Error("Failed to fetch customers");
+      setLoading(true);
 
-      const data = await response.json();
-      // Filter customers by ReferredBy
-      const filtered = data.data.filter(
-        (customer) => customer.ReferredBy === "WA0000000001"
-      );
+      const [customersRes, agentsRes, coreMembersRes, districtsRes] =
+        await Promise.all([
+          fetch(`${API_URL}/customer/allcustomers`),
+          fetch(`${API_URL}/agent/allagents`),
+          fetch(`${API_URL}/core/getallcoremembers`),
+          fetch(`${API_URL}/alldiscons/alldiscons`),
+        ]);
 
-      // Sort by status (pending first)
-      const sortedCustomers = filtered.sort((a, b) => {
+      if (!customersRes.ok) throw new Error("Failed to fetch customers");
+      if (!agentsRes.ok) throw new Error("Failed to fetch agents");
+      if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
+      if (!districtsRes.ok) throw new Error("Failed to fetch districts");
+
+      const customersData = await customersRes.json();
+      const agentsData = await agentsRes.json();
+      const coreMembersData = await coreMembersRes.json();
+      const districtsData = await districtsRes.json();
+
+      const sortedCustomers = customersData.data.sort((a, b) => {
         if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
           return 1;
         if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
@@ -63,41 +76,110 @@ export default function ViewCustomers() {
 
       setCustomers(sortedCustomers);
       setFilteredCustomers(sortedCustomers);
+      setAgents(agentsData.data);
+      setCoreMembers(coreMembersData.data);
+      setDistricts(districtsData);
+
+      loadReferrerNames(sortedCustomers, agentsData.data, coreMembersData.data);
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Error", "Failed to load customers");
+      Alert.alert("Error", "Failed to load data");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Fetch districts
-  const fetchDistricts = async () => {
+  const loadReferrerNames = (customers, agents, coreMembers) => {
+    const names = {};
+
+    customers.forEach((customer) => {
+      if (customer.ReferredBy && !names[customer.ReferredBy]) {
+        names[customer.ReferredBy] = getReferrerName(
+          customer.ReferredBy,
+          customers,
+          agents,
+          coreMembers
+        );
+      }
+    });
+
+    setReferrerNames(names);
+  };
+
+  const getReferrerName = (
+    referredByCode,
+    customers = [],
+    agents = [],
+    coreMembers = []
+  ) => {
+    if (!referredByCode) return "N/A";
+
+    // Ensure all parameters are arrays
+    const safeCustomers = Array.isArray(customers) ? customers : [];
+    const safeAgents = Array.isArray(agents) ? agents : [];
+    const safeCoreMembers = Array.isArray(coreMembers) ? coreMembers : [];
+
     try {
-      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
-      if (!response.ok) throw new Error("Failed to fetch districts");
-      setDistricts(await response.json());
+      // Check in customers
+      const customerReferrer = safeCustomers.find(
+        (c) => c?.MyRefferalCode === referredByCode
+      );
+      if (customerReferrer) return customerReferrer?.FullName || "Customer";
+
+      // Check in agents
+      const agentReferrer = safeAgents.find(
+        (a) => a?.MyRefferalCode === referredByCode
+      );
+      if (agentReferrer) return agentReferrer?.FullName || "Agent";
+
+      // Check in core members
+      const coreReferrer = safeCoreMembers.find(
+        (m) => m?.MyRefferalCode === referredByCode
+      );
+      if (coreReferrer) return coreReferrer?.FullName || "Core Member";
+
+      // Special cases
+      if (referredByCode === "WA0000000001") return "Wealth Associate";
+
+      return "Referrer not found";
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("Error in getReferrerName:", error);
+      return "Error loading referrer";
     }
   };
 
-  // Initial data load
   useEffect(() => {
-    const loadData = async () => {
-      await fetchDistricts();
-      await fetchCustomers();
-    };
-    loadData();
+    fetchAllData();
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Handle refresh
   const handleRefresh = async () => {
-    await fetchCustomers();
+    await fetchAllData();
   };
 
-  // Mark customer as done with confirmation
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCustomers(customers);
+    } else {
+      const filtered = customers.filter(
+        (customer) =>
+          (customer.FullName &&
+            customer.FullName.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            )) ||
+          (customer.MobileNumber &&
+            customer.MobileNumber.includes(searchQuery)) ||
+          (customer.MyRefferalCode &&
+            customer.MyRefferalCode.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            ))
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchQuery, customers]);
+
   const handleMarkAsDone = async (customerId) => {
     const confirm = () => {
       if (Platform.OS === "web") {
@@ -130,7 +212,6 @@ export default function ViewCustomers() {
 
       if (!response.ok) throw new Error("Failed to update status");
 
-      // Optimistic update
       setCustomers((prevCustomers) => {
         const updated = prevCustomers.map((customer) =>
           customer._id === customerId
@@ -150,11 +231,10 @@ export default function ViewCustomers() {
     } catch (error) {
       console.error("Update error:", error);
       Alert.alert("Error", "Failed to update customer status");
-      fetchCustomers(); // Revert to actual data
+      fetchAllData();
     }
   };
 
-  // Edit customer functions
   const openEditModal = (customer) => {
     setSelectedCustomer(customer);
     setEditedCustomer({
@@ -167,7 +247,6 @@ export default function ViewCustomers() {
       CallExecutiveCall: customer.CallExecutiveCall || "",
     });
 
-    // Set constituencies if district exists
     if (customer.District) {
       const selectedDistrict = districts.find(
         (d) => d.parliament === customer.District
@@ -177,7 +256,6 @@ export default function ViewCustomers() {
     setEditModalVisible(true);
   };
 
-  // Handle save edited customer
   const handleEditCustomer = async () => {
     try {
       const response = await fetch(
@@ -222,7 +300,6 @@ export default function ViewCustomers() {
     }
   };
 
-  // Delete customer functions
   const deleteCustomer = (customerId) => {
     const confirmDelete = () => {
       if (Platform.OS === "web") {
@@ -273,7 +350,6 @@ export default function ViewCustomers() {
     });
   };
 
-  // Update constituencies when district changes
   const handleDistrictChange = (district) => {
     setEditedCustomer({
       ...editedCustomer,
@@ -300,15 +376,37 @@ export default function ViewCustomers() {
       >
         <Text style={styles.heading}>My Customers</Text>
 
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, mobile or referral code"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loadingText}>Loading customers...</Text>
           </View>
-        ) : customers.length === 0 ? (
-          <Text style={styles.noCustomersText}>No customers found</Text>
+        ) : filteredCustomers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.noCustomersText}>
+              {searchQuery
+                ? "No matching customers found"
+                : "No customers found"}
+            </Text>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={handleRefresh}
+            >
+              <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={styles.cardContainer}>
-            {customers.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <View
                 key={customer._id}
                 style={[
@@ -363,6 +461,14 @@ export default function ViewCustomers() {
                       <Text style={styles.value}>: {customer.Contituency}</Text>
                     </View>
                   )}
+                  {customer.ReferredBy && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referred By</Text>
+                      <Text style={styles.value}>
+                        : {referrerNames[customer.ReferredBy] || "Loading..."}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.row}>
                     <Text style={styles.label}>Status</Text>
                     <Text
@@ -408,63 +514,64 @@ export default function ViewCustomers() {
         )}
       </ScrollView>
 
-      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Edit Customer</Text>
 
             <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.input}
+              placeholder="Full Name"
               value={editedCustomer.FullName}
               onChangeText={(text) =>
                 setEditedCustomer({ ...editedCustomer, FullName: text })
               }
-              placeholder="Enter full name"
             />
 
             <Text style={styles.inputLabel}>Mobile Number</Text>
             <TextInput
               style={styles.input}
+              placeholder="Mobile Number"
               value={editedCustomer.MobileNumber}
               onChangeText={(text) =>
                 setEditedCustomer({ ...editedCustomer, MobileNumber: text })
               }
-              placeholder="Enter mobile number"
               keyboardType="phone-pad"
             />
 
             <Text style={styles.inputLabel}>Occupation</Text>
             <TextInput
               style={styles.input}
+              placeholder="Occupation"
               value={editedCustomer.Occupation}
               onChangeText={(text) =>
                 setEditedCustomer({ ...editedCustomer, Occupation: text })
               }
-              placeholder="Enter occupation"
             />
 
             <Text style={styles.inputLabel}>Referral Code</Text>
             <TextInput
               style={styles.input}
+              placeholder="Referral Code"
               value={editedCustomer.MyRefferalCode}
               onChangeText={(text) =>
                 setEditedCustomer({ ...editedCustomer, MyRefferalCode: text })
               }
-              placeholder="Enter referral code"
             />
 
             <Text style={styles.inputLabel}>District</Text>
-            <View style={styles.pickerContainer}>
+            <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={editedCustomer.District}
                 onValueChange={handleDistrictChange}
+                style={styles.picker}
+                dropdownIconColor="#000"
               >
                 <Picker.Item label="Select District" value="" />
                 {districts.map((district) => (
@@ -478,12 +585,17 @@ export default function ViewCustomers() {
             </View>
 
             <Text style={styles.inputLabel}>Constituency</Text>
-            <View style={styles.pickerContainer}>
+            <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={editedCustomer.Contituency}
-                onValueChange={(value) =>
-                  setEditedCustomer({ ...editedCustomer, Contituency: value })
-                }
+                onValueChange={(itemValue) => {
+                  setEditedCustomer({
+                    ...editedCustomer,
+                    Contituency: itemValue,
+                  });
+                }}
+                style={styles.picker}
+                dropdownIconColor="#000"
                 enabled={!!editedCustomer.District}
               >
                 <Picker.Item label="Select Constituency" value="" />
@@ -497,7 +609,7 @@ export default function ViewCustomers() {
               </Picker>
             </View>
 
-            <View style={styles.modalButtons}>
+            <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setEditModalVisible(false)}
@@ -534,6 +646,19 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+    color: "#333",
+  },
+  searchContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -541,11 +666,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 50,
   },
-  noCustomersText: {
-    textAlign: "center",
-    marginTop: 20,
+  loadingText: {
+    marginTop: 15,
     fontSize: 16,
     color: "#666",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  noCustomersText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+  },
+  refreshButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  refreshButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   cardContainer: {
     flexDirection: "row",
@@ -642,23 +789,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 14,
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modalContainer: {
     width: width > 600 ? "50%" : "90%",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#333",
   },
   inputLabel: {
     fontSize: 14,
@@ -675,7 +828,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#fff",
   },
-  pickerContainer: {
+  pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
@@ -684,9 +837,10 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: "100%",
+    height: 50,
     backgroundColor: "#fff",
   },
-  modalButtons: {
+  modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
@@ -696,6 +850,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
+    justifyContent: "center",
   },
   saveButton: {
     backgroundColor: "#4CAF50",

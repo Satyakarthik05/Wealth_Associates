@@ -11,13 +11,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { API_URL } from "../../data/ApiUrl";
+import logo1 from "../../assets/Logo Final 1.png";
 const { width } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../../assets/Logo Final 1.png"),
+    logo: logo1,
   },
 ];
 

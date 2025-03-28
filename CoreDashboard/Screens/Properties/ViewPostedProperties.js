@@ -16,6 +16,7 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import photo from "../../../assets/logo.png";
 
 const { width } = Dimensions.get("window");
 const numColumns = 3;
@@ -196,7 +197,7 @@ const ViewPostedProperties = () => {
           {properties.map((item) => {
             const imageUri = item.photo
               ? { uri: `${API_URL}${item.photo}` }
-              : require("../../../assets/logo.png");
+              : photo;
 
             return (
               <View key={item._id} style={styles.card}>

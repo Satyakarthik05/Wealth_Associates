@@ -10,6 +10,9 @@ import {
   Modal,
   TouchableWithoutFeedback,
   FlatList,
+  Modal,
+  TouchableWithoutFeedback,
+  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -75,8 +78,8 @@ const RequestedExpert = ({ closeModal }) => {
     const requestData = {
       expertType: selectedExpert,
       reason: reason,
-      WantedBy: Details ? Details.MobileNumber : "Number",
-      UserType: "Agent",
+      WantedBy: Details ? Details.MobileIN : "Number",
+      UserType: "Nri ",
     };
 
     try {

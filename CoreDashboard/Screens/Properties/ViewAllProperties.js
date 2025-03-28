@@ -18,6 +18,10 @@ import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCards from "./PropertyCards";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import photo from "../../../assets/logo.png";
+import photo1 from "../../../assets/logo.png";
+import photo2 from "../../../assets/logo.png";
+import photo3 from "../../../assets/logo.png";
 
 const { width } = Dimensions.get("window");
 
@@ -503,7 +507,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {regularProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../../assets/logo.png");
+                    : photo;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -582,7 +586,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {approvedProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../../assets/logo.png");
+                    : photo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -661,7 +665,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {wealthProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../../assets/logo.png");
+                    : photo2;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
@@ -740,7 +744,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {listedProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    : require("../../../assets/logo.png");
+                    : photo3;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
