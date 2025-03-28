@@ -14,6 +14,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../../assets/logo.png"
+import logo2 from "../../assets/forgot_password.png"
 
 const OTP = () => {
   const [otp, setOtp] = useState(Array(4).fill(""));
@@ -126,11 +128,11 @@ const OTP = () => {
         style={styles.container}>
     <View style={styles.container}>
       <View style={styles.card}>
-        <Image source={require("../../assets/logo.png")} style={styles.logo} />
+        <Image source={logo1} style={styles.logo} />
         <View style={styles.main}>
           <View>
             <Image
-              source={require("../../assets/forgot_password.png")}
+              source={logo2}
               style={styles.logos}
             />
           </View>

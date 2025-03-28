@@ -11,12 +11,13 @@ import {
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import logo from "../../../Admin_Pan/assets/man.png"
 
 const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
   return (
     <View style={styles.card}>
       <Image
-        source={require("../../../Admin_Pan/assets/man.png")}
+        source={logo}
         style={styles.avatar}
       />
       <View style={styles.infoContainer}>
