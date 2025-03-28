@@ -30,7 +30,7 @@ const AddInvestor = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/investors/getinvestor`, {
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -90,7 +90,7 @@ const AddInvestor = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileNumber,
-          RegisteredBy: "Customer",
+          RegisteredBy: "WealthAssociate",
         }),
       });
       const data = await response.json();

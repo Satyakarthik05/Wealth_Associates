@@ -86,7 +86,7 @@ export default function ViewInvesters() {
             {agents.map((item) => renderAgentCard(item))}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No skilled labours found.</Text>
+          <Text style={styles.emptyText}>No Investor found.</Text>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "35%" : "90%", // 45% on tablets, 90% on mobile
+    width: width > 600 ? "35%" : "100%", // 45% on tablets, 90% on mobile
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",

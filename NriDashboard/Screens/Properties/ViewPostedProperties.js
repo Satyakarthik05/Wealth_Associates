@@ -9,18 +9,16 @@ import {
   Modal,
   TextInput,
   Platform,
-  Button,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
-import { useNavigation } from "@react-navigation/native";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
-const numColumns = 3; // Set number of properties per row
+const numColumns = 3;
 
 const ViewPostedProperties = () => {
   const [properties, setProperties] = useState([]);
@@ -33,6 +31,13 @@ const ViewPostedProperties = () => {
     location: "",
     price: "",
   });
+  const [showFilterList, setShowFilterList] = useState(false);
+
+  const filterOptions = [
+    { label: "All Properties", value: "" },
+    { label: "Price: Low to High", value: "lowToHigh" },
+    { label: "Price: High to Low", value: "highToLow" },
+  ];
 
   useEffect(() => {
     fetchProperties();
@@ -61,23 +66,23 @@ const ViewPostedProperties = () => {
 
       const data = await response.json();
 
-      // ✅ Ensure `data` is an array
       if (Array.isArray(data)) {
         setProperties(data);
       } else {
-        setProperties([]); // Set an empty array if response is not an array
+        setProperties([]);
         console.error("Unexpected API response:", data);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
-      setProperties([]); // Set default empty array on failure
+      setProperties([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = async (value) => {
+  const handleFilterChange = (value) => {
     setSelectedFilter(value);
+    setShowFilterList(false);
 
     if (value === "highToLow") {
       setProperties((prevProperties) =>
@@ -92,7 +97,7 @@ const ViewPostedProperties = () => {
         )
       );
     } else {
-      await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
+      fetchProperties();
     }
   };
 
@@ -146,20 +151,46 @@ const ViewPostedProperties = () => {
         <Text style={styles.heading}>My Properties</Text>
         <View style={styles.filterContainer}>
           <Text style={styles.filterLabel}>Sort by:</Text>
-          <Picker
-            selectedValue={selectedFilter}
-            onValueChange={handleFilterChange}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Filter --" value="" />
-            <Picker.Item label="Price: Low to High" value="lowToHigh" />
-            <Picker.Item label="Price: High to Low" value="highToLow" />
-          </Picker>
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TouchableOpacity
+                style={styles.filterButton}
+                onPress={() => setShowFilterList(!showFilterList)}
+              >
+                <Text style={styles.filterButtonText}>
+                  {selectedFilter
+                    ? filterOptions.find((opt) => opt.value === selectedFilter)?.label || "Select filter"
+                    : "Select filter"}
+                </Text>
+                <MaterialIcons
+                  name={showFilterList ? "arrow-drop-up" : "arrow-drop-down"}
+                  size={24}
+                  color="#E82E5F"
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+              {showFilterList && (
+                <View style={styles.dropdownContainer}>
+                  <ScrollView style={styles.scrollView}>
+                    {filterOptions.map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={styles.listItem}
+                        onPress={() => handleFilterChange(item.value)}
+                      >
+                        <Text>{item.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          </View>
         </View>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
+        <ActivityIndicator size="large" color="#E82E5F" style={styles.loader} />
       ) : (
         <View style={styles.grid}>
           {properties.map((item) => {
@@ -176,12 +207,12 @@ const ViewPostedProperties = () => {
                   <Text style={styles.budget}>
                     ₹ {parseInt(item.price).toLocaleString()}
                   </Text>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditPress(item)}
                   >
                     <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
             );
@@ -189,7 +220,6 @@ const ViewPostedProperties = () => {
         </View>
       )}
 
-      {/* Edit Property Modal */}
       <Modal visible={editModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -219,12 +249,18 @@ const ViewPostedProperties = () => {
               }
               placeholder="Price"
             />
-            <Button title="Save Changes" onPress={handleSaveEdit} />
-            <Button
-              title="Cancel"
-              color="red"
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleSaveEdit}
+            >
+              <Text style={styles.buttonText}>Save Changes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
               onPress={() => setEditModalVisible(false)}
-            />
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -240,8 +276,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection:
-      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
@@ -251,54 +286,126 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "left",
+    color: "#191919",
   },
   filterContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
-  filterLabel: { fontSize: 16, marginRight: 5 },
-  pickerWrapper: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    elevation: 3,
-    height: Platform.OS === "android" ? 50 : 40,
+  filterLabel: {
+    fontSize: 16,
+    marginRight: 10,
+    color: "#191919",
   },
-  picker: { height: "100%", width: 180, fontSize: 14 },
-  loader: { marginTop: 50 },
-
-  /** 🟢 Updated Grid & Card Styles for Vertical List **/
+  inputContainer: {
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "70%" : "30%",
+    position: "relative",
+    zIndex: 1,
+  },
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
+  },
+  filterButton: {
+    width: "100%",
+    height: 47,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    elevation: 2,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  filterButtonText: {
+    color: "rgba(25, 25, 25, 0.5)",
+  },
+  icon: {
+    right: 0,
+    top: 0,
+  },
+  dropdownContainer: {
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  scrollView: {
+    maxHeight: 300,
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  loader: {
+    marginTop: 50
+  },
   grid: {
-    flexDirection: "column", // 🔹 Stack cards vertically
-    width: "100%", // Take full width
-    alignItems: "center", // Center cards horizontally
+    flexDirection: "column",
+    width: "100%",
+    alignItems: "center",
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
-    marginVertical: 8, // 🔹 Space between cards
-    width: "90%", // Make it occupy most of the screen width
+    marginVertical: 8,
+    width: "90%",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
-
-  image: { width: "100%", height: 150, borderRadius: 8 },
-  details: { marginTop: 10 },
-  title: { fontSize: 16, fontWeight: "bold" },
-  info: { fontSize: 14, color: "#555" },
-  budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-
+  image: {
+    width: "100%",
+    height: 150,
+    borderRadius: 8
+  },
+  details: {
+    marginTop: 10
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#191919",
+  },
+  info: {
+    fontSize: 14,
+    color: "#555"
+  },
+  budget: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 5,
+    color: "#E82E5F",
+  },
   editButton: {
     marginTop: 10,
-    backgroundColor: "#007bff",
+    backgroundColor: "#E82E5F",
     padding: 8,
-    borderRadius: 5,
+    borderRadius: 15,
     alignItems: "center",
   },
-  editButtonText: { color: "white", fontSize: 14 },
+  editButtonText: {
+    color: "white",
+    fontSize: 14
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -308,11 +415,42 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 25,
     width: 300,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#191919",
+    textAlign: "center",
+  },
+  registerButton: {
+    backgroundColor: "#E82E5F",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#424242",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "400",
+  },
 });
 
 export default ViewPostedProperties;

@@ -12,13 +12,12 @@ import {
   Alert,
   Modal,
   Linking,
+  TextInput,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCards from "./PropertyCards";
-import { Ionicons } from "@expo/vector-icons";
-import logo from "../../../assets/man.png";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -34,14 +33,19 @@ const ViewAllProperties = ({ navigation }) => {
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [filterCriteria, setFilterCriteria] = useState({
     propertyType: "",
-    Constituency: "",
+    location: "",
     price: "",
   });
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
+    useState(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/investors/getinvestor`, {
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -90,7 +94,6 @@ const ViewAllProperties = ({ navigation }) => {
     }
   };
 
-  // Function to sort properties with constituency first
   const sortPropertiesByConstituency = (properties) => {
     if (!Details.Contituency) return properties;
 
@@ -121,6 +124,17 @@ const ViewAllProperties = ({ navigation }) => {
 
   const getLastFourChars = (id) => {
     return id ? id.slice(-4) : "N/A";
+  };
+
+  const filterProperties = (properties) => {
+    if (!searchQuery) return properties;
+
+    return properties.filter((property) => {
+      const propertyId = property._id
+        ? property._id.slice(-4).toLowerCase()
+        : "";
+      return propertyId.includes(searchQuery.toLowerCase());
+    });
   };
 
   useEffect(() => {
@@ -208,25 +222,33 @@ const ViewAllProperties = ({ navigation }) => {
     setFilterModalVisible(false);
   };
 
-  // Categorize properties
+  // Categorize properties with search filtering
   const regularProperties = sortPropertiesByConstituency(
-    properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Regular Property"
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Regular Property"
+      )
     )
   );
   const approvedProperties = sortPropertiesByConstituency(
-    properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Approved Property"
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Approved Property"
+      )
     )
   );
   const wealthProperties = sortPropertiesByConstituency(
-    properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Wealth Property"
+      )
     )
   );
   const listedProperties = sortPropertiesByConstituency(
-    properties.filter(
-      (property) => getPropertyTag(property.createdAt) === "Listed Property"
+    filterProperties(
+      properties.filter(
+        (property) => getPropertyTag(property.createdAt) === "Listed Property"
+      )
     )
   );
 
@@ -246,75 +268,213 @@ const ViewAllProperties = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by Property ID..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#999"
+            />
+          </View>
+
           {/* Filter Modal */}
           <Modal
             visible={isFilterModalVisible}
             transparent={true}
             animationType="slide"
           >
-            <View style={styles.modalContainer}>
+            <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalHeading}>Filter Properties</Text>
 
                 {/* Property Type Filter */}
-                <Text style={styles.filterLabel}>Property Type</Text>
-                <Picker
-                  selectedValue={filterCriteria.propertyType}
-                  onValueChange={(value) =>
-                    setFilterCriteria({
-                      ...filterCriteria,
-                      propertyType: value,
-                    })
-                  }
-                  style={styles.modalPicker}
-                >
-                  <Picker.Item label="-- Select Property Type --" value="" />
-                  {uniquePropertyTypes.map((type, index) => (
-                    <Picker.Item key={index} label={type} value={type} />
-                  ))}
-                </Picker>
+                <View style={styles.filterGroup}>
+                  <Text style={styles.filterLabel}>Property Type</Text>
+                  <View style={styles.inputContainer}>
+                    <View style={styles.inputWrapper}>
+                      <TouchableOpacity
+                        style={styles.filterButtonDropdown}
+                        onPress={() =>
+                          setShowPropertyTypeDropdown(!showPropertyTypeDropdown)
+                        }
+                      >
+                        <Text style={styles.filterButtonText}>
+                          {filterCriteria.propertyType ||
+                            "-- Select Property Type --"}
+                        </Text>
+                        <MaterialIcons
+                          name={
+                            showPropertyTypeDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
+                          size={24}
+                          color="#E82E5F"
+                          style={styles.icon}
+                        />
+                      </TouchableOpacity>
+                      {showPropertyTypeDropdown && (
+                        <View style={styles.dropdownContainer}>
+                          <ScrollView style={styles.scrollView}>
+                            <TouchableOpacity
+                              style={styles.listItem}
+                              onPress={() => {
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  propertyType: "",
+                                });
+                                setShowPropertyTypeDropdown(false);
+                              }}
+                            >
+                              <Text>-- Select Property Type --</Text>
+                            </TouchableOpacity>
+                            {uniquePropertyTypes.map((type, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={styles.listItem}
+                                onPress={() => {
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    propertyType: type,
+                                  });
+                                  setShowPropertyTypeDropdown(false);
+                                }}
+                              >
+                                <Text>{type}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
 
                 {/* Location Filter */}
-                <Text style={styles.filterLabel}>Location</Text>
-                <Picker
-                  selectedValue={filterCriteria.location}
-                  onValueChange={(value) =>
-                    setFilterCriteria({
-                      ...filterCriteria,
-
-                      location: value,
-                    })
-                  }
-                  style={styles.modalPicker}
-                >
-                  <Picker.Item label="-- Select Location --" value="" />
-                  {uniqueLocations.map((location, index) => (
-                    <Picker.Item
-                      key={index}
-                      label={location}
-                      value={location}
-                    />
-                  ))}
-                </Picker>
+                <View style={styles.filterGroup}>
+                  <Text style={styles.filterLabel}>Location</Text>
+                  <View style={styles.inputContainer}>
+                    <View style={styles.inputWrapper}>
+                      <TouchableOpacity
+                        style={styles.filterButtonDropdown}
+                        onPress={() =>
+                          setShowLocationDropdown(!showLocationDropdown)
+                        }
+                      >
+                        <Text style={styles.filterButtonText}>
+                          {filterCriteria.location || "-- Select Location --"}
+                        </Text>
+                        <MaterialIcons
+                          name={
+                            showLocationDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
+                          size={24}
+                          color="#E82E5F"
+                          style={styles.icon}
+                        />
+                      </TouchableOpacity>
+                      {showLocationDropdown && (
+                        <View style={styles.dropdownContainer}>
+                          <ScrollView style={styles.scrollView}>
+                            <TouchableOpacity
+                              style={styles.listItem}
+                              onPress={() => {
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  location: "",
+                                });
+                                setShowLocationDropdown(false);
+                              }}
+                            >
+                              <Text>-- Select Location --</Text>
+                            </TouchableOpacity>
+                            {uniqueLocations.map((location, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={styles.listItem}
+                                onPress={() => {
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    location: location,
+                                  });
+                                  setShowLocationDropdown(false);
+                                }}
+                              >
+                                <Text>{location}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
 
                 {/* Price Filter */}
-                <Text style={styles.filterLabel}>Price (in lakhs)</Text>
-                <Picker
-                  selectedValue={filterCriteria.price}
-                  onValueChange={(value) =>
-                    setFilterCriteria({ ...filterCriteria, price: value })
-                  }
-                  style={styles.modalPicker}
-                >
-                  <Picker.Item label="-- Select Price --" value="" />
-                  {uniquePrices.map((price, index) => (
-                    <Picker.Item
-                      key={index}
-                      label={`${price} Lakh`}
-                      value={price}
-                    />
-                  ))}
-                </Picker>
+                <View style={styles.filterGroup}>
+                  <Text style={styles.filterLabel}>Price (in lakhs)</Text>
+                  <View style={styles.inputContainer}>
+                    <View style={styles.inputWrapper}>
+                      <TouchableOpacity
+                        style={styles.filterButtonDropdown}
+                        onPress={() => setShowPriceDropdown(!showPriceDropdown)}
+                      >
+                        <Text style={styles.filterButtonText}>
+                          {filterCriteria.price
+                            ? `${filterCriteria.price} Lakh`
+                            : "-- Select Price --"}
+                        </Text>
+                        <MaterialIcons
+                          name={
+                            showPriceDropdown
+                              ? "arrow-drop-up"
+                              : "arrow-drop-down"
+                          }
+                          size={24}
+                          color="#E82E5F"
+                          style={styles.icon}
+                        />
+                      </TouchableOpacity>
+                      {showPriceDropdown && (
+                        <View style={styles.dropdownContainer}>
+                          <ScrollView style={styles.scrollView}>
+                            <TouchableOpacity
+                              style={styles.listItem}
+                              onPress={() => {
+                                setFilterCriteria({
+                                  ...filterCriteria,
+                                  price: "",
+                                });
+                                setShowPriceDropdown(false);
+                              }}
+                            >
+                              <Text>-- Select Price --</Text>
+                            </TouchableOpacity>
+                            {uniquePrices.map((price, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={styles.listItem}
+                                onPress={() => {
+                                  setFilterCriteria({
+                                    ...filterCriteria,
+                                    price: price,
+                                  });
+                                  setShowPriceDropdown(false);
+                                }}
+                              >
+                                <Text>{price} Lakh</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
 
                 {/* Apply and Reset Buttons */}
                 <View style={styles.modalButtonContainer}>
@@ -664,7 +824,10 @@ const ViewAllProperties = ({ navigation }) => {
                   <ActivityIndicator size="large" color="#007bff" />
                 ) : (
                   <>
-                    <Image source={logo} style={styles.agentLogo} />
+                    <Image
+                      source={require("../../../assets/man.png")}
+                      style={styles.agentLogo}
+                    />
                     <Text style={styles.modalTitle}>Referred By</Text>
                     <Text style={styles.modalText}>
                       Name: {referredInfo.name}
@@ -736,9 +899,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   filterButtonText: {
-    // color: "#fff",
+    // color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  searchContainer: {
+    marginBottom: 15,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "#fff",
   },
   sectionTitle: {
     fontSize: 18,
@@ -850,11 +1024,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontWeight: "bold",
   },
-  modalPicker: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 5,
-    marginBottom: 15,
-  },
   modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -918,6 +1087,65 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: "white",
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  filterGroup: {
+    marginBottom: 15,
+  },
+  inputContainer: {
+    width: "100%",
+    position: "relative",
+  },
+  inputWrapper: {
+    position: "relative",
+  },
+  filterButtonDropdown: {
+    width: "100%",
+    height: 47,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    elevation: 2,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  icon: {
+    right: 0,
+    top: 0,
+  },
+  dropdownContainer: {
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+    maxHeight: 200,
+  },
+  scrollView: {
+    maxHeight: 200,
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
 });
 

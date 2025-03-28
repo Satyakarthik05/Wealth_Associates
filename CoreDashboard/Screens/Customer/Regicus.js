@@ -170,7 +170,7 @@ const RegisterExecute = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
-      RegisteredBY: "CoreMember",
+      RegisteredBY: "WealthAssociate",
     };
 
     try {
@@ -434,6 +434,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   container: {
+    marginTop:"30%",
     backgroundColor: "white",
     padding: 30,
     borderRadius: 30,

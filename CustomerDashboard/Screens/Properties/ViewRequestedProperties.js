@@ -13,11 +13,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import logo from "../../../assets/Land.jpg"
-import logo1 from "../../../assets/residntial.jpg"
-import logo2 from "../../../assets/commercial.jpg"
-import logo3 from "../../../assets/house.jpg"
-import logo4 from "../../../assets/villa.jpg"
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../../data/ApiUrl";
@@ -78,15 +73,15 @@ const RequestedProperties = () => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return logo;
+        return require("../../../assets/Land.jpg");
       case "residential":
-        return logo1;
+        return require("../../../assets/residntial.jpg");
       case "commercial":
-        return logo2;
+        return require("../../../assets/commercial.jpg");
       case "villa":
-        return logo3;
+        return require("../../../assets/villa.jpg");
       default:
-        return logo4;
+        return require("../../../assets/house.png");
     }
   };
 
@@ -155,12 +150,12 @@ const RequestedProperties = () => {
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditPress(item)}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           ))}

@@ -135,113 +135,121 @@ const Rskill = ({ closeModal }) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Register Skilled Resource</Text>
-        </View>
-        <View style={styles.form}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            value={fullName}
-            onChangeText={setFullName}
-            style={styles.input}
-            placeholder="Enter full name"
-          />
+        <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Register Skilled Resource</Text>
+          </View>
+          <View style={styles.form}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              value={fullName}
+              onChangeText={setFullName}
+              style={styles.input}
+              placeholder="Enter full name"
+            />
 
-          <Text style={styles.label}>Select Skill</Text>
-          {loadingSkills ? (
-            <ActivityIndicator size="small" color="#E91E63" />
-          ) : (
+            <Text style={styles.label}>Select Skill</Text>
+            {loadingSkills ? (
+              <ActivityIndicator size="small" color="#E91E63" />
+            ) : (
+              <View style={styles.inputContainer}>
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowSkillDropdown(!showSkillDropdown)}
+                >
+                  <Text style={skill ? {} : styles.placeholderText}>
+                    {skill || "-- Select Skill Type --"}
+                  </Text>
+                </TouchableOpacity>
+                {showSkillDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    {skills.map((item) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setSkill(item);
+                          setShowSkillDropdown(false);
+                        }}
+                      >
+                        <Text>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            <Text style={styles.label}>Location</Text>
             <View style={styles.inputContainer}>
-              <TouchableOpacity
+              <TextInput
                 style={styles.input}
-                onPress={() => setShowSkillDropdown(!showSkillDropdown)}
-              >
-                <Text style={skill ? {} : styles.placeholderText}>
-                  {skill || "-- Select Skill Type --"}
-                </Text>
-              </TouchableOpacity>
-              {showSkillDropdown && (
+                placeholder="Ex. Vijayawada"
+                value={locationSearch}
+                onChangeText={(text) => {
+                  setLocationSearch(text);
+                  setShowLocationList(true);
+                }}
+                onFocus={() => setShowLocationList(true)}
+              />
+              {showLocationList && (
                 <View style={styles.dropdownContainer}>
-                  {skills.map((item) => (
+                  {filteredConstituencies.map((item) => (
                     <TouchableOpacity
-                      key={item}
+                      key={`${item.code}-${item.name}`}
                       style={styles.listItem}
                       onPress={() => {
-                        setSkill(item);
-                        setShowSkillDropdown(false);
+                        setLocation(item.name);
+                        setLocationSearch(item.name);
+                        setShowLocationList(false);
                       }}
                     >
-                      <Text>{item}</Text>
+                      <Text>{item.name}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
             </View>
-          )}
 
-          <Text style={styles.label}>Location</Text>
-          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Mobile Number</Text>
             <TextInput
+              value={mobileNumber}
+              onChangeText={setMobileNumber}
+              keyboardType="numeric"
               style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={locationSearch}
-              onChangeText={(text) => {
-                setLocationSearch(text);
-                setShowLocationList(true);
-              }}
-              onFocus={() => setShowLocationList(true)}
+              placeholder="Enter mobile number"
             />
-            {showLocationList && (
-              <View style={styles.dropdownContainer}>
-                {filteredConstituencies.map((item) => (
-                  <TouchableOpacity
-                    key={`${item.code}-${item.name}`}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setLocation(item.name);
-                      setLocationSearch(item.name);
-                      setShowLocationList(false);
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
 
-          <Text style={styles.label}>Mobile Number</Text>
-          <TextInput
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
-            keyboardType="numeric"
-            style={styles.input}
-            placeholder="Enter mobile number"
-          />
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.registerButton, loading && styles.disabledButton]}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Register</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.registerButton,
+                  loading && styles.disabledButton,
+                ]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Register</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={closeModal}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
+      </KeyboardAvoidingView>
   );
 };
 

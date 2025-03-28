@@ -381,7 +381,7 @@ const RegisterExecute = ({ closeModal }) => {
             </View>
           </View>
 
-          <View style={styles.row}>
+          {/* <View style={styles.row}>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Referral Code</Text>
               <TextInput
@@ -392,7 +392,7 @@ const RegisterExecute = ({ closeModal }) => {
                 value={referralCode}
               />
             </View>
-          </View>
+          </View> */}
 
           <View style={styles.buttonRow}>
             <TouchableOpacity

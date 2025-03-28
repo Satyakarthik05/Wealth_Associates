@@ -1,318 +1,355 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
-  Dimensions,
-  Modal,
   TextInput,
-  Platform,
-  Button,
   TouchableOpacity,
+  Alert,
+  StyleSheet,
   ScrollView,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+  Modal,
+  Dimensions
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
-import { useNavigation } from "@react-navigation/native";
+import { MaterialIcons } from "@expo/vector-icons";
 
-const { width } = Dimensions.get("window");
-const numColumns = 3; // Set number of properties per row
+const RequestedPropertyForm = ({ closeModal }) => {
+  const [propertyTitle, setPropertyTitle] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [location, setLocation] = useState("");
+  const [budget, setBudget] = useState("");
+  const [Details, setDetails] = useState({});
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
+  
+  const modalRef = useRef();
 
-const ViewPostedProperties = () => {
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedFilter, setSelectedFilter] = useState("");
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState(null);
-  const [editedData, setEditedData] = useState({
-    propertyType: "",
-    location: "",
-    price: "",
-  });
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const fetchProperties = async () => {
+  // Fetch agent details
+  const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        console.warn("No token found in AsyncStorage.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/properties/getMyPropertys`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
-          token: `${token}`,
-          "Content-Type": "application/json",
+          token: `${token}` || "",
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      const newDetails = await response.json();
+      setDetails(newDetails);
+    } catch (error) {
+      console.error("Error fetching agent details:", error);
+    }
+  };
 
+  // Fetch property types from backend
+  const fetchPropertyTypes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/propertytype`);
       const data = await response.json();
+      setPropertyTypes(data);
+    } catch (error) {
+      console.error("Error fetching property types:", error);
+    }
+  };
 
-      // ✅ Ensure `data` is an array
-      if (Array.isArray(data)) {
-        setProperties(data);
+  // Fetch constituencies data
+  const fetchConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+    fetchPropertyTypes();
+    fetchConstituencies();
+  }, []);
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!propertyTitle || !propertyType || !location || !budget) {
+      Alert.alert("Error", "Please fill all the fields.");
+      return;
+    }
+
+    const requestData = {
+      propertyTitle,
+      propertyType,
+      location,
+      Budget: budget,
+      PostedBy: Details.MobileNumber,
+    };
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/requestProperty/requestProperty`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", result.message);
+        closeModal();
       } else {
-        setProperties([]); // Set an empty array if response is not an array
-        console.error("Unexpected API response:", data);
+        Alert.alert("Error", result.message || "Failed to request property.");
       }
     } catch (error) {
-      console.error("Error fetching properties:", error);
-      setProperties([]); // Set default empty array on failure
+      console.error("Error submitting request:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = async (value) => {
-    setSelectedFilter(value);
-
-    if (value === "highToLow") {
-      setProperties((prevProperties) =>
-        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
-          (a, b) => b.price - a.price
-        )
-      );
-    } else if (value === "lowToHigh") {
-      setProperties((prevProperties) =>
-        [...(Array.isArray(prevProperties) ? prevProperties : [])].sort(
-          (a, b) => a.price - b.price
-        )
-      );
-    } else {
-      await fetchProperties(); // ✅ Properly re-fetch data when resetting filter
-    }
-  };
-
-  const handleEditPress = (property) => {
-    setSelectedProperty(property);
-    setEditedData({
-      propertyType: property.propertyType,
-      location: property.location,
-      price: property.price.toString(),
-    });
-    setEditModalVisible(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!selectedProperty) return;
-
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        console.error("Token not found");
-        return;
-      }
-
-      const response = await fetch(
-        `${API_URL}/properties/editProperty/${selectedProperty._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            token: `${token}`,
-          },
-          body: JSON.stringify(editedData),
-        }
-      );
-
-      if (response.ok) {
-        console.log("Updated successfully");
-        setEditModalVisible(false);
-        fetchProperties();
-      } else {
-        console.error("Failed to update property");
-      }
-    } catch (error) {
-      console.error("Error updating property:", error);
+  // Handle click outside modal
+  const handleClickOutside = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      closeModal();
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>My Properties</Text>
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Sort by:</Text>
-          <Picker
-            selectedValue={selectedFilter}
-            onValueChange={handleFilterChange}
-            style={styles.picker}
-          >
-            <Picker.Item label="-- Select Filter --" value="" />
-            <Picker.Item label="Price: Low to High" value="lowToHigh" />
-            <Picker.Item label="Price: High to Low" value="highToLow" />
-          </Picker>
-        </View>
-      </View>
+    <TouchableWithoutFeedback onPress={closeModal}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback>
+          <View style={styles.modalContainer} ref={modalRef}>
+            <ScrollView contentContainerStyle={styles.container}>
+              <Text style={styles.header}>Requested Property</Text>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#3498db" style={styles.loader} />
-      ) : (
-        <View style={styles.grid}>
-          {properties.map((item) => {
-            const imageUri = item.photo
-              ? { uri: `${API_URL}${item.photo}` }
-              : require("../../../assets/logo.png");
-
-            return (
-              <View key={item._id} style={styles.card}>
-                <Image source={imageUri} style={styles.image} />
-                <View style={styles.details}>
-                  <Text style={styles.title}>{item.propertyType}</Text>
-                  <Text style={styles.info}>Location: {item.location}</Text>
-                  <Text style={styles.budget}>
-                    ₹ {parseInt(item.price).toLocaleString()}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Property Type</Text>
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
+                >
+                  <Text style={propertyType ? {} : styles.placeholderText}>
+                    {propertyType || "Select Property Type"}
                   </Text>
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => handleEditPress(item)}
-                  >
-                    <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
+                {showPropertyTypeDropdown && (
+                  <View style={styles.dropdownContainer}>
+                    {propertyTypes.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setPropertyType(item.name);
+                          setShowPropertyTypeDropdown(false);
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
-            );
-          })}
-        </View>
-      )}
 
-      {/* Edit Property Modal */}
-      <Modal visible={editModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Property</Text>
-            <TextInput
-              style={styles.input}
-              value={editedData.propertyType}
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, propertyType: text })
-              }
-              placeholder="Property Type"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedData.location}
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, location: text })
-              }
-              placeholder="Location"
-            />
-            <TextInput
-              style={styles.input}
-              value={editedData.price}
-              keyboardType="numeric"
-              onChangeText={(text) =>
-                setEditedData({ ...editedData, price: text })
-              }
-              placeholder="Price"
-            />
-            <Button title="Save Changes" onPress={handleSaveEdit} />
-            <Button
-              title="Cancel"
-              color="red"
-              onPress={() => setEditModalVisible(false)}
-            />
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Location</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex. Vijayawada"
+                  value={locationSearch}
+                  onChangeText={(text) => {
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }}
+                  onFocus={() => setShowLocationList(true)}
+                />
+                {showLocationList && (
+                  <View style={styles.dropdownContainer}>
+                    {filteredConstituencies.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setLocation(item.name);
+                          setLocationSearch(item.name);
+                          setShowLocationList(false);
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Budget</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your budget"
+                  value={budget}
+                  onChangeText={setBudget}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Property Title</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex. Need 10 acres land"
+                  value={propertyTitle}
+                  onChangeText={setPropertyTitle}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.postButton, loading && styles.disabledButton]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.postButtonText}>Post</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </TouchableWithoutFeedback>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    height:"100vh",
+    width:"100%",
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: Dimensions.get('window').width * 0.9,
+    maxHeight: Dimensions.get('window').height * 0.8,
+  },
   container: {
-    flexGrow: 1,
-    padding: 15,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection:
-      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 15,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "left",
-  },
-  filterContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  filterLabel: { fontSize: 16, marginRight: 5 },
-  pickerWrapper: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    elevation: 3,
-    height: Platform.OS === "android" ? 50 : 40,
-  },
-  picker: { height: "100%", width: 180, fontSize: 14 },
-  loader: { marginTop: 50 },
-
-  /** 🟢 Updated Grid & Card Styles for Vertical List **/
-  grid: {
-    flexDirection: "column", // 🔹 Stack cards vertically
-    width: "100%", // Take full width
-    alignItems: "center", // Center cards horizontally
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 8, // 🔹 Space between cards
-    width: "90%", // Make it occupy most of the screen width
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 15,
+    width: '100%',
+    alignSelf: "center",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 3,
+    elevation: 5,
+    borderWidth: 0.5,
+    borderColor: "black"
   },
-
-  image: { width: "100%", height: 150, borderRadius: 8 },
-  details: { marginTop: 10 },
-  title: { fontSize: 16, fontWeight: "bold" },
-  info: { fontSize: 14, color: "#555" },
-  budget: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
-
-  editButton: {
-    marginTop: 10,
-    backgroundColor: "#007bff",
-    padding: 8,
+  header: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
+    backgroundColor: "#e91e63",
+    padding: 12,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  inputContainer: {
+    marginTop: 12,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: "#bbb",
+    padding: 10,
+    borderRadius: 25,
+    fontSize: 14,
+    backgroundColor: "#fff",
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
     borderRadius: 5,
-    alignItems: "center",
+    marginTop: 5,
+    maxHeight: 300,
+    overflow: "scroll",
+    backgroundColor: "#e6708e",
   },
-  editButtonText: { color: "white", fontSize: 14 },
-  modalContainer: {
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  postButton: {
+    backgroundColor: "#e91e63",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 25,
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    marginRight: 10,
   },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: 300,
+  postButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
+  cancelButton: {
+    backgroundColor: "#333",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    flex: 1,
+    marginLeft: 10,
+  },
+  cancelButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+  },
+  placeholderText: {
+    color: "rgba(0, 0, 0, 0.5)",
+  },
 });
 
-export default ViewPostedProperties;
+export default RequestedPropertyForm;
