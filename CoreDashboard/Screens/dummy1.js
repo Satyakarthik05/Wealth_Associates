@@ -17,6 +17,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Agent_Right from "./Agent_Right";
 import Add_Agent from "./Add_Agent";
+import logo from "../assets/logo.png";
+import icon from "../assets/logo.png";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -111,10 +113,10 @@ const Admin_panel = () => {
 
       {/* Top Navbar */}
       <View style={styles.navbar}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={logo} style={styles.logo} />
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
-            <Image source={require("../assets/logo.png")} style={styles.icon} />
+            <Image source={icon} style={styles.icon} />
             <Text style={styles.language}>English</Text>
             <Ionicons name="moon-outline" size={24} color="#000" />
             <Ionicons name="notifications-outline" size={24} color="#000" />

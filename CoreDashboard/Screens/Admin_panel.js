@@ -48,6 +48,7 @@ import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
+import logo from "../../assets/logo.png";
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -383,7 +384,7 @@ const Admin_panel = () => {
           }}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={logo}
             style={styles.logo}
           />
         </TouchableOpacity>
