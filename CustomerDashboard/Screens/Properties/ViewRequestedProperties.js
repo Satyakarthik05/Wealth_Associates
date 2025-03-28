@@ -84,9 +84,9 @@ const RequestedProperties = () => {
       case "commercial":
         return logo2;
       case "villa":
-        return logo3;
-      default:
         return logo4;
+      default:
+        return logo3;
     }
   };
 

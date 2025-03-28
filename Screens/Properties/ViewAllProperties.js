@@ -17,14 +17,11 @@ import {
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCards from "./PropertyCards";
-<<<<<<< HEAD
-import { Ionicons } from "@expo/vector-icons";
+// import { Ionicons } from "@expo/vector-icons";
 import logo from "../../assets/man.png";
 import logo1 from "../../assets/logo.png";
 
-=======
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
->>>>>>> 963f88f6591b6eb7b8047cd96cac5dcf26c6f0f0
 
 const { width } = Dimensions.get("window");
 
@@ -510,7 +507,7 @@ const ViewAllProperties = ({ navigation }) => {
                 {regularProperties.map((property, index) => {
                   const imageUri = property.photo
                     ? { uri: `${API_URL}${property.photo}` }
-                    :logo1;
+                    : logo1;
                   const propertyTag = getPropertyTag(property.createdAt);
                   const propertyId = getLastFourChars(property._id);
 
