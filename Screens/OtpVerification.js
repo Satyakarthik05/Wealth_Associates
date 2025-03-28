@@ -14,6 +14,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../assets/logo.png";
+import logo2 from "../assets/forgot_password.png";
 
 const OTP = () => {
   const [otp, setOtp] = useState(Array(4).fill(""));
@@ -105,6 +107,36 @@ const OTP = () => {
 
   return (
     <KeyboardAvoidingView
+<<<<<<< HEAD
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <Image source={logo1} style={styles.logo} />
+        <View style={styles.main}>
+          <View>
+            <Image
+              source={logo2}
+              style={styles.logos}
+            />
+          </View>
+          <View>
+            <Text style={styles.header}>Verification</Text>
+            <Text style={styles.subHeader}>Enter OTP</Text>
+
+            <View style={styles.otpInputContainer}>
+              {otp.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  style={styles.otpBox}
+                  maxLength={1}
+                  keyboardType="number-pad"
+                  onChangeText={(text) => handleOtpChange(text, index)}
+                  value={digit}
+                  autoFocus={index === 0}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+=======
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
@@ -121,6 +153,7 @@ const OTP = () => {
                 <Image
                   source={require("../assets/forgot_password.png")}
                   style={styles.logos}
+>>>>>>> 963f88f6591b6eb7b8047cd96cac5dcf26c6f0f0
                 />
               </View>
               <View>
