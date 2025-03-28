@@ -4,8 +4,14 @@ const RequestedExpert = require("../Models/RequestExpert");
 // Register a new requested expert
 const registerExpertRequest = async (req, res) => {
   try {
-    const { Name, MobileNumber, ExpertType, ExpertName, RequestedBy } =
-      req.body;
+    const {
+      Name,
+      MobileNumber,
+      ExpertType,
+      ExpertName,
+      ExpertNo,
+      RequestedBy,
+    } = req.body;
 
     if (!Name || !MobileNumber || !ExpertType || !ExpertName || !RequestedBy) {
       return res.status(400).json({ message: "All fields are required." });
@@ -16,6 +22,7 @@ const registerExpertRequest = async (req, res) => {
       MobileNumber,
       ExpertType,
       ExpertName,
+      ExpertNo,
       RequestedBy,
     });
 

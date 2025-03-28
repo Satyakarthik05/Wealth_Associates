@@ -134,7 +134,7 @@ const menuItems = [
     subItems: [
       "Register Skilled Resource",
       "View Skilled Resource",
-      "All Skilled Resource",
+      "All Skilled Resources",
     ],
   },
   {
@@ -156,8 +156,6 @@ const menuItems = [
       "Add Expertise",
       "Add Occupation",
       "Add Property Type",
-      // "Add Expert Types",
-      // "Add Countries",
       "Add Skill",
     ],
   },

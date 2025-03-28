@@ -129,12 +129,9 @@ export default function ViewAgents() {
     if (!(await confirm())) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/agent/markasdone/${agentId}`,
-        {
-          method: "PUT",
-        }
-      );
+      const response = await fetch(`${API_URL}/agent/markasdone/${agentId}`, {
+        method: "PUT",
+      });
 
       if (!response.ok) throw new Error("Failed to update status");
 
@@ -388,6 +385,12 @@ export default function ViewAgents() {
                     <View style={styles.row}>
                       <Text style={styles.label}>Referral Code</Text>
                       <Text style={styles.value}>: {agent.MyRefferalCode}</Text>
+                    </View>
+                  )}
+                  {agent.ReferredBy && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referral By</Text>
+                      <Text style={styles.value}>: {agent.ReferredBy}</Text>
                     </View>
                   )}
                   <View style={styles.row}>
