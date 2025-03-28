@@ -17,6 +17,7 @@ import {
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
+import logo2 from "../../assets/logo.png"
 
 const { width } = Dimensions.get("window");
 
@@ -190,7 +191,7 @@ const Register_screen = () => {
         nestedScrollEnabled={true}
       >
         <View style={styles.card}>
-          <Image source={require("../../assets/logo.png")} style={styles.logo} />
+          <Image source={logo2} style={styles.logo} />
           <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
           <Text style={styles.title}>REGISTER AS AN AGENT</Text>
 

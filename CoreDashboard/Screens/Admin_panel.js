@@ -398,7 +398,7 @@ const Admin_panel = () => {
           }}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={logo}
             style={styles.logo}
           />
         </TouchableOpacity>

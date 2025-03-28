@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import logo from "../../../assets/man.png"
 const { width } = Dimensions.get("window");
 
 export default function ViewSkilledLabours() {
@@ -56,7 +56,7 @@ export default function ViewSkilledLabours() {
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
       <Image
-        source={require("../../../assets/man.png")}
+        source={logo}
         style={styles.avatar}
       />
       <View style={styles.infoContainer}>

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
+import logo1 from "../../assets/man.png"
 
 const ExpertDetails = ({ expertType, onSwitch }) => {
   const [experts, setExperts] = useState([]);
@@ -115,7 +116,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
           {experts.map((item, index) => (
             <View key={item._id} style={styles.expertCard}>
               <Image
-                source={require("../../assets/man.png")}
+                source={logo1}
                 style={styles.profileImage}
               />
               <Text style={styles.expertName}>{item.Name}</Text>

@@ -16,7 +16,8 @@ import {
 import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import logo from "../../assets/logo.png";
+import logo1 from "../../assets/forgot_password.png"
 export default function ForgotPassword() {
   const [mobileNo, setMobileNumber] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -64,7 +65,7 @@ export default function ForgotPassword() {
           <View style={styles.card}>
             <View style={styles.logoContainer}>
               <Image
-                source={require("../../assets/logo.png")}
+                source={logo}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -78,7 +79,7 @@ export default function ForgotPassword() {
               }
             >
               <Image
-                source={require("../../assets/forgot_password.png")}
+                source={logo1}
                 style={styles.illustration}
                 resizeMode="contain"
               />
