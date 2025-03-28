@@ -13,6 +13,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import logo from "../../../assets/Land.jpg"
+import logo1 from "../../../assets/residntial.jpg"
+import logo2 from "../../../assets/commercial.jpg"
+import logo3 from "../../../assets/house.jpg"
+import logo4 from "../../../assets/villa.jpg"
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../../data/ApiUrl";
@@ -73,15 +78,15 @@ const RequestedProperties = () => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../../assets/Land.jpg");
+        return logo;
       case "residential":
-        return require("../../../assets/residntial.jpg");
+        return logo1;
       case "commercial":
-        return require("../../../assets/commercial.jpg");
+        return logo2;
       case "villa":
-        return require("../../../assets/villa.jpg");
+        return logo3;
       default:
-        return require("../../../assets/house.png");
+        return logo4;
     }
   };
 

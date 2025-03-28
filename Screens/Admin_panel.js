@@ -46,62 +46,10 @@ import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import ViewInvesters from "./Investors/ViewInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
+import RegisterExecutive from "./Agent/Rewa";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
-
-const menuItems = [
-  {
-    title: "Agents",
-    icon: "person-add-outline",
-    subItems: ["Register Agent", "View Agents"],
-  },
-  {
-    title: "Customers",
-    icon: "people-outline",
-    subItems: ["Add Customer", "View Customers"],
-  },
-  {
-    title: "Properties",
-    icon: "home-outline",
-    subItems: [
-      "Post Property",
-      "Request Property",
-      "View Posted Properties",
-      "View Requested Properties",
-      "View All Properties",
-    ],
-  },
-  {
-    title: "Expert Panel",
-    icon: "cog-outline",
-    subItems: ["View Expert Panel", "Request Expert Panel"],
-  },
-  {
-    title: "Core Clients",
-    icon: "business-outline",
-    subItems: ["View Core Clients", "View Core Projects"],
-  },
-  {
-    title: "Skilled Club",
-    icon: "trophy-outline",
-    subItems: [
-      "Register Skilled Resource",
-      "View Skilled Resource",
-      "All Skilled Resources",
-    ],
-  },
-  {
-    title: "Investors",
-    icon: "business-outline",
-    subItems: ["Add Investor", "View Investors"],
-  },
-  {
-    title: "NRI Club",
-    icon: "globe-outline",
-    subItems: ["Add NRI Member", "View NRI Members"],
-  },
-];
 
 const Admin_panel = () => {
   const navigation = useNavigation();
@@ -141,6 +89,67 @@ const Admin_panel = () => {
   const [isViewInVisible, setIsViewInvisible] = useState(false);
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isNriViewVisible, setIsNriViewVisible] = useState(false);
+  const [isExecuVisible, setIsExecuVisible] = useState(false);
+  // const [isRegisterExecutive, setRegisterExecutive] = useState(false);
+
+  const menuItems = [
+    {
+      title: "Agents",
+      icon: "person-add-outline",
+      subItems: [
+        "Register Agent",
+        "View Agents",
+        ...(Details?.AgentType === "RegionalWealthAssociate"
+          ? ["Register Executive WealthAssociate"]
+          : []),
+      ],
+    },
+    {
+      title: "Customers",
+      icon: "people-outline",
+      subItems: ["Add Customer", "View Customers"],
+    },
+    {
+      title: "Properties",
+      icon: "home-outline",
+      subItems: [
+        "Post Property",
+        "Request Property",
+        "View Posted Properties",
+        "View Requested Properties",
+        "View All Properties",
+      ],
+    },
+    {
+      title: "Expert Panel",
+      icon: "cog-outline",
+      subItems: ["View Expert Panel", "Request Expert Panel"],
+    },
+    {
+      title: "Core Clients",
+      icon: "business-outline",
+      subItems: ["View Core Clients", "View Core Projects"],
+    },
+    {
+      title: "Skilled Club",
+      icon: "trophy-outline",
+      subItems: [
+        "Register Skilled Resource",
+        "View Skilled Resource",
+        "All Skilled Resources",
+      ],
+    },
+    {
+      title: "Investors",
+      icon: "business-outline",
+      subItems: ["Add Investor", "View Investors"],
+    },
+    {
+      title: "NRI Club",
+      icon: "globe-outline",
+      subItems: ["Add NRI Member", "View NRI Members"],
+    },
+  ];
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -206,6 +215,8 @@ const Admin_panel = () => {
     setIsViewInvisible(false);
     setIsNriVisible(false);
     setIsNriViewVisible(false);
+    setIsExecuVisible(false);
+    // setRegisterExecutive(false)
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -255,6 +266,8 @@ const Admin_panel = () => {
       setIsNriVisible(true);
     } else if (subItem === "View NRI Members") {
       setIsNriViewVisible(true);
+    } else if (subItem === "Register Executive WealthAssociate") {
+      setIsExecuVisible(true);
     }
   };
 
@@ -276,6 +289,7 @@ const Admin_panel = () => {
     setIsViewInvisible(false);
     setIsNriVisible(false);
     setIsNriViewVisible(false);
+    setIsExecuVisible(false);
   };
 
   const renderContent = () => {
@@ -367,6 +381,7 @@ const Admin_panel = () => {
             setIsNriVisible(false);
             setIsNriViewVisible(false);
             setAllSkilledLabour(false);
+            setIsExecuVisible(false);
           }}
         >
           <Image source={logo1} style={styles.logo} />
@@ -402,6 +417,7 @@ const Admin_panel = () => {
                 setIsNriVisible(false);
                 setIsNriViewVisible(false);
                 setAllSkilledLabour(false);
+                setIsExecuVisible(false);
               }}
             />
           </View>
@@ -522,6 +538,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
         <AddNRIMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isExecuVisible} closeModal={closeModal}>
+        <RegisterExecutive closeModal={closeModal} />
       </CustomModal>
     </View>
   );

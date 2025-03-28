@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
+import avatar from "../../../assets/man.png";
 
 const { width } = Dimensions.get("window");
 
@@ -66,7 +67,7 @@ export default function ViewCustomers() {
           customers.map((item) => (
             <View key={item._id} style={styles.card}>
               <Image
-                source={require("../../../assets/man.png")}
+                source={avatar}
                 style={styles.avatar}
               />
               <View style={styles.infoContainer}>

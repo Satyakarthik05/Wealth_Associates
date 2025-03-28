@@ -17,11 +17,11 @@ import {
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
-import logo2 from "../../assets/logo.png"
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-const Register_screen = () => {
+const Register = ({ closeModal }) => {
   const [fullname, setFullname] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -42,20 +42,42 @@ const Register_screen = () => {
   const [showExpertiseList, setShowExpertiseList] = useState(false);
   const [showExperienceList, setShowExperienceList] = useState(false);
   const [districts, setDistricts] = useState([]);
-  const [constituencies, setConstituencys] = useState([]);
+  const [constituencies, setConstituencies] = useState([]);
   const [expertiseOptions, setExpertiseOptions] = useState([]);
+  const [Details, setDetails] = useState({});
+
   const mobileRef = useRef(null);
   const emailRef = useRef(null);
   const districtRef = useRef(null);
 
   const navigation = useNavigation();
 
-  // const expertiseOptions = [
-  //   { name: "Residential", code: "01" },
-  //   { name: "Commercial", code: "02" },
-  //   { name: "Industrial", code: "03" },
-  //   { name: "Agricultural", code: "04" },
-  // ];
+  // Fetch all districts and constituencies from the API
+  const fetchDistrictsAndConstituencies = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setDistricts(data); // Set the fetched data to districts
+    } catch (error) {
+      console.error("Error fetching districts and constituencies:", error);
+    }
+  };
+
+  // Fetch expertise
+  const fetchExpertise = async () => {
+    try {
+      const response = await fetch(`${API_URL}/discons/expertise`);
+      const data = await response.json();
+      setExpertiseOptions(data);
+    } catch (error) {
+      console.error("Error fetching expertise:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDistrictsAndConstituencies();
+    fetchExpertise();
+  }, []);
 
   const experienceOptions = [
     { name: "0-1 years", code: "01" },
@@ -64,54 +86,51 @@ const Register_screen = () => {
     { name: "5+ years", code: "04" },
   ];
 
+  // Filter districts based on search input
   const filteredDistricts = districts.filter((item) =>
-    item.name.toLowerCase().includes(districtSearch.toLowerCase())
+    item.parliament.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(constituencySearch.toLowerCase())
-  );
+  // Filter constituencies based on the selected district
+  const filteredConstituencies =
+    districts
+      .find((item) => item.parliament === district)
+      ?.assemblies.filter((assembly) =>
+        assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
+      ) || [];
 
-  const filteredExpertise = expertiseOptions.filter((item) =>
-    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
-  );
-
-  const filteredExperience = experienceOptions.filter((item) =>
-    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
-  );
-
-  const fetchDistricts = async () => {
+  // Fetch agent details
+  const getDetails = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/districts`);
-      const data = await response.json();
-      setDistricts(data);
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+      const newDetails = await response.json();
+      setDetails(newDetails);
     } catch (error) {
-      console.error("Error fetching property types:", error);
+      console.error("Error fetching agent details:", error);
     }
   };
-  const fetchConstituency = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/constituencys`);
-      const data = await response.json();
-      setConstituencys(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
+
+  useEffect(() => {
+    getDetails();
+  }, []);
+
+  useEffect(() => {
+    if (Details.MyRefferalCode) {
+      setReferralCode(Details.MyRefferalCode);
     }
-  };
-  const fetchExpertise = async () => {
-    try {
-      const response = await fetch(`${API_URL}/discons/expertise`);
-      const data = await response.json();
-      setExpertiseOptions(data);
-    } catch (error) {
-      console.error("Error fetching property types:", error);
-    }
-  };
+  }, [Details]);
 
   const handleRegister = async () => {
     if (
       !fullname ||
       !mobile ||
+      !email ||
       !district ||
       !constituency ||
       !location ||
@@ -124,17 +143,23 @@ const Register_screen = () => {
 
     setIsLoading(true);
 
-    const selectedDistrict = districts.find((d) => d.name === district);
-    const selectedConstituency = constituencies.find(
-      (c) => c.name === constituency
+    const selectedDistrict = districts.find((d) => d.parliament === district);
+    const selectedAssembly = selectedDistrict?.assemblies.find(
+      (a) => a.name === constituency
     );
 
-    const referenceId = `${selectedDistrict.code}${selectedConstituency.code}`;
+    if (!selectedDistrict || !selectedAssembly) {
+      Alert.alert("Error", "Invalid district or constituency selected.");
+      setIsLoading(false);
+      return;
+    }
+
+    const referenceId = `${selectedDistrict.parliamentCode}${selectedAssembly.code}`;
 
     const userData = {
       FullName: fullname,
       MobileNumber: mobile,
-      Email: email || "wealthassociate.com@gmail.com",
+      Email: email,
       District: district,
       Contituency: constituency,
       Locations: location,
@@ -143,6 +168,7 @@ const Register_screen = () => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
+      AgentType: "ExecutiveWealthAssociate",
     };
 
     try {
@@ -159,7 +185,7 @@ const Register_screen = () => {
       if (response.ok) {
         const result = await response.json();
         Alert.alert("Success", "Registration successful!");
-        navigation.navigate("Login");
+        closeModal();
       } else if (response.status === 400) {
         const errorData = await response.json();
         Alert.alert("Error", "Mobile number already exists.");
@@ -178,23 +204,15 @@ const Register_screen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDistricts();
-    fetchConstituency();
-    fetchExpertise();
-  }, []);
-
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        nestedScrollEnabled={true}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
-          <Image source={logo2} style={styles.logo} />
-          <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
-          <Text style={styles.title}>REGISTER AS AN AGENT</Text>
-
+          <View style={styles.register_main}>
+            <Text style={styles.register_text}>
+              Register Executive Wealth Associate
+            </Text>
+          </View>
           {responseStatus === 400 && (
             <Text style={styles.errorText}>Mobile number already exists.</Text>
           )}
@@ -212,12 +230,6 @@ const Register_screen = () => {
                     onChangeText={setFullname}
                     returnKeyType="next"
                     onSubmitEditing={() => mobileRef.current.focus()}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
                   />
                   <FontAwesome
                     name="user"
@@ -295,37 +307,24 @@ const Register_screen = () => {
                     value={districtSearch}
                     onChangeText={(text) => {
                       setDistrictSearch(text);
-                      setShowConstituencyList(false);
                       setShowDistrictList(true);
                     }}
-                    onFocus={() => {
-                      setShowDistrictList(true);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
+                    onFocus={() => setShowDistrictList(true)}
                   />
                   {showDistrictList && (
                     <View style={styles.dropdownContainer}>
-                      <ScrollView
-                        style={styles.scrollView}
-                        scrollEnabled={true}
-                      >
+                      <ScrollView style={styles.scrollView}>
                         {filteredDistricts.map((item) => (
                           <TouchableOpacity
-                            key={item.name}
+                            key={item.parliament}
                             style={styles.listItem}
                             onPress={() => {
-                              setDistrict(item.name);
-                              setDistrictSearch(item.name);
+                              setDistrict(item.parliament);
+                              setDistrictSearch(item.parliament);
                               setShowDistrictList(false);
                             }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
-                              setShowConstituencyList(false);
-                            }}
                           >
-                            <Text>{item.name}</Text>
+                            <Text>{item.parliament}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -348,25 +347,19 @@ const Register_screen = () => {
                     onFocus={() => {
                       setShowConstituencyList(true);
                       setShowDistrictList(false);
-                      setShowDistrictList(false);
-                      // setShowConstituencyList(false);
-                      setShowExpertiseList(false);
                     }}
                   />
                   {showConstituencyList && (
                     <View style={styles.dropdownContainer}>
                       <ScrollView style={styles.scrollView}>
-                        {filteredConstituencies.map((item) => (
+                        {filteredConstituencies.map((item, index) => (
                           <TouchableOpacity
-                            key={item.code}
+                            key={index}
                             style={styles.listItem}
                             onPress={() => {
                               setConstituency(item.name);
                               setConstituencySearch(item.name);
                               setShowConstituencyList(false);
-                            }}
-                            onFocus={() => {
-                              setShowExperienceList(true);
                             }}
                           >
                             <Text>{item.name}</Text>
@@ -397,19 +390,25 @@ const Register_screen = () => {
                   />
                   {showExperienceList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExperience.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExperience(item.name);
-                            setExperienceSearch(item.name);
-                            setShowExperienceList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {experienceOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(experienceSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExperience(item.name);
+                              setExperienceSearch(item.name);
+                              setShowExperienceList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
@@ -439,19 +438,25 @@ const Register_screen = () => {
                   />
                   {showExpertiseList && (
                     <View style={styles.dropdownContainer}>
-                      {filteredExpertise.map((item) => (
-                        <TouchableOpacity
-                          key={item.code}
-                          style={styles.listItem}
-                          onPress={() => {
-                            setExpertise(item.name);
-                            setExpertiseSearch(item.name);
-                            setShowExpertiseList(false);
-                          }}
-                        >
-                          <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {expertiseOptions
+                        .filter((item) =>
+                          item.name
+                            .toLowerCase()
+                            .includes(expertiseSearch.toLowerCase())
+                        )
+                        .map((item) => (
+                          <TouchableOpacity
+                            key={item.code}
+                            style={styles.listItem}
+                            onPress={() => {
+                              setExpertise(item.name);
+                              setExpertiseSearch(item.name);
+                              setShowExpertiseList(false);
+                            }}
+                          >
+                            <Text>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
                   )}
                 </View>
@@ -493,7 +498,7 @@ const Register_screen = () => {
                       setShowExpertiseList(false);
                       setShowExperienceList(false);
                     }}
-                    defaultValue="WA0000000001"
+                    value={referralCode}
                   />
                   <MaterialIcons
                     name="card-giftcard"
@@ -514,7 +519,11 @@ const Register_screen = () => {
             >
               <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              disabled={isLoading}
+              onPress={closeModal}
+            >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -526,24 +535,6 @@ const Register_screen = () => {
               style={styles.loadingIndicator}
             />
           )}
-
-          <TouchableOpacity
-            style={styles.loginText}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text>
-              Already have an account?{" "}
-              <Text style={styles.loginLink}>Login here</Text>
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ marginTop: 5 }}
-            onPress={() => navigation.navigate("PrivacyPolicy")}
-          >
-            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-              Privacy Policy
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
       <StatusBar style="auto" />
@@ -557,14 +548,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 20,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+  },
+  register_main: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E82E5F",
+    width: Platform.OS === "web" ? "100%" : 260,
+    height: 40,
+    borderRadius: 20,
+  },
+  register_text: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    fontSize: 20,
+    color: "#ccc",
   },
   card: {
     display: "flex",
     justifyContent: "center",
-    width: Platform.OS === "web" ? (width > 1024 ? "60%" : "80%") : "90%",
-    marginTop: Platform.OS === "web" ? "3%" : 0,
+    width: Platform.OS === "web" ? (width > 1024 ? "100%" : "100%") : "90%",
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 25,
@@ -574,8 +585,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     alignItems: "center",
-    margin: 20,
-    marginTop: 20,
     borderWidth: Platform.OS === "web" ? 0 : 1,
     borderColor: Platform.OS === "web" ? "transparent" : "#ccc",
   },
@@ -587,9 +596,8 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   scrollView: {
-    maxHeight: 200, // Adjust this height as per your UI
+    maxHeight: 200,
   },
-
   inputRow: {
     flexDirection: Platform.OS === "android" ? "column" : "row",
     justifyContent: "space-between",
@@ -598,11 +606,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: Platform.OS === "android" ? "100%" : "30%",
     position: "relative",
-    zIndex: 1, // Ensure the input container has a zIndex
+    zIndex: 1,
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1, // Ensure the input wrapper has a zIndex
+    zIndex: 1,
   },
   input: {
     width: "100%",
@@ -618,10 +626,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     borderWidth: 1,
     borderColor: "#ccc",
-  },
-  logo: {
-    width: Platform.OS === "android" ? 200 : 200,
-    height: Platform.OS === "android" ? 200 : 200,
   },
   icon: {
     position: "absolute",
@@ -662,7 +666,6 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontWeight: "bold",
-    color: "#e82e5f",
   },
   loadingIndicator: {
     marginTop: 20,
@@ -675,7 +678,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     position: "absolute",
-    bottom: "100%", // Position the dropdown above the input
+    bottom: "100%",
     left: 0,
     right: 0,
     zIndex: 1000,
@@ -683,26 +686,16 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 5, // Add space between the dropdown and input
+    marginBottom: 5,
   },
-
   list: {
-    flex: 1,
+    maxHeight: 150,
   },
   listItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
-  tagline: {
-    marginTop: -30,
-    marginBottom: 15,
-  },
-  title: {
-    fontWeight: 700,
-    fontSize: 23,
-    marginBottom: -10,
-  },
 });
 
-export default Register_screen;
+export default Register;

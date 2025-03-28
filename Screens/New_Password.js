@@ -9,8 +9,8 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-  Keyboard,
-  TouchableWithoutFeedback,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -75,12 +75,17 @@ export default function ResetPassword() {
   };
 
   return (
-    
+    <View style={styles.mainContainer}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : null}
         style={styles.container}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
       >
-        <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
           <View style={styles.card}>
             <View style={styles.logoContainer}>
               <Image
@@ -99,18 +104,25 @@ export default function ResetPassword() {
 
               <View style={styles.form}>
                 <Text style={styles.errorText}>
-                  Your New Password must be different from the old one.!
+                  Your New Password must be different from the old one!
                 </Text>
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>New Password</Text>
                   <View style={styles.inputWrapper}>
+                    <MaterialIcons
+                      name="lock"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.lockIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       secureTextEntry={!showPassword}
                       value={password}
                       onChangeText={setPassword}
                       placeholder="Enter new password"
+                      placeholderTextColor="#999"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
@@ -122,24 +134,25 @@ export default function ResetPassword() {
                         color="#888"
                       />
                     </TouchableOpacity>
-                    <MaterialIcons
-                      name="lock"
-                      size={20}
-                      color="#E82E5F"
-                      style={styles.lockIcon}
-                    />
                   </View>
                 </View>
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Confirm Password</Text>
                   <View style={styles.inputWrapper}>
+                    <MaterialIcons
+                      name="lock"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.lockIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       secureTextEntry={!showConfirmPassword}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       placeholder="Confirm new password"
+                      placeholderTextColor="#999"
                     />
                     <TouchableOpacity
                       onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -153,12 +166,6 @@ export default function ResetPassword() {
                         color="#888"
                       />
                     </TouchableOpacity>
-                    <MaterialIcons
-                      name="lock"
-                      size={20}
-                      color="#E82E5F"
-                      style={styles.lockIcon}
-                    />
                   </View>
                 </View>
 
@@ -168,22 +175,30 @@ export default function ResetPassword() {
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-    
+    </View>
   );
 }
 
+const windowHeight = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+  },
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    minHeight: windowHeight,
     padding: 16,
   },
   card: {
-    width: Platform.OS === "web" || Platform.OS === "ios" ? "100%" : "110%",
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 16,
@@ -201,18 +216,18 @@ const styles = StyleSheet.create({
     width: 200,
   },
   contentContainer: {
-    flexDirection:
-      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection: Platform.OS === "web" ? "row" : "column",
     alignItems: "center",
     justifyContent: "space-between",
   },
   illustration: {
-    height: Platform.OS === "android" || Platform.OS === "ios" ? 200 : 400,
-    width: Platform.OS === "android" || Platform.OS === "ios" ? "80%" : 500,
-    marginBottom: Platform.OS === "android" || Platform.OS === "ios" ? 16 : 0,
+    height: Platform.OS === "web" ? 400 : 200,
+    width: Platform.OS === "web" ? "50%" : "80%",
+    marginBottom: Platform.OS === "web" ? 0 : 16,
+    alignSelf: "center",
   },
   form: {
-    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "auto",
+    width: "100%",
   },
   errorText: {
     color: "#ff4d4d",
@@ -227,6 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 8,
     color: "#333",
+    fontWeight: '500',
   },
   inputWrapper: {
     flexDirection: "row",
@@ -236,28 +252,26 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     paddingHorizontal: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   input: {
     flex: 1,
     height: 40,
     fontSize: 16,
+    paddingLeft: 8,
+    color: '#333',
   },
   iconContainer: {
     marginLeft: 8,
   },
   lockIcon: {
-    marginLeft: 8,
+    marginRight: 8,
   },
   button: {
     backgroundColor: "#ee3b7b",
     paddingVertical: 12,
     alignItems: "center",
     borderRadius: 5,
+    marginTop: 16,
   },
   buttonText: {
     color: "#fff",

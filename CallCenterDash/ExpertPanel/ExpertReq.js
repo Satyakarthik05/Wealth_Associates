@@ -36,6 +36,10 @@ const ExpertCard = ({ expert, onResolve }) => {
           <Text style={styles.value}>{expert.ExpertName}</Text>
         </View>
         <View style={styles.row}>
+          <Text style={styles.label}>Expert MobileNumber:</Text>
+          <Text style={styles.value}>{expert.ExpertNo}</Text>
+        </View>
+        <View style={styles.row}>
           <Text style={styles.label}>Status:</Text>
           <Text
             style={[
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginVertical: 10,
     width: 280,
-    height: 320,
+    height: 340,
     justifyContent: "space-between",
     marginHorizontal: 10,
   },
