@@ -48,6 +48,9 @@ import ViewAllInvesters from "./Investors/ViewAllInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
+import RegisterEx from "./Agent/Rrwa";
+import RegisterValue from "./Agent/RegisterValue";
+
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -55,7 +58,7 @@ const menuItems = [
   {
     title: "Agents",
     icon: "person-add-outline",
-    subItems: ["Register Agent", "View Agents"],
+    subItems: ["Register Agent", "Register Regional WealthAssociate","Register Value Associate","View Agents"],
   },
   {
     title: "Customers",
@@ -144,6 +147,8 @@ const Admin_panel = () => {
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isViewInvesters, setViewInvesters] = useState(false);
+  const [isRegionVisible, setIsRegionVisible] = useState(false);
+  const [isRegiValueVisible, setIsRegiValueVisible]= useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -208,6 +213,8 @@ const Admin_panel = () => {
     setIsNriVisible(false);
     setIsViewNriVisible(false);
     setViewInvesters(false);
+    setIsRegionVisible(false);
+    setIsRegiValueVisible(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -257,6 +264,10 @@ const Admin_panel = () => {
       setIsViewNriVisible(true);
     } else if (subItem === "View Investors") {
       setViewInvesters(true);
+    } else if (subItem === "Register Regional WealthAssociate") {
+      setIsRegionVisible(true);
+    } else if (subItem === "Register Value Associate") {
+      setIsRegiValueVisible(true);
     }
   };
 
@@ -282,6 +293,8 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setIsNriVisible(false);
     setIsViewNriVisible(false);
+    setIsRegionVisible(false);
+    setIsRegiValueVisible(false);
   };
 
   const renderContent = () => {
@@ -380,6 +393,8 @@ const Admin_panel = () => {
             setIsNriVisible(false);
             setIsViewNriVisible(false);
             setViewInvesters(false);
+            setIsRegionVisible(false);
+            setIsRegiValueVisible(false);
           }}
         >
           <Image
@@ -417,6 +432,8 @@ const Admin_panel = () => {
                 setAllSkilledLabour(false);
                 setIsNriVisible(false);
                 setIsViewNriVisible(false);
+                setIsRegionVisible(false);
+                setIsRegiValueVisible(false);
               }}
             />
           </View>
@@ -540,6 +557,12 @@ const Admin_panel = () => {
       </CustomModal> */}
       <CustomModal isVisible={isNriVisible} closeModal={closeModal}>
         <AddNRIMember closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRegionVisible} closeModal={closeModal}>
+        <RegisterEx closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isRegiValueVisible} closeModal={closeModal}>
+        <RegisterValue closeModal={closeModal} />
       </CustomModal>
     </View>
   );

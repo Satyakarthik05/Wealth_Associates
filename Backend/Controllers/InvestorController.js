@@ -156,7 +156,7 @@ const fetchInvestors = async (req, res) => {
 
 const fetchAgentInvestors = async (req, res) => {
   try {
-    const mobileNumber = req.mobileNumber; // Get mobile number from middleware
+    const mobileNumber = req.mobileNumber; 
     const userType = req.userType;
 
     // Fetch skilled labours added by the agent
