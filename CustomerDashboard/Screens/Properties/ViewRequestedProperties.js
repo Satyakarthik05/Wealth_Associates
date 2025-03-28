@@ -13,11 +13,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import logo from "../../../assets/Land.jpg"
-import logo1 from "../../../assets/residntial.jpg"
-import logo2 from "../../../assets/commercial.jpg"
-import logo3 from "../../../assets/house.jpg"
-import logo4 from "../../../assets/villa.jpg"
+import logo from "../../../assets/Land.jpg";
+import logo1 from "../../../assets/residntial.jpg";
+import logo2 from "../../../assets/commercial.jpg";
+import logo3 from "../../../assets/house.png";
+import logo4 from "../../../assets/villa.jpg";
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../../data/ApiUrl";

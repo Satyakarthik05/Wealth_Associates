@@ -107,7 +107,7 @@ const OTP = () => {
 
   return (
     <KeyboardAvoidingView
-<<<<<<< HEAD
+
     behavior={Platform.OS === "ios" ? "padding" : "height"}
     style={styles.container}>
     <View style={styles.container}>
@@ -136,7 +136,6 @@ const OTP = () => {
                   value={digit}
                   autoFocus={index === 0}
                   onKeyPress={(e) => handleKeyPress(e, index)}
-=======
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
@@ -153,7 +152,6 @@ const OTP = () => {
                 <Image
                   source={require("../assets/forgot_password.png")}
                   style={styles.logos}
->>>>>>> 963f88f6591b6eb7b8047cd96cac5dcf26c6f0f0
                 />
               </View>
               <View>
