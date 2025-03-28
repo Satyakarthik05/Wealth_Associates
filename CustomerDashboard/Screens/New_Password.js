@@ -17,6 +17,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { API_URL } from "../../data/ApiUrl";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../../assets/logo.png"
+import logo2 from "../../assets/forgot_password.png"
 
 export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
@@ -81,7 +83,7 @@ export default function ResetPassword() {
       <View style={styles.card}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../assets/logo.png")}
+            source={logo1}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -89,7 +91,7 @@ export default function ResetPassword() {
 
         <View style={styles.contentContainer}>
           <Image
-            source={require("../../assets/forgot_password.png")}
+            source={logo2}
             style={styles.illustration}
             resizeMode="contain"
           />

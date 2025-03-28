@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import logo from "../../../assets/man.png"
 
 const { width } = Dimensions.get("window");
 
@@ -52,7 +53,7 @@ export default function ViewInvesters() {
 
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
-      <Image source={require("../../../assets/man.png")} style={styles.avatar} />
+      <Image source={logo} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <Text style={styles.label}>Name</Text>
