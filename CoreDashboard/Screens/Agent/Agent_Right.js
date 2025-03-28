@@ -27,6 +27,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCard from "./PropertyCard";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../../assets/man.png";
+import Harischandra from "../../../assets/Logo Final 1.png";
+import Bay from "../../../assets/Main-Logo (1) 1.png";
+import icon from "../../../assets/Meenakshi-Icon-Blac (2) 1.png";
+import Surya from "../../../assets/Surya Avenue Logo[1] 1.png"
+import Park from "../../../assets/Logo 1.png";
+import land from "../../../assets/Land.jpg";
+import residential from "../../../assets/residntial.jpg";
+import commercial from "../../../assets/commercial.jpg";
+import villa from "../../../assets/villa.jpg";
+import defa from "../../../assets/house.png";
+import propertyphoto from "./../../assets/house.png";
 
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
@@ -61,21 +72,21 @@ const nestedActionButtons = [
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../../../assets/Logo Final 1.png"),
+    logo: Harischandra,
   },
 ];
 
 const coreProjects = [
-  { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
+  { name: "Bay Town", logo: Bay },
   {
     name: "Icon",
-    logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
+    logo: icon,
   },
   {
     name: "Surya Avenue",
-    logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
+    logo: Surya,
   },
-  { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
+  { name: "The Park Vue", logo: Park },
 ];
 const numColumns = width > 800 ? 4 : 1;
 
@@ -147,15 +158,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../../assets/Land.jpg");
+        return land;
       case "residential":
-        return require("../../../assets/residntial.jpg");
+        return residential;
       case "commercial":
-        return require("../../../assets/commercial.jpg");
+        return commercial;
       case "villa":
-        return require("../../../assets/villa.jpg");
+        return villa;
       default:
-        return require("../../../assets/house.png");
+        return defa;
     }
   };
 
@@ -503,7 +514,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {approvedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../../assets/logo.png");
+                  : require("../../../assets/house.png");
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -665,7 +676,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {listedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../../assets/logo.png");
+                  : propertyphoto;
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 

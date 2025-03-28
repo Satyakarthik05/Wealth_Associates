@@ -12,6 +12,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import logo1 from "../assets/logo.png";
 
 const RegisterAsScreen = ({ navigation }) => {
   const loginOptions = [
@@ -31,7 +32,7 @@ const RegisterAsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Image source={require("../assets/logo.png")} style={styles.logo} />
+      <Image source={logo1} style={styles.logo} />
       <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
       <Text style={styles.loginAsText}>Register as</Text>
 

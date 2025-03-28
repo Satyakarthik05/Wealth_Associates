@@ -20,6 +20,7 @@ import * as ImagePicker from "expo-image-picker";
 import Modify_Deatils from "./Modify_Details";
 import CustomModal from "../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
+import logo1 from "../../assets/man2.png";
 
 const { width } = Dimensions.get("window");
 
@@ -219,7 +220,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
                   source={
                     profileImage
                       ? { uri: profileImage }
-                      : require("../../assets/man2.png")
+                      : logo1
                   }
                   style={styles.avatar}
                 />
