@@ -568,10 +568,12 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+    marginBottom: 60,
   },
   container: {
     flexGrow: 1,
     padding: 15,
+    marginBottom: 60,
   },
   loaderContainer: {
     flex: 1,

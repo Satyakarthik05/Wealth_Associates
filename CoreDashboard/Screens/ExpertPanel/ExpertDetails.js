@@ -20,6 +20,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   const [error, setError] = useState(null);
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
+  const [imageErrors, setImageErrors] = useState({});
 
   useEffect(() => {
     if (!expertType) return;
@@ -36,6 +37,10 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
         setLoading(false);
       });
   }, [expertType]);
+
+  const handleImageError = (id) => {
+    setImageErrors((prev) => ({ ...prev, [id]: true }));
+  };
 
   const getDetails = async () => {
     try {
@@ -100,6 +105,16 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
     getDetails();
   }, []);
 
+  // Function to properly construct the image URL
+  const getImageUrl = (photoPath) => {
+    if (!photoPath) return null;
+    // Remove leading slash if present to avoid double slashes
+    const cleanPath = photoPath.startsWith("/")
+      ? photoPath.substring(1)
+      : photoPath;
+    return `${API_URL}/${cleanPath}`;
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => onSwitch(null)}>
@@ -116,8 +131,13 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
           {experts.map((item, index) => (
             <View key={item._id} style={styles.expertCard}>
               <Image
-                source={profileimage}
+                source={
+                  item.photo && !imageErrors[item._id]
+                    ? { uri: getImageUrl(item.photo) }
+                    : profileimage
+                }
                 style={styles.profileImage}
+                onError={() => handleImageError(item._id)}
               />
               <Text style={styles.expertName}>{item.Name}</Text>
               <Text style={styles.expertDetails}>
@@ -149,6 +169,8 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   );
 };
 
+// ... (keep your existing styles)
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 16 },
   backButton: { fontSize: 16, color: "blue", marginBottom: 10 },
@@ -176,7 +198,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  profileImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 10 },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+    resizeMode: "cover",
+  },
   expertName: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
   expertDetails: { fontSize: 14, color: "#555", textAlign: "center" },
   label: { fontWeight: "bold", color: "#333" },

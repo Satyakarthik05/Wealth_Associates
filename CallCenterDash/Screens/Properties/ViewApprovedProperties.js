@@ -12,6 +12,8 @@ import {
   Alert,
   Modal,
   TextInput,
+  Linking,
+  Share,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -251,6 +253,89 @@ const ViewAllProperties = () => {
     }
   };
 
+  const formatPropertyDetails = (property) => {
+    let details = `*Property Details*\n\n`;
+    details += `*ID:* ${getLastFourChars(property._id)}\n`;
+    details += `*Type:* ${property.propertyType}\n`;
+    details += `*Location:* ${property.location}\n`;
+    details += `*Constituency:* ${property.Constituency || "N/A"}\n`;
+    details += `*Price:* ₹${parseInt(property.price).toLocaleString()}\n`;
+    details += `*Details:* ${property.propertyDetails || "N/A"}\n`;
+    details += `*Posted By:* ${property.PostedBy || "N/A"}\n`;
+    details += `*User Type:* ${property.PostedUserType || "N/A"}\n\n`;
+
+    // Add dynamic data
+    details += `*Specifications:*\n`;
+    Object.entries(property).forEach(([key, value]) => {
+      if (
+        [
+          "_id",
+          "propertyType",
+          "location",
+          "price",
+          "photo",
+          "propertyDetails",
+          "PostedBy",
+          "PostedUserType",
+          "Constituency",
+        ].includes(key)
+      ) {
+        return;
+      }
+
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        details += `\n*${key.toUpperCase()}:*\n`;
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          if (subValue !== null && subValue !== undefined && subValue !== "") {
+            const formattedKey = subKey
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase());
+            details += `  ${formattedKey}: ${subValue}\n`;
+          }
+        });
+      } else if (value !== null && value !== undefined && value !== "") {
+        const formattedKey = key
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase());
+        details += `${formattedKey}: ${value}\n`;
+      }
+    });
+
+    return details;
+  };
+
+  const shareOnWhatsApp = () => {
+    if (!selectedPropertyDetails) return;
+
+    const message = formatPropertyDetails(selectedPropertyDetails);
+
+    if (Platform.OS === "web") {
+      // Web: Opens WhatsApp Web with recent chats (no way to skip)
+      window.open(
+        `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
+        "_blank"
+      );
+    } else {
+      // Mobile: Forces "New Chat" screen (works on most devices)
+      const url = `whatsapp://send?phone=&text=${encodeURIComponent(message)}`;
+
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            // Fallback: Open WhatsApp normally if deep link fails
+            Linking.openURL(
+              `whatsapp://send?text=${encodeURIComponent(message)}`
+            ).catch(() => Alert.alert("Error", "WhatsApp not installed"));
+          }
+        })
+        .catch(() => {
+          Alert.alert("Error", "Could not open WhatsApp");
+        });
+    }
+  };
+
   const renderDynamicData = (data) => {
     if (!data) return null;
 
@@ -276,11 +361,34 @@ const ViewAllProperties = () => {
     return Object.entries(data).map(([key, value]) => {
       if (value === null || value === undefined || value === "") return null;
 
-      // Handle nested objects
+      // Skip these fields as they're already displayed in basic info
+      if (
+        [
+          "_id",
+          "propertyType",
+          "location",
+          "price",
+          "photo",
+          "propertyDetails",
+          "PostedBy",
+          "PostedUserType",
+          "Constituency",
+        ].includes(key)
+      ) {
+        return null;
+      }
+
+      // Format key for display
+      const formattedKey = key
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase())
+        .replace(/([a-z])([A-Z])/g, "$1 $2");
+
+      // Handle nested objects (like agricultureDetails)
       if (typeof value === "object" && !Array.isArray(value)) {
         return (
           <View key={key} style={styles.nestedSection}>
-            <Text style={styles.nestedTitle}>{key}:</Text>
+            <Text style={styles.nestedTitle}>{formattedKey}:</Text>
             {renderDynamicData(value)}
           </View>
         );
@@ -290,7 +398,7 @@ const ViewAllProperties = () => {
       if (Array.isArray(value)) {
         return (
           <View key={key} style={styles.detailRow}>
-            <Text style={styles.detailLabel}>{key}:</Text>
+            <Text style={styles.detailLabel}>{formattedKey}:</Text>
             <View style={styles.arrayContainer}>
               {value.map((item, index) => (
                 <Text key={index} style={styles.detailValue}>
@@ -307,8 +415,14 @@ const ViewAllProperties = () => {
       // Handle primitive values
       return (
         <View key={key} style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{key}:</Text>
-          <Text style={styles.detailValue}>{value.toString()}</Text>
+          <Text style={styles.detailLabel}>{formattedKey}:</Text>
+          <Text style={styles.detailValue}>
+            {value.toString() === "true"
+              ? "Yes"
+              : value.toString() === "false"
+              ? "No"
+              : value.toString()}
+          </Text>
         </View>
       );
     });
@@ -489,7 +603,7 @@ const ViewAllProperties = () => {
             onRequestClose={() => setIsDetailsModalVisible(false)}
           >
             <View style={styles.modalContainer}>
-              <View style={styles.detailsModalContent}>
+              <View style={[styles.detailsModalContent, { maxHeight: "90%" }]}>
                 <Text style={styles.modalTitle}>Property Details</Text>
 
                 {selectedPropertyDetails && (
@@ -515,7 +629,7 @@ const ViewAllProperties = () => {
                         <View style={styles.detailRow}>
                           <Text style={styles.detailLabel}>Property ID:</Text>
                           <Text style={styles.detailValue}>
-                            {selectedPropertyDetails._id}
+                            {getLastFourChars(selectedPropertyDetails._id)}
                           </Text>
                         </View>
                         <View style={styles.detailRow}>
@@ -569,37 +683,32 @@ const ViewAllProperties = () => {
                         </View>
                       </View>
 
-                      {selectedPropertyDetails.dynamicData && (
-                        <View style={styles.detailSection}>
-                          <Text style={styles.detailSectionTitle}>
-                            Property Specifications
-                          </Text>
-                          {renderDynamicData(
-                            selectedPropertyDetails.dynamicData
-                          )}
-                        </View>
-                      )}
-
-                      {selectedPropertyDetails.facilities && (
-                        <View style={styles.detailSection}>
-                          <Text style={styles.detailSectionTitle}>
-                            Facilities
-                          </Text>
-                          {renderDynamicData(
-                            selectedPropertyDetails.facilities
-                          )}
-                        </View>
-                      )}
+                      <View style={styles.detailSection}>
+                        <Text style={styles.detailSectionTitle}>
+                          Property Specifications
+                        </Text>
+                        {renderDynamicData(selectedPropertyDetails)}
+                      </View>
                     </ScrollView>
                   </>
                 )}
 
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.closeButton]}
-                  onPress={() => setIsDetailsModalVisible(false)}
-                >
-                  <Text style={styles.modalButtonText}>Close</Text>
-                </TouchableOpacity>
+                <View style={styles.detailsModalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.whatsappButton]}
+                    onPress={shareOnWhatsApp}
+                  >
+                    <Text style={styles.modalButtonText}>
+                      Share on WhatsApp
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.closeButton]}
+                    onPress={() => setIsDetailsModalVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </Modal>
@@ -698,7 +807,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    height: 400,
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -711,7 +819,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: Platform.OS === "web" ? "70%" : "90%",
-    maxHeight: "80%",
   },
   modalTitle: {
     fontSize: 18,
@@ -752,14 +859,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     marginHorizontal: 5,
-    // marginBottom: 40,
-    // height: 100,
   },
   closeButton: {
     backgroundColor: "#3498db",
-    // marginTop: 10,
-    height: 400,
-    color: "black",
+    marginTop: 10,
+  },
+  whatsappButton: {
+    backgroundColor: "#25D366",
+    marginTop: 10,
+    marginRight: 5,
   },
   cancelButton: {
     backgroundColor: "#ccc",
@@ -783,9 +891,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   detailImageContainer: {
-    // alignItems: "center",
+    alignItems: "center",
     marginBottom: 15,
-    height: 200,
   },
   detailImage: {
     width: "100%",
@@ -793,10 +900,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   detailsScrollView: {
-    maxHeight: 300,
+    maxHeight: Platform.OS === "web" ? 400 : 300,
   },
   detailSection: {
     marginBottom: 15,
+    backgroundColor: "#f9f9f9",
+    padding: 10,
+    borderRadius: 8,
   },
   detailSectionTitle: {
     fontSize: 16,
@@ -830,9 +940,15 @@ const styles = StyleSheet.create({
   nestedTitle: {
     fontWeight: "bold",
     color: "#555",
+    marginBottom: 5,
   },
   arrayContainer: {
     width: "60%",
+  },
+  detailsModalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
 });
 
