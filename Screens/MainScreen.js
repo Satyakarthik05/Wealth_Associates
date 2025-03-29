@@ -23,7 +23,7 @@ const LoginScreen = () => {
         Platform.OS === "ios"
           ? logo1
           : Platform.OS === "android"
-          ? logo2
+          ? logo1
           : logo2
       }
       style={styles.container}
@@ -57,7 +57,7 @@ const LoginScreen = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("CallCenterDashboard")}
+            onPress={() => navigation.navigate("Starting Screen")}
           >
             <Text style={styles.buttonText}> Login </Text>
           </TouchableOpacity>

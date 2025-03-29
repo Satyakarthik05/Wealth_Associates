@@ -48,7 +48,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const corsOptions = {
   origin: "*",
-  methods: ["POST", "GET", "DELETE", "PUT"],
+  methods: ["POST", "GET", "DELETE", "PUT", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "token"],
   credentials: true,
 };
@@ -73,7 +73,7 @@ app.use("/skillLabour", SkillRoutes);
 app.use("/count", AllCounts);
 app.use("/nri", NriRoutes);
 app.use("/investors", InvestorRoutes);
-app.use("/requestexpert", RequestExpertRoute);      
+app.use("/requestexpert", RequestExpertRoute);
 app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);

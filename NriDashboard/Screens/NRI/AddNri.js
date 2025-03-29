@@ -114,9 +114,7 @@ const AddNRIMember = ({ closeModal }) => {
           Occupation: occupation,
           MobileIN: mobileIN,
           MobileCountryNo: mobileCountryNo,
-          AddedBy: Details.MobileNumber
-            ? Details.MobileNumber
-            : "Wealthassociate",
+          AddedBy: Details.MobileIN ? Details.MobileIN : "Wealthassociate",
           RegisteredBy: "WealthAssociate",
         }),
       });

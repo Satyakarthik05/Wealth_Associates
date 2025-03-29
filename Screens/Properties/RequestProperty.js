@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Modal,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
@@ -27,15 +27,16 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
-  
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
+    useState(false);
+
   const modalRef = useRef();
 
   // Fetch agent details
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/customer/getcustomer`, {
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -146,7 +147,9 @@ const RequestedPropertyForm = ({ closeModal }) => {
                 <Text style={styles.label}>Property Type</Text>
                 <TouchableOpacity
                   style={styles.input}
-                  onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
+                  onPress={() =>
+                    setShowPropertyTypeDropdown(!showPropertyTypeDropdown)
+                  }
                 >
                   <Text style={propertyType ? {} : styles.placeholderText}>
                     {propertyType || "Select Property Type"}
@@ -234,7 +237,10 @@ const RequestedPropertyForm = ({ closeModal }) => {
                     <Text style={styles.postButtonText}>Post</Text>
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeModal}
+                >
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -249,28 +255,28 @@ const RequestedPropertyForm = ({ closeModal }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    height:"100vh",
-    width:"100%",
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: "100vh",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: Dimensions.get('window').width * 0.9,
-    maxHeight: Dimensions.get('window').height * 0.8,
+    width: Dimensions.get("window").width * 0.9,
+    maxHeight: Dimensions.get("window").height * 0.8,
   },
   container: {
     backgroundColor: "white",
     padding: 20,
     borderRadius: 15,
-    width: '100%',
+    width: "100%",
     alignSelf: "center",
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
     borderWidth: 0.5,
-    borderColor: "black"
+    borderColor: "black",
   },
   header: {
     fontSize: 18,

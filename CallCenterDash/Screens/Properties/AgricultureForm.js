@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,51 +6,108 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
+import { API_URL } from "../../../data/ApiUrl";
 
-export default function AgricultureForm() {
+const AgricultureForm = ({ closeModal, propertyId, initialData }) => {
   const [formData, setFormData] = useState({
-    passBook: "",
-    oneB: "",
-    rrsr: "",
-    fmb: "",
+    passBook: "No",
+    oneB: "No",
+    rrsr: "No",
+    fmb: "No",
     surveyNumber: "",
     boundaries: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize form with initialData if provided
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        passBook: initialData.passBook || "No",
+        oneB: initialData.oneB || "No",
+        rrsr: initialData.rrsr || "No",
+        fmb: initialData.fmb || "No",
+        surveyNumber: initialData.surveyNumber || "",
+        boundaries: initialData.boundaries || "",
+      });
+    }
+  }, [initialData]);
 
   const handleOption = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    Alert.alert("Form Submitted", JSON.stringify(formData, null, 2));
-    console.log("Form Data -->", formData);
+  const handleSubmit = async () => {
+    if (!propertyId) {
+      Alert.alert("Error", "Property ID is missing");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/properties/${propertyId}/dynamic`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            agricultureDetails: formData,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Failed to update agriculture details"
+        );
+      }
+
+      Alert.alert("Success", "Agriculture details updated successfully!");
+      closeModal(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      Alert.alert(
+        "Error",
+        error.message || "Failed to update agriculture details"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
-    setFormData({
-      passBook: "",
-      oneB: "",
-      rrsr: "",
-      fmb: "",
-      surveyNumber: "",
-      boundaries: "",
-    });
-    Alert.alert("Form Cleared");
+    closeModal(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Agriculture</Text>
+      <Text style={styles.heading}>Agriculture Details</Text>
+      <Text style={styles.propertyId}>Property ID: {propertyId}</Text>
 
-      {/* Yes / No with Tick Box */}
+      {/* Yes/No Options */}
       {["passBook", "oneB", "rrsr", "fmb"].map((item) => (
         <View key={item} style={styles.optionRow}>
-          <Text style={styles.label}>{item.toUpperCase()}</Text>
+          <Text style={styles.label}>
+            {item === "oneB"
+              ? "1B"
+              : item === "rrsr"
+              ? "RRSR"
+              : item === "fmb"
+              ? "FMB"
+              : "Pass Book"}
+          </Text>
 
           <TouchableOpacity
             style={styles.checkOption}
             onPress={() => handleOption(item, "Yes")}
+            disabled={isSubmitting}
           >
             <View
               style={[
@@ -66,6 +123,7 @@ export default function AgricultureForm() {
           <TouchableOpacity
             style={styles.checkOption}
             onPress={() => handleOption(item, "No")}
+            disabled={isSubmitting}
           >
             <View
               style={[
@@ -87,6 +145,7 @@ export default function AgricultureForm() {
         placeholder="Enter Survey Number"
         value={formData.surveyNumber}
         onChangeText={(text) => handleOption("surveyNumber", text)}
+        editable={!isSubmitting}
       />
 
       {/* Boundaries */}
@@ -96,21 +155,34 @@ export default function AgricultureForm() {
         placeholder="Enter Boundaries"
         value={formData.boundaries}
         onChangeText={(text) => handleOption("boundaries", text)}
+        editable={!isSubmitting}
       />
 
       {/* Buttons */}
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Submit</Text>
+        <TouchableOpacity
+          style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Submit</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+        <TouchableOpacity
+          style={[styles.cancelButton, isSubmitting && styles.disabledButton]}
+          onPress={handleCancel}
+          disabled={isSubmitting}
+        >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -127,24 +199,34 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+    color: "#0D47A1",
+  },
+  propertyId: {
+    fontSize: 14,
+    color: "#666",
     marginBottom: 20,
     textAlign: "center",
   },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 15,
+    justifyContent: "space-between",
   },
   label: {
     flex: 1,
     fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
   checkOption: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 5,
+    marginLeft: 10,
   },
   checkbox: {
     width: 22,
@@ -154,6 +236,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 4,
   },
   checked: {
     backgroundColor: "#4CAF50",
@@ -165,11 +248,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+    borderColor: "#90CAF9",
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 15,
     backgroundColor: "#fff",
+    fontSize: 16,
   },
   buttonRow: {
     flexDirection: "row",
@@ -181,7 +265,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     flex: 1,
-    marginRight: 5,
+    marginRight: 10,
     alignItems: "center",
   },
   cancelButton: {
@@ -189,11 +273,17 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     flex: 1,
-    marginLeft: 5,
+    marginLeft: 10,
     alignItems: "center",
   },
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
+    fontSize: 16,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
+
+export default AgricultureForm;

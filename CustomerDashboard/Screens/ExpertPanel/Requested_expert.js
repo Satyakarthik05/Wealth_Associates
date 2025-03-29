@@ -10,9 +10,6 @@ import {
   Modal,
   TouchableWithoutFeedback,
   FlatList,
-  Modal,
-  TouchableWithoutFeedback,
-  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -34,8 +31,8 @@ const expertTypes = [
     label: "REGISTRATION & DOCUMENTATION",
     value: "REGISTRATION & DOCUMENTATION",
   },
-  { label: "DESIGNING", value: "DESIGNING" },
-  { label: "MATERIALS & CONTRACTS", value: "MATERIALS & CONTRACTS" },
+  { label: "AUDITING", value: "AUDITING" },
+  { label: "LIAISONING", value: "LIAISONING" },
 ];
 
 const RequestedExpert = ({ closeModal }) => {
@@ -52,7 +49,7 @@ const RequestedExpert = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/customer/getcustomer`, {
         method: "GET",
         headers: {
           token: `${token}` || "",

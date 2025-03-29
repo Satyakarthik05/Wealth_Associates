@@ -10,9 +10,6 @@ import {
   Modal,
   TouchableWithoutFeedback,
   FlatList,
-  Modal,
-  TouchableWithoutFeedback,
-  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -30,9 +27,12 @@ const expertTypes = [
   { label: "LAND VALUERS", value: "LAND VALUERS" },
   { label: "BANKING", value: "BANKING" },
   { label: "AGRICULTURE", value: "AGRICULTURE" },
-  { label: "REGISTRATION & DOCUMENTATION", value: "REGISTRATION & DOCUMENTATION" },
-  { label: "DESIGNING", value: "DESIGNING" },
-  { label: "MATERIALS & CONTRACTS", value: "MATERIALS & CONTRACTS" },
+  {
+    label: "REGISTRATION & DOCUMENTATION",
+    value: "REGISTRATION & DOCUMENTATION",
+  },
+  { label: "AUDITING", value: "AUDITING" },
+  { label: "LIAISONING", value: "LIAISONING" },
 ];
 
 const RequestedExpert = ({ closeModal }) => {
@@ -40,12 +40,16 @@ const RequestedExpert = ({ closeModal }) => {
   const [reason, setReason] = useState("");
   const [Details, setDetails] = useState({});
   const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+  });
 
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -72,7 +76,7 @@ const RequestedExpert = ({ closeModal }) => {
       expertType: selectedExpert,
       reason: reason,
       WantedBy: Details ? Details.MobileNumber : "Number",
-      UserType: "Agent",
+      UserType: "Customer",
     };
 
     try {
@@ -96,89 +100,6 @@ const RequestedExpert = ({ closeModal }) => {
       Alert.alert("Error", "An error occurred while submitting the request.");
       console.error(error);
     }
-  };
-
-  const measureDropdownPosition = (event) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setDropdownPosition({ x, y: y + height, width });
-  };
-
-  const renderDropdownItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.dropdownItem}
-      onPress={() => {
-        setSelectedExpert(item.value);
-        setShowDropdown(false);
-      }}
-    >
-      <Text style={styles.dropdownItemText}>{item.label}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderDropdown = () => {
-    if (Platform.OS === 'android') {
-      return (
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedExpert}
-            onValueChange={(itemValue) => setSelectedExpert(itemValue)}
-            style={styles.picker}
-            mode="dropdown"
-            dropdownIconColor="#007AFF"
-          >
-            {expertTypes.map((item) => (
-              <Picker.Item key={item.value} label={item.label} value={item.value} />
-            ))}
-          </Picker>
-        </View>
-      );
-    }
-
-    // iOS implementation
-    const selectedLabel = expertTypes.find(item => item.value === selectedExpert)?.label || "-- Select Type --";
-    
-    return (
-      <>
-        <TouchableOpacity 
-          style={styles.dropdownTrigger}
-          onPress={() => setShowDropdown(!showDropdown)}
-          onLayout={measureDropdownPosition}
-        >
-          <Text style={styles.dropdownText}>
-            {selectedLabel}
-          </Text>
-          <Icon name={showDropdown ? "arrow-drop-up" : "arrow-drop-down"} size={24} color="#007AFF" />
-        </TouchableOpacity>
-
-        <Modal
-          visible={showDropdown}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowDropdown(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
-            <View style={styles.dropdownOverlay} />
-          </TouchableWithoutFeedback>
-          
-          <View style={[
-            styles.dropdownContainer,
-            {
-              top: dropdownPosition.y,
-              left: dropdownPosition.x,
-              width: dropdownPosition.width,
-            }
-          ]}>
-            <FlatList
-              data={expertTypes}
-              renderItem={renderDropdownItem}
-              keyExtractor={(item) => item.value}
-              style={styles.dropdownList}
-              nestedScrollEnabled={true}
-            />
-          </View>
-        </Modal>
-      </>
-    );
   };
 
   const measureDropdownPosition = (event) => {
@@ -284,7 +205,6 @@ const RequestedExpert = ({ closeModal }) => {
       {/* Dropdown */}
       <Text style={styles.label}>Select Expert Type</Text>
       {renderDropdown()}
-      {renderDropdown()}
 
       {/* Reason Textbox */}
       <Text style={styles.label}>Reason</Text>
@@ -323,11 +243,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   header: {
     backgroundColor: "#E91E63",
@@ -350,21 +265,15 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginTop: 60,
     color: "#000",
-    color: "#000",
   },
   // Android Picker Styles
-  // Android Picker Styles
   pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#d1d1d6",
     borderWidth: 1,
     borderColor: "#d1d1d6",
     borderRadius: 8,
     width: "100%",
     overflow: "hidden",
     marginTop: 5,
-    height: 50,
-    backgroundColor: "#f8f8f8",
     height: 50,
     backgroundColor: "#f8f8f8",
   },
@@ -380,30 +289,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: "100%",
     height: 50,
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: "#f8f8f8",
     marginTop: 5,
   },
   dropdownText: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
   },
   dropdownOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   dropdownContainer: {
-    position: 'absolute',
-    backgroundColor: 'white',
+    position: "absolute",
+    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: '#d1d1d6',
+    borderColor: "#d1d1d6",
     borderRadius: 8,
     maxHeight: 200,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -415,16 +324,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   // Common Styles
   textArea: {
-    borderWidth: 1,
-    borderColor: "#d1d1d6",
     borderWidth: 1,
     borderColor: "#d1d1d6",
     borderRadius: 8,
@@ -434,7 +341,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 5,
     fontSize: 14,
-    backgroundColor: "#f8f8f8",
     backgroundColor: "#f8f8f8",
   },
   buttonContainer: {
@@ -453,7 +359,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   cancelButton: {
-    backgroundColor: "#8e8e93",
     backgroundColor: "#8e8e93",
     paddingVertical: 12,
     paddingHorizontal: 25,

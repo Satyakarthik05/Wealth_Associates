@@ -11,8 +11,15 @@ const ApprovedpropertySchema = new mongoose.Schema(
     PostedBy: { type: Number, required: true },
     PostedUserType: { type: String },
     editedAt: { type: Date },
+    dynamicData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    strict: false, // This allows the model to accept any additional fields
+  }
 );
 
 const ApprovedProperty = mongoose.model(

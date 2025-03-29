@@ -112,7 +112,7 @@ const Rskill = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileNumber,
-          RegisteredBy: "Customer",
+          RegisteredBy: "Core",
         }),
       });
       const data = await response.json();
@@ -135,10 +135,10 @@ const Rskill = ({ closeModal }) => {
 
   return (
     <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-        <ScrollView>
+      <ScrollView>
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Register Skilled Resource</Text>
@@ -248,8 +248,8 @@ const Rskill = ({ closeModal }) => {
             </View>
           </View>
         </View>
-    </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
