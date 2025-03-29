@@ -21,6 +21,9 @@ const RequestExpert = new mongoose.Schema({
     type: String,
     required: true,
   },
+  ExpertNo: {
+    type: String,
+  },
   resolved: {
     type: Boolean,
     default: false,
