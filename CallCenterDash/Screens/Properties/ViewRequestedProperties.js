@@ -113,7 +113,7 @@ const RequestedProperties = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3000/requestProperty/adminupdateProperty/${selectedProperty.id}`,
+        `${API_URL}/requestProperty/adminupdateProperty/${selectedProperty.id}`,
         {
           method: "PUT",
           headers: {

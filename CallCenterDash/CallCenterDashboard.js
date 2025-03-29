@@ -62,11 +62,7 @@ const menuItems = [
   {
     title: "View",
     icon: "cog-outline",
-    subItems: [
-      "View Skilled Resource",
-      "View NRI Members",
-      "View Investors",
-    ],
+    subItems: ["View Skilled Resource", "View NRI Members", "View Investors"],
   },
 ];
 
@@ -185,6 +181,20 @@ const CallCenterDashboard = () => {
     return <Dashboard />;
   };
 
+  const resetToDashboard = () => {
+    setIsViewCustVisible(false);
+    setIsViewAgentVisible(false);
+    setIsViewPostPropVisible(false);
+    setIsViewRequestedPropVisible(false);
+    setIsViewAgentContVisible(false);
+    setIsCustCallVisible(false);
+    setViewApprovedProperties(false);
+    setExpertPanelReq(false);
+    setIsViewInvestVisible(false);
+    setIsViewSkillVisible(false);
+    setIsViewNriVisible(false);
+  };
+
   //   const getDetails = async () => {
   //     try {
   //       // Await the token retrieval from AsyncStorage
@@ -222,10 +232,12 @@ const CallCenterDashboard = () => {
 
       {/* Top Navbar */}
       <View style={styles.navbar}>
-        <Image
-          source={require("../CallCenterDash/assets/logo.png")}
-          style={styles.logo}
-        />
+        <TouchableOpacity onPress={resetToDashboard}>
+          <Image
+            source={require("../CallCenterDash/assets/logo.png")}
+            style={styles.logo}
+          />
+        </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
             <Image
@@ -361,7 +373,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 60,
     resizeMode: "contain",
-    marginLeft: Platform.OS === "web" ? "0px" : "17%",
+    marginLeft: Platform.OS === "web" ? "0px" : "25%",
   },
   sear_icons: {
     display: "flex",
