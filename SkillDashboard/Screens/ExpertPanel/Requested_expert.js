@@ -7,12 +7,9 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   TouchableWithoutFeedback,
   FlatList,
   Modal,
-  TouchableWithoutFeedback,
-  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -52,7 +49,7 @@ const RequestedExpert = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
         method: "GET",
         headers: {
           token: `${token}` || "",

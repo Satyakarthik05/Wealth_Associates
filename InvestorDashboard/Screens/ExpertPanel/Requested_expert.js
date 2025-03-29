@@ -7,12 +7,9 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   TouchableWithoutFeedback,
   FlatList,
   Modal,
-  TouchableWithoutFeedback,
-  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -45,7 +42,7 @@ const RequestedExpert = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -96,89 +93,6 @@ const RequestedExpert = ({ closeModal }) => {
       Alert.alert("Error", "An error occurred while submitting the request.");
       console.error(error);
     }
-  };
-
-  const measureDropdownPosition = (event) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setDropdownPosition({ x, y: y + height, width });
-  };
-
-  const renderDropdownItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.dropdownItem}
-      onPress={() => {
-        setSelectedExpert(item.value);
-        setShowDropdown(false);
-      }}
-    >
-      <Text style={styles.dropdownItemText}>{item.label}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderDropdown = () => {
-    if (Platform.OS === 'android') {
-      return (
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedExpert}
-            onValueChange={(itemValue) => setSelectedExpert(itemValue)}
-            style={styles.picker}
-            mode="dropdown"
-            dropdownIconColor="#007AFF"
-          >
-            {expertTypes.map((item) => (
-              <Picker.Item key={item.value} label={item.label} value={item.value} />
-            ))}
-          </Picker>
-        </View>
-      );
-    }
-
-    // iOS implementation
-    const selectedLabel = expertTypes.find(item => item.value === selectedExpert)?.label || "-- Select Type --";
-    
-    return (
-      <>
-        <TouchableOpacity 
-          style={styles.dropdownTrigger}
-          onPress={() => setShowDropdown(!showDropdown)}
-          onLayout={measureDropdownPosition}
-        >
-          <Text style={styles.dropdownText}>
-            {selectedLabel}
-          </Text>
-          <Icon name={showDropdown ? "arrow-drop-up" : "arrow-drop-down"} size={24} color="#007AFF" />
-        </TouchableOpacity>
-
-        <Modal
-          visible={showDropdown}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowDropdown(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
-            <View style={styles.dropdownOverlay} />
-          </TouchableWithoutFeedback>
-          
-          <View style={[
-            styles.dropdownContainer,
-            {
-              top: dropdownPosition.y,
-              left: dropdownPosition.x,
-              width: dropdownPosition.width,
-            }
-          ]}>
-            <FlatList
-              data={expertTypes}
-              renderItem={renderDropdownItem}
-              keyExtractor={(item) => item.value}
-              style={styles.dropdownList}
-              nestedScrollEnabled={true}
-            />
-          </View>
-        </Modal>
-      </>
-    );
   };
 
   const measureDropdownPosition = (event) => {
@@ -284,7 +198,6 @@ const RequestedExpert = ({ closeModal }) => {
       {/* Dropdown */}
       <Text style={styles.label}>Select Expert Type</Text>
       {renderDropdown()}
-      {renderDropdown()}
 
       {/* Reason Textbox */}
       <Text style={styles.label}>Reason</Text>
@@ -323,11 +236,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   header: {
     backgroundColor: "#E91E63",
@@ -350,21 +258,15 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginTop: 60,
     color: "#000",
-    color: "#000",
   },
   // Android Picker Styles
-  // Android Picker Styles
   pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#d1d1d6",
     borderWidth: 1,
     borderColor: "#d1d1d6",
     borderRadius: 8,
     width: "100%",
     overflow: "hidden",
     marginTop: 5,
-    height: 50,
-    backgroundColor: "#f8f8f8",
     height: 50,
     backgroundColor: "#f8f8f8",
   },
@@ -425,8 +327,6 @@ const styles = StyleSheet.create({
   textArea: {
     borderWidth: 1,
     borderColor: "#d1d1d6",
-    borderWidth: 1,
-    borderColor: "#d1d1d6",
     borderRadius: 8,
     width: "100%",
     height: 120,
@@ -434,7 +334,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 5,
     fontSize: 14,
-    backgroundColor: "#f8f8f8",
     backgroundColor: "#f8f8f8",
   },
   buttonContainer: {
@@ -453,7 +352,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   cancelButton: {
-    backgroundColor: "#8e8e93",
     backgroundColor: "#8e8e93",
     paddingVertical: 12,
     paddingHorizontal: 25,

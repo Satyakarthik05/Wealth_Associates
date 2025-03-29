@@ -858,16 +858,18 @@ const ViewAllProperties = ({ navigation }) => {
 
           {/* Share Property Modal */}
           <Modal
-            visible={!!postedProperty}
+            visible={!!postedProperty} // This will be true only when postedProperty exists
             transparent={true}
             animationType="slide"
             onRequestClose={() => setPostedProperty(null)}
           >
             <View style={styles.modalContainer}>
-              <PropertyCards
-                property={postedProperty}
-                closeModal={() => setPostedProperty(null)}
-              />
+              {postedProperty && ( // Only render PropertyCard if postedProperty exists
+                <PropertyCards
+                  property={postedProperty}
+                  closeModal={() => setPostedProperty(null)}
+                />
+              )}
             </View>
           </Modal>
         </>

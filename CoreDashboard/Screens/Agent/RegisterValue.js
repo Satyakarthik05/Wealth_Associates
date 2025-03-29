@@ -12,7 +12,7 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
-  FlatList,
+  KeyboardAvoidingView,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -99,6 +99,15 @@ const RegisterValue = ({ closeModal }) => {
         assembly.name.toLowerCase().includes(constituencySearch.toLowerCase())
       ) || [];
 
+  // Filter expertise and experience
+  const filteredExpertise = expertiseOptions.filter((item) =>
+    item.name.toLowerCase().includes(expertiseSearch.toLowerCase())
+  );
+
+  const filteredExperience = experienceOptions.filter((item) =>
+    item.name.toLowerCase().includes(experienceSearch.toLowerCase())
+  );
+
   // Fetch agent details
   const getDetails = async () => {
     try {
@@ -168,7 +177,7 @@ const RegisterValue = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
-      AgentType: "RegionalWealthAssociate",
+      AgentType: "ValueWealthAssociate",
     };
 
     try {
@@ -206,197 +215,199 @@ const RegisterValue = ({ closeModal }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.card}>
-          <View style={styles.register_main}>
-            <Text style={styles.register_text}>
-              Register Value Wealth Associate
-            </Text>
-          </View>
-          {responseStatus === 400 && (
-            <Text style={styles.errorText}>Mobile number already exists.</Text>
-          )}
-
-          <View style={styles.webInputWrapper}>
-            {/* Row 1 */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Fullname</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Full name"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setFullname}
-                    returnKeyType="next"
-                    onSubmitEditing={() => mobileRef.current.focus()}
-                  />
-                  <FontAwesome
-                    name="user"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
-                </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Mobile Number</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    ref={mobileRef}
-                    style={styles.input}
-                    placeholder="Mobile Number"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setMobile}
-                    keyboardType="number-pad"
-                    returnKeyType="next"
-                    onSubmitEditing={() => emailRef.current.focus()}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  <MaterialIcons
-                    name="phone"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
-                </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    ref={emailRef}
-                    style={styles.input}
-                    placeholder="Email"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setEmail}
-                    returnKeyType="next"
-                    onSubmitEditing={() => districtRef.current.focus()}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  <MaterialIcons
-                    name="email"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
-                </View>
-              </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.card}>
+            <View style={styles.register_main}>
+              <Text style={styles.register_text}>
+                Register Value Wealth Associate
+              </Text>
             </View>
+            {responseStatus === 400 && (
+              <Text style={styles.errorText}>
+                Mobile number already exists.
+              </Text>
+            )}
 
-            {/* Row 2 */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select District</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    ref={districtRef}
-                    style={styles.input}
-                    placeholder="Search District"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={districtSearch}
-                    onChangeText={(text) => {
-                      setDistrictSearch(text);
-                      setShowDistrictList(true);
-                    }}
-                    onFocus={() => setShowDistrictList(true)}
-                  />
-                  {showDistrictList && (
-                    <View style={styles.dropdownContainer}>
-                      <ScrollView style={styles.scrollView}>
-                        {filteredDistricts.map((item) => (
-                          <TouchableOpacity
-                            key={item.parliament}
-                            style={styles.listItem}
-                            onPress={() => {
-                              setDistrict(item.parliament);
-                              setDistrictSearch(item.parliament);
-                              setShowDistrictList(false);
-                            }}
-                          >
-                            <Text>{item.parliament}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
+            <View style={styles.webInputWrapper}>
+              {/* Row 1 */}
+              <View style={styles.inputRow}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Fullname</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Full name"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      onChangeText={setFullname}
+                      returnKeyType="next"
+                      onSubmitEditing={() => mobileRef.current.focus()}
+                    />
+                    <FontAwesome
+                      name="user"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.icon}
+                    />
+                  </View>
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Mobile Number</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      ref={mobileRef}
+                      style={styles.input}
+                      placeholder="Mobile Number"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      onChangeText={setMobile}
+                      keyboardType="number-pad"
+                      returnKeyType="next"
+                      onSubmitEditing={() => emailRef.current.focus()}
+                      onFocus={() => {
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                        setShowExpertiseList(false);
+                        setShowExperienceList(false);
+                      }}
+                    />
+                    <MaterialIcons
+                      name="phone"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.icon}
+                    />
+                  </View>
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      ref={emailRef}
+                      style={styles.input}
+                      placeholder="Email"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      onChangeText={setEmail}
+                      returnKeyType="next"
+                      onSubmitEditing={() => districtRef.current.focus()}
+                      onFocus={() => {
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                        setShowExpertiseList(false);
+                        setShowExperienceList(false);
+                      }}
+                    />
+                    <MaterialIcons
+                      name="email"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.icon}
+                    />
+                  </View>
                 </View>
               </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Constituency</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Search Constituency"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={constituencySearch}
-                    onChangeText={(text) => {
-                      setConstituencySearch(text);
-                      setShowConstituencyList(true);
-                    }}
-                    onFocus={() => {
-                      setShowConstituencyList(true);
-                      setShowDistrictList(false);
-                    }}
-                  />
-                  {showConstituencyList && (
-                    <View style={styles.dropdownContainer}>
-                      <ScrollView style={styles.scrollView}>
-                        {filteredConstituencies.map((item, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            style={styles.listItem}
-                            onPress={() => {
-                              setConstituency(item.name);
-                              setConstituencySearch(item.name);
-                              setShowConstituencyList(false);
-                            }}
-                          >
-                            <Text>{item.name}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
+
+              {/* Row 2 */}
+              <View style={styles.inputRow}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Select Parliament</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      ref={districtRef}
+                      style={styles.input}
+                      placeholder="Search Parliament"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={districtSearch}
+                      onChangeText={(text) => {
+                        setDistrictSearch(text);
+                        setShowDistrictList(true);
+                      }}
+                      onFocus={() => setShowDistrictList(true)}
+                    />
+                    {showDistrictList && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView style={styles.scrollView}>
+                          {filteredDistricts.map((item) => (
+                            <TouchableOpacity
+                              key={item.parliament}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setDistrict(item.parliament);
+                                setDistrictSearch(item.parliament);
+                                setShowDistrictList(false);
+                                setConstituencySearch(""); // Reset constituency search
+                                setConstituency(""); // Reset selected constituency
+                              }}
+                            >
+                              <Text>{item.parliament}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Experience</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Experience"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={experienceSearch}
-                    onChangeText={(text) => {
-                      setExperienceSearch(text);
-                      setShowExperienceList(true);
-                    }}
-                    onFocus={() => {
-                      setShowExperienceList(true);
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                    }}
-                  />
-                  {showExperienceList && (
-                    <View style={styles.dropdownContainer}>
-                      {experienceOptions
-                        .filter((item) =>
-                          item.name
-                            .toLowerCase()
-                            .includes(experienceSearch.toLowerCase())
-                        )
-                        .map((item) => (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Select Assembly</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Search Assembly"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={constituencySearch}
+                      onChangeText={(text) => {
+                        setConstituencySearch(text);
+                        setShowConstituencyList(true);
+                      }}
+                      onFocus={() => {
+                        setShowConstituencyList(true);
+                        setShowDistrictList(false);
+                      }}
+                    />
+                    {showConstituencyList && (
+                      <View style={styles.dropdownContainer}>
+                        <ScrollView style={styles.scrollView}>
+                          {filteredConstituencies.map((item, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setConstituency(item.name);
+                                setConstituencySearch(item.name);
+                                setShowConstituencyList(false);
+                              }}
+                            >
+                              <Text>{item.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Select Experience</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Select Experience"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={experienceSearch}
+                      onChangeText={(text) => {
+                        setExperienceSearch(text);
+                        setShowExperienceList(true);
+                      }}
+                      onFocus={() => {
+                        setShowExperienceList(true);
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                      }}
+                    />
+                    {showExperienceList && (
+                      <View style={styles.dropdownContainer}>
+                        {filteredExperience.map((item) => (
                           <TouchableOpacity
                             key={item.code}
                             style={styles.listItem}
@@ -409,42 +420,36 @@ const RegisterValue = ({ closeModal }) => {
                             <Text>{item.name}</Text>
                           </TouchableOpacity>
                         ))}
-                    </View>
-                  )}
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* Row 3 */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Expertise</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Select Expertise"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={expertiseSearch}
-                    onChangeText={(text) => {
-                      setExpertiseSearch(text);
-                      setShowExpertiseList(true);
-                    }}
-                    onFocus={() => {
-                      setShowExpertiseList(true);
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  {showExpertiseList && (
-                    <View style={styles.dropdownContainer}>
-                      {expertiseOptions
-                        .filter((item) =>
-                          item.name
-                            .toLowerCase()
-                            .includes(expertiseSearch.toLowerCase())
-                        )
-                        .map((item) => (
+              {/* Row 3 */}
+              <View style={styles.inputRow}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Select Expertise</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Select Expertise"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      value={expertiseSearch}
+                      onChangeText={(text) => {
+                        setExpertiseSearch(text);
+                        setShowExpertiseList(true);
+                      }}
+                      onFocus={() => {
+                        setShowExpertiseList(true);
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                        setShowExperienceList(false);
+                      }}
+                    />
+                    {showExpertiseList && (
+                      <View style={styles.dropdownContainer}>
+                        {filteredExpertise.map((item) => (
                           <TouchableOpacity
                             key={item.code}
                             style={styles.listItem}
@@ -457,87 +462,88 @@ const RegisterValue = ({ closeModal }) => {
                             <Text>{item.name}</Text>
                           </TouchableOpacity>
                         ))}
-                    </View>
-                  )}
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Location</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Location"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setLocation}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                  />
-                  <MaterialIcons
-                    name="location-on"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Location</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Location"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      onChangeText={setLocation}
+                      onFocus={() => {
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                        setShowExpertiseList(false);
+                        setShowExperienceList(false);
+                      }}
+                    />
+                    <MaterialIcons
+                      name="location-on"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.icon}
+                    />
+                  </View>
                 </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Referral Code</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Referral Code"
-                    placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    onChangeText={setReferralCode}
-                    onFocus={() => {
-                      setShowDistrictList(false);
-                      setShowConstituencyList(false);
-                      setShowExpertiseList(false);
-                      setShowExperienceList(false);
-                    }}
-                    value={referralCode}
-                  />
-                  <MaterialIcons
-                    name="card-giftcard"
-                    size={20}
-                    color="#E82E5F"
-                    style={styles.icon}
-                  />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Referral Code</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Referral Code"
+                      placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                      onChangeText={setReferralCode}
+                      onFocus={() => {
+                        setShowDistrictList(false);
+                        setShowConstituencyList(false);
+                        setShowExpertiseList(false);
+                        setShowExperienceList(false);
+                      }}
+                      value={referralCode}
+                    />
+                    <MaterialIcons
+                      name="card-giftcard"
+                      size={20}
+                      color="#E82E5F"
+                      style={styles.icon}
+                    />
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={handleRegister}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>Register</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              disabled={isLoading}
-              onPress={closeModal}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.row}>
+              <TouchableOpacity
+                style={styles.registerButton}
+                onPress={handleRegister}
+                disabled={isLoading}
+              >
+                <Text style={styles.buttonText}>Register</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                disabled={isLoading}
+                onPress={closeModal}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
 
-          {isLoading && (
-            <ActivityIndicator
-              size="large"
-              color="#E82E5F"
-              style={styles.loadingIndicator}
-            />
-          )}
-        </View>
-      </ScrollView>
-      <StatusBar style="auto" />
+            {isLoading && (
+              <ActivityIndicator
+                size="large"
+                color="#E82E5F"
+                style={styles.loadingIndicator}
+              />
+            )}
+          </View>
+        </ScrollView>
+        <StatusBar style="auto" />
+      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -575,7 +581,7 @@ const styles = StyleSheet.create({
   card: {
     display: "flex",
     justifyContent: "center",
-    width: Platform.OS === "web" ? (width > 1024 ? "100%" : "100%") : "90%",
+    width: Platform.OS === "web" ? (width > 1024 ? "100%" : "100%") : "100%",
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 25,
@@ -599,12 +605,13 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   inputRow: {
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     gap: 5,
   },
   inputContainer: {
-    width: Platform.OS === "android" ? "100%" : "30%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "30%",
     position: "relative",
     zIndex: 1,
   },
@@ -687,6 +694,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 5,
+    backgroundColor: "#e6708e",
   },
   list: {
     maxHeight: 150,

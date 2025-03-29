@@ -166,15 +166,15 @@ const PostProperty = ({ closeModal }) => {
         const result = await response.json();
         if (response.ok) {
           alert("Success: Property Posted!");
-          setPostedProperty({
-            photo,
-            location,
-            price,
-            propertyType,
-            PostedBy,
-            fullName: `${Details.Name}`,
-            // propertyDetails,
-          });
+          // setPostedProperty({
+          //   photo,
+          //   location,
+          //   price,
+          //   propertyType,
+          //   PostedBy,
+          //   fullName: `${Details.Name}`,
+          //   // propertyDetails,
+          // });
         } else {
           alert(`Error: ${result.message}`);
         }

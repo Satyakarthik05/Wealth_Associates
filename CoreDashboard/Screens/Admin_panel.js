@@ -50,6 +50,7 @@ import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
 import RegisterEx from "./Agent/Rrwa";
 import RegisterValue from "./Agent/RegisterValue";
+import logo from "../../assets/logo.png"
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
