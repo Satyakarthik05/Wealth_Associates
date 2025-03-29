@@ -13,6 +13,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import logo from "../../../assets/Land.jpg";
+import logo1 from "../../../assets/residntial.jpg";
+import logo2 from "../../../assets/commercial.jpg";
+import logo3 from "../../../assets/house.png";
+import logo4 from "../../../assets/villa.jpg";
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../../data/ApiUrl";
@@ -79,9 +84,9 @@ const RequestedProperties = () => {
       case "commercial":
         return require("../../../assets/commercial.jpg");
       case "villa":
-        return require("../../../assets/villa.jpg");
+        return logo4;
       default:
-        return require("../../../assets/house.png");
+        return logo3;
     }
   };
 
@@ -150,12 +155,12 @@ const RequestedProperties = () => {
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditPress(item)}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           ))}

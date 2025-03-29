@@ -27,6 +27,9 @@ import RequestedProperties from "./Screens/Properties/ViewRequestedProperties";
 import ViewAgentsCall from "./Screens/Agent/AgentsCall";
 import ViewCustomersCalls from "./Screens/Customer/ViewCustCalls";
 import ExpertPanelReq from "./ExpertPanel/ExpertReq";
+import ViewAllInvesters from "./Screens/View/ViewAllInvestors";
+import AllSkilledLabours from "./Screens/View/AllSkilledLabours";
+import ViewNri from "./Screens/View/ViewNri";
 
 const menuItems = [
   {
@@ -56,6 +59,15 @@ const menuItems = [
     icon: "cog-outline",
     subItems: ["Expert Panel Requests"],
   },
+  {
+    title: "View",
+    icon: "cog-outline",
+    subItems: [
+      "View Skilled Resource",
+      "View NRI Members",
+      "View Investors",
+    ],
+  },
 ];
 
 const CallCenterDashboard = () => {
@@ -72,6 +84,9 @@ const CallCenterDashboard = () => {
   const [isCustCallVisible, setIsCustCallVisible] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [isExpertPanelReq, setExpertPanelReq] = useState(false);
+  const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
+  const [isViewSkillVisible, setIsViewSkillVisible] = useState(false);
+  const [isViewNriVisible, setIsViewNriVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -106,6 +121,9 @@ const CallCenterDashboard = () => {
     setIsViewCustVisible(false);
     setViewApprovedProperties(false);
     setExpertPanelReq(false);
+    setIsViewInvestVisible(false);
+    setIsViewSkillVisible(false);
+    setIsViewNriVisible(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -126,6 +144,12 @@ const CallCenterDashboard = () => {
       setViewApprovedProperties(true);
     } else if (subItem === "Expert Panel Requests") {
       setExpertPanelReq(true);
+    } else if (subItem === "View Investors") {
+      setIsViewInvestVisible(true);
+    } else if (subItem === "View Skilled Resource") {
+      setIsViewSkillVisible(true);
+    } else if (subItem === "View NRI Members") {
+      setIsViewNriVisible(true);
     }
   };
 
@@ -140,6 +164,9 @@ const CallCenterDashboard = () => {
     setIsViewRequestedPropVisible(false);
     setIsViewAgentContVisible(false);
     setIsCustCallVisible(false);
+    setIsViewInvestVisible(false);
+    setIsViewSkillVisible(false);
+    setIsViewNriVisible(false);
   };
 
   const renderContent = () => {
@@ -150,6 +177,9 @@ const CallCenterDashboard = () => {
     if (isViewAgentContVsible) return <ViewAgentsCall />;
     if (isCustCallVisible) return <ViewCustomersCalls />;
     if (isExpertPanelReq) return <ExpertPanelReq />;
+    if (isViewInvestVisible) return <ViewAllInvesters />;
+    if (isViewSkillVisible) return <AllSkilledLabours />;
+    if (isViewNriVisible) return <ViewNri />;
 
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     return <Dashboard />;

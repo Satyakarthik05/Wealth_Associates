@@ -3,6 +3,13 @@ const expertModel = require("../Models/ExpertModel");
 const registerExpert = async (req, res) => {
   const { Name, Experttype, Qualification, Experience, Locations, Mobile } =
     req.body;
+
+    let photoPath = null;
+    if (req.file) {
+      photoPath = `/ExpertMembers/${req.file.filename}`;
+    } else {
+      return res.status(400).json({ message: "Photo is required." });
+    }
   const newExpert = new expertModel({
     Name,
     Experttype,
@@ -10,6 +17,7 @@ const registerExpert = async (req, res) => {
     Experience,
     Locations,
     Mobile,
+    photo: photoPath,
   });
 
   newExpert.save();

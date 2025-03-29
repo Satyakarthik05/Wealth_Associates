@@ -25,10 +25,13 @@ import NriDashboard from "./NriDashboard/NriDashboard";
 import InvestorDashboard from "./InvestorDashboard/InvestorDashboard";
 import StartingScreen from "./StartingScreen";
 import CallCenterDashboard from "./CallCenterDash/CallCenterDashboard";
+import CallCenterLogin from "./CallCenterDash/Login_screen";
+import New_Password from "./Screens/New_Password";
 import { API_URL } from "./data/ApiUrl";
 
 // ✅ Keep NavigationIndependentTree
 import { NavigationIndependentTree } from "@react-navigation/native";
+import { Newspaper } from "lucide-react-native";
 
 const Stack = createStackNavigator();
 const APP_VERSION = "1.0.1"; // Change this when updating the app
@@ -136,6 +139,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="newpassword"
+            component={New_Password}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{ headerShown: false }}
@@ -198,6 +206,11 @@ export default function App() {
           <Stack.Screen
             name="CallCenterDashboard"
             component={CallCenterDashboard}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CallCenterLogin"
+            component={CallCenterLogin}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

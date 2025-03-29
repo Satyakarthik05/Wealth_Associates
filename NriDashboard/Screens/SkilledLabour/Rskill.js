@@ -111,7 +111,7 @@ const Rskill = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber,
+          AddedBy: Details.MobileIN,
           RegisteredBy: "Customer",
         }),
       });

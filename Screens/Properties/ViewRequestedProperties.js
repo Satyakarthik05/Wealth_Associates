@@ -16,6 +16,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../data/ApiUrl";
+import logo1 from "../../assets/Land.jpg";
+import logo2 from "../../assets/residntial.jpg";
+import logo3 from "../../assets/commercial.jpg";
+import logo4 from "../../assets/villa.jpg";
+import logo5 from "../../assets/house.png";
 
 const numColumns = width > 800 ? 4 : 1;
 
@@ -73,15 +78,15 @@ const RequestedProperties = () => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../assets/Land.jpg");
+        return logo1;
       case "residential":
-        return require("../../assets/residntial.jpg");
+        return logo2;
       case "commercial":
-        return require("../../assets/commercial.jpg");
+        return logo3;
       case "villa":
-        return require("../../assets/villa.jpg");
+        return logo4;
       default:
-        return require("../../assets/house.png");
+        return logo5;
     }
   };
 
@@ -200,12 +205,14 @@ const RequestedProperties = () => {
               }
               placeholder="Budget"
             />
-            <Button title="Save Changes" onPress={handleSaveEdit} />
+            <View style={{display:"flex",width:"100%",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:"4%"}}>
+            <Button title="Save Changes" color="green" onPress={handleSaveEdit} style={{backgroundColor:"green"}} />
             <Button
               title="Cancel"
               color="red"
               onPress={() => setEditModalVisible(false)}
             />
+            </View>
           </View>
         </View>
       </Modal>

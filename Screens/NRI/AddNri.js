@@ -11,13 +11,12 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddNRIMember = ({ closeModal }) => {
   const [name, setName] = useState("");
-  const [country, setCountry] = useState(null);
+  const [country, setCountry] = useState("");
   const [locality, setLocality] = useState("");
   const [indianLocation, setIndianLocation] = useState("");
   const [occupation, setOccupation] = useState("");
@@ -28,9 +27,10 @@ const AddNRIMember = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryList, setShowCountryList] = useState(false);
 
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState([
+  const countries = [
     { label: "United Arab Emirates", value: "uae" },
     { label: "United States of America", value: "usa" },
     { label: "Saudi Arabia", value: "saudi_arabia" },
@@ -41,7 +41,12 @@ const AddNRIMember = ({ closeModal }) => {
     { label: "Qatar", value: "qatar" },
     { label: "Oman", value: "oman" },
     { label: "Singapore", value: "singapore" },
-  ]);
+  ];
+
+  // Filter countries based on search input
+  const filteredCountries = countries.filter((item) =>
+    item.label.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   const getDetails = async () => {
     try {
@@ -148,16 +153,37 @@ const AddNRIMember = ({ closeModal }) => {
           />
 
           <Text style={styles.label}>Country</Text>
-          <DropDownPicker
-            open={open}
-            value={country}
-            items={items}
-            setOpen={setOpen}
-            setValue={setCountry}
-            setItems={setItems}
-            placeholder="-- Select Country --"
-            style={styles.dropdown}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search country..."
+              value={countrySearch}
+              onChangeText={(text) => {
+                setCountrySearch(text);
+                setShowCountryList(true);
+              }}
+              onFocus={() => setShowCountryList(true)}
+            />
+            {showCountryList && (
+              <View style={styles.locationListContainer}>
+                <ScrollView style={styles.locationList}>
+                  {filteredCountries.map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={styles.locationListItem}
+                      onPress={() => {
+                        setCountry(item.label);
+                        setCountrySearch(item.label);
+                        setShowCountryList(false);
+                      }}
+                    >
+                      <Text>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
 
           <Text style={styles.label}>Locality (Abroad)</Text>
           <TextInput
@@ -276,6 +302,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 10,
+    position: "relative",
+    zIndex: 1,
   },
   input: {
     borderWidth: 1,
@@ -285,19 +313,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
-  dropdown: {
-    borderColor: "#ccc",
-    borderRadius: 15,
-    marginBottom: 10,
-  },
   locationListContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    backgroundColor: "#e6708e",
+    backgroundColor: "#fff",
     maxHeight: 200,
-    // marginTop: -10,
-    marginBottom: 5,
+    marginTop: 5,
+    elevation: 3,
+    backgroundColor: "#e6708e",
   },
   locationList: {
     maxHeight: 200,

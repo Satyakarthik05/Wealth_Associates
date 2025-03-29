@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 const { width } = Dimensions.get("window");
+import { API_URL } from "../../data/ApiUrl";
 const isMobile = width < 600;
 
 const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
@@ -32,21 +33,18 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
       setIsLoading(true);
       setErrorMessage(""); // Clear any previous error messages
 
-      const response = await fetch(
-        "http://localhost:3000/callexe/addcall-executives",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            phone,
-            location,
-            password,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/callexe/addcall-executives`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          location,
+          password,
+        }),
+      });
 
       const data = await response.json();
 

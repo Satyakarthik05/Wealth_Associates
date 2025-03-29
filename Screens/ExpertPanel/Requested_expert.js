@@ -7,15 +7,44 @@ import {
   StyleSheet,
   Platform,
   Alert,
+  Modal,
+  TouchableWithoutFeedback,
+  FlatList,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
+const expertTypes = [
+  { label: "-- Select Type --", value: "" },
+  { label: "LEGAL", value: "LEGAL" },
+  { label: "REVENUE", value: "REVENUE" },
+  { label: "ENGINEERS", value: "ENGINEERS" },
+  { label: "ARCHITECTS", value: "ARCHITECTS" },
+  { label: "SURVEY", value: "SURVEY" },
+  { label: "VAASTU PANDITS", value: "VAASTU PANDITS" },
+  { label: "LAND VALUERS", value: "LAND VALUERS" },
+  { label: "BANKING", value: "BANKING" },
+  { label: "AGRICULTURE", value: "AGRICULTURE" },
+  {
+    label: "REGISTRATION & DOCUMENTATION",
+    value: "REGISTRATION & DOCUMENTATION",
+  },
+  { label: "AUDITING", value: "AUDITING" },
+  { label: "LIAISONING", value: "LIAISONING" },
+];
 
 const RequestedExpert = ({ closeModal }) => {
   const [selectedExpert, setSelectedExpert] = useState("");
   const [reason, setReason] = useState("");
   const [Details, setDetails] = useState({});
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+  });
 
   const getDetails = async () => {
     try {
@@ -73,6 +102,99 @@ const RequestedExpert = ({ closeModal }) => {
     }
   };
 
+  const measureDropdownPosition = (event) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setDropdownPosition({ x, y: y + height, width });
+  };
+
+  const renderDropdownItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => {
+        setSelectedExpert(item.value);
+        setShowDropdown(false);
+      }}
+    >
+      <Text style={styles.dropdownItemText}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderDropdown = () => {
+    if (Platform.OS === "android") {
+      return (
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={selectedExpert}
+            onValueChange={(itemValue) => setSelectedExpert(itemValue)}
+            style={styles.picker}
+            mode="dropdown"
+            dropdownIconColor="#007AFF"
+          >
+            {expertTypes.map((item) => (
+              <Picker.Item
+                key={item.value}
+                label={item.label}
+                value={item.value}
+              />
+            ))}
+          </Picker>
+        </View>
+      );
+    }
+
+    // iOS implementation
+    const selectedLabel =
+      expertTypes.find((item) => item.value === selectedExpert)?.label ||
+      "-- Select Type --";
+
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.dropdownTrigger}
+          onPress={() => setShowDropdown(!showDropdown)}
+          onLayout={measureDropdownPosition}
+        >
+          <Text style={styles.dropdownText}>{selectedLabel}</Text>
+          <Icon
+            name={showDropdown ? "arrow-drop-up" : "arrow-drop-down"}
+            size={24}
+            color="#007AFF"
+          />
+        </TouchableOpacity>
+
+        <Modal
+          visible={showDropdown}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowDropdown(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
+            <View style={styles.dropdownOverlay} />
+          </TouchableWithoutFeedback>
+
+          <View
+            style={[
+              styles.dropdownContainer,
+              {
+                top: dropdownPosition.y,
+                left: dropdownPosition.x,
+                width: dropdownPosition.width,
+              },
+            ]}
+          >
+            <FlatList
+              data={expertTypes}
+              renderItem={renderDropdownItem}
+              keyExtractor={(item) => item.value}
+              style={styles.dropdownList}
+              nestedScrollEnabled={true}
+            />
+          </View>
+        </Modal>
+      </>
+    );
+  };
+
   return (
     <View style={styles.modalContent}>
       {/* Header */}
@@ -82,34 +204,7 @@ const RequestedExpert = ({ closeModal }) => {
 
       {/* Dropdown */}
       <Text style={styles.label}>Select Expert Type</Text>
-      <View style={styles.pickerWrapper}>
-        <Picker
-          selectedValue={selectedExpert}
-          onValueChange={(itemValue) => setSelectedExpert(itemValue)}
-          style={styles.picker}
-          mode="dropdown"
-        >
-          <Picker.Item label="-- Select Type --" value="" />
-          <Picker.Item label="LEGAL" value="LEGAL" />
-          <Picker.Item label="REVENUE" value="REVENUE" />
-          <Picker.Item label="ENGINEERS" value="ENGINEERS" />
-          <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
-          <Picker.Item label="SURVEY" value="SURVEY" />
-          <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
-          <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
-          <Picker.Item label="BANKING" value="BANKING" />
-          <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
-          <Picker.Item
-            label="REGISTRATION & DOCUMENTATION"
-            value="REGISTRATION & DOCUMENTATION"
-          />
-          <Picker.Item label="DESIGNING" value="DESIGNING" />
-          <Picker.Item
-            label="MATERIALS & CONTRACTS"
-            value="MATERIALS & CONTRACTS"
-          />
-        </Picker>
-      </View>
+      {renderDropdown()}
 
       {/* Reason Textbox */}
       <Text style={styles.label}>Reason</Text>
@@ -135,17 +230,19 @@ const RequestedExpert = ({ closeModal }) => {
   );
 };
 
-// ... (styles remain the same)
-
 const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: "white",
     width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "40%",
     marginLeft: 20,
-    // height: 360,
     borderRadius: 15,
     padding: 15,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   header: {
     backgroundColor: "#E91E63",
@@ -167,23 +264,76 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     alignSelf: "flex-start",
     marginTop: 60,
+    color: "#000",
   },
+  // Android Picker Styles
   pickerWrapper: {
-    borderWidth: 1.5,
-    borderColor: "#777",
+    borderWidth: 1,
+    borderColor: "#d1d1d6",
     borderRadius: 8,
     width: "100%",
     overflow: "hidden",
     marginTop: 5,
-    height: Platform.OS === "android" || Platform.OS === "ios" ? 50 : "auto",
+    height: 50,
+    backgroundColor: "#f8f8f8",
   },
   picker: {
     height: 50,
-    backgroundColor: "white",
+    color: "#000",
+    backgroundColor: "transparent",
   },
+  // iOS Dropdown Styles
+  dropdownTrigger: {
+    borderWidth: 1,
+    borderColor: "#d1d1d6",
+    borderRadius: 8,
+    width: "100%",
+    height: 50,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    backgroundColor: "#f8f8f8",
+    marginTop: 5,
+  },
+  dropdownText: {
+    color: "#000",
+    fontSize: 16,
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  dropdownContainer: {
+    position: "absolute",
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#d1d1d6",
+    borderRadius: 8,
+    maxHeight: 200,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  dropdownList: {
+    flex: 1,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  // Common Styles
   textArea: {
-    borderWidth: 1.5,
-    borderColor: "#777",
+    borderWidth: 1,
+    borderColor: "#d1d1d6",
     borderRadius: 8,
     width: "100%",
     height: 120,
@@ -191,6 +341,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 5,
     fontSize: 14,
+    backgroundColor: "#f8f8f8",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -208,7 +359,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   cancelButton: {
-    backgroundColor: "black",
+    backgroundColor: "#8e8e93",
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,

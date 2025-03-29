@@ -20,6 +20,8 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import logo1 from "../assets/logo2.png";
+import logo2 from "../assets/logo.png";
 
 export default function Login_screen() {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -133,7 +135,7 @@ export default function Login_screen() {
             {Platform.OS !== "android" && Platform.OS !== "ios" && (
               <View style={styles.leftSection}>
                 <Image
-                  source={require("../assets/logo2.png")}
+                  source={logo1}
                   style={styles.logo}
                   resizeMode="contain"
                 />
@@ -151,8 +153,8 @@ export default function Login_screen() {
               <Image
                 source={
                   Platform.OS === "android" || Platform.OS === "ios"
-                    ? require("../assets/logo.png")
-                    : require("../assets/logo.png")
+                    ? logo2
+                    : logo2
                 }
                 style={styles.illustration}
                 resizeMode="contain"

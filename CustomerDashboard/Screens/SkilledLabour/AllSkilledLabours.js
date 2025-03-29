@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import logo from "../../../assets/man.png"
 
 const { width } = Dimensions.get("window");
 
@@ -53,7 +54,7 @@ export default function AllSkilledLabours() {
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
       <Image
-        source={require("../../../assets/man.png")}
+        source={logo}
         style={styles.avatar}
       />
       <View style={styles.infoContainer}>
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "35%" : "90%", // 45% on tablets, 90% on mobile
+    width: width > 600 ? "35%" : "auto", // 45% on tablets, 90% on mobile
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",

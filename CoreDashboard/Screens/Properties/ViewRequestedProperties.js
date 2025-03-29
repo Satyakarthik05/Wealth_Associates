@@ -16,6 +16,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 import { API_URL } from "../../../data/ApiUrl";
+import land from "../../../assets/Land.jpg";
+import residential from "../../../assets/residntial.jpg";
+import commercial from "../../../assets/commercial.jpg";
+import villa from "../../../assets/villa.jpg";
+import defa from "../../../assets/house.png";
 
 const numColumns = width > 800 ? 4 : 1;
 
@@ -73,15 +78,15 @@ const RequestedProperties = () => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../../assets/Land.jpg");
+        return land;
       case "residential":
-        return require("../../../assets/residntial.jpg");
+        return residential;
       case "commercial":
-        return require("../../../assets/commercial.jpg");
+        return commercial;
       case "villa":
-        return require("../../../assets/villa.jpg");
+        return villa;
       default:
-        return require("../../../assets/house.png");
+        return defa;
     }
   };
 
@@ -150,12 +155,12 @@ const RequestedProperties = () => {
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditPress(item)}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           ))}

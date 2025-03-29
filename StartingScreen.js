@@ -19,14 +19,14 @@ const StartingScreen = () => {
 
   const loginOptions = [
     {
-      name: "Agent",
+      name: "Wealth Associate",
       icon: (
         <MaterialIcons name="real-estate-agent" size={hp("4%")} color="white" />
       ),
       navigateTo: "Login", // Navigate to AgentDashboard
     },
     {
-      name: "Customer",
+      name: "Wealth Customer",
       icon: <FontAwesome5 name="user" size={hp("4%")} color="white" />,
       navigateTo: "CustomerDashboard", // Navigate to CustomerDashboard
     },
@@ -36,19 +36,19 @@ const StartingScreen = () => {
       navigateTo: "CoreDashboard", // Navigate to CoreMemberDashboard
     },
     {
-      name: "Referral",
+      name: "Referral Associate",
       icon: <FontAwesome5 name="users" size={hp("4%")} color="white" />,
       navigateTo: "Login", // Navigate to ReferralDashboard
     },
     {
-      name: "Investor",
+      name: "Wealth Investor",
       icon: (
         <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
       ),
       navigateTo: "InvestorDashboard",
     },
     {
-      name: "NRI",
+      name: "Wealth NRI",
       icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
       navigateTo: "NriDashboard", // Navigate to NRIDashboard
     },

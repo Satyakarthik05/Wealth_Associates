@@ -26,7 +26,7 @@ export default function ViewCustomers() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
+        const response = await fetch(`${API_URL}/customer/getmycustomer`, {
           method: "GET",
           headers: {
             token: `${token}` || "",

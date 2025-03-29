@@ -7,6 +7,7 @@ const expertSchema = new mongoose.Schema({
   Experience: { type: String, require: true },
   Locations: { type: String, require: true },
   Mobile: { type: String, require: true },
+  photo: { type: String, required: true },
 });
 
 const expert = new mongoose.model("expertpanel", expertSchema);

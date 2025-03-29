@@ -349,10 +349,10 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {Platform.OS === "android" ||
-        (Platform.OS === "ios" && (
+      {(Platform.OS === "android" ||
+        Platform.OS === "ios") && (
           <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-        ))}
+        )}
 
       <View style={styles.navbar}>
         <TouchableOpacity

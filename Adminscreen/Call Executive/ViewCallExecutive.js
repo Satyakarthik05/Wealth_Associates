@@ -11,6 +11,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
 } from "react-native";
+import { API_URL } from "../../data/ApiUrl";
 
 const ViewCallExecutives = () => {
   const [executives, setExecutives] = useState([]);
@@ -100,20 +101,17 @@ const ViewCallExecutives = () => {
       return;
     }
 
-    fetch(
-      `http://localhost:3000/callexe/call-executives/${currentExecutive._id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...editedData,
-          // Only send password if it was changed
-          password: editedData.password || undefined,
-        }),
-      }
-    )
+    fetch(`${API_URL}/callexe/call-executives/${currentExecutive._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...editedData,
+        // Only send password if it was changed
+        password: editedData.password || undefined,
+      }),
+    })
       .then((response) => {
         if (!response.ok) throw new Error("Failed to update executive");
         return response.json();

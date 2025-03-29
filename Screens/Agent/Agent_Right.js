@@ -27,6 +27,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCard from "./PropertyCard";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../assets/man.png";
+import logo1 from "../../assets/Logo Final 1.png";
+import logo2 from "../../assets/Main-Logo (1) 1.png";
+import logo3 from "../../assets/Meenakshi-Icon-Blac (2) 1.png";
+import logo4 from "../../assets/Surya Avenue Logo[1] 1.png";
+import logo5 from "../../assets/Logo 1.png";
+import logo6 from "../../assets/Land.jpg";
+import logo7 from "../../assets/residntial.jpg";
+import logo8 from "../../assets/commercial.jpg";
+import logo9 from "../../assets/villa.jpg";
+import logo10 from "../../assets/house.png";
+import logo11 from "../../assets/logo.png";
+
 
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
@@ -61,18 +73,18 @@ const nestedActionButtons = [
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: require("../../assets/Logo Final 1.png"),
+    logo: logo1,
   },
 ];
 
 const coreProjects = [
-  { name: "Bay Town", logo: require("../../assets/Main-Logo (1) 1.png") },
-  { name: "Icon", logo: require("../../assets/Meenakshi-Icon-Blac (2) 1.png") },
+  { name: "Bay Town", logo: logo2 },
+  { name: "Icon", logo: logo3 },
   {
     name: "Surya Avenue",
-    logo: require("../../assets/Surya Avenue Logo[1] 1.png"),
+    logo: logo4,
   },
-  { name: "The Park Vue", logo: require("../../assets/Logo 1.png") },
+  { name: "The Park Vue", logo: logo5 },
 ];
 const numColumns = width > 800 ? 4 : 1;
 
@@ -144,15 +156,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return require("../../assets/Land.jpg");
+        return logo6;
       case "residential":
-        return require("../../assets/residntial.jpg");
+        return logo7;
       case "commercial":
-        return require("../../assets/commercial.jpg");
+        return logo8;
       case "villa":
-        return require("../../assets/villa.jpg");
+        return logo9;
       default:
-        return require("../../assets/house.png");
+        return logo10;
     }
   };
 
@@ -419,7 +431,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {regularProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : logo11;
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -500,7 +512,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {approvedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : logo12;
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -581,7 +593,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {wealthProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : logo11;
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -662,7 +674,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {listedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : require("../../assets/logo.png");
+                  : logo11;
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 

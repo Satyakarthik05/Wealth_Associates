@@ -11,8 +11,17 @@ const propertySchema = new mongoose.Schema(
     Constituency: { type: String },
     PostedUserType: { type: String },
     editedAt: { type: Date },
+
+    // New field to store dynamic data
+    dynamicData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    strict: false, // This allows the model to accept any additional fields
+  }
 );
 
 const Property = mongoose.model("Property", propertySchema);
