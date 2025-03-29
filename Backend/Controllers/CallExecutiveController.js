@@ -47,7 +47,7 @@ const CallExecutiveLogin = async (req, res) => {
     //   expiresIn: "30d",
     // });
 
-    res.status(200).json({ message: "Login Successful", token });
+    res.status(200).json({ message: "Login Successful" });
   } catch (error) {
     console.log(error);
   }

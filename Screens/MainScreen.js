@@ -57,7 +57,7 @@ const LoginScreen = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Starting Screen")}
+            onPress={() => navigation.navigate("CallCenterLogin")}
           >
             <Text style={styles.buttonText}> Login </Text>
           </TouchableOpacity>
