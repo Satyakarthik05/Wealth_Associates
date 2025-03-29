@@ -50,6 +50,7 @@ import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
 import RegisterEx from "./Agent/Rrwa";
 import RegisterValue from "./Agent/RegisterValue";
+import logo from "../../assets/logo.png";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -58,7 +59,12 @@ const menuItems = [
   {
     title: "Agents",
     icon: "person-add-outline",
-    subItems: ["Register Agent", "Register Regional WealthAssociate","Register Value Associate","View Agents"],
+    subItems: [
+      "Register Agent",
+      "Register Regional WealthAssociate",
+      "Register Value Associate",
+      "View Agents",
+    ],
   },
   {
     title: "Customers",
@@ -148,7 +154,7 @@ const Admin_panel = () => {
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isViewInvesters, setViewInvesters] = useState(false);
   const [isRegionVisible, setIsRegionVisible] = useState(false);
-  const [isRegiValueVisible, setIsRegiValueVisible]= useState(false);
+  const [isRegiValueVisible, setIsRegiValueVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -397,10 +403,7 @@ const Admin_panel = () => {
             setIsRegiValueVisible(false);
           }}
         >
-          <Image
-            source={logo}
-            style={styles.logo}
-          />
+          <Image source={logo} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>

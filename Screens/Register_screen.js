@@ -184,7 +184,7 @@ const Register_screen = () => {
           <View style={styles.card}>
             <Image source={logo1} style={styles.logo} />
             <Text style={styles.tagline}>Your Trusted Property Consultant</Text>
-            <Text style={styles.title}>REGISTER AS AN AGENT</Text>
+            <Text style={styles.title}>REGISTER AS AN WealthAssociate</Text>
 
             {responseStatus === 400 && (
               <Text style={styles.errorText}>

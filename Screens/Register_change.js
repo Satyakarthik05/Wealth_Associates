@@ -17,14 +17,14 @@ import logo1 from "../assets/logo.png";
 const RegisterAsScreen = ({ navigation }) => {
   const loginOptions = [
     {
-      name: "Agent",
+      name: "WealthAssociate",
       icon: (
         <MaterialIcons name="real-estate-agent" size={hp("4%")} color="white" />
       ),
       navigateTo: "Register", // This is the screen you want to navigate to
     },
     {
-      name: "Customer",
+      name: "Wealth Customer",
       icon: <FontAwesome5 name="user" size={hp("4%")} color="white" />,
       navigateTo: "RegisterCustomer", // Correct the navigation target if needed
     },
