@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Alert,
+  Picker,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -20,6 +21,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
+  const [assignedType, setAssignedType] = useState("Agents");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -31,7 +33,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
 
     try {
       setIsLoading(true);
-      setErrorMessage(""); // Clear any previous error messages
+      setErrorMessage("");
 
       const response = await fetch(`${API_URL}/callexe/addcall-executives`, {
         method: "POST",
@@ -43,6 +45,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
           phone,
           location,
           password,
+          assignedType,
         }),
       });
 
@@ -62,7 +65,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
       setPhone("");
       setLocation("");
       setPassword("");
-      // fetchCallExecutives();
+      setAssignedType("Agents");
       closeModal();
     } catch (error) {
       console.error("Error adding call executive:", error);
@@ -82,12 +85,24 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
           <Text style={styles.headerText}>Add Call Executive</Text>
         </View>
 
-        {/* Error message display */}
         {errorMessage ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
         ) : null}
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Assigned Type</Text>
+          <Picker
+            selectedValue={assignedType}
+            style={styles.input}
+            onValueChange={(itemValue) => setAssignedType(itemValue)}
+          >
+            <Picker.Item label="Agents" value="Agents" />
+            <Picker.Item label="Customers" value="Customers" />
+            <Picker.Item label="Properties" value="Properties" />
+          </Picker>
+        </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Name</Text>
@@ -98,6 +113,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
             onChangeText={setName}
           />
         </View>
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Phone Number</Text>
           <TextInput
@@ -106,12 +122,13 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
             value={phone}
             onChangeText={(text) => {
               setPhone(text);
-              setErrorMessage(""); // Clear error when user starts typing
+              setErrorMessage("");
             }}
             keyboardType="phone-pad"
             maxLength={10}
           />
         </View>
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Location</Text>
           <TextInput
@@ -121,6 +138,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
             onChangeText={setLocation}
           />
         </View>
+
         <View style={styles.formGroup}>
           <Text style={styles.label}>Password</Text>
           <TextInput
@@ -143,6 +161,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
               {isLoading ? "Adding..." : "Add"}
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.cancelButton, isLoading && styles.disabledButton]}
             onPress={closeModal}

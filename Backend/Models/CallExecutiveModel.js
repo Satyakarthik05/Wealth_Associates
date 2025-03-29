@@ -1,23 +1,51 @@
 const mongoose = require("mongoose");
 
-const callExecutiveSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+const callExecutiveSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    assignedType: {
+      type: String,
+    },
+    assignedUsers: [
+      {
+        userType: {
+          type: String,
+          required: true,
+          enum: ["Customer", "Agents", "Propertys"],
+        },
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          refPath: "assignedUsers.userType",
+        },
+        assignedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    lastAssignedAt: {
+      type: Date,
+      default: null,
+    },
   },
-  phone: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  location: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("CallExecutive", callExecutiveSchema);
