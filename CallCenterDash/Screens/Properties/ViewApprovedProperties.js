@@ -310,22 +310,27 @@ const ViewAllProperties = () => {
     const message = formatPropertyDetails(selectedPropertyDetails);
 
     if (Platform.OS === "web") {
+      // Web: Opens WhatsApp Web with recent chats (no way to skip)
       window.open(
         `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
         "_blank"
       );
     } else {
-      const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
+      // Mobile: Forces "New Chat" screen (works on most devices)
+      const url = `whatsapp://send?phone=&text=${encodeURIComponent(message)}`;
+
       Linking.canOpenURL(url)
         .then((supported) => {
           if (supported) {
-            return Linking.openURL(url);
+            Linking.openURL(url);
           } else {
-            Alert.alert("Error", "WhatsApp is not installed on your device");
+            // Fallback: Open WhatsApp normally if deep link fails
+            Linking.openURL(
+              `whatsapp://send?text=${encodeURIComponent(message)}`
+            ).catch(() => Alert.alert("Error", "WhatsApp not installed"));
           }
         })
-        .catch((err) => {
-          console.error("Error opening WhatsApp:", err);
+        .catch(() => {
           Alert.alert("Error", "Could not open WhatsApp");
         });
     }
