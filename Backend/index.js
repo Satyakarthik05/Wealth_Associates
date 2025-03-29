@@ -39,6 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
 app.use("/coreProjects", express.static(path.join(__dirname, "coreProjects")));
+app.use("/expert", express.static(path.join(__dirname, "expert")));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -48,7 +49,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const corsOptions = {
   origin: "*",
-  methods: ["POST", "GET", "DELETE", "PUT"],
+  methods: ["POST", "GET", "DELETE", "PUT", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "token"],
   credentials: true,
 };
@@ -73,7 +74,7 @@ app.use("/skillLabour", SkillRoutes);
 app.use("/count", AllCounts);
 app.use("/nri", NriRoutes);
 app.use("/investors", InvestorRoutes);
-app.use("/requestexpert", RequestExpertRoute);      
+app.use("/requestexpert", RequestExpertRoute);
 app.use("/coreclient", CoreClientRoutes);
 app.use("/coreproject", CoreProjectRoutes);
 app.use("/buy", buyRoutes);
@@ -93,22 +94,22 @@ app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
 
-// https.createServer(options, app).listen(443, () => {
-//   console.log("HTTPS Server running on port 443");
-// });
-
-// const http = require("http");
-// http
-//   .createServer((req, res) => {
-//     res.writeHead(301, {
-//       Location: "https://" + req.headers["host"] + req.url,
-//     });
-//     res.end();
-//   })
-//   .listen(80, () => {
-//     console.log("Redirecting HTTP to HTTPS");
-//   });
-
-app.listen("3000", () => {
-  console.log("Server is running succssfully");
+https.createServer(options, app).listen(443, () => {
+  console.log("HTTPS Server running on port 443");
 });
+
+const http = require("http");
+http
+  .createServer((req, res) => {
+    res.writeHead(301, {
+      Location: "https://" + req.headers["host"] + req.url,
+    });
+    res.end();
+  })
+  .listen(80, () => {
+    console.log("Redirecting HTTP to HTTPS");
+  });
+
+// app.listen("3000", () => {
+//   console.log("Server is running succssfully");
+// });

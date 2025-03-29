@@ -49,7 +49,9 @@
     "react-native-share": "^12.0.9",
     "react-native-vector-icons": "^10.2.0",
     "react-native-view-shot": "~4.0.3",
-    "react-native-web": "~0.19.13"
+    "react-native-web": "~0.19.13",
+    "expo-clipboard": "~7.0.1",
+    "expo-intent-launcher": "~12.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

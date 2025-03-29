@@ -9,7 +9,6 @@ import {
   Alert,
   TouchableWithoutFeedback,
   FlatList,
-  Modal,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -27,9 +26,12 @@ const expertTypes = [
   { label: "LAND VALUERS", value: "LAND VALUERS" },
   { label: "BANKING", value: "BANKING" },
   { label: "AGRICULTURE", value: "AGRICULTURE" },
-  { label: "REGISTRATION & DOCUMENTATION", value: "REGISTRATION & DOCUMENTATION" },
-  { label: "DESIGNING", value: "DESIGNING" },
-  { label: "MATERIALS & CONTRACTS", value: "MATERIALS & CONTRACTS" },
+  {
+    label: "REGISTRATION & DOCUMENTATION",
+    value: "REGISTRATION & DOCUMENTATION",
+  },
+  { label: "AUDITING", value: "AUDITING" },
+  { label: "LIAISONING", value: "LIAISONING" },
 ];
 
 const RequestedExpert = ({ closeModal }) => {
@@ -37,7 +39,11 @@ const RequestedExpert = ({ closeModal }) => {
   const [reason, setReason] = useState("");
   const [Details, setDetails] = useState({});
   const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+  });
 
   const getDetails = async () => {
     try {
@@ -69,7 +75,7 @@ const RequestedExpert = ({ closeModal }) => {
       expertType: selectedExpert,
       reason: reason,
       WantedBy: Details ? Details.MobileNumber : "Number",
-      UserType: "Agent",
+      UserType: "Customer",
     };
 
     try {
@@ -282,30 +288,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: "100%",
     height: 50,
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 15,
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: "#f8f8f8",
     marginTop: 5,
   },
   dropdownText: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
   },
   dropdownOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   dropdownContainer: {
-    position: 'absolute',
-    backgroundColor: 'white',
+    position: "absolute",
+    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: '#d1d1d6',
+    borderColor: "#d1d1d6",
     borderRadius: 8,
     maxHeight: 200,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -317,11 +323,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   // Common Styles
   textArea: {

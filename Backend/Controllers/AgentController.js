@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const AgentSchema = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const CallExecutive = require("../Models/CallExecutiveModel");
 
 secret = "Wealth@123";
 
@@ -61,7 +62,10 @@ const AgentSign = async (req, res) => {
 
   try {
     const existingAgent = await AgentSchema.findOne({ MobileNumber });
-    const referredAgent =await AgentSchema.findOne({MyRefferalCode:ReferredBy})
+    const referredAgent = await AgentSchema.findOne({
+      MyRefferalCode: ReferredBy,
+    });
+
     if (existingAgent) {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
@@ -69,10 +73,9 @@ const AgentSign = async (req, res) => {
     const Password = "wa1234";
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
-
-    // Use the ReferredBy value from the request, or default to "WA0000000001" if empty
     const finalReferredBy = ReferredBy || "WA0000000001";
 
+    // Create new agent first
     const newAgent = new AgentSchema({
       FullName,
       MobileNumber,
@@ -83,11 +86,35 @@ const AgentSign = async (req, res) => {
       Locations,
       Expertise,
       Experience,
-      ReferredBy: finalReferredBy, // Use the finalReferredBy value
+      ReferredBy: finalReferredBy,
       MyRefferalCode: refferedby,
       AgentType,
     });
 
+    // 1. Find all call executives with assignedType "Agents"
+    const callExecutives = await CallExecutive.find({ assignedType: "Agents" })
+      .sort({ lastAssignedAt: 1 }) // Sort by oldest assignment first
+      .limit(1); // Get the one who was assigned longest ago
+
+    if (callExecutives.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No call executives available for agent assignment" });
+    }
+
+    const assignedExecutive = callExecutives[0];
+
+    assignedExecutive.assignedUsers.push({
+      userType: "Agents",
+      userId: newAgent._id,
+    });
+    assignedExecutive.lastAssignedAt = new Date();
+    await assignedExecutive.save();
+
+    // 3. Save the new agent
+    await newAgent.save();
+
+    // Send SMS (your existing code)
     let smsResponse;
     try {
       smsResponse = await sendSMS(
@@ -102,7 +129,7 @@ const AgentSign = async (req, res) => {
       smsResponse = "SMS sending failed";
     }
 
-    await newAgent.save();
+    // Call center API (your existing code)
     try {
       const callCenterResponse = await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/786e00dc-fb5a-4bf1-aaa3-7525277c8bf1/leads",
@@ -111,19 +138,22 @@ const AgentSign = async (req, res) => {
             name: FullName,
             mobile: MobileNumber,
             email: Email,
-            detail1: `RefereralCode:${refferedby},ReferredBy:${referredAgent?referredAgent.FullName:"WealthAssociate"}`, // Adjust this as necessary
+            detail1: `RefereralCode:${refferedby},ReferredBy:${
+              referredAgent ? referredAgent.FullName : "WealthAssociate"
+            }`,
           },
         }
       );
-
       console.log("Call center API response:", callCenterResponse.data);
     } catch (error) {
       console.error("Failed to call call center API:", error.message);
     }
 
     res.status(200).json({
-      message: "Registration successful",
+      message: "Registration and assignment successful",
       smsResponse,
+      assignedTo: assignedExecutive.name,
+      executivePhone: assignedExecutive.phone,
     });
   } catch (error) {
     console.error("Error during registration:", error.message);

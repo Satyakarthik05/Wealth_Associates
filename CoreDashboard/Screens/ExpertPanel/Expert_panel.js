@@ -31,7 +31,7 @@ const data = [
   },
   {
     id: "5",
-    title: "SURVEY",
+    title: "PLANS & APPROVALS",
     icon: "https://img.icons8.com/ios/100/survey.png",
   },
   {
@@ -41,7 +41,7 @@ const data = [
   },
   {
     id: "7",
-    title: "LAND VALUERS",
+    title: "LAND SURVEY & VALUERS",
     icon: "https://img.icons8.com/ios/100/marker.png",
   },
   {
@@ -61,12 +61,12 @@ const data = [
   },
   {
     id: "11",
-    title: "DESIGNING",
+    title: "AUDITING",
     icon: "https://img.icons8.com/ios/100/paint-brush.png",
   },
   {
     id: "12",
-    title: "MATERIALS &\nCONTRACTS",
+    title: "LIAISONING",
     icon: "https://img.icons8.com/ios/100/handshake.png",
   },
 ];

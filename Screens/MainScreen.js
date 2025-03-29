@@ -23,7 +23,7 @@ const LoginScreen = () => {
         Platform.OS === "ios"
           ? logo1
           : Platform.OS === "android"
-          ? logo2
+          ? logo1
           : logo2
       }
       style={styles.container}

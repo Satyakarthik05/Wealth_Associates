@@ -50,7 +50,8 @@ import ViewInvesters from "./Investors/ViewInvestors";
 import ViewNri from "./NRI/ViewNri";
 import RegisterEx from "./Agent/Rrwa";
 import RegisterValue from "./Agent/RegisterValue";
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.png";
+import AddExpertForm from "./ExpertPanel/AddExpert";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -59,7 +60,12 @@ const menuItems = [
   {
     title: "Agents",
     icon: "person-add-outline",
-    subItems: ["Register Agent", "Register Regional WealthAssociate","Register Value Associate","View Agents"],
+    subItems: [
+      "Register Agent",
+      "Register Regional WealthAssociate",
+      "Register Value Associate",
+      "View Agents",
+    ],
   },
   {
     title: "Customers",
@@ -80,7 +86,7 @@ const menuItems = [
   {
     title: "Expert Panel",
     icon: "cog-outline",
-    subItems: ["View Expert Panel", "Request Expert Panel"],
+    subItems: ["Add Expert", "View Expert Panel", "Request Expert Panel"],
   },
 
   {
@@ -149,7 +155,8 @@ const Admin_panel = () => {
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isViewInvesters, setViewInvesters] = useState(false);
   const [isRegionVisible, setIsRegionVisible] = useState(false);
-  const [isRegiValueVisible, setIsRegiValueVisible]= useState(false);
+  const [isRegiValueVisible, setIsRegiValueVisible] = useState(false);
+  const [isAddExpertVisible, setIsAddExpertVisible] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -216,6 +223,7 @@ const Admin_panel = () => {
     setViewInvesters(false);
     setIsRegionVisible(false);
     setIsRegiValueVisible(false);
+    setIsAddExpertVisible(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -269,6 +277,8 @@ const Admin_panel = () => {
       setIsRegionVisible(true);
     } else if (subItem === "Register Value Associate") {
       setIsRegiValueVisible(true);
+    } else if (subItem === "Add Expert") {
+      setIsAddExpertVisible(true);
     }
   };
 
@@ -296,6 +306,7 @@ const Admin_panel = () => {
     setIsViewNriVisible(false);
     setIsRegionVisible(false);
     setIsRegiValueVisible(false);
+    setIsAddExpertVisible(false);
   };
 
   const renderContent = () => {
@@ -396,12 +407,10 @@ const Admin_panel = () => {
             setViewInvesters(false);
             setIsRegionVisible(false);
             setIsRegiValueVisible(false);
+            setIsAddExpertVisible(false);
           }}
         >
-          <Image
-            source={logo}
-            style={styles.logo}
-          />
+          <Image source={logo} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>
@@ -435,6 +444,7 @@ const Admin_panel = () => {
                 setIsViewNriVisible(false);
                 setIsRegionVisible(false);
                 setIsRegiValueVisible(false);
+                setIsAddExpertVisible(false);
               }}
             />
           </View>
@@ -564,6 +574,9 @@ const Admin_panel = () => {
       </CustomModal>
       <CustomModal isVisible={isRegiValueVisible} closeModal={closeModal}>
         <RegisterValue closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddExpertVisible} closeModal={closeModal}>
+        <AddExpertForm closeModal={closeModal} />
       </CustomModal>
     </View>
   );

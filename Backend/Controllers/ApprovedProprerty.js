@@ -24,9 +24,12 @@ const approveProperty = async (req, res) => {
         ? property.propertyDetails
         : "no details",
       PostedUserType: property.PostedUserType,
+      dynamicData: property.dynamicData || {},
     });
 
     await approvedProperty.save();
+    console.log("Original property dynamicData:", property.dynamicData);
+    console.log("Approved property dynamicData:", approvedProperty.dynamicData);
     await Property.findByIdAndDelete(id);
 
     // 3. Fetch all user push tokens

@@ -117,7 +117,7 @@ const AddNRIMember = ({ closeModal }) => {
           AddedBy: Details.MobileNumber
             ? Details.MobileNumber
             : "Wealthassociate",
-          RegisteredBy: "WealthAssociate",
+          RegisteredBy: "Customer",
         }),
       });
 

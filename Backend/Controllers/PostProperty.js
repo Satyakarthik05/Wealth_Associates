@@ -5,8 +5,8 @@ const AgentSchema = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
 const CoreSchema = require("../Models/CoreModel");
 const mongoose = require("mongoose");
-const axios =require("axios")
-const getNearbyProperty= require("../Models/ApprovedPropertys")
+const axios = require("axios");
+const getNearbyProperty = require("../Models/ApprovedPropertys");
 
 // Create a new property
 const createProperty = async (req, res) => {
@@ -36,23 +36,6 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Clean and validate price
-    // if (typeof price === "string") {
-    //   price = price.replace(/,/g, "").trim();
-
-    //   const parts = price.split(".");
-    //   if (parts.length > 2) {
-    //     price = parts[0] + "." + parts[1]; // Keep only the first decimal part
-    //   }
-    // }
-
-    // Convert to number
-    // price = parseFloat(price);
-    // if (isNaN(price)) {
-    //   return res.status(400).json({ message: "Invalid price format." });
-    // }
-
-    // Find user by PostedBy number
     const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
     const coreUser = await CoreSchema.findOne({ MobileNumber: PostedBy });
     const customerUser = await CustomerSchema.findOne({
@@ -263,7 +246,9 @@ const getNearbyProperties = async (req, res) => {
 
     // Fetch properties from database that match the constituency
     console.log(constituency);
-    const properties = await getNearbyProperty.find({ Constituency: constituency });
+    const properties = await getNearbyProperty.find({
+      Constituency: constituency,
+    });
 
     if (properties.length === 0) {
       return res
@@ -313,6 +298,69 @@ const getReferredByDetails = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+// const Property = require('../models/propertyModel');
+
+// Update dynamic data
+const updateDynamicData = async (req, res) => {
+  try {
+    // 1. Validate property ID
+    if (!req.params.id || req.params.id === "undefined") {
+      return res.status(400).json({
+        status: "fail",
+        message: "Invalid property ID",
+      });
+    }
+
+    // 2. Prepare update data
+    const updateData = {
+      $set: {
+        dynamicData: req.body,
+        editedAt: Date.now(),
+      },
+    };
+
+    // 3. Find and update the property
+    const updatedProperty = await Property.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    // 4. Check if property exists
+    if (!updatedProperty) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No property found with that ID",
+      });
+    }
+
+    // 5. Send success response
+    res.status(200).json({
+      status: "success",
+      data: {
+        property: updatedProperty,
+      },
+    });
+  } catch (err) {
+    // Handle different types of errors
+    if (err.name === "CastError") {
+      return res.status(400).json({
+        status: "fail",
+        message: "Invalid ID format",
+      });
+    }
+
+    // Generic error handler
+    res.status(500).json({
+      status: "error",
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
 module.exports = {
   createProperty,
   GetAllPropertys,
@@ -323,4 +371,5 @@ module.exports = {
   updatePropertyAdmin,
   getNearbyProperties,
   getReferredByDetails,
+  updateDynamicData,
 };

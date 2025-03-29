@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,42 +7,115 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
-const PropertyForm = ({ closeModal }) => {
-  const [bhk, setBhk] = useState("");
-  const [area, setArea] = useState("");
-  const [carpetArea, setCarpetArea] = useState("");
-  const [totalArea, setTotalArea] = useState("");
-
-  // Exclusive checkboxes (single selection)
-  const [furnishing, setFurnishing] = useState(null);
-  const [projectStatus, setProjectStatus] = useState(null);
-  const [facing, setFacing] = useState(null);
-  const [carParking, setCarParking] = useState(null);
-  const [blankLane, setBlankLane] = useState(null);
-
-  // Multi-checkbox options
-  const [facilities, setFacilities] = useState({
-    water: false,
-    vastu: false,
-    documents: false,
+const PropertyForm = ({ closeModal, propertyId, initialData }) => {
+  // Initialize form state with default values
+  const [formData, setFormData] = useState({
+    bhk: "",
+    area: "",
+    carpetArea: "",
+    totalArea: "",
+    furnishing: null,
+    projectStatus: null,
+    facing: null,
+    carParking: null,
+    blankLane: null,
+    facilities: {
+      water: false,
+      vastu: false,
+      documents: false,
+    },
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize form only once when component mounts
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        bhk: initialData.bhk || "",
+        area: initialData.area || "",
+        carpetArea: initialData.carpetArea || "",
+        totalArea: initialData.totalArea || "",
+        furnishing: initialData.furnishing || null,
+        projectStatus: initialData.projectStatus || null,
+        facing: initialData.facing || null,
+        carParking: initialData.carParking || null,
+        blankLane: initialData.blankLane || null,
+        facilities: {
+          water: initialData.facilities?.water || false,
+          vastu: initialData.facilities?.vastu || false,
+          documents: initialData.facilities?.documents || false,
+        },
+      });
+    }
+  }, []); // Empty dependency array ensures this runs only once
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFacilityChange = (key, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      facilities: { ...prev.facilities, [key]: value },
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!propertyId) {
+      Alert.alert("Error", "Property ID is missing");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/properties/${propertyId}/dynamic`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to update property");
+      }
+
+      Alert.alert("Success", "Property details updated successfully");
+      closeModal(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      Alert.alert("Error", error.message || "An error occurred while updating");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Property Information Form</Text>
+      <Text style={styles.title}>Update Property Details</Text>
 
       {/* BHK Input */}
       <Text style={styles.heading}>BHK Type</Text>
       <TextInput
         style={styles.input}
         placeholder="e.g., 2BHK"
-        value={bhk}
-        onChangeText={setBhk}
+        value={formData.bhk}
+        onChangeText={(text) => handleInputChange("bhk", text)}
       />
 
       {/* Area Input */}
@@ -51,8 +124,8 @@ const PropertyForm = ({ closeModal }) => {
         style={styles.input}
         placeholder="e.g., 2400 sq.ft"
         keyboardType="numeric"
-        value={area}
-        onChangeText={setArea}
+        value={formData.area}
+        onChangeText={(text) => handleInputChange("area", text)}
       />
 
       {/* Furnishing Checkboxes */}
@@ -62,8 +135,13 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={option}
             label={option}
-            status={furnishing === option ? "checked" : "unchecked"}
-            onPress={() => setFurnishing(furnishing === option ? null : option)}
+            status={formData.furnishing === option ? "checked" : "unchecked"}
+            onPress={() =>
+              handleInputChange(
+                "furnishing",
+                formData.furnishing === option ? null : option
+              )
+            }
           />
         ))}
       </View>
@@ -75,9 +153,12 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={option}
             label={option}
-            status={projectStatus === option ? "checked" : "unchecked"}
+            status={formData.projectStatus === option ? "checked" : "unchecked"}
             onPress={() =>
-              setProjectStatus(projectStatus === option ? null : option)
+              handleInputChange(
+                "projectStatus",
+                formData.projectStatus === option ? null : option
+              )
             }
           />
         ))}
@@ -90,8 +171,13 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={direction}
             label={direction}
-            status={facing === direction ? "checked" : "unchecked"}
-            onPress={() => setFacing(facing === direction ? null : direction)}
+            status={formData.facing === direction ? "checked" : "unchecked"}
+            onPress={() =>
+              handleInputChange(
+                "facing",
+                formData.facing === direction ? null : direction
+              )
+            }
           />
         ))}
       </View>
@@ -102,8 +188,8 @@ const PropertyForm = ({ closeModal }) => {
         style={styles.input}
         placeholder="e.g., 2000 sq.ft"
         keyboardType="numeric"
-        value={carpetArea}
-        onChangeText={setCarpetArea}
+        value={formData.carpetArea}
+        onChangeText={(text) => handleInputChange("carpetArea", text)}
       />
 
       {/* Car Parking */}
@@ -113,8 +199,13 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={option}
             label={option}
-            status={carParking === option ? "checked" : "unchecked"}
-            onPress={() => setCarParking(carParking === option ? null : option)}
+            status={formData.carParking === option ? "checked" : "unchecked"}
+            onPress={() =>
+              handleInputChange(
+                "carParking",
+                formData.carParking === option ? null : option
+              )
+            }
           />
         ))}
       </View>
@@ -125,8 +216,8 @@ const PropertyForm = ({ closeModal }) => {
         style={styles.input}
         placeholder="e.g., 3000 sq.ft"
         keyboardType="numeric"
-        value={totalArea}
-        onChangeText={setTotalArea}
+        value={formData.totalArea}
+        onChangeText={(text) => handleInputChange("totalArea", text)}
       />
 
       {/* Project Facilities */}
@@ -140,10 +231,8 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={key}
             label={label}
-            status={facilities[key] ? "checked" : "unchecked"}
-            onPress={() =>
-              setFacilities({ ...facilities, [key]: !facilities[key] })
-            }
+            status={formData.facilities[key] ? "checked" : "unchecked"}
+            onPress={() => handleFacilityChange(key, !formData.facilities[key])}
           />
         ))}
       </View>
@@ -155,18 +244,35 @@ const PropertyForm = ({ closeModal }) => {
           <Checkbox.Item
             key={option}
             label={option}
-            status={blankLane === option ? "checked" : "unchecked"}
-            onPress={() => setBlankLane(blankLane === option ? null : option)}
+            status={formData.blankLane === option ? "checked" : "unchecked"}
+            onPress={() =>
+              handleInputChange(
+                "blankLane",
+                formData.blankLane === option ? null : option
+              )
+            }
           />
         ))}
       </View>
 
       {/* Buttons Container */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.buttonSubmit}>
-          <Text style={styles.buttonText}>Submit</Text>
+        <TouchableOpacity
+          style={[styles.buttonSubmit, isSubmitting && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Update Details</Text>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonCancel} onPress={closeModal}>
+        <TouchableOpacity
+          style={[styles.buttonCancel, isSubmitting && styles.disabledButton]}
+          onPress={() => closeModal(false)}
+          disabled={isSubmitting}
+        >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -174,16 +280,14 @@ const PropertyForm = ({ closeModal }) => {
   );
 };
 
-// *Same CSS, Just Made Responsive*
 const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: "#E3F2FD",
     flexGrow: 1,
-    width: width * 0.4, // Reduced width (was 0.9 before)
+    width: width > 500 ? width * 0.4 : width * 0.9,
     alignSelf: "center",
   },
-
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -226,6 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
     alignItems: "center",
+    justifyContent: "center",
   },
   buttonCancel: {
     backgroundColor: "#DC3545",
@@ -234,11 +339,15 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
     alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
 

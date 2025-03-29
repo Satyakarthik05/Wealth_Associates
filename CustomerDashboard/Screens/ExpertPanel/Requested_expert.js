@@ -31,8 +31,8 @@ const expertTypes = [
     label: "REGISTRATION & DOCUMENTATION",
     value: "REGISTRATION & DOCUMENTATION",
   },
-  { label: "DESIGNING", value: "DESIGNING" },
-  { label: "MATERIALS & CONTRACTS", value: "MATERIALS & CONTRACTS" },
+  { label: "AUDITING", value: "AUDITING" },
+  { label: "LIAISONING", value: "LIAISONING" },
 ];
 
 const RequestedExpert = ({ closeModal }) => {

@@ -1,8 +1,9 @@
 const CallExecutive = require("../Models/CallExecutiveModel");
+const jwt = require("jsonwebtoken");
 
 const addCallExecutive = async (req, res) => {
   try {
-    const { name, phone, location, password } = req.body;
+    const { name, phone, location, password, assignedType } = req.body;
 
     // Validate input
     if (!name || !phone || !location || !password) {
@@ -18,7 +19,13 @@ const addCallExecutive = async (req, res) => {
     }
 
     // Create and save the new executive
-    const newExecutive = new CallExecutive({ name, phone, location, password });
+    const newExecutive = new CallExecutive({
+      name,
+      phone,
+      location,
+      password,
+      assignedType,
+    });
     await newExecutive.save();
 
     res.status(201).json({ message: "Call executive added successfully" });
@@ -43,9 +50,9 @@ const CallExecutiveLogin = async (req, res) => {
         .json({ message: "Invalid MobileNumber or Password" });
     }
 
-    // const token = await jwt.sign({ AgentId: Agents._id }, secret, {
-    //   expiresIn: "30d",
-    // });
+    const token = await jwt.sign({ AgentId: Agents._id }, secret, {
+      expiresIn: "30d",
+    });
 
     res.status(200).json({ message: "Login Successful", token });
   } catch (error) {

@@ -126,7 +126,7 @@ export default function ViewAgents() {
 
   useEffect(() => {
     fetchAllData();
-    const interval = setInterval(fetchAllData, 10000);
+    const interval = setInterval(fetchAllData, 20000);
     return () => clearInterval(interval);
   }, []);
 
