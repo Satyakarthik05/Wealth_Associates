@@ -6,121 +6,317 @@ import {
   TouchableOpacity,
   Linking,
   StyleSheet,
+  Platform,
+  ActivityIndicator,
+  Alert,
+  Share,
+  Animated,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { FontAwesome } from "@expo/vector-icons";
-import * as Sharing from "expo-sharing";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 import ViewShot from "react-native-view-shot";
 import logo from "../../../assets/logo.png";
+import { FontAwesome5, AntDesign } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import defaultAgentImage from "../../../assets/man.png";
 
 const PropertyCard = ({ property, closeModal }) => {
-  const { photo, location, price, propertyType, PostedBy, fullName } = property;
   const viewShotRef = useRef();
-  const [agentImage, setAgentImage] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [agentImage, setAgentImage] = useState(defaultAgentImage);
+  const [mounted, setMounted] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Fade in animation when component mounts
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    return () => {
+      setMounted(false);
+    };
+  }, []);
 
   useEffect(() => {
     const loadProfileImage = async () => {
       try {
         const savedImage = await AsyncStorage.getItem("@profileImage");
-        if (savedImage) {
+        if (mounted && savedImage) {
           setAgentImage({ uri: savedImage });
-        } else {
-          setAgentImage(defaultAgentImage); // Set default image if no saved image
         }
       } catch (error) {
         console.error("Error loading profile image:", error);
-        setAgentImage(defaultAgentImage); // Ensure fallback in case of error
       }
     };
-
     loadProfileImage();
-  }, []);
+  }, [mounted]);
 
-  const handleShareOnWhatsApp = async () => {
+  const getPhotoUri = () => {
+    if (!property?.photo) return logo;
+    if (property.photo.startsWith("http")) return { uri: property.photo };
+    if (property.photo.startsWith("file://")) return { uri: property.photo };
+    return logo;
+  };
+
+  const getAgentName = () => {
+    if (property?.fullName) return property.fullName;
+    if (property?.Name) return property.Name;
+    if (property?.PostedBy) return property.PostedBy;
+    return "Wealth Associate";
+  };
+
+  const getAgentMobile = () => {
+    if (property?.mobile) return property.mobile;
+    if (property?.MobileNumber) return property.MobileNumber;
+    if (property?.PostedBy) return property.PostedBy;
+    return "Contact for details";
+  };
+
+  const handleVisitSite = () => {
+    Linking.openURL("https://www.wealthassociate.in");
+  };
+
+  const handleShare = async () => {
+    if (!viewShotRef.current) {
+      Alert.alert("Error", "Sharing component not ready");
+      return;
+    }
+
+    setIsSharing(true);
+
     try {
-      const uri = await viewShotRef.current.capture();
-      console.log("Image saved to", uri);
-
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (!isAvailable) {
-        alert("Sharing is not available on this platform.");
-        return;
-      }
-
-      await Sharing.shareAsync(uri, {
-        mimeType: "image/jpeg",
-        dialogTitle: "Share Property",
-        UTI: "public.image",
+      const uri = await viewShotRef.current.capture({
+        format: "jpg",
+        quality: 0.9,
+        result: "base64",
       });
 
-      const caption = `Check out this property in ${location} for ₹${price}.`;
-      const url = `whatsapp://send?text=${encodeURIComponent(caption)}`;
-      Linking.openURL(url)
-        .then(() => closeModal())
-        .catch(() => alert("WhatsApp is not installed on your device."));
+      if (!uri) {
+        throw new Error("Failed to capture image");
+      }
+
+      const message = `Check out this ${
+        property?.propertyType || "property"
+      } in ${property?.location || "a great location"} for ₹${
+        property?.price || "contact for price"
+      }.\n\nContact Agent: ${getAgentName()} (${getAgentMobile()})\n\nDownload our app: ${
+        Platform.OS === "ios"
+          ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
+          : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+      }`;
+
+      if (Platform.OS === "android") {
+        const fileName = `property_share_${Date.now()}.jpg`;
+        const filePath = `${FileSystem.cacheDirectory}${fileName}`;
+
+        await FileSystem.writeAsStringAsync(filePath, uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const fileInfo = await FileSystem.getInfoAsync(filePath);
+        if (!fileInfo.exists) {
+          throw new Error("Failed to save image file");
+        }
+
+        await Share.share({
+          url: `file://${filePath}`,
+          message: message,
+        });
+      } else {
+        await Share.share({
+          url: `data:image/jpeg;base64,${uri}`,
+          message: message,
+        });
+      }
     } catch (error) {
-      console.error("Error sharing property:", error);
-      alert("Failed to share property.");
+      console.error("Sharing failed:", error);
+      Alert.alert(
+        "Sharing Error",
+        error.message || "Couldn't share the property. Please try again."
+      );
+    } finally {
+      setIsSharing(false);
     }
   };
 
+  const handleClose = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      closeModal();
+    });
+  };
+
+  if (!property) {
+    return (
+      <Animated.View style={[styles.templateContainer, { opacity: fadeAnim }]}>
+        <Text style={styles.errorText}>No property data available</Text>
+        <TouchableOpacity style={styles.button} onPress={handleClose}>
+          <Text style={styles.buttonText}>Close</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
+
   return (
-    <View style={styles.templateContainer}>
+    <Animated.View style={[styles.templateContainer, { opacity: fadeAnim }]}>
       <ViewShot
         ref={viewShotRef}
-        options={{ format: "jpg", quality: 0.9 }}
-        style={{ backgroundColor: "#5a89cc", borderRadius: 10, padding: 10 }}
+        options={{
+          format: "jpg",
+          quality: 0.9,
+          result: "base64",
+        }}
+        style={styles.viewShotContainer}
       >
-        <Text style={styles.title}>Property For Sale</Text>
+        <Text style={styles.propertyForSaleText}>Property For Sale</Text>
+
         <View style={styles.header}>
-          <View style={{ flexDirection: "column" }}>
-            <Text style={styles.propertyType}>{propertyType}</Text>
-            <Text style={styles.locationText}>Location: {location}</Text>
+          <View style={styles.propertyInfo}>
+            <Text style={styles.propertyType}>
+              {property.propertyType || "Property"}
+            </Text>
+            <Text style={styles.locationText}>
+              Location: {property.location || "Location not specified"}
+            </Text>
           </View>
-          <Image source={logo} style={styles.logo} />
+
+          <View style={styles.logoContainer}>
+            <Image source={logo} style={styles.logoImage} />
+            <Image
+              source={{ uri: "https://www.wealthassociate.in/images/logo.png" }}
+              style={styles.websiteLogo}
+            />
+          </View>
         </View>
 
         <View style={styles.imageSection}>
-          <Image source={{ uri: photo }} style={styles.propertyImage} />
+          {imageLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#5a89cc" />
+            </View>
+          )}
+          <Image
+            source={getPhotoUri()}
+            style={styles.propertyImage}
+            resizeMode="cover"
+            onLoadStart={() => setImageLoading(true)}
+            onLoadEnd={() => setImageLoading(false)}
+            onError={() => {
+              setImageLoading(false);
+              setImageError(true);
+            }}
+            defaultSource={logo}
+          />
+          {imageError && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>Failed to load image</Text>
+            </View>
+          )}
           <View style={styles.priceTag}>
-            <Text style={styles.priceText}>₹{price}</Text>
+            <Text style={styles.priceText}>
+              ₹{property.price || "Price not specified"}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.agentInfo}>
+          <Image source={agentImage} style={styles.agentImage} />
+          <View style={styles.agentDetails}>
+            <Text style={styles.agentName}>{getAgentName()}</Text>
+            <Text style={styles.agentPhone}>{getAgentMobile()}</Text>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <View style={styles.agentInfo}>
-            <Image source={agentImage} style={styles.agentImage} />
-            <View style={styles.agentDetails}>
-              <Text style={styles.agentName}>{fullName}</Text>
-              <Text style={styles.agentPhone}>{PostedBy}</Text>
-            </View>
+          <Text style={styles.downloadTitle}>Download Our App</Text>
+          <View style={styles.storeButtons}>
+            <TouchableOpacity
+              style={styles.storeButton}
+              onPress={() =>
+                Linking.openURL(
+                  Platform.OS === "ios"
+                    ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
+                    : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+                )
+              }
+            >
+              {Platform.OS === "ios" ? (
+                <AntDesign name="apple1" size={24} color="#000" />
+              ) : (
+                <FontAwesome5 name="google-play" size={24} color="#000" />
+              )}
+              <Text style={styles.storeText}>
+                {Platform.OS === "ios" ? "App Store" : "Google Play"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.storeButton}
+              onPress={handleVisitSite}
+            >
+              <FontAwesome5 name="google-play" size={24} color="#000" />
+              <Text style={styles.storeText}>Google Play</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ViewShot>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={closeModal}>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={handleClose}
+        >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleShareOnWhatsApp}>
-          <FontAwesome name="whatsapp" size={24} color="#25D366" />
-          <Text style={styles.buttonText}>Share on WhatsApp</Text>
+        <TouchableOpacity
+          style={[styles.button, styles.shareButton]}
+          onPress={handleShare}
+          disabled={isSharing}
+        >
+          {isSharing ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <>
+              <MaterialIcons name="share" size={24} color="white" />
+              <Text style={[styles.buttonText, styles.shareButtonText]}>
+                Share Property
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   templateContainer: {
-    backgroundColor: "#e6708e",
+    backgroundColor: "#5a89cc",
     borderRadius: 10,
     padding: 10,
     margin: 10,
-    width: "100%",
+    width: Platform.OS === "ios" ? "95%" : "100%",
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  title: {
+  viewShotContainer: {
+    backgroundColor: "#5a89cc",
+    borderRadius: 10,
+    padding: 10,
+  },
+  propertyForSaleText: {
     textAlign: "center",
     fontSize: 25,
     fontWeight: "600",
@@ -131,48 +327,77 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#eee",
-    borderRadius: 8,
     padding: 10,
+    backgroundColor: "#fff",
+    width: "100%",
+    borderRadius: 8,
+  },
+  propertyInfo: {
+    flex: 1,
   },
   propertyType: {
     fontSize: 18,
     fontWeight: "bold",
-    left: 20,
   },
-  logo: {
-    width: 60,
-    height: 30,
+  locationText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  logoContainer: {
+    width: 80,
+    alignItems: "center",
+  },
+  logoImage: {
+    width: 50,
+    height: 40,
+  },
+  websiteLogo: {
+    width: 80,
+    height: 40,
     resizeMode: "contain",
   },
   imageSection: {
     marginTop: 10,
     backgroundColor: "#eee",
-    borderRadius: 15,
-    overflow: "hidden",
+    borderRadius: 10,
     alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    height: 180,
   },
   propertyImage: {
     width: "100%",
-    height: 180,
+    height: "100%",
     borderRadius: 10,
+  },
+  loadingContainer: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+    zIndex: 1,
+  },
+  errorContainer: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#eee",
   },
   priceTag: {
     position: "absolute",
     bottom: 10,
     right: 10,
-    backgroundColor: "#333",
-    padding: 8,
-    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
   },
   priceText: {
-    color: "#fff",
+    color: "white",
     fontWeight: "bold",
-  },
-  footer: {
-    flexDirection: "row",
-    marginTop: 15,
-    justifyContent: "space-between",
   },
   agentInfo: {
     flexDirection: "row",
@@ -180,34 +405,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     borderRadius: 10,
     padding: 10,
-    flex: 2,
-    marginRight: 5,
+    marginTop: 10,
   },
   agentImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 50,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     borderWidth: 2,
     borderColor: "#e653b3",
-    backgroundColor: "#fff",
-    marginRight: 10,
+    marginRight: 15,
   },
   agentDetails: {
-    justifyContent: "center",
+    flex: 1,
   },
   agentName: {
     fontWeight: "bold",
     fontSize: 16,
+    marginBottom: 5,
   },
   agentPhone: {
     fontSize: 14,
     color: "#555",
-  },
-  locationText: {
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-    left: 9,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -217,17 +435,58 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 8,
     flex: 1,
     marginHorizontal: 5,
     justifyContent: "center",
   },
+  cancelButton: {
+    backgroundColor: "#f9f9f9",
+  },
+  shareButton: {
+    backgroundColor: "#007AFF",
+  },
+  shareButtonText: {
+    color: "white",
+  },
   buttonText: {
-    marginLeft: 5,
+    marginLeft: 8,
     fontSize: 14,
-    color: "#000",
+    fontWeight: "600",
+  },
+  errorText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+    marginVertical: 20,
+  },
+  footer: {
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: "#eee",
+    borderRadius: 10,
+  },
+  downloadTitle: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  storeButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  storeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    backgroundColor: "white",
+    borderRadius: 5,
+  },
+  storeText: {
+    marginLeft: 5,
+    fontSize: 12,
   },
 });
 

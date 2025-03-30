@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   TouchableWithoutFeedback,
   FlatList,
 } from "react-native";

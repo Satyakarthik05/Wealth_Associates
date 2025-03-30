@@ -125,7 +125,6 @@ const ViewAllProperties = ({ navigation }) => {
     });
     if (closeModal) closeModal();
   };
-
   const getLastFourChars = (id) => {
     return id ? id.slice(-4) : "N/A";
   };
@@ -868,10 +867,12 @@ const ViewAllProperties = ({ navigation }) => {
             onRequestClose={() => setPostedProperty(null)}
           >
             <View style={styles.modalContainer}>
-              <PropertyCards
-                property={postedProperty}
-                closeModal={() => setPostedProperty(null)}
-              />
+              {postedProperty && ( // Only render PropertyCard if postedProperty exists
+                <PropertyCards
+                  property={postedProperty}
+                  closeModal={() => setPostedProperty(null)}
+                />
+              )}
             </View>
           </Modal>
         </>

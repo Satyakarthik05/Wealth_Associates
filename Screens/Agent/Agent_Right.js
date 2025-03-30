@@ -24,7 +24,7 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import PropertyCard from "./PropertyCard";
+import PropertyCards from "../Properties/PropertyCards";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../assets/man.png";
 import logo1 from "../../assets/Logo Final 1.png";
@@ -38,7 +38,6 @@ import logo8 from "../../assets/commercial.jpg";
 import logo9 from "../../assets/villa.jpg";
 import logo10 from "../../assets/house.png";
 import logo11 from "../../assets/logo.png";
-
 
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
@@ -909,10 +908,12 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         onRequestClose={() => setPostedProperty(null)}
       >
         <View style={styles.modalContainer}>
-          <PropertyCard
-            property={postedProperty}
-            closeModal={() => setPostedProperty(null)}
-          />
+          {postedProperty && ( // Only render PropertyCard if postedProperty exists
+            <PropertyCards
+              property={postedProperty}
+              closeModal={() => setPostedProperty(null)}
+            />
+          )}
         </View>
       </Modal>
     </View>

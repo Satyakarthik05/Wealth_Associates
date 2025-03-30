@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   TouchableWithoutFeedback,
   FlatList,
 } from "react-native";
@@ -49,7 +48,7 @@ const RequestedExpert = ({ closeModal }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
+      const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
         method: "GET",
         headers: {
           token: `${token}` || "",

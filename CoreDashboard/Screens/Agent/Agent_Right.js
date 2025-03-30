@@ -47,6 +47,7 @@ import AddCustomer from "../Customer/Regicus";
 import AddInvestor from "../Investors/AddInvestors";
 import AddNRI from "../NRI/AddNri";
 import AddSkilled from "../SkilledLabour/Rskill";
+import PropertyCards from "../Properties/PropertyCards";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -912,6 +913,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         </View>
       </Modal>
 
+      {/* Share Property Modal */}
       <Modal
         visible={!!postedProperty}
         transparent={true}
@@ -919,7 +921,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         onRequestClose={() => setPostedProperty(null)}
       >
         <View style={styles.modalContainer}>
-          <PropertyCard
+          <PropertyCards
             property={postedProperty}
             closeModal={() => setPostedProperty(null)}
           />

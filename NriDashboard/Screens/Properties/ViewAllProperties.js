@@ -857,19 +857,19 @@ const ViewAllProperties = ({ navigation }) => {
           </Modal>
 
           {/* Share Property Modal */}
-          <Modal
-            visible={!!postedProperty}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setPostedProperty(null)}
-          >
-            <View style={styles.modalContainer}>
-              <PropertyCards
-                property={postedProperty}
-                closeModal={() => setPostedProperty(null)}
-              />
-            </View>
-          </Modal>
+      <Modal
+        visible={!!postedProperty}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPostedProperty(null)}
+      >
+        <View style={styles.modalContainer}>
+          <PropertyCards
+            property={postedProperty}
+            closeModal={() => setPostedProperty(null)}
+          />
+        </View>
+      </Modal>
         </>
       )}
     </ScrollView>

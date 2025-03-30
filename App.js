@@ -123,6 +123,11 @@ export default function App() {
             component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
+          {/* <Stack.Screen
+            name="LoginAS"
+            component={login}
+            options={{ headerShown: false }}
+          /> */}
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
