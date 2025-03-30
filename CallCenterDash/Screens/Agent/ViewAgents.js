@@ -16,6 +16,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
@@ -40,18 +41,37 @@ export default function ViewAgents() {
   const [coreMembers, setCoreMembers] = useState([]);
   const [referrerNames, setReferrerNames] = useState({});
 
-  const fetchAllData = async () => {
+  const getAuthToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return token;
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      throw error;
+    }
+  };
+
+  const fetchAssignedAgents = async () => {
     try {
       setRefreshing(true);
       setLoading(true);
 
+      const token = await getAuthToken();
+
       const [agentsRes, coreMembersRes, districtsRes] = await Promise.all([
-        fetch(`${API_URL}/agent/allagents`),
+        fetch(`${API_URL}/callexe/myagents`, {
+          headers: {
+            token: `${token}` || "",
+          },
+        }),
         fetch(`${API_URL}/core/getallcoremembers`),
         fetch(`${API_URL}/alldiscons/alldiscons`),
       ]);
 
-      if (!agentsRes.ok) throw new Error("Failed to fetch agents");
+      if (!agentsRes.ok) throw new Error("Failed to fetch assigned agents");
       if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
       if (!districtsRes.ok) throw new Error("Failed to fetch districts");
 
@@ -64,7 +84,7 @@ export default function ViewAgents() {
           return 1;
         if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
           return -1;
-        return 0;
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
       setAgents(sortedAgents);
@@ -75,7 +95,7 @@ export default function ViewAgents() {
       loadReferrerNames(sortedAgents, coreMembersData.data || []);
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Error", "Failed to load data");
+      Alert.alert("Error", error.message || "Failed to load assigned agents");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -102,19 +122,16 @@ export default function ViewAgents() {
     if (!referredByCode) return "N/A";
 
     try {
-      // Check in agents first
       const agentReferrer = agents.find(
         (a) => a?.MyRefferalCode === referredByCode
       );
       if (agentReferrer) return agentReferrer?.FullName || "Agent";
 
-      // Then check in core members
       const coreReferrer = coreMembers.find(
         (m) => m?.MyRefferalCode === referredByCode
       );
       if (coreReferrer) return coreReferrer?.FullName || "Core Member";
 
-      // Special cases
       if (referredByCode === "WA0000000001") return "Wealth Associate";
 
       return "Referrer not found";
@@ -125,12 +142,11 @@ export default function ViewAgents() {
   };
 
   useEffect(() => {
-    fetchAllData();
-    const interval = setInterval(fetchAllData, 20000);
+    fetchAssignedAgents();
+    const interval = setInterval(fetchAssignedAgents, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Filter agents based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredAgents(agents);
@@ -150,7 +166,7 @@ export default function ViewAgents() {
   }, [searchQuery, agents]);
 
   const handleRefresh = async () => {
-    await fetchAllData();
+    await fetchAssignedAgents();
   };
 
   const handleMarkAsDone = async (agentId) => {
@@ -172,11 +188,19 @@ export default function ViewAgents() {
     if (!(await confirm())) return;
 
     try {
+      const token = await getAuthToken();
+
       const response = await fetch(`${API_URL}/agent/markasdone/${agentId}`, {
         method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) throw new Error("Failed to update status");
+
+      const result = await response.json();
 
       setAgents((prevAgents) => {
         const updated = prevAgents.map((agent) =>
@@ -189,7 +213,7 @@ export default function ViewAgents() {
             return 1;
           if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
             return -1;
-          return 0;
+          return new Date(b.createdAt) - new Date(a.createdAt);
         });
       });
 
@@ -204,14 +228,14 @@ export default function ViewAgents() {
             return 1;
           if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
             return -1;
-          return 0;
+          return new Date(b.createdAt) - new Date(a.createdAt);
         });
       });
 
       Alert.alert("Success", "Agent marked as done");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", "Failed to update agent status");
+      Alert.alert("Error", error.message || "Failed to update agent status");
     }
   };
 
@@ -244,11 +268,14 @@ export default function ViewAgents() {
 
   const handleSaveEditedAgent = async () => {
     try {
+      const token = await getAuthToken();
+
       const response = await fetch(
         `${API_URL}/agent/updateagent/${selectedAgent._id}`,
         {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(editedAgent),
@@ -258,6 +285,7 @@ export default function ViewAgents() {
       if (!response.ok) throw new Error("Failed to update agent");
 
       const updatedAgent = await response.json();
+
       setAgents((prevAgents) =>
         prevAgents.map((agent) =>
           agent._id === selectedAgent._id ? updatedAgent.data : agent
@@ -273,7 +301,7 @@ export default function ViewAgents() {
       Alert.alert("Success", "Agent updated successfully");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", "Failed to update agent");
+      Alert.alert("Error", error.message || "Failed to update agent");
     }
   };
 
@@ -303,9 +331,16 @@ export default function ViewAgents() {
       if (!confirmed) return;
 
       try {
+        const token = await getAuthToken();
+
         const response = await fetch(
           `${API_URL}/agent/deleteagent/${agentId}`,
-          { method: "DELETE" }
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (!response.ok) throw new Error("Failed to delete agent");
@@ -319,7 +354,7 @@ export default function ViewAgents() {
         Alert.alert("Success", "Agent deleted successfully");
       } catch (error) {
         console.error("Delete error:", error);
-        Alert.alert("Error", "Failed to delete agent");
+        Alert.alert("Error", error.message || "Failed to delete agent");
       }
     });
   };
@@ -338,7 +373,7 @@ export default function ViewAgents() {
           ) : undefined
         }
       >
-        <Text style={styles.heading}>My Agents</Text>
+        <Text style={styles.heading}>My Assigned Agents</Text>
 
         <View style={styles.searchContainer}>
           <TextInput
@@ -357,7 +392,9 @@ export default function ViewAgents() {
         ) : filteredAgents.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.noAgentsText}>
-              {searchQuery ? "No matching agents found" : "No agents found"}
+              {searchQuery
+                ? "No matching agents found"
+                : "No agents assigned to you"}
             </Text>
             <TouchableOpacity
               style={styles.refreshButton}

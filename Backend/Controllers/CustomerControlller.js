@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const Agent = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
+const CallExecutive = require("../Models/CallExecutiveModel");
 
 secret = "Wealth@123";
 
@@ -90,19 +91,29 @@ const CustomerSign = async (req, res) => {
       console.error("Failed to send SMS:", error.message);
       smsResponse = "SMS sending failed";
     }
+    const callExecutives = await CallExecutive.find({
+      assignedType: "Customers",
+    })
+      .sort({ lastAssignedAt: 1 })
+      .limit(1);
+
+    if (callExecutives.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No call executives available for agent assignment" });
+    }
+
+    const assignedExecutive = callExecutives[0];
+
+    assignedExecutive.assignedUsers.push({
+      userType: "Customers",
+      userId: newCustomer._id,
+    });
+    assignedExecutive.lastAssignedAt = new Date();
+    await assignedExecutive.save();
 
     await newCustomer.save();
 
-    // const agent = await Agent.findOne({ MyRefferalCode: ReferredBy });
-
-    // if (agent) {
-    //   if (!Array.isArray(agent.MyCustomers)) {
-    //     agent.MyCustomers = [];
-    //   }
-
-    //   agent.MyCustomers.push(newCustomer._id);
-    //   await agent.save();
-    // }
     try {
       const callCenterResponse = await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/9e7ab9c6-ae34-428a-9820-81a8009aa6c9/leads",

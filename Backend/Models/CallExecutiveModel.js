@@ -27,7 +27,7 @@ const callExecutiveSchema = new mongoose.Schema(
         userType: {
           type: String,
           required: true,
-          enum: ["Customer", "Agent_Wealth_Associate", "Propertys"],
+          enum: ["Customers", "Agent_Wealth_Associate", "Propertys"],
         },
         userId: {
           type: mongoose.Schema.Types.ObjectId,

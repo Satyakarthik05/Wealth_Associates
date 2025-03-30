@@ -2,7 +2,7 @@ const CallExecutive = require("../Models/CallExecutiveModel");
 const Agent = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
 secret = "Wealth@123";
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const addCallExecutive = async (req, res) => {
   try {
@@ -159,10 +159,10 @@ const myagents = async (req, res) => {
   try {
     // 1. Validate and convert AgentId
     if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: "Invalid Agent ID format",
-        receivedId: req.AgentId
+        receivedId: req.AgentId,
       });
     }
 
@@ -171,7 +171,7 @@ const myagents = async (req, res) => {
     // 2. Clean up invalid assignments first
     const cleanupResult = await CallExecutive.updateOne(
       { _id: executiveId },
-      { $pull: { assignedUsers: { userId: null } }}
+      { $pull: { assignedUsers: { userId: null } } }
     );
     console.log(`Cleaned ${cleanupResult.modifiedCount} invalid assignments`);
 
@@ -179,17 +179,19 @@ const myagents = async (req, res) => {
     const executive = await CallExecutive.aggregate([
       { $match: { _id: executiveId } },
       { $unwind: "$assignedUsers" },
-      { $match: { 
-        "assignedUsers.userType": "Agent_Wealth_Associate",
-        "assignedUsers.userId": { $exists: true, $ne: null }
-      }},
+      {
+        $match: {
+          "assignedUsers.userType": "Agent_Wealth_Associate",
+          "assignedUsers.userId": { $exists: true, $ne: null },
+        },
+      },
       {
         $lookup: {
           from: "agent_wealth_associates",
           localField: "assignedUsers.userId",
           foreignField: "_id",
-          as: "agentDetails"
-        }
+          as: "agentDetails",
+        },
       },
       { $unwind: "$agentDetails" },
       {
@@ -201,26 +203,26 @@ const myagents = async (req, res) => {
             $push: {
               agent: "$agentDetails",
               assignmentId: "$assignedUsers._id",
-              assignedAt: "$assignedUsers.assignedAt"
-            }
-          }
-        }
-      }
+              assignedAt: "$assignedUsers.assignedAt",
+            },
+          },
+        },
+      },
     ]);
 
     if (!executive || executive.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "No valid agent assignments found" 
+      return res.status(404).json({
+        success: false,
+        message: "No valid agent assignments found",
       });
     }
 
     // 4. Format the response
     const result = executive[0];
-    const assignedAgents = result.agents.map(item => ({
+    const assignedAgents = result.agents.map((item) => ({
       ...item.agent,
       assignmentId: item.assignmentId,
-      assignedAt: item.assignedAt
+      assignedAt: item.assignedAt,
     }));
 
     res.json({
@@ -228,17 +230,104 @@ const myagents = async (req, res) => {
       data: assignedAgents,
       executiveInfo: {
         name: result.name,
-        phone: result.phone
-      }
+        phone: result.phone,
+      },
     });
-
   } catch (error) {
     console.error("Error in myagents:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Server error",
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
+  }
+};
+const myCustomers = async (req, res) => {
+  try {
+    // 1. Validate and convert AgentId
+    if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Agent ID format",
+        receivedId: req.AgentId,
+      });
+    }
+
+    const executiveId = new mongoose.Types.ObjectId(req.AgentId);
+
+    // 2. Clean up invalid assignments first
+    const cleanupResult = await CallExecutive.updateOne(
+      { _id: executiveId },
+      { $pull: { assignedUsers: { userId: null } } }
+    );
+    console.log(`Cleaned ${cleanupResult.modifiedCount} invalid assignments`);
+
+    // 3. Get executive with valid agents
+    const executive = await CallExecutive.aggregate([
+      { $match: { _id: executiveId } },
+      { $unwind: "$assignedUsers" },
+      {
+        $match: {
+          "assignedUsers.userType": "Customers",
+          "assignedUsers.userId": { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "Customers",
+          localField: "assignedUsers.userId",
+          foreignField: "_id",
+          as: "agentDetails",
+        },
+      },
+      { $unwind: "$agentDetails" },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          phone: { $first: "$phone" },
+          agents: {
+            $push: {
+              agent: "$agentDetails",
+              assignmentId: "$assignedUsers._id",
+              assignedAt: "$assignedUsers.assignedAt",
+            },
+          },
+        },
+      },
+    ]);
+
+    if (!executive || executive.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid agent assignments found",
+      });
+    }
+
+    // 4. Format the response
+    const result = executive[0];
+    const assignedAgents = result.agents.map((item) => ({
+      ...item.agent,
+      assignmentId: item.assignmentId,
+      assignedAt: item.assignedAt,
+    }));
+
+    res.json({
+      success: true,
+      data: assignedAgents,
+      executiveInfo: {
+        name: result.name,
+        phone: result.phone,
+      },
+    });
+  } catch (error) {
+    console.error("Error in myagents:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -248,5 +337,6 @@ module.exports = {
   deleteCallExecutive,
   updateCallExecutive,
   CallExecutiveLogin,
-  myagents
+  myagents,
+  myCustomers,
 };

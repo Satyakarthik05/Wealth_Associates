@@ -16,6 +16,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
@@ -33,30 +34,49 @@ export default function ViewCustomers() {
     MyRefferalCode: "",
     District: "",
     Contituency: "",
-    CallExecutiveCall: "",
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [referrerNames, setReferrerNames] = useState({});
-  const [agents, setAgents] = useState([]);
   const [coreMembers, setCoreMembers] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [referrerNames, setReferrerNames] = useState({});
 
-  const fetchAllData = async () => {
+  const getAuthToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return token;
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      throw error;
+    }
+  };
+
+  const fetchAssignedCustomers = async () => {
     try {
       setRefreshing(true);
       setLoading(true);
 
+      const token = await getAuthToken();
+
       const [customersRes, agentsRes, coreMembersRes, districtsRes] =
         await Promise.all([
-          fetch(`${API_URL}/customer/allcustomers`),
+          fetch(`${API_URL}/callexe/mycustomers`, {
+            headers: {
+              token: `${token}` || "",
+            },
+          }),
           fetch(`${API_URL}/agent/allagents`),
           fetch(`${API_URL}/core/getallcoremembers`),
           fetch(`${API_URL}/alldiscons/alldiscons`),
         ]);
 
-      if (!customersRes.ok) throw new Error("Failed to fetch customers");
+      if (!customersRes.ok)
+        throw new Error("Failed to fetch assigned customers");
       if (!agentsRes.ok) throw new Error("Failed to fetch agents");
       if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
       if (!districtsRes.ok) throw new Error("Failed to fetch districts");
@@ -71,30 +91,37 @@ export default function ViewCustomers() {
           return 1;
         if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
           return -1;
-        return 0;
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
       setCustomers(sortedCustomers);
       setFilteredCustomers(sortedCustomers);
-      setAgents(agentsData.data);
-      setCoreMembers(coreMembersData.data);
-      setDistricts(districtsData);
+      setAgents(agentsData.data || []);
+      setCoreMembers(coreMembersData.data || []);
+      setDistricts(districtsData || []);
 
-      loadReferrerNames(sortedCustomers, agentsData.data, coreMembersData.data);
+      loadReferrerNames(
+        sortedCustomers,
+        agentsData.data || [],
+        coreMembersData.data || []
+      );
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert("Error", "Failed to load data");
+      Alert.alert(
+        "Error",
+        error.message || "Failed to load assigned customers"
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const loadReferrerNames = (customers, agents, coreMembers) => {
+  const loadReferrerNames = (customers = [], agents = [], coreMembers = []) => {
     const names = {};
 
     customers.forEach((customer) => {
-      if (customer.ReferredBy && !names[customer.ReferredBy]) {
+      if (customer?.ReferredBy && !names[customer.ReferredBy]) {
         names[customer.ReferredBy] = getReferrerName(
           customer.ReferredBy,
           customers,
@@ -115,31 +142,22 @@ export default function ViewCustomers() {
   ) => {
     if (!referredByCode) return "N/A";
 
-    // Ensure all parameters are arrays
-    const safeCustomers = Array.isArray(customers) ? customers : [];
-    const safeAgents = Array.isArray(agents) ? agents : [];
-    const safeCoreMembers = Array.isArray(coreMembers) ? coreMembers : [];
-
     try {
-      // Check in customers
-      const customerReferrer = safeCustomers.find(
+      const customerReferrer = customers.find(
         (c) => c?.MyRefferalCode === referredByCode
       );
       if (customerReferrer) return customerReferrer?.FullName || "Customer";
 
-      // Check in agents
-      const agentReferrer = safeAgents.find(
+      const agentReferrer = agents.find(
         (a) => a?.MyRefferalCode === referredByCode
       );
       if (agentReferrer) return agentReferrer?.FullName || "Agent";
 
-      // Check in core members
-      const coreReferrer = safeCoreMembers.find(
+      const coreReferrer = coreMembers.find(
         (m) => m?.MyRefferalCode === referredByCode
       );
       if (coreReferrer) return coreReferrer?.FullName || "Core Member";
 
-      // Special cases
       if (referredByCode === "WA0000000001") return "Wealth Associate";
 
       return "Referrer not found";
@@ -150,14 +168,10 @@ export default function ViewCustomers() {
   };
 
   useEffect(() => {
-    fetchAllData();
-    const interval = setInterval(fetchAllData, 10000);
+    fetchAssignedCustomers();
+    const interval = setInterval(fetchAssignedCustomers, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  const handleRefresh = async () => {
-    await fetchAllData();
-  };
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -180,6 +194,10 @@ export default function ViewCustomers() {
     }
   }, [searchQuery, customers]);
 
+  const handleRefresh = async () => {
+    await fetchAssignedCustomers();
+  };
+
   const handleMarkAsDone = async (customerId) => {
     const confirm = () => {
       if (Platform.OS === "web") {
@@ -199,18 +217,22 @@ export default function ViewCustomers() {
     if (!(await confirm())) return;
 
     try {
+      const token = await getAuthToken();
+
       const response = await fetch(
         `${API_URL}/customer/markasdone/${customerId}`,
         {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ CallExecutiveCall: "Done" }),
         }
       );
 
       if (!response.ok) throw new Error("Failed to update status");
+
+      const result = await response.json();
 
       setCustomers((prevCustomers) => {
         const updated = prevCustomers.map((customer) =>
@@ -223,84 +245,106 @@ export default function ViewCustomers() {
             return 1;
           if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
             return -1;
-          return 0;
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+      });
+
+      setFilteredCustomers((prevCustomers) => {
+        const updated = prevCustomers.map((customer) =>
+          customer._id === customerId
+            ? { ...customer, CallExecutiveCall: "Done" }
+            : customer
+        );
+        return updated.sort((a, b) => {
+          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+            return 1;
+          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+            return -1;
+          return new Date(b.createdAt) - new Date(a.createdAt);
         });
       });
 
       Alert.alert("Success", "Customer marked as done");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", "Failed to update customer status");
-      fetchAllData();
+      Alert.alert("Error", error.message || "Failed to update customer status");
     }
   };
 
-  const openEditModal = (customer) => {
+  const handleEditCustomer = (customer) => {
     setSelectedCustomer(customer);
     setEditedCustomer({
       FullName: customer.FullName,
+      District: customer.District,
+      Contituency: customer.Contituency,
       MobileNumber: customer.MobileNumber,
       Occupation: customer.Occupation,
       MyRefferalCode: customer.MyRefferalCode,
-      District: customer.District || "",
-      Contituency: customer.Contituency || "",
-      CallExecutiveCall: customer.CallExecutiveCall || "",
     });
 
     if (customer.District) {
-      const selectedDistrict = districts.find(
+      const district = districts.find(
         (d) => d.parliament === customer.District
       );
-      setConstituencies(selectedDistrict?.assemblies || []);
+      setConstituencies(district?.assemblies || []);
     }
     setEditModalVisible(true);
   };
 
-  const handleEditCustomer = async () => {
+  const handleDistrictChange = (district) => {
+    setEditedCustomer({
+      ...editedCustomer,
+      District: district,
+      Contituency: "",
+    });
+    const districtData = districts.find((d) => d.parliament === district);
+    setConstituencies(districtData?.assemblies || []);
+  };
+
+  const handleSaveEditedCustomer = async () => {
     try {
+      const token = await getAuthToken();
+
       const response = await fetch(
         `${API_URL}/customer/updatecustomer/${selectedCustomer._id}`,
         {
           method: "PUT",
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(editedCustomer),
         }
       );
+
       if (!response.ok) throw new Error("Failed to update customer");
 
       const updatedCustomer = await response.json();
+
       setCustomers((prevCustomers) =>
-        prevCustomers
-          .map((customer) =>
-            customer._id === selectedCustomer._id
-              ? updatedCustomer.data
-              : customer
-          )
-          .sort((a, b) => {
-            if (
-              a.CallExecutiveCall === "Done" &&
-              b.CallExecutiveCall !== "Done"
-            )
-              return 1;
-            if (
-              a.CallExecutiveCall !== "Done" &&
-              b.CallExecutiveCall === "Done"
-            )
-              return -1;
-            return 0;
-          })
+        prevCustomers.map((customer) =>
+          customer._id === selectedCustomer._id
+            ? updatedCustomer.data
+            : customer
+        )
       );
+      setFilteredCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
+          customer._id === selectedCustomer._id
+            ? updatedCustomer.data
+            : customer
+        )
+      );
+
       setEditModalVisible(false);
       Alert.alert("Success", "Customer updated successfully");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", "Failed to update customer");
+      Alert.alert("Error", error.message || "Failed to update customer");
     }
   };
 
-  const deleteCustomer = (customerId) => {
+  const handleDeleteCustomer = (customerId) => {
     const confirmDelete = () => {
       if (Platform.OS === "web") {
         return window.confirm("Are you sure you want to delete this customer?");
@@ -315,11 +359,7 @@ export default function ViewCustomers() {
                 onPress: () => resolve(false),
                 style: "cancel",
               },
-              {
-                text: "Delete",
-                onPress: () => resolve(true),
-                style: "destructive",
-              },
+              { text: "Delete", onPress: () => resolve(true) },
             ]
           );
         });
@@ -330,10 +370,15 @@ export default function ViewCustomers() {
       if (!confirmed) return;
 
       try {
+        const token = await getAuthToken();
+
         const response = await fetch(
           `${API_URL}/customer/deletecustomer/${customerId}`,
           {
             method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -342,22 +387,15 @@ export default function ViewCustomers() {
         setCustomers((prevCustomers) =>
           prevCustomers.filter((customer) => customer._id !== customerId)
         );
+        setFilteredCustomers((prevCustomers) =>
+          prevCustomers.filter((customer) => customer._id !== customerId)
+        );
         Alert.alert("Success", "Customer deleted successfully");
       } catch (error) {
         console.error("Delete error:", error);
-        Alert.alert("Error", "Failed to delete customer");
+        Alert.alert("Error", error.message || "Failed to delete customer");
       }
     });
-  };
-
-  const handleDistrictChange = (district) => {
-    setEditedCustomer({
-      ...editedCustomer,
-      District: district,
-      Contituency: "",
-    });
-    const districtData = districts.find((d) => d.parliament === district);
-    setConstituencies(districtData?.assemblies || []);
   };
 
   return (
@@ -374,7 +412,7 @@ export default function ViewCustomers() {
           ) : undefined
         }
       >
-        <Text style={styles.heading}>My Customers</Text>
+        <Text style={styles.heading}>My Assigned Customers</Text>
 
         <View style={styles.searchContainer}>
           <TextInput
@@ -395,7 +433,7 @@ export default function ViewCustomers() {
             <Text style={styles.noCustomersText}>
               {searchQuery
                 ? "No matching customers found"
-                : "No customers found"}
+                : "No customers assigned to you"}
             </Text>
             <TouchableOpacity
               style={styles.refreshButton}
@@ -427,6 +465,18 @@ export default function ViewCustomers() {
                       <Text style={styles.value}>: {customer.FullName}</Text>
                     </View>
                   )}
+                  {customer.District && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>District</Text>
+                      <Text style={styles.value}>: {customer.District}</Text>
+                    </View>
+                  )}
+                  {customer.Contituency && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Constituency</Text>
+                      <Text style={styles.value}>: {customer.Contituency}</Text>
+                    </View>
+                  )}
                   {customer.MobileNumber && (
                     <View style={styles.row}>
                       <Text style={styles.label}>Mobile</Text>
@@ -447,18 +497,6 @@ export default function ViewCustomers() {
                       <Text style={styles.value}>
                         : {customer.MyRefferalCode}
                       </Text>
-                    </View>
-                  )}
-                  {customer.District && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>District</Text>
-                      <Text style={styles.value}>: {customer.District}</Text>
-                    </View>
-                  )}
-                  {customer.Contituency && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Constituency</Text>
-                      <Text style={styles.value}>: {customer.Contituency}</Text>
                     </View>
                   )}
                   {customer.ReferredBy && (
@@ -497,13 +535,13 @@ export default function ViewCustomers() {
                   )}
                   <TouchableOpacity
                     style={styles.editButton}
-                    onPress={() => openEditModal(customer)}
+                    onPress={() => handleEditCustomer(customer)}
                   >
                     <Text style={styles.buttonText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.deleteButton}
-                    onPress={() => deleteCustomer(customer._id)}
+                    onPress={() => handleDeleteCustomer(customer._id)}
                   >
                     <Text style={styles.buttonText}>Delete</Text>
                   </TouchableOpacity>
@@ -531,37 +569,6 @@ export default function ViewCustomers() {
               value={editedCustomer.FullName}
               onChangeText={(text) =>
                 setEditedCustomer({ ...editedCustomer, FullName: text })
-              }
-            />
-
-            <Text style={styles.inputLabel}>Mobile Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile Number"
-              value={editedCustomer.MobileNumber}
-              onChangeText={(text) =>
-                setEditedCustomer({ ...editedCustomer, MobileNumber: text })
-              }
-              keyboardType="phone-pad"
-            />
-
-            <Text style={styles.inputLabel}>Occupation</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Occupation"
-              value={editedCustomer.Occupation}
-              onChangeText={(text) =>
-                setEditedCustomer({ ...editedCustomer, Occupation: text })
-              }
-            />
-
-            <Text style={styles.inputLabel}>Referral Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Referral Code"
-              value={editedCustomer.MyRefferalCode}
-              onChangeText={(text) =>
-                setEditedCustomer({ ...editedCustomer, MyRefferalCode: text })
               }
             />
 
@@ -609,6 +616,37 @@ export default function ViewCustomers() {
               </Picker>
             </View>
 
+            <Text style={styles.inputLabel}>Mobile Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Mobile Number"
+              value={editedCustomer.MobileNumber}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, MobileNumber: text })
+              }
+              keyboardType="phone-pad"
+            />
+
+            <Text style={styles.inputLabel}>Occupation</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Occupation"
+              value={editedCustomer.Occupation}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, Occupation: text })
+              }
+            />
+
+            <Text style={styles.inputLabel}>Referral Code</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Referral Code"
+              value={editedCustomer.MyRefferalCode}
+              onChangeText={(text) =>
+                setEditedCustomer({ ...editedCustomer, MyRefferalCode: text })
+              }
+            />
+
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
@@ -618,7 +656,7 @@ export default function ViewCustomers() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
-                onPress={handleEditCustomer}
+                onPress={handleSaveEditedCustomer}
               >
                 <Text style={styles.modalButtonText}>Save</Text>
               </TouchableOpacity>
@@ -638,7 +676,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 20,
-    marginBottom: 40,
   },
   heading: {
     fontSize: 20,

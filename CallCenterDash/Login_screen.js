@@ -59,7 +59,7 @@ export default function Login_screen() {
 
       if (response.status === 200) {
         const token = data.token;
-        await AsyncStorage.setItem("authToken", "CallCenter");
+        await AsyncStorage.setItem("authToken", token);
         await AsyncStorage.setItem("userType", "Call center");
         console.log("Token stored in AsyncStorage:", token);
 

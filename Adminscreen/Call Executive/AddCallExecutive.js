@@ -98,7 +98,10 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
             style={styles.input}
             onValueChange={(itemValue) => setAssignedType(itemValue)}
           >
-            <Picker.Item label="Agents" value="Agents" />
+            <Picker.Item
+              label="Agent_Wealth_Associate"
+              value="Agent_Wealth_Associate"
+            />
             <Picker.Item label="Customers" value="Customers" />
             <Picker.Item label="Properties" value="Properties" />
           </Picker>
