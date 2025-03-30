@@ -245,89 +245,103 @@ const myagents = async (req, res) => {
 };
 const myCustomers = async (req, res) => {
   try {
-    // 1. Validate and convert AgentId
-    if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Agent ID format",
-        receivedId: req.AgentId,
-      });
-    }
+    // Get the raw data directly from MongoDB
+    const db = mongoose.connection.db;
+    const executive = await db
+      .collection("callexecutives")
+      .findOne(
+        { _id: new mongoose.Types.ObjectId(req.AgentId) },
+        { projection: { assignedUsers: 1, name: 1, phone: 1 } }
+      );
 
-    const executiveId = new mongoose.Types.ObjectId(req.AgentId);
-
-    // 2. Clean up invalid assignments first
-    const cleanupResult = await CallExecutive.updateOne(
-      { _id: executiveId },
-      { $pull: { assignedUsers: { userId: null } } }
-    );
-    console.log(`Cleaned ${cleanupResult.modifiedCount} invalid assignments`);
-
-    // 3. Get executive with valid agents
-    const executive = await CallExecutive.aggregate([
-      { $match: { _id: executiveId } },
-      { $unwind: "$assignedUsers" },
-      {
-        $match: {
-          "assignedUsers.userType": "Customers",
-          "assignedUsers.userId": { $exists: true, $ne: null },
-        },
-      },
-      {
-        $lookup: {
-          from: "Customers",
-          localField: "assignedUsers.userId",
-          foreignField: "_id",
-          as: "agentDetails",
-        },
-      },
-      { $unwind: "$agentDetails" },
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          phone: { $first: "$phone" },
-          agents: {
-            $push: {
-              agent: "$agentDetails",
-              assignmentId: "$assignedUsers._id",
-              assignedAt: "$assignedUsers.assignedAt",
-            },
-          },
-        },
-      },
-    ]);
-
-    if (!executive || executive.length === 0) {
+    // Check if the executive exists
+    if (!executive) {
       return res.status(404).json({
         success: false,
-        message: "No valid agent assignments found",
+        message: "Executive not found",
       });
     }
 
-    // 4. Format the response
-    const result = executive[0];
-    const assignedAgents = result.agents.map((item) => ({
-      ...item.agent,
-      assignmentId: item.assignmentId,
-      assignedAt: item.assignedAt,
-    }));
+    console.log("Direct DB data:", JSON.stringify(executive, null, 2));
 
+    // Filter valid assignments for customers
+    const validAssignments =
+      executive.assignedUsers?.filter(
+        (a) =>
+          a.userType === "Customers" &&
+          a.userId &&
+          mongoose.Types.ObjectId.isValid(a.userId)
+      ) || [];
+
+    console.log("Valid assignments:", validAssignments);
+
+    // Return if no valid assignments are found
+    if (validAssignments.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        message: "No valid customer assignments found",
+        debug: {
+          rawAssignments: executive.assignedUsers || [],
+          executiveId: req.AgentId,
+        },
+      });
+    }
+
+    // Get customer IDs from valid assignments
+    const customerIds = validAssignments.map(
+      (a) => new mongoose.Types.ObjectId(a.userId)
+    );
+
+    // Fetch customer data from the database
+    const customers = await db
+      .collection("customers")
+      .find(
+        { _id: { $in: customerIds } },
+        {
+          projection: {
+            FullName: 1,
+            MobileNumber: 1,
+            District: 1,
+            Contituency: 1,
+            Occupation: 1,
+            MyRefferalCode: 1,
+            CallExecutiveCall: 1,
+          },
+        }
+      )
+      .toArray();
+
+    // Prepare the final response data
+    const responseData = validAssignments
+      .map((assignment) => {
+        const customer = customers.find((c) => c._id.equals(assignment.userId));
+        if (customer) {
+          return {
+            ...customer,
+            assignmentId: assignment._id,
+            assignedAt: assignment.assignedAt,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    // Send the final response
     res.json({
       success: true,
-      data: assignedAgents,
+      data: responseData,
       executiveInfo: {
-        name: result.name,
-        phone: result.phone,
+        name: executive.name,
+        phone: executive.phone,
       },
     });
   } catch (error) {
-    console.error("Error in myagents:", error);
+    console.error("Final error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to retrieve customers",
       error: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };

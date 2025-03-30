@@ -103,7 +103,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
               value="Agent_Wealth_Associate"
             />
             <Picker.Item label="Customers" value="Customers" />
-            <Picker.Item label="Properties" value="Properties" />
+            <Picker.Item label="Property" value="Property" />
           </Picker>
         </View>
 

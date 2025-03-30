@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import {
   View,
@@ -10,15 +10,14 @@ import {
   Platform,
   StatusBar,
   ScrollView,
-  Dimensions,
 } from "react-native";
-// import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
 import { Ionicons } from "@expo/vector-icons";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
 
-//importing components
+// Importing components
 import Dashboard from "./Screens/Callcentre";
 import ViewAgents from "./Screens/Agent/ViewAgents";
 import ViewCustomers from "./Screens/Customer/View_customers";
@@ -30,41 +29,6 @@ import ExpertPanelReq from "./ExpertPanel/ExpertReq";
 import ViewAllInvesters from "./Screens/View/ViewAllInvestors";
 import AllSkilledLabours from "./Screens/View/AllSkilledLabours";
 import ViewNri from "./Screens/View/ViewNri";
-
-const menuItems = [
-  {
-    title: "Agents",
-    icon: "person-outline",
-    subItems: [
-      "View Agents",
-      // "View Agents Contacts"
-    ],
-  },
-  {
-    title: "Customers",
-    icon: "people-outline",
-    subItems: ["View Customers"],
-  },
-  {
-    title: "Properties",
-    icon: "home-outline",
-    subItems: [
-      "View Posted Properties",
-      "View Requested Properties",
-      "ViewApprovedProperties",
-    ],
-  },
-  {
-    title: "Expert Panel",
-    icon: "cog-outline",
-    subItems: ["Expert Panel Requests"],
-  },
-  {
-    title: "View",
-    icon: "cog-outline",
-    subItems: ["View Skilled Resource", "View NRI Members", "View Investors"],
-  },
-];
 
 const CallCenterDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
@@ -83,6 +47,8 @@ const CallCenterDashboard = () => {
   const [isViewInvestVisible, setIsViewInvestVisible] = useState(false);
   const [isViewSkillVisible, setIsViewSkillVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
+  const [details, setDetails] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -101,20 +67,14 @@ const CallCenterDashboard = () => {
     }
   };
 
-  const handleExpertDetails = (expertType) => {
-    setIsExpertDetails(true);
-    setSelectedSubItem("expert details");
-    setExpertType(expertType); // Store the expertType
-  };
-
   const handleSubItemClick = (subItem) => {
+    // Reset all views
     setIsViewCustVisible(false);
     setIsViewAgentVisible(false);
-    setIsViewCustVisible(false);
     setIsViewPostPropVisible(false);
     setIsViewRequestedPropVisible(false);
     setIsViewAgentContVisible(false);
-    setIsViewCustVisible(false);
+    setIsCustCallVisible(false);
     setViewApprovedProperties(false);
     setExpertPanelReq(false);
     setIsViewInvestVisible(false);
@@ -124,33 +84,48 @@ const CallCenterDashboard = () => {
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
     }
-    if (subItem === "View Customers") {
-      setIsViewCustVisible(true);
-    } else if (subItem === "View Agents") {
-      setIsViewAgentVisible(true);
-    } else if (subItem === "View Posted Properties") {
-      setIsViewPostPropVisible(true);
-    } else if (subItem === "View Requested Properties") {
-      setIsViewRequestedPropVisible(true);
-    } else if (subItem === "View Agents Contacts") {
-      setIsViewAgentContVisible(true);
-    } else if (subItem === "View Customer Contacts") {
-      setIsCustCallVisible(true);
-    } else if (subItem === "ViewApprovedProperties") {
-      setViewApprovedProperties(true);
-    } else if (subItem === "Expert Panel Requests") {
-      setExpertPanelReq(true);
-    } else if (subItem === "View Investors") {
-      setIsViewInvestVisible(true);
-    } else if (subItem === "View Skilled Resource") {
-      setIsViewSkillVisible(true);
-    } else if (subItem === "View NRI Members") {
-      setIsViewNriVisible(true);
-    }
-  };
 
-  const handleSearch = (text) => {
-    setSearchQuery(text);
+    // Activate the selected view
+    switch (subItem) {
+      case "Dashboard":
+        // Already showing dashboard by default
+        break;
+      case "View Customers":
+        setIsViewCustVisible(true);
+        break;
+      case "View Agents":
+        setIsViewAgentVisible(true);
+        break;
+      case "View Posted Properties":
+        setIsViewPostPropVisible(true);
+        break;
+      case "View Requested Properties":
+        setIsViewRequestedPropVisible(true);
+        break;
+      case "View Agents Contacts":
+        setIsViewAgentContVisible(true);
+        break;
+      case "View Customer Contacts":
+        setIsCustCallVisible(true);
+        break;
+      case "ViewApprovedProperties":
+        setViewApprovedProperties(true);
+        break;
+      case "Expert Panel Requests":
+        setExpertPanelReq(true);
+        break;
+      case "View Investors":
+        setIsViewInvestVisible(true);
+        break;
+      case "View Skilled Resource":
+        setIsViewSkillVisible(true);
+        break;
+      case "View NRI Members":
+        setIsViewNriVisible(true);
+        break;
+      default:
+        break;
+    }
   };
 
   const closeModal = () => {
@@ -176,7 +151,6 @@ const CallCenterDashboard = () => {
     if (isViewInvestVisible) return <ViewAllInvesters />;
     if (isViewSkillVisible) return <AllSkilledLabours />;
     if (isViewNriVisible) return <ViewNri />;
-
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     return <Dashboard />;
   };
@@ -195,33 +169,106 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
   };
 
-  //   const getDetails = async () => {
-  //     try {
-  //       // Await the token retrieval from AsyncStorage
-  //       const token = await AsyncStorage.getItem("authToken");
+  const getDetails = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const response = await fetch(`${API_URL}/callexe/getcallexe`, {
+        method: "GET",
+        headers: {
+          token: ` ${token}` || "",
+        },
+      });
+      const userDetails = await response.json();
+      setDetails(userDetails);
 
-  //       // Make the fetch request
-  //       const response = await fetch(${API_URL}/agent/AgentDetails, {
-  //         method: "GET",
-  //         headers: {
-  //           token: ${token} || "", // Fallback to an empty string if token is null
-  //         },
-  //       });
+      // Base menu items that everyone can see
+      const baseMenuItems = [
+        {
+          title: "View Approved Properties",
+          icon: "home-outline",
+          subItems: ["ViewApprovedProperties"],
+        },
+      ];
 
-  //       // Parse the response
-  //       const newDetails = await response.json();
+      // Add role-specific menu items
+      if (userDetails.assignedType === "Customer") {
+        baseMenuItems.push({
+          title: "Customers",
+          icon: "people-outline",
+          subItems: ["View Customers"],
+        });
+      } else if (userDetails.assignedType === "Agent") {
+        baseMenuItems.push({
+          title: "Agents",
+          icon: "person-outline",
+          subItems: ["View Agents"],
+        });
+      } else if (userDetails.assignedType === "Property") {
+        baseMenuItems.push({
+          title: "Properties",
+          icon: "home-outline",
+          subItems: [
+            "View Posted Properties",
+            "View Requested Properties",
+            "ViewApprovedProperties",
+          ],
+        });
+      } else if (userDetails.assignedType === "ExpertPanel") {
+        baseMenuItems.push({
+          title: "Expert Panel",
+          icon: "cog-outline",
+          subItems: ["Expert Panel Requests"],
+        });
+      } else {
+        // Admin or full access
+        baseMenuItems.push(
+          {
+            title: "Agents",
+            icon: "person-outline",
+            subItems: ["View Agents"],
+          },
+          {
+            title: "Customers",
+            icon: "people-outline",
+            subItems: ["View Customers"],
+          },
+          {
+            title: "Properties",
+            icon: "home-outline",
+            subItems: [
+              "View Posted Properties",
+              "View Requested Properties",
+              "ViewApprovedProperties",
+            ],
+          },
+          {
+            title: "Expert Panel",
+            icon: "cog-outline",
+            subItems: ["Expert Panel Requests"],
+          }
+        );
+      }
 
-  //       // Update state with the details
-  //       setDetails(newDetails);
-  //       console.log(Details);
-  //     } catch (error) {
-  //       console.error("Error fetching agent details:", error);
-  //     }
-  //   };
+      // Add View section that everyone can see
+      baseMenuItems.push({
+        title: "View",
+        icon: "eye-outline",
+        subItems: [
+          "View Skilled Resource",
+          "View NRI Members",
+          "View Investors",
+        ],
+      });
 
-  //   useEffect(() => {
-  //     getDetails();
-  //   }, []);
+      setMenuItems(baseMenuItems);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDetails();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -248,6 +295,9 @@ const CallCenterDashboard = () => {
             <Ionicons name="moon-outline" size={24} color="#000" />
             <Ionicons name="notifications-outline" size={24} color="#000" />
             <Ionicons name="person-circle-outline" size={30} color="#000" />
+            {details && (
+              <Text style={styles.userName}>{details.name || "User"}</Text>
+            )}
           </View>
         </View>
       </View>
@@ -268,7 +318,7 @@ const CallCenterDashboard = () => {
             <FlatList
               data={menuItems}
               keyExtractor={(item) => item.title}
-              scrollEnabled={false} // Disable scrolling for FlatList
+              scrollEnabled={false}
               renderItem={({ item }) => (
                 <View>
                   <TouchableOpacity
@@ -279,17 +329,18 @@ const CallCenterDashboard = () => {
                     {isSidebarExpanded && (
                       <Text style={styles.menuText}>{item.title}</Text>
                     )}
-                    {isSidebarExpanded && (
-                      <Ionicons
-                        name={
-                          expandedItems[item.title]
-                            ? "chevron-up-outline"
-                            : "chevron-down-outline"
-                        }
-                        size={16}
-                        color="#555"
-                      />
-                    )}
+                    {isSidebarExpanded &&
+                      item.subItems.length > 1 && ( // Only show chevron if there are subitems
+                        <Ionicons
+                          name={
+                            expandedItems[item.title]
+                              ? "chevron-up-outline"
+                              : "chevron-down-outline"
+                          }
+                          size={16}
+                          color="#555"
+                        />
+                      )}
                   </TouchableOpacity>
                   {isSidebarExpanded &&
                     expandedItems[item.title] &&
@@ -297,6 +348,7 @@ const CallCenterDashboard = () => {
                     item.subItems.map((sub, index) => (
                       <TouchableOpacity
                         key={index}
+                        style={styles.subMenuItem}
                         onPress={() => handleSubItemClick(sub)}
                       >
                         <Text style={styles.subMenuText}>{sub}</Text>
@@ -305,7 +357,9 @@ const CallCenterDashboard = () => {
                 </View>
               )}
             />
-            <Text style={styles.lastUpdated}>Last Updated: 30.01.2025</Text>
+            <Text style={styles.lastUpdated}>
+              Last Updated: {new Date().toLocaleDateString()}
+            </Text>
           </ScrollView>
         </View>
 
@@ -314,19 +368,28 @@ const CallCenterDashboard = () => {
           <View style={styles.container}>
             <ScrollView>
               <View style={styles.userContent}>
-                {/* <Text style={styles.usersContentText}>
-                  Welcome Back:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {" "}
-                    {Details.FullName ? Details.FullName : "yourname"}
-                  </Text>
-                </Text>
-                <Text style={styles.usersContentText}>
-                  YourReferralcode:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
-                  </Text>
-                </Text> */}
+                {details && (
+                  <>
+                    <Text style={styles.usersContentText}>
+                      Welcome Back:{" "}
+                      <Text style={{ color: "#E82E5F" }}>
+                        {details.name || "User"}
+                      </Text>
+                    </Text>
+                    <Text style={styles.usersContentText}>
+                      Phone number:{" "}
+                      <Text style={{ color: "#E82E5F" }}>
+                        {details.phone || "N/A"}
+                      </Text>
+                    </Text>
+                    <Text style={styles.usersContentText}>
+                      Role:{" "}
+                      <Text style={{ color: "#E82E5F" }}>
+                        {details.assignedType || "N/A"}
+                      </Text>
+                    </Text>
+                  </>
+                )}
                 <ScrollView style={{ height: "auto" }}>
                   {renderContent()}
                 </ScrollView>
@@ -346,13 +409,9 @@ const CallCenterDashboard = () => {
           />
         </TouchableOpacity>
       )}
-      {/* <CustomModal isVisible={isAddCustVisible} closeModal={closeModal}>
-        <RegisterExecute closeModal={closeModal} />
-      </CustomModal> */}
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -384,7 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: Platform.OS === "web" ? 0 : "10%",
-    gap: Platform.OS === "web" ? "10px" : 0,
+    gap: Platform.OS === "web" ? 10 : 0,
   },
   icon: {
     width: 20,
@@ -393,6 +452,11 @@ const styles = StyleSheet.create({
   },
   language: {
     marginRight: 10,
+    color: "#555",
+  },
+  userName: {
+    marginLeft: 10,
+    fontWeight: "bold",
     color: "#555",
   },
   mainContent: {
@@ -428,6 +492,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
   },
+  subMenuItem: {
+    paddingVertical: 8,
+  },
   subMenuText: {
     fontSize: 14,
     color: "#FF4081",
@@ -459,45 +526,17 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    // backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: Platform.OS === "web" ? "65%" : "100%",
-    // backgroundColor: "#fff",
-    backgroundColor: "transparent",
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: Platform.OS === "web" ? "80%" : "90%",
-    height: 900,
-  },
-  button: {
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: "#ccc",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
   userContent: {
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: Platform === "web" ? "row" : "column",
     height: "auto",
+    padding: 15,
   },
   usersContentText: {
     fontSize: 16,
     fontWeight: "bold",
-    // color: "#E82E5F",
+    marginBottom: 5,
   },
 });
 

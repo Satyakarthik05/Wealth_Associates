@@ -12,8 +12,9 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../data/ApiUrl";
 
@@ -34,37 +35,99 @@ export default function ViewAgents() {
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [coreMembers, setCoreMembers] = useState([]);
+  const [referrerNames, setReferrerNames] = useState({});
 
-  // Fetch agents from the API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch agents
-        const agentsResponse = await fetch(`${API_URL}/agent/allagents`);
-        if (!agentsResponse.ok) {
-          throw new Error("Failed to fetch agents");
-        }
-        const agentsData = await agentsResponse.json();
-        setAgents(agentsData.data);
-        setFilteredAgents(agentsData.data);
+  const fetchAllData = async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
 
-        // Fetch districts and constituencies
-        const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
-        if (!disConsResponse.ok) {
-          throw new Error("Failed to fetch districts and constituencies");
-        }
-        const disConsData = await disConsResponse.json();
-        setDistricts(disConsData);
+      const [agentsRes, coreMembersRes, districtsRes] = await Promise.all([
+        fetch(`${API_URL}/agent/allagents`),
+        fetch(`${API_URL}/core/getallcoremembers`),
+        fetch(`${API_URL}/alldiscons/alldiscons`),
+      ]);
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
+      if (!agentsRes.ok) throw new Error("Failed to fetch agents");
+      if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
+      if (!districtsRes.ok) throw new Error("Failed to fetch districts");
+
+      const agentsData = await agentsRes.json();
+      const coreMembersData = await coreMembersRes.json();
+      const districtsData = await districtsRes.json();
+
+      const sortedAgents = agentsData.data.sort((a, b) => {
+        if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+          return 1;
+        if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+          return -1;
+        return 0;
+      });
+
+      setAgents(sortedAgents);
+      setFilteredAgents(sortedAgents);
+      setCoreMembers(coreMembersData.data || []);
+      setDistricts(districtsData || []);
+
+      loadReferrerNames(sortedAgents, coreMembersData.data || []);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Alert.alert("Error", "Failed to load data");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const loadReferrerNames = (agents = [], coreMembers = []) => {
+    const names = {};
+
+    agents.forEach((agent) => {
+      if (agent?.ReferredBy && !names[agent.ReferredBy]) {
+        names[agent.ReferredBy] = getReferrerName(
+          agent.ReferredBy,
+          agents,
+          coreMembers
+        );
       }
-    };
+    });
 
-    fetchData();
+    setReferrerNames(names);
+  };
+
+  const getReferrerName = (referredByCode, agents = [], coreMembers = []) => {
+    if (!referredByCode) return "N/A";
+
+    try {
+      // Check in agents first
+      const agentReferrer = agents.find(
+        (a) => a?.MyRefferalCode === referredByCode
+      );
+      if (agentReferrer) return agentReferrer?.FullName || "Agent";
+
+      // Then check in core members
+      const coreReferrer = coreMembers.find(
+        (m) => m?.MyRefferalCode === referredByCode
+      );
+      if (coreReferrer) return coreReferrer?.FullName || "Core Member";
+
+      // Special cases
+      if (referredByCode === "WA0000000001") return "Wealth Associate";
+
+      return "Referrer not found";
+    } catch (error) {
+      console.error("Error in getReferrerName:", error);
+      return "Error loading referrer";
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter agents based on search query
@@ -86,7 +149,72 @@ export default function ViewAgents() {
     }
   }, [searchQuery, agents]);
 
-  // Handle edit agent
+  const handleRefresh = async () => {
+    await fetchAllData();
+  };
+
+  const handleMarkAsDone = async (agentId) => {
+    const confirm = () => {
+      if (Platform.OS === "web") {
+        return window.confirm(
+          "Are you sure you want to mark this agent as done?"
+        );
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert("Confirm", "Mark this agent as done?", [
+            { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+            { text: "Confirm", onPress: () => resolve(true) },
+          ]);
+        });
+      }
+    };
+
+    if (!(await confirm())) return;
+
+    try {
+      const response = await fetch(`${API_URL}/agent/markasdone/${agentId}`, {
+        method: "PUT",
+      });
+
+      if (!response.ok) throw new Error("Failed to update status");
+
+      setAgents((prevAgents) => {
+        const updated = prevAgents.map((agent) =>
+          agent._id === agentId
+            ? { ...agent, CallExecutiveCall: "Done" }
+            : agent
+        );
+        return updated.sort((a, b) => {
+          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+            return 1;
+          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+            return -1;
+          return 0;
+        });
+      });
+
+      setFilteredAgents((prevAgents) => {
+        const updated = prevAgents.map((agent) =>
+          agent._id === agentId
+            ? { ...agent, CallExecutiveCall: "Done" }
+            : agent
+        );
+        return updated.sort((a, b) => {
+          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+            return 1;
+          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+            return -1;
+          return 0;
+        });
+      });
+
+      Alert.alert("Success", "Agent marked as done");
+    } catch (error) {
+      console.error("Update error:", error);
+      Alert.alert("Error", "Failed to update agent status");
+    }
+  };
+
   const handleEditAgent = (agent) => {
     setSelectedAgent(agent);
     setEditedAgent({
@@ -97,23 +225,28 @@ export default function ViewAgents() {
       MyRefferalCode: agent.MyRefferalCode,
     });
 
-    // Set constituencies for the current district
     if (agent.District) {
-      const selectedDistrict = districts.find(
-        (item) => item.parliament === agent.District
-      );
-      if (selectedDistrict) {
-        setConstituencies(selectedDistrict.assemblies);
-      }
+      const district = districts.find((d) => d.parliament === agent.District);
+      setConstituencies(district?.assemblies || []);
     }
     setEditModalVisible(true);
   };
 
-  // Handle save edited agent
+  const handleDistrictChange = (district) => {
+    setEditedAgent({
+      ...editedAgent,
+      District: district,
+      Contituency: "",
+    });
+    const districtData = districts.find((d) => d.parliament === district);
+    setConstituencies(districtData?.assemblies || []);
+  };
+
   const handleSaveEditedAgent = async () => {
     try {
       const response = await fetch(
-        `${API_URL}/agent/updateagent/${selectedAgent._id}`,
+        `
+        ${API_URL}/agent/updateagent/${selectedAgent._id}`,
         {
           method: "PUT",
           headers: {
@@ -122,6 +255,7 @@ export default function ViewAgents() {
           body: JSON.stringify(editedAgent),
         }
       );
+
       if (!response.ok) throw new Error("Failed to update agent");
 
       const updatedAgent = await response.json();
@@ -130,80 +264,83 @@ export default function ViewAgents() {
           agent._id === selectedAgent._id ? updatedAgent.data : agent
         )
       );
+      setFilteredAgents((prevAgents) =>
+        prevAgents.map((agent) =>
+          agent._id === selectedAgent._id ? updatedAgent.data : agent
+        )
+      );
+
       setEditModalVisible(false);
-      Alert.alert("Success", "Agent updated successfully.");
+      Alert.alert("Success", "Agent updated successfully");
     } catch (error) {
-      console.error("Error updating agent:", error);
-      Alert.alert("Error", "Failed to update agent.");
+      console.error("Update error:", error);
+      Alert.alert("Error", "Failed to update agent");
     }
   };
 
-  // Handle delete agent
   const handleDeleteAgent = (agentId) => {
-    if (Platform.OS === "web") {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this agent?"
-      );
-      if (!confirmDelete) return;
-      deleteAgent(agentId);
-    } else {
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this agent?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => deleteAgent(agentId),
-          },
-        ]
-      );
-    }
-  };
+    const confirmDelete = () => {
+      if (Platform.OS === "web") {
+        return window.confirm("Are you sure you want to delete this agent?");
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert(
+            "Confirm Delete",
+            "Are you sure you want to delete this agent?",
+            [
+              {
+                text: "Cancel",
+                onPress: () => resolve(false),
+                style: "cancel",
+              },
+              { text: "Delete", onPress: () => resolve(true) },
+            ]
+          );
+        });
+      }
+    };
 
-  const deleteAgent = async (agentId) => {
-    try {
-      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete agent");
+    confirmDelete().then(async (confirmed) => {
+      if (!confirmed) return;
 
-      setAgents((prevAgents) =>
-        prevAgents.filter((agent) => agent._id !== agentId)
-      );
-      Alert.alert("Success", "Agent deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting agent:", error);
-      Alert.alert("Error", "Failed to delete agent.");
-    }
-  };
+      try {
+        const response = await fetch(
+          `${API_URL}/agent/deleteagent/${agentId}`,
+          { method: "DELETE" }
+        );
 
-  // Update constituencies when district changes in the modal
-  const handleDistrictChange = (itemValue) => {
-    setEditedAgent({
-      ...editedAgent,
-      District: itemValue,
-      Contituency: "", // Reset constituency when district changes
+        if (!response.ok) throw new Error("Failed to delete agent");
+
+        setAgents((prevAgents) =>
+          prevAgents.filter((agent) => agent._id !== agentId)
+        );
+        setFilteredAgents((prevAgents) =>
+          prevAgents.filter((agent) => agent._id !== agentId)
+        );
+        Alert.alert("Success", "Agent deleted successfully");
+      } catch (error) {
+        console.error("Delete error:", error);
+        Alert.alert("Error", "Failed to delete agent");
+      }
     });
-
-    // Update constituencies when district changes
-    const selectedDistrict = districts.find(
-      (item) => item.parliament === itemValue
-    );
-    if (selectedDistrict) {
-      setConstituencies(selectedDistrict.assemblies);
-    } else {
-      setConstituencies([]);
-    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          Platform.OS !== "web" ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#0000ff"]}
+            />
+          ) : undefined
+        }
+      >
         <Text style={styles.heading}>My Agents</Text>
 
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -214,11 +351,34 @@ export default function ViewAgents() {
         </View>
 
         {loading ? (
-          <Text style={styles.message}>Loading...</Text>
-        ) : filteredAgents.length > 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loadingText}>Loading agents...</Text>
+          </View>
+        ) : filteredAgents.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.noAgentsText}>
+              {searchQuery ? "No matching agents found" : "No agents found"}
+            </Text>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={handleRefresh}
+            >
+              <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
           <View style={styles.cardContainer}>
             {filteredAgents.map((agent) => (
-              <View key={agent._id} style={styles.card}>
+              <View
+                key={agent._id}
+                style={[
+                  styles.card,
+                  agent.CallExecutiveCall === "Done"
+                    ? styles.doneCard
+                    : styles.pendingCard,
+                ]}
+              >
                 <Image
                   source={require("../assets/man.png")}
                   style={styles.avatar}
@@ -254,41 +414,68 @@ export default function ViewAgents() {
                       <Text style={styles.value}>: {agent.MyRefferalCode}</Text>
                     </View>
                   )}
+                  {agent.ReferredBy && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referred By</Text>
+                      <Text style={styles.value}>
+                        : {referrerNames[agent.ReferredBy] || "Loading..."}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Status</Text>
+                    <Text
+                      style={[
+                        styles.value,
+                        agent.CallExecutiveCall === "Done"
+                          ? styles.doneStatus
+                          : styles.pendingStatus,
+                      ]}
+                    >
+                      :{" "}
+                      {agent.CallExecutiveCall === "Done" ? "Done" : "Pending"}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.buttonContainer}>
+                  {agent.CallExecutiveCall !== "Done" && (
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => handleMarkAsDone(agent._id)}
+                    >
+                      <Text style={styles.buttonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditAgent(agent)}
                   >
-                    <Text style={styles.editText}>Edit</Text>
+                    <Text style={styles.buttonText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => handleDeleteAgent(agent._id)}
                   >
-                    <Text style={styles.deleteText}>Delete</Text>
+                    <Text style={styles.buttonText}>Delete</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
           </View>
-        ) : (
-          <Text style={styles.noAgentsText}>
-            {searchQuery ? "No matching agents found" : "No agents found."}
-          </Text>
         )}
       </ScrollView>
 
-      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Edit Agent</Text>
+
+            <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.input}
               placeholder="Full Name"
@@ -298,56 +485,51 @@ export default function ViewAgents() {
               }
             />
 
-            {/* District Dropdown */}
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.dropdownLabel}>District</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedAgent.District}
-                  onValueChange={handleDistrictChange}
-                  style={styles.picker}
-                  dropdownIconColor="#000"
-                >
-                  <Picker.Item label="Select District" value="" />
-                  {districts.map((district) => (
-                    <Picker.Item
-                      key={district.parliament}
-                      label={district.parliament}
-                      value={district.parliament}
-                    />
-                  ))}
-                </Picker>
-              </View>
+            <Text style={styles.inputLabel}>District</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={editedAgent.District}
+                onValueChange={handleDistrictChange}
+                style={styles.picker}
+                dropdownIconColor="#000"
+              >
+                <Picker.Item label="Select District" value="" />
+                {districts.map((district) => (
+                  <Picker.Item
+                    key={district.parliament}
+                    label={district.parliament}
+                    value={district.parliament}
+                  />
+                ))}
+              </Picker>
             </View>
 
-            {/* Constituency Dropdown */}
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.dropdownLabel}>Constituency</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedAgent.Contituency}
-                  onValueChange={(itemValue) => {
-                    setEditedAgent({
-                      ...editedAgent,
-                      Contituency: itemValue,
-                    });
-                  }}
-                  style={styles.picker}
-                  dropdownIconColor="#000"
-                  enabled={!!editedAgent.District}
-                >
-                  <Picker.Item label="Select Constituency" value="" />
-                  {constituencies.map((constituency) => (
-                    <Picker.Item
-                      key={constituency.name}
-                      label={constituency.name}
-                      value={constituency.name}
-                    />
-                  ))}
-                </Picker>
-              </View>
+            <Text style={styles.inputLabel}>Constituency</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={editedAgent.Contituency}
+                onValueChange={(itemValue) => {
+                  setEditedAgent({
+                    ...editedAgent,
+                    Contituency: itemValue,
+                  });
+                }}
+                style={styles.picker}
+                dropdownIconColor="#000"
+                enabled={!!editedAgent.District}
+              >
+                <Picker.Item label="Select Constituency" value="" />
+                {constituencies.map((constituency) => (
+                  <Picker.Item
+                    key={constituency.name}
+                    label={constituency.name}
+                    value={constituency.name}
+                  />
+                ))}
+              </Picker>
             </View>
 
+            <Text style={styles.inputLabel}>Mobile Number</Text>
             <TextInput
               style={styles.input}
               placeholder="Mobile Number"
@@ -357,6 +539,8 @@ export default function ViewAgents() {
               }
               keyboardType="phone-pad"
             />
+
+            <Text style={styles.inputLabel}>Referral Code</Text>
             <TextInput
               style={styles.input}
               placeholder="Referral Code"
@@ -365,18 +549,19 @@ export default function ViewAgents() {
                 setEditedAgent({ ...editedAgent, MyRefferalCode: text })
               }
             />
-            <View style={styles.buttonRow}>
+
+            <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setEditModalVisible(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleSaveEditedAgent}
               >
-                <Text style={styles.buttonText}>Save</Text>
+                <Text style={styles.modalButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -394,7 +579,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 20,
-    marginBottom: 40,
   },
   heading: {
     fontSize: 20,
@@ -402,6 +586,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+    color: "#333",
   },
   searchContainer: {
     paddingHorizontal: 10,
@@ -411,8 +596,42 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
-    padding: 10,
+    padding: 12,
     backgroundColor: "#fff",
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: "#666",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  noAgentsText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+  },
+  refreshButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  refreshButtonText: {
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
   cardContainer: {
@@ -433,6 +652,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     marginBottom: 15,
+  },
+  doneCard: {
+    borderLeftWidth: 5,
+    borderLeftColor: "#4CAF50",
+    backgroundColor: "#E8F5E9",
+  },
+  pendingCard: {
+    borderLeftWidth: 5,
+    borderLeftColor: "#F44336",
+    backgroundColor: "#FFEBEE",
   },
   avatar: {
     width: 80,
@@ -456,110 +685,122 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 14,
     width: 120,
+    color: "#555",
   },
   value: {
     fontSize: 14,
+    color: "#333",
+  },
+  doneStatus: {
+    color: "#4CAF50",
+    fontWeight: "bold",
+  },
+  pendingStatus: {
+    color: "#F44336",
+    fontWeight: "bold",
   },
   buttonContainer: {
     flexDirection: "row",
     marginTop: 10,
+    justifyContent: "center",
   },
-  editButton: {
-    backgroundColor: "blue",
+  doneButton: {
+    backgroundColor: "#4CAF50",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginRight: 10,
   },
-  editText: {
-    color: "white",
-    fontWeight: "bold",
+  editButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
   },
   deleteButton: {
-    backgroundColor: "red",
+    backgroundColor: "#F44336",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
-  deleteText: {
+  buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 14,
   },
-  noAgentsText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: "#666",
-  },
-  message: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-  },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modalContainer: {
     width: width > 600 ? "50%" : "90%",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#333",
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#555",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
-    padding: 10,
+    padding: 12,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: "#fff",
   },
-  dropdownContainer: {
-    marginBottom: 15,
-  },
-  dropdownLabel: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: "#333",
-  },
-  pickerContainer: {
+  pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
+    marginBottom: 15,
     overflow: "hidden",
   },
   picker: {
     width: "100%",
-    height: 30,
+    height: 50,
     backgroundColor: "#fff",
   },
-  buttonRow: {
+  modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 20,
   },
   modalButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
-    marginHorizontal: 5,
+    justifyContent: "center",
   },
   saveButton: {
     backgroundColor: "#4CAF50",
+    marginLeft: 10,
   },
   cancelButton: {
-    backgroundColor: "#f44336",
+    backgroundColor: "#F44336",
+    marginRight: 10,
   },
-  buttonText: {
+  modalButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,

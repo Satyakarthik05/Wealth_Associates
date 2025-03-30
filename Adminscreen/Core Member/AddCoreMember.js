@@ -234,7 +234,7 @@ const AddCoreMember = ({ closeModal }) => {
             {/* Row 2 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select District</Text>
+                <Text style={styles.label}>Select MP Constituency</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     ref={districtRef}
@@ -270,7 +270,7 @@ const AddCoreMember = ({ closeModal }) => {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select Constituency</Text>
+                <Text style={styles.label}>Select MLA Constituency</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
@@ -378,7 +378,7 @@ const AddCoreMember = ({ closeModal }) => {
                   />
                 </View>
               </View>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.label}>Referral Code</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -396,7 +396,7 @@ const AddCoreMember = ({ closeModal }) => {
                     style={styles.icon}
                   />
                 </View>
-              </View>
+              </View> */}
             </View>
           </View>
 

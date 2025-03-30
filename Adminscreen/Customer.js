@@ -13,8 +13,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../data/ApiUrl";
 
@@ -31,45 +31,134 @@ export default function ViewCustomers() {
     MobileNumber: "",
     Occupation: "",
     MyRefferalCode: "",
+    District: "",
+    Contituency: "",
+    CallExecutiveCall: "",
   });
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [referrerNames, setReferrerNames] = useState({});
+  const [agents, setAgents] = useState([]);
+  const [coreMembers, setCoreMembers] = useState([]);
 
-  // Fetch customers and districts/constituencies
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch customers
-        const customersResponse = await fetch(
-          `${API_URL}/customer/allcustomers`
+  const fetchAllData = async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
+
+      const [customersRes, agentsRes, coreMembersRes, districtsRes] =
+        await Promise.all([
+          fetch(`${API_URL}/agent/allagents`),
+          fetch(`${API_URL}/core/getallcoremembers`),
+          fetch(`${API_URL}/alldiscons/alldiscons`),
+          fetch(`${API_URL}/customer/allcustomers`),
+        ]);
+
+      if (!customersRes.ok) throw new Error("Failed to fetch customers");
+      if (!agentsRes.ok) throw new Error("Failed to fetch agents");
+      if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
+      if (!districtsRes.ok) throw new Error("Failed to fetch districts");
+
+      const customersData = await customersRes.json();
+      const agentsData = await agentsRes.json();
+      const coreMembersData = await coreMembersRes.json();
+      const districtsData = await districtsRes.json();
+
+      const sortedCustomers = customersData.data.sort((a, b) => {
+        if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+          return 1;
+        if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+          return -1;
+        return 0;
+      });
+
+      setCustomers(sortedCustomers);
+      setFilteredCustomers(sortedCustomers);
+      setAgents(agentsData.data);
+      setCoreMembers(coreMembersData.data);
+      setDistricts(districtsData);
+
+      loadReferrerNames(sortedCustomers, agentsData.data, coreMembersData.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Alert.alert("Error", "Failed to load data");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const loadReferrerNames = (customers, agents, coreMembers) => {
+    const names = {};
+
+    customers.forEach((customer) => {
+      if (customer.ReferredBy && !names[customer.ReferredBy]) {
+        names[customer.ReferredBy] = getReferrerName(
+          customer.ReferredBy,
+          customers,
+          agents,
+          coreMembers
         );
-        if (!customersResponse.ok) {
-          throw new Error("Failed to fetch customers");
-        }
-        const customersData = await customersResponse.json();
-        setCustomers(customersData.data);
-        setFilteredCustomers(customersData.data);
-
-        // Fetch districts and constituencies
-        const disConsResponse = await fetch(`${API_URL}/alldiscons/alldiscons`);
-        if (!disConsResponse.ok) {
-          throw new Error("Failed to fetch districts and constituencies");
-        }
-        const disConsData = await disConsResponse.json();
-        setDistricts(disConsData);
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
       }
-    };
+    });
 
-    fetchData();
+    setReferrerNames(names);
+  };
+
+  const getReferrerName = (
+    referredByCode,
+    customers = [],
+    agents = [],
+    coreMembers = []
+  ) => {
+    if (!referredByCode) return "N/A";
+
+    // Ensure all parameters are arrays
+    const safeCustomers = Array.isArray(customers) ? customers : [];
+    const safeAgents = Array.isArray(agents) ? agents : [];
+    const safeCoreMembers = Array.isArray(coreMembers) ? coreMembers : [];
+
+    try {
+      // Check in customers
+      const customerReferrer = safeCustomers.find(
+        (c) => c?.MyRefferalCode === referredByCode
+      );
+      if (customerReferrer) return customerReferrer?.FullName || "Customer";
+
+      // Check in agents
+      const agentReferrer = safeAgents.find(
+        (a) => a?.MyRefferalCode === referredByCode
+      );
+      if (agentReferrer) return agentReferrer?.FullName || "Agent";
+
+      // Check in core members
+      const coreReferrer = safeCoreMembers.find(
+        (m) => m?.MyRefferalCode === referredByCode
+      );
+      if (coreReferrer) return coreReferrer?.FullName || "Core Member";
+
+      // Special cases
+      if (referredByCode === "WA0000000001") return "Wealth Associate";
+
+      return "Referrer not found";
+    } catch (error) {
+      console.error("Error in getReferrerName:", error);
+      return "Error loading referrer";
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+    const interval = setInterval(fetchAllData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Filter customers based on search query
+  const handleRefresh = async () => {
+    await fetchAllData();
+  };
+
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredCustomers(customers);
@@ -91,7 +180,61 @@ export default function ViewCustomers() {
     }
   }, [searchQuery, customers]);
 
-  // Handle edit customer
+  const handleMarkAsDone = async (customerId) => {
+    const confirm = () => {
+      if (Platform.OS === "web") {
+        return window.confirm(
+          "Are you sure you want to mark this customer as done?"
+        );
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert("Confirm", "Mark this customer as done?", [
+            { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+            { text: "Confirm", onPress: () => resolve(true) },
+          ]);
+        });
+      }
+    };
+
+    if (!(await confirm())) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/customer/markasdone/${customerId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ CallExecutiveCall: "Done" }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update status");
+
+      setCustomers((prevCustomers) => {
+        const updated = prevCustomers.map((customer) =>
+          customer._id === customerId
+            ? { ...customer, CallExecutiveCall: "Done" }
+            : customer
+        );
+        return updated.sort((a, b) => {
+          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+            return 1;
+          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+            return -1;
+          return 0;
+        });
+      });
+
+      Alert.alert("Success", "Customer marked as done");
+    } catch (error) {
+      console.error("Update error:", error);
+      Alert.alert("Error", "Failed to update customer status");
+      fetchAllData();
+    }
+  };
+
   const openEditModal = (customer) => {
     setSelectedCustomer(customer);
     setEditedCustomer({
@@ -101,21 +244,18 @@ export default function ViewCustomers() {
       MyRefferalCode: customer.MyRefferalCode,
       District: customer.District || "",
       Contituency: customer.Contituency || "",
+      CallExecutiveCall: customer.CallExecutiveCall || "",
     });
 
-    // Set constituencies if district exists
     if (customer.District) {
       const selectedDistrict = districts.find(
-        (item) => item.parliament === customer.District
+        (d) => d.parliament === customer.District
       );
-      if (selectedDistrict) {
-        setConstituencies(selectedDistrict.assemblies);
-      }
+      setConstituencies(selectedDistrict?.assemblies || []);
     }
     setEditModalVisible(true);
   };
 
-  // Handle save edited customer
   const handleEditCustomer = async () => {
     try {
       const response = await fetch(
@@ -132,109 +272,110 @@ export default function ViewCustomers() {
 
       const updatedCustomer = await response.json();
       setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer._id === selectedCustomer._id
-            ? updatedCustomer.data
-            : customer
-        )
-      );
-      // Also update filtered customers
-      setFilteredCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer._id === selectedCustomer._id
-            ? updatedCustomer.data
-            : customer
-        )
+        prevCustomers
+          .map((customer) =>
+            customer._id === selectedCustomer._id
+              ? updatedCustomer.data
+              : customer
+          )
+          .sort((a, b) => {
+            if (
+              a.CallExecutiveCall === "Done" &&
+              b.CallExecutiveCall !== "Done"
+            )
+              return 1;
+            if (
+              a.CallExecutiveCall !== "Done" &&
+              b.CallExecutiveCall === "Done"
+            )
+              return -1;
+            return 0;
+          })
       );
       setEditModalVisible(false);
-      Alert.alert("Success", "Customer updated successfully.");
+      Alert.alert("Success", "Customer updated successfully");
     } catch (error) {
-      console.error("Error updating customer:", error);
-      Alert.alert("Error", "Failed to update customer.");
+      console.error("Update error:", error);
+      Alert.alert("Error", "Failed to update customer");
     }
   };
 
-  // Handle delete customer
   const deleteCustomer = (customerId) => {
-    if (Platform.OS === "web") {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this customer?"
-      );
-      if (!confirmDelete) return;
-      performDelete(customerId);
-    } else {
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this customer?",
-        [
-          { text: "Cancel", style: "cancel" },
+    const confirmDelete = () => {
+      if (Platform.OS === "web") {
+        return window.confirm("Are you sure you want to delete this customer?");
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert(
+            "Confirm Delete",
+            "Are you sure you want to delete this customer?",
+            [
+              {
+                text: "Cancel",
+                onPress: () => resolve(false),
+                style: "cancel",
+              },
+              {
+                text: "Delete",
+                onPress: () => resolve(true),
+                style: "destructive",
+              },
+            ]
+          );
+        });
+      }
+    };
+
+    confirmDelete().then(async (confirmed) => {
+      if (!confirmed) return;
+
+      try {
+        const response = await fetch(
+          `${API_URL}/customer/deletecustomer/${customerId}`,
           {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => performDelete(customerId),
-          },
-        ]
-      );
-    }
+            method: "DELETE",
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to delete customer");
+
+        setCustomers((prevCustomers) =>
+          prevCustomers.filter((customer) => customer._id !== customerId)
+        );
+        Alert.alert("Success", "Customer deleted successfully");
+      } catch (error) {
+        console.error("Delete error:", error);
+        Alert.alert("Error", "Failed to delete customer");
+      }
+    });
   };
 
-  const performDelete = async (customerId) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/customer/deletecustomer/${customerId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) throw new Error("Failed to delete customer");
-
-      setCustomers((prevCustomers) =>
-        prevCustomers.filter((customer) => customer._id !== customerId)
-      );
-      // Also update filtered customers
-      setFilteredCustomers((prevCustomers) =>
-        prevCustomers.filter((customer) => customer._id !== customerId)
-      );
-      Alert.alert("Success", "Customer deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      Alert.alert("Error", "Failed to delete customer.");
-    }
-  };
-
-  // Update constituencies when district changes
-  const handleDistrictChange = (itemValue) => {
+  const handleDistrictChange = (district) => {
     setEditedCustomer({
       ...editedCustomer,
-      District: itemValue,
-      Contituency: "", // Reset constituency when district changes
+      District: district,
+      Contituency: "",
     });
-
-    // Update constituencies when district changes
-    const selectedDistrict = districts.find(
-      (item) => item.parliament === itemValue
-    );
-    if (selectedDistrict) {
-      setConstituencies(selectedDistrict.assemblies);
-    } else {
-      setConstituencies([]);
-    }
+    const districtData = districts.find((d) => d.parliament === district);
+    setConstituencies(districtData?.assemblies || []);
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          Platform.OS !== "web" ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#0000ff"]}
+            />
+          ) : undefined
+        }
+      >
         <Text style={styles.heading}>My Customers</Text>
 
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -244,10 +385,37 @@ export default function ViewCustomers() {
           />
         </View>
 
-        {filteredCustomers.length > 0 ? (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loadingText}>Loading customers...</Text>
+          </View>
+        ) : filteredCustomers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.noCustomersText}>
+              {searchQuery
+                ? "No matching customers found"
+                : "No customers found"}
+            </Text>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={handleRefresh}
+            >
+              <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
           <View style={styles.cardContainer}>
             {filteredCustomers.map((customer) => (
-              <View key={customer._id} style={styles.card}>
+              <View
+                key={customer._id}
+                style={[
+                  styles.card,
+                  customer.CallExecutiveCall === "Done"
+                    ? styles.doneCard
+                    : styles.pendingCard,
+                ]}
+              >
                 <Image
                   source={require("../assets/man.png")}
                   style={styles.avatar}
@@ -293,43 +461,70 @@ export default function ViewCustomers() {
                       <Text style={styles.value}>: {customer.Contituency}</Text>
                     </View>
                   )}
+                  {customer.ReferredBy && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Referred By</Text>
+                      <Text style={styles.value}>
+                        : {referrerNames[customer.ReferredBy] || "Loading..."}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Status</Text>
+                    <Text
+                      style={[
+                        styles.value,
+                        customer.CallExecutiveCall === "Done"
+                          ? styles.doneStatus
+                          : styles.pendingStatus,
+                      ]}
+                    >
+                      :{" "}
+                      {customer.CallExecutiveCall === "Done"
+                        ? "Done"
+                        : "Pending"}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.buttonContainer}>
+                  {customer.CallExecutiveCall !== "Done" && (
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => handleMarkAsDone(customer._id)}
+                    >
+                      <Text style={styles.buttonText}>Done</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => openEditModal(customer)}
                   >
-                    <Text style={styles.editText}>Edit</Text>
+                    <Text style={styles.buttonText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => deleteCustomer(customer._id)}
                   >
-                    <Text style={styles.deleteText}>Delete</Text>
+                    <Text style={styles.buttonText}>Delete</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
           </View>
-        ) : (
-          <Text style={styles.noCustomersText}>
-            {searchQuery
-              ? "No matching customers found"
-              : "No customers found."}
-          </Text>
         )}
       </ScrollView>
 
-      {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Edit Customer</Text>
+
+            <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.input}
               placeholder="Full Name"
@@ -338,6 +533,8 @@ export default function ViewCustomers() {
                 setEditedCustomer({ ...editedCustomer, FullName: text })
               }
             />
+
+            <Text style={styles.inputLabel}>Mobile Number</Text>
             <TextInput
               style={styles.input}
               placeholder="Mobile Number"
@@ -347,6 +544,8 @@ export default function ViewCustomers() {
               }
               keyboardType="phone-pad"
             />
+
+            <Text style={styles.inputLabel}>Occupation</Text>
             <TextInput
               style={styles.input}
               placeholder="Occupation"
@@ -355,6 +554,8 @@ export default function ViewCustomers() {
                 setEditedCustomer({ ...editedCustomer, Occupation: text })
               }
             />
+
+            <Text style={styles.inputLabel}>Referral Code</Text>
             <TextInput
               style={styles.input}
               placeholder="Referral Code"
@@ -364,68 +565,62 @@ export default function ViewCustomers() {
               }
             />
 
-            {/* District Dropdown */}
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.dropdownLabel}>District</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedCustomer.District}
-                  onValueChange={handleDistrictChange}
-                  style={styles.picker}
-                  dropdownIconColor="#000"
-                >
-                  <Picker.Item label="Select District" value="" />
-                  {districts.map((district) => (
-                    <Picker.Item
-                      key={district.parliament}
-                      label={district.parliament}
-                      value={district.parliament}
-                    />
-                  ))}
-                </Picker>
-              </View>
+            <Text style={styles.inputLabel}>District</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={editedCustomer.District}
+                onValueChange={handleDistrictChange}
+                style={styles.picker}
+                dropdownIconColor="#000"
+              >
+                <Picker.Item label="Select District" value="" />
+                {districts.map((district) => (
+                  <Picker.Item
+                    key={district.parliament}
+                    label={district.parliament}
+                    value={district.parliament}
+                  />
+                ))}
+              </Picker>
             </View>
 
-            {/* Constituency Dropdown */}
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.dropdownLabel}>Constituency</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedCustomer.Contituency}
-                  onValueChange={(itemValue) => {
-                    setEditedCustomer({
-                      ...editedCustomer,
-                      Contituency: itemValue,
-                    });
-                  }}
-                  style={styles.picker}
-                  dropdownIconColor="#000"
-                  enabled={!!editedCustomer.District}
-                >
-                  <Picker.Item label="Select Constituency" value="" />
-                  {constituencies.map((constituency) => (
-                    <Picker.Item
-                      key={constituency.name}
-                      label={constituency.name}
-                      value={constituency.name}
-                    />
-                  ))}
-                </Picker>
-              </View>
+            <Text style={styles.inputLabel}>Constituency</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={editedCustomer.Contituency}
+                onValueChange={(itemValue) => {
+                  setEditedCustomer({
+                    ...editedCustomer,
+                    Contituency: itemValue,
+                  });
+                }}
+                style={styles.picker}
+                dropdownIconColor="#000"
+                enabled={!!editedCustomer.District}
+              >
+                <Picker.Item label="Select Constituency" value="" />
+                {constituencies.map((constituency) => (
+                  <Picker.Item
+                    key={constituency.name}
+                    label={constituency.name}
+                    value={constituency.name}
+                  />
+                ))}
+              </Picker>
             </View>
 
-            <View style={styles.buttonRow}>
+            <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setEditModalVisible(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleEditCustomer}
               >
-                <Text style={styles.buttonText}>Save</Text>
+                <Text style={styles.modalButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -441,11 +636,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     paddingHorizontal: 10,
   },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   scrollContainer: {
     paddingBottom: 20,
     marginBottom: 40,
@@ -456,6 +646,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+    color: "#333",
   },
   searchContainer: {
     paddingHorizontal: 10,
@@ -467,6 +658,40 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     backgroundColor: "#fff",
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: "#666",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  noCustomersText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+  },
+  refreshButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  refreshButtonText: {
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
   cardContainer: {
@@ -487,6 +712,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     marginBottom: 15,
+  },
+  doneCard: {
+    borderLeftWidth: 5,
+    borderLeftColor: "#4CAF50",
+    backgroundColor: "#E8F5E9",
+  },
+  pendingCard: {
+    borderLeftWidth: 5,
+    borderLeftColor: "#F44336",
+    backgroundColor: "#FFEBEE",
   },
   avatar: {
     width: 80,
@@ -510,105 +745,122 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 14,
     width: 120,
+    color: "#555",
   },
   value: {
     fontSize: 14,
+    color: "#333",
+  },
+  doneStatus: {
+    color: "#4CAF50",
+    fontWeight: "bold",
+  },
+  pendingStatus: {
+    color: "#F44336",
+    fontWeight: "bold",
   },
   buttonContainer: {
     flexDirection: "row",
     marginTop: 10,
+    justifyContent: "center",
   },
-  editButton: {
-    backgroundColor: "blue",
+  doneButton: {
+    backgroundColor: "#4CAF50",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginRight: 10,
   },
-  editText: {
-    color: "white",
-    fontWeight: "bold",
+  editButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
   },
   deleteButton: {
-    backgroundColor: "red",
+    backgroundColor: "#F44336",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
-  deleteText: {
+  buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 14,
   },
-  noCustomersText: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-    color: "#666",
-  },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContent: {
+  modalContainer: {
     width: width > 600 ? "50%" : "90%",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#333",
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#555",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
-    padding: 10,
+    padding: 12,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: "#fff",
   },
-  dropdownContainer: {
-    marginBottom: 15,
-  },
-  dropdownLabel: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: "#333",
-  },
-  pickerContainer: {
+  pickerWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
+    marginBottom: 15,
     overflow: "hidden",
   },
   picker: {
     width: "100%",
+    height: 50,
     backgroundColor: "#fff",
-    height: 30,
   },
-  buttonRow: {
+  modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 20,
   },
   modalButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
-    marginHorizontal: 5,
+    justifyContent: "center",
   },
   saveButton: {
     backgroundColor: "#4CAF50",
+    marginLeft: 10,
   },
   cancelButton: {
-    backgroundColor: "#f44336",
+    backgroundColor: "#F44336",
+    marginRight: 10,
   },
-  buttonText: {
+  modalButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,

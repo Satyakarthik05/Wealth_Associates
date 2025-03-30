@@ -22,6 +22,7 @@ import { API_URL } from "../../../data/ApiUrl";
 const { width } = Dimensions.get("window");
 
 export default function ViewCustomers() {
+  // State management
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,19 +44,18 @@ export default function ViewCustomers() {
   const [agents, setAgents] = useState([]);
   const [referrerNames, setReferrerNames] = useState({});
 
+  // Fetch authentication token
   const getAuthToken = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-      return token;
+      return token || "";
     } catch (error) {
       console.error("Error getting auth token:", error);
-      throw error;
+      return "";
     }
   };
 
+  // Fetch assigned customers with all related data
   const fetchAssignedCustomers = async () => {
     try {
       setRefreshing(true);
@@ -63,29 +63,30 @@ export default function ViewCustomers() {
 
       const token = await getAuthToken();
 
+      // Fetch all necessary data in parallel
       const [customersRes, agentsRes, coreMembersRes, districtsRes] =
         await Promise.all([
           fetch(`${API_URL}/callexe/mycustomers`, {
-            headers: {
-              token: `${token}` || "",
-            },
+            headers: { token },
           }),
           fetch(`${API_URL}/agent/allagents`),
           fetch(`${API_URL}/core/getallcoremembers`),
           fetch(`${API_URL}/alldiscons/alldiscons`),
         ]);
 
-      if (!customersRes.ok)
-        throw new Error("Failed to fetch assigned customers");
+      // Check responses
+      if (!customersRes.ok) throw new Error("Failed to fetch customers");
       if (!agentsRes.ok) throw new Error("Failed to fetch agents");
       if (!coreMembersRes.ok) throw new Error("Failed to fetch core members");
       if (!districtsRes.ok) throw new Error("Failed to fetch districts");
 
+      // Parse responses
       const customersData = await customersRes.json();
       const agentsData = await agentsRes.json();
       const coreMembersData = await coreMembersRes.json();
       const districtsData = await districtsRes.json();
 
+      // Sort customers with pending calls first, then by creation date
       const sortedCustomers = customersData.data.sort((a, b) => {
         if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
           return 1;
@@ -94,12 +95,14 @@ export default function ViewCustomers() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
+      // Update state
       setCustomers(sortedCustomers);
       setFilteredCustomers(sortedCustomers);
       setAgents(agentsData.data || []);
       setCoreMembers(coreMembersData.data || []);
       setDistricts(districtsData || []);
 
+      // Load referrer names
       loadReferrerNames(
         sortedCustomers,
         agentsData.data || [],
@@ -107,16 +110,14 @@ export default function ViewCustomers() {
       );
     } catch (error) {
       console.error("Fetch error:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Failed to load assigned customers"
-      );
+      Alert.alert("Error", error.message || "Failed to load data");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
+  // Load referrer names for display
   const loadReferrerNames = (customers = [], agents = [], coreMembers = []) => {
     const names = {};
 
@@ -134,6 +135,7 @@ export default function ViewCustomers() {
     setReferrerNames(names);
   };
 
+  // Get referrer name from code
   const getReferrerName = (
     referredByCode,
     customers = [],
@@ -167,12 +169,7 @@ export default function ViewCustomers() {
     }
   };
 
-  useEffect(() => {
-    fetchAssignedCustomers();
-    const interval = setInterval(fetchAssignedCustomers, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // Handle search functionality
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredCustomers(customers);
@@ -194,27 +191,28 @@ export default function ViewCustomers() {
     }
   }, [searchQuery, customers]);
 
+  // Initial data fetch
+  useEffect(() => {
+    fetchAssignedCustomers();
+    const interval = setInterval(fetchAssignedCustomers, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle refresh
   const handleRefresh = async () => {
     await fetchAssignedCustomers();
   };
 
+  // Mark customer as done
   const handleMarkAsDone = async (customerId) => {
-    const confirm = () => {
-      if (Platform.OS === "web") {
-        return window.confirm(
-          "Are you sure you want to mark this customer as done?"
-        );
-      } else {
-        return new Promise((resolve) => {
-          Alert.alert("Confirm", "Mark this customer as done?", [
-            { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
-            { text: "Confirm", onPress: () => resolve(true) },
-          ]);
-        });
-      }
-    };
+    const confirmed = await new Promise((resolve) => {
+      Alert.alert("Confirm", "Mark this customer as done?", [
+        { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+        { text: "Confirm", onPress: () => resolve(true) },
+      ]);
+    });
 
-    if (!(await confirm())) return;
+    if (!confirmed) return;
 
     try {
       const token = await getAuthToken();
@@ -232,45 +230,55 @@ export default function ViewCustomers() {
 
       if (!response.ok) throw new Error("Failed to update status");
 
-      const result = await response.json();
+      // Optimistic update
+      setCustomers((prev) =>
+        prev
+          .map((c) =>
+            c._id === customerId ? { ...c, CallExecutiveCall: "Done" } : c
+          )
+          .sort((a, b) => {
+            if (
+              a.CallExecutiveCall === "Done" &&
+              b.CallExecutiveCall !== "Done"
+            )
+              return 1;
+            if (
+              a.CallExecutiveCall !== "Done" &&
+              b.CallExecutiveCall === "Done"
+            )
+              return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          })
+      );
 
-      setCustomers((prevCustomers) => {
-        const updated = prevCustomers.map((customer) =>
-          customer._id === customerId
-            ? { ...customer, CallExecutiveCall: "Done" }
-            : customer
-        );
-        return updated.sort((a, b) => {
-          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
-            return 1;
-          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
-            return -1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-      });
-
-      setFilteredCustomers((prevCustomers) => {
-        const updated = prevCustomers.map((customer) =>
-          customer._id === customerId
-            ? { ...customer, CallExecutiveCall: "Done" }
-            : customer
-        );
-        return updated.sort((a, b) => {
-          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
-            return 1;
-          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
-            return -1;
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-      });
+      setFilteredCustomers((prev) =>
+        prev
+          .map((c) =>
+            c._id === customerId ? { ...c, CallExecutiveCall: "Done" } : c
+          )
+          .sort((a, b) => {
+            if (
+              a.CallExecutiveCall === "Done" &&
+              b.CallExecutiveCall !== "Done"
+            )
+              return 1;
+            if (
+              a.CallExecutiveCall !== "Done" &&
+              b.CallExecutiveCall === "Done"
+            )
+              return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          })
+      );
 
       Alert.alert("Success", "Customer marked as done");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", error.message || "Failed to update customer status");
+      Alert.alert("Error", error.message || "Failed to update status");
     }
   };
 
+  // Edit customer functions
   const handleEditCustomer = (customer) => {
     setSelectedCustomer(customer);
     setEditedCustomer({
@@ -321,18 +329,15 @@ export default function ViewCustomers() {
 
       const updatedCustomer = await response.json();
 
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer._id === selectedCustomer._id
-            ? updatedCustomer.data
-            : customer
+      // Update state with the edited customer
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c._id === selectedCustomer._id ? updatedCustomer.data : c
         )
       );
-      setFilteredCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
-          customer._id === selectedCustomer._id
-            ? updatedCustomer.data
-            : customer
+      setFilteredCustomers((prev) =>
+        prev.map((c) =>
+          c._id === selectedCustomer._id ? updatedCustomer.data : c
         )
       );
 
@@ -344,76 +349,75 @@ export default function ViewCustomers() {
     }
   };
 
-  const handleDeleteCustomer = (customerId) => {
-    const confirmDelete = () => {
-      if (Platform.OS === "web") {
-        return window.confirm("Are you sure you want to delete this customer?");
-      } else {
-        return new Promise((resolve) => {
-          Alert.alert(
-            "Confirm Delete",
-            "Are you sure you want to delete this customer?",
-            [
-              {
-                text: "Cancel",
-                onPress: () => resolve(false),
-                style: "cancel",
-              },
-              { text: "Delete", onPress: () => resolve(true) },
-            ]
-          );
-        });
-      }
-    };
-
-    confirmDelete().then(async (confirmed) => {
-      if (!confirmed) return;
-
-      try {
-        const token = await getAuthToken();
-
-        const response = await fetch(
-          `${API_URL}/customer/deletecustomer/${customerId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) throw new Error("Failed to delete customer");
-
-        setCustomers((prevCustomers) =>
-          prevCustomers.filter((customer) => customer._id !== customerId)
-        );
-        setFilteredCustomers((prevCustomers) =>
-          prevCustomers.filter((customer) => customer._id !== customerId)
-        );
-        Alert.alert("Success", "Customer deleted successfully");
-      } catch (error) {
-        console.error("Delete error:", error);
-        Alert.alert("Error", error.message || "Failed to delete customer");
-      }
+  // Delete customer
+  const handleDeleteCustomer = async (customerId) => {
+    const confirmed = await new Promise((resolve) => {
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this customer?",
+        [
+          { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+          { text: "Delete", onPress: () => resolve(true) },
+        ]
+      );
     });
+
+    if (!confirmed) return;
+
+    try {
+      const token = await getAuthToken();
+
+      const response = await fetch(
+        `${API_URL}/customer/deletecustomer/${customerId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to delete customer");
+
+      // Remove customer from state
+      setCustomers((prev) => prev.filter((c) => c._id !== customerId));
+      setFilteredCustomers((prev) => prev.filter((c) => c._id !== customerId));
+
+      Alert.alert("Success", "Customer deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      Alert.alert("Error", error.message || "Failed to delete customer");
+    }
   };
 
+  // Render loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading customers...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Main render
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={
-          Platform.OS !== "web" ? (
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={["#0000ff"]}
-            />
-          ) : undefined
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={["#0000ff"]}
+          />
         }
       >
         <Text style={styles.heading}>My Assigned Customers</Text>
 
+        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -423,12 +427,8 @@ export default function ViewCustomers() {
           />
         </View>
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#0000ff" />
-            <Text style={styles.loadingText}>Loading customers...</Text>
-          </View>
-        ) : filteredCustomers.length === 0 ? (
+        {/* Empty State */}
+        {filteredCustomers.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.noCustomersText}>
               {searchQuery
@@ -442,7 +442,10 @@ export default function ViewCustomers() {
               <Text style={styles.refreshButtonText}>Refresh</Text>
             </TouchableOpacity>
           </View>
-        ) : (
+        )}
+
+        {/* Customer List */}
+        {filteredCustomers.length > 0 && (
           <View style={styles.cardContainer}>
             {filteredCustomers.map((customer) => (
               <View
@@ -459,54 +462,39 @@ export default function ViewCustomers() {
                   style={styles.avatar}
                 />
                 <View style={styles.infoContainer}>
-                  {customer.FullName && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Name</Text>
-                      <Text style={styles.value}>: {customer.FullName}</Text>
-                    </View>
-                  )}
-                  {customer.District && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>District</Text>
-                      <Text style={styles.value}>: {customer.District}</Text>
-                    </View>
-                  )}
-                  {customer.Contituency && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Constituency</Text>
-                      <Text style={styles.value}>: {customer.Contituency}</Text>
-                    </View>
-                  )}
-                  {customer.MobileNumber && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Mobile</Text>
-                      <Text style={styles.value}>
-                        : {customer.MobileNumber}
-                      </Text>
-                    </View>
-                  )}
-                  {customer.Occupation && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Occupation</Text>
-                      <Text style={styles.value}>: {customer.Occupation}</Text>
-                    </View>
-                  )}
-                  {customer.MyRefferalCode && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Referral Code</Text>
-                      <Text style={styles.value}>
-                        : {customer.MyRefferalCode}
-                      </Text>
-                    </View>
-                  )}
-                  {customer.ReferredBy && (
-                    <View style={styles.row}>
-                      <Text style={styles.label}>Referred By</Text>
-                      <Text style={styles.value}>
-                        : {referrerNames[customer.ReferredBy] || "Loading..."}
-                      </Text>
-                    </View>
-                  )}
+                  {/* Customer Details */}
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Name</Text>
+                    <Text style={styles.value}>: {customer.FullName}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Mobile</Text>
+                    <Text style={styles.value}>: {customer.MobileNumber}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>District</Text>
+                    <Text style={styles.value}>: {customer.District}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Constituency</Text>
+                    <Text style={styles.value}>: {customer.Contituency}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Occupation</Text>
+                    <Text style={styles.value}>: {customer.Occupation}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Referral Code</Text>
+                    <Text style={styles.value}>
+                      : {customer.MyRefferalCode}
+                    </Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Referred By</Text>
+                    <Text style={styles.value}>
+                      : {referrerNames[customer.ReferredBy] || "Loading..."}
+                    </Text>
+                  </View>
                   <View style={styles.row}>
                     <Text style={styles.label}>Status</Text>
                     <Text
@@ -523,7 +511,15 @@ export default function ViewCustomers() {
                         : "Pending"}
                     </Text>
                   </View>
+                  <View style={styles.row}>
+                    <Text style={styles.label}>Assigned On</Text>
+                    <Text style={styles.value}>
+                      : {new Date(customer.assignedAt).toLocaleDateString()}
+                    </Text>
+                  </View>
                 </View>
+
+                {/* Action Buttons */}
                 <View style={styles.buttonContainer}>
                   {customer.CallExecutiveCall !== "Done" && (
                     <TouchableOpacity
@@ -552,6 +548,7 @@ export default function ViewCustomers() {
         )}
       </ScrollView>
 
+      {/* Edit Customer Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
@@ -562,6 +559,7 @@ export default function ViewCustomers() {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Edit Customer</Text>
 
+            {/* Edit Form */}
             <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.input}
@@ -595,12 +593,12 @@ export default function ViewCustomers() {
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={editedCustomer.Contituency}
-                onValueChange={(itemValue) => {
+                onValueChange={(itemValue) =>
                   setEditedCustomer({
                     ...editedCustomer,
                     Contituency: itemValue,
-                  });
-                }}
+                  })
+                }
                 style={styles.picker}
                 dropdownIconColor="#000"
                 enabled={!!editedCustomer.District}
@@ -647,6 +645,7 @@ export default function ViewCustomers() {
               }
             />
 
+            {/* Modal Buttons */}
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
@@ -668,6 +667,7 @@ export default function ViewCustomers() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
