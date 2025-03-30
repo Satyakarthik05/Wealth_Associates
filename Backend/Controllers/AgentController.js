@@ -61,21 +61,21 @@ const AgentSign = async (req, res) => {
   } = req.body;
 
   try {
-    const existingAgent = await AgentSchema.findOne({ MobileNumber });
+    const existingAgent = await AgentSchema.findOne({ MobileNumber:MobileNumber });
     const referredAgent = await AgentSchema.findOne({
       MyRefferalCode: ReferredBy,
     });
 
     if (existingAgent) {
       return res.status(400).json({ message: "Mobile number already exists" });
-    }
+    }else{
 
     const Password = "wa1234";
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
     const finalReferredBy = ReferredBy || "WA0000000001";
 
-    // Create new agent first
+   
     const newAgent = new AgentSchema({
       FullName,
       MobileNumber,
@@ -91,10 +91,10 @@ const AgentSign = async (req, res) => {
       AgentType,
     });
 
-    // 1. Find all call executives with assignedType "Agents"
-    const callExecutives = await CallExecutive.find({ assignedType: "Agents" })
-      .sort({ lastAssignedAt: 1 }) // Sort by oldest assignment first
-      .limit(1); // Get the one who was assigned longest ago
+    
+    const callExecutives = await CallExecutive.find({ assignedType: "Agent_Wealth_Associate" })
+      .sort({ lastAssignedAt: 1 }) 
+      .limit(1); 
 
     if (callExecutives.length === 0) {
       return res
@@ -105,7 +105,7 @@ const AgentSign = async (req, res) => {
     const assignedExecutive = callExecutives[0];
 
     assignedExecutive.assignedUsers.push({
-      userType: "Agents",
+      userType: "Agent_Wealth_Associate",
       userId: newAgent._id,
     });
     assignedExecutive.lastAssignedAt = new Date();
@@ -154,7 +154,7 @@ const AgentSign = async (req, res) => {
       smsResponse,
       assignedTo: assignedExecutive.name,
       executivePhone: assignedExecutive.phone,
-    });
+    });}
   } catch (error) {
     console.error("Error during registration:", error.message);
     res.status(500).json({ message: "Internal Server Error" });

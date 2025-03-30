@@ -5,7 +5,9 @@ const {
   deleteCallExecutive,
   updateCallExecutive,
   CallExecutiveLogin,
+  myagents
 } = require("../Controllers/CallExecutiveController");
+const callcentertoken = require("../middleWares/callcentertoken")
 
 const router = express.Router();
 
@@ -16,5 +18,6 @@ router.post("/logincall-executives", CallExecutiveLogin);
 router.get("/call-executives", getCallExecutives);
 router.put("/call-executives/:id", updateCallExecutive);
 router.delete("/call-executives/:id", deleteCallExecutive);
+router.get('/myagents',callcentertoken,myagents)
 
 module.exports = router;

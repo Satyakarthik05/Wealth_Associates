@@ -1,5 +1,8 @@
 const CallExecutive = require("../Models/CallExecutiveModel");
+const Agent = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
+secret = "Wealth@123";
+const mongoose = require("mongoose")
 
 const addCallExecutive = async (req, res) => {
   try {
@@ -152,10 +155,98 @@ const deleteCallExecutive = async (req, res) => {
     });
   }
 };
+const myagents = async (req, res) => {
+  try {
+    // 1. Validate and convert AgentId
+    if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid Agent ID format",
+        receivedId: req.AgentId
+      });
+    }
+
+    const executiveId = new mongoose.Types.ObjectId(req.AgentId);
+
+    // 2. Clean up invalid assignments first
+    const cleanupResult = await CallExecutive.updateOne(
+      { _id: executiveId },
+      { $pull: { assignedUsers: { userId: null } }}
+    );
+    console.log(`Cleaned ${cleanupResult.modifiedCount} invalid assignments`);
+
+    // 3. Get executive with valid agents
+    const executive = await CallExecutive.aggregate([
+      { $match: { _id: executiveId } },
+      { $unwind: "$assignedUsers" },
+      { $match: { 
+        "assignedUsers.userType": "Agent_Wealth_Associate",
+        "assignedUsers.userId": { $exists: true, $ne: null }
+      }},
+      {
+        $lookup: {
+          from: "agent_wealth_associates",
+          localField: "assignedUsers.userId",
+          foreignField: "_id",
+          as: "agentDetails"
+        }
+      },
+      { $unwind: "$agentDetails" },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          phone: { $first: "$phone" },
+          agents: {
+            $push: {
+              agent: "$agentDetails",
+              assignmentId: "$assignedUsers._id",
+              assignedAt: "$assignedUsers.assignedAt"
+            }
+          }
+        }
+      }
+    ]);
+
+    if (!executive || executive.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No valid agent assignments found" 
+      });
+    }
+
+    // 4. Format the response
+    const result = executive[0];
+    const assignedAgents = result.agents.map(item => ({
+      ...item.agent,
+      assignmentId: item.assignmentId,
+      assignedAt: item.assignedAt
+    }));
+
+    res.json({
+      success: true,
+      data: assignedAgents,
+      executiveInfo: {
+        name: result.name,
+        phone: result.phone
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in myagents:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error",
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
 module.exports = {
   addCallExecutive,
   getCallExecutives,
   deleteCallExecutive,
   updateCallExecutive,
   CallExecutiveLogin,
+  myagents
 };
