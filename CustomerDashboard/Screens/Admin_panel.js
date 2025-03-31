@@ -48,7 +48,7 @@ import ViewInvesters from "./Investors/ViewInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
 import AddInvestor from "./Investors/AddInvestors";
-import logo1 from "../../assets/logo.png"
+import logo1 from "../../assets/logo.png";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -59,11 +59,11 @@ const menuItems = [
   //   icon: "person-add-outline",
   //   subItems: ["Register Agent", "View Agents"],
   // },
-  // {
-  //   title: "Customers",
-  //   icon: "people-outline",
-  //   subItems: ["Add Customer", "View Customers"],
-  // },
+  {
+    title: "Customers",
+    icon: "people-outline",
+    subItems: ["Add Customer", "View Customers"],
+  },
   {
     title: "Properties",
     icon: "home-outline",
@@ -388,10 +388,7 @@ const Admin_panel = () => {
             setAllSkilledLabour(false);
           }}
         >
-          <Image
-            source={logo1}
-            style={styles.logo}
-          />
+          <Image source={logo1} style={styles.logo} />
         </TouchableOpacity>
         <View style={styles.sear_icons}>
           <View style={styles.rightIcons}>

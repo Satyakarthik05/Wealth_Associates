@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import {
   FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
 
 const AddExpertForm = ({ closeModal }) => {
@@ -38,26 +38,12 @@ const AddExpertForm = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [additionalFields, setAdditionalFields] = useState({});
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [showExpertTypeDropdown, setShowExpertTypeDropdown] = useState(false);
-  const [filteredConstituencies, setFilteredConstituencies] = useState([]);
-  const [filteredExpertTypes, setFilteredExpertTypes] = useState([]);
 
-  // Expert type options
-  const expertTypes = [
-    "LEGAL",
-    "REVENUE",
-    "ENGINEERS",
-    "ARCHITECTS",
-    "PLANS & APPROVALS",
-    "VAASTU PANDITS",
-    "LAND SURVEY & VALUERS",
-    "BANKING",
-    "AGRICULTURE",
-    "REGISTRATION & DOCUMENTATION",
-    "AUDITING",
-    "LIAISONING",
-  ];
+  // Dropdown states
+  const [locationSearch, setLocationSearch] = useState("");
+  const [expertTypeSearch, setExpertTypeSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [showExpertTypeList, setShowExpertTypeList] = useState(false);
 
   // Expert type specific fields
   const expertFields = {
@@ -155,6 +141,21 @@ const AddExpertForm = ({ closeModal }) => {
     ],
   };
 
+  const expertTypes = [
+    "LEGAL",
+    "REVENUE",
+    "ENGINEERS",
+    "ARCHITECTS",
+    "PLANS & APPROVALS",
+    "VAASTU PANDITS",
+    "LAND SURVEY & VALUERS",
+    "BANKING",
+    "AGRICULTURE",
+    "REGISTRATION & DOCUMENTATION",
+    "AUDITING",
+    "LIAISONING",
+  ];
+
   // Fetch all constituencies
   useEffect(() => {
     const fetchConstituencies = async () => {
@@ -184,9 +185,15 @@ const AddExpertForm = ({ closeModal }) => {
     fetchConstituencies();
   }, []);
 
-  useEffect(() => {
-    setFilteredExpertTypes(expertTypes);
-  }, []);
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.filter((item) =>
+    item.name.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
+  // Filter expert types based on search input
+  const filteredExpertTypes = expertTypes.filter((item) =>
+    item.toLowerCase().includes(expertTypeSearch.toLowerCase())
+  );
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
@@ -488,72 +495,84 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             ))}
 
-            {/** Location (Constituency) Dropdown */}
+            {/** Location Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Location (Constituency)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Search or select constituency"
-                value={form.location}
-                onChangeText={(text) => handleChange("location", text)}
-                onFocus={() => setShowLocationDropdown(true)}
-              />
-              {showLocationDropdown && (
-                <Modal
-                  transparent={true}
-                  visible={showLocationDropdown}
-                  onRequestClose={() => setShowLocationDropdown(false)}
-                >
-                  <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setShowLocationDropdown(false)}
-                  >
-                    <View style={styles.dropdownContainer}>
-                      <FlatList
-                        data={filteredConstituencies}
-                        renderItem={renderConstituencyItem}
-                        keyExtractor={(item) => item.name}
-                        keyboardShouldPersistTaps="handled"
-                      />
-                    </View>
-                  </TouchableOpacity>
-                </Modal>
-              )}
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Constituency"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={locationSearch}
+                  onChangeText={(text) => {
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }}
+                  onFocus={() => {
+                    setShowLocationList(true);
+                    setShowExpertTypeList(false);
+                  }}
+                />
+                {showLocationList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredConstituencies.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("location", item.name);
+                            setLocationSearch(item.name);
+                            setShowLocationList(false);
+                          }}
+                        >
+                          <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
             </View>
 
             {/** Expert Type Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Expert Type</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Search or select expert type"
-                value={form.expertType}
-                onChangeText={(text) => handleChange("expertType", text)}
-                onFocus={() => setShowExpertTypeDropdown(true)}
-              />
-              {showExpertTypeDropdown && (
-                <Modal
-                  transparent={true}
-                  visible={showExpertTypeDropdown}
-                  onRequestClose={() => setShowExpertTypeDropdown(false)}
-                >
-                  <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setShowExpertTypeDropdown(false)}
-                  >
-                    <View style={styles.dropdownContainer}>
-                      <FlatList
-                        data={filteredExpertTypes}
-                        renderItem={renderExpertTypeItem}
-                        keyExtractor={(item) => item}
-                        keyboardShouldPersistTaps="handled"
-                      />
-                    </View>
-                  </TouchableOpacity>
-                </Modal>
-              )}
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Expert Type"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={expertTypeSearch}
+                  onChangeText={(text) => {
+                    setExpertTypeSearch(text);
+                    setShowExpertTypeList(true);
+                  }}
+                  onFocus={() => {
+                    setShowExpertTypeList(true);
+                    setShowLocationList(false);
+                  }}
+                />
+                {showExpertTypeList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredExpertTypes.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("expertType", item);
+                            setExpertTypeSearch(item);
+                            setShowExpertTypeList(false);
+                          }}
+                        >
+                          <Text>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
             </View>
 
             {/** Additional Fields for Selected Expert Type */}
@@ -648,6 +667,12 @@ const styles = StyleSheet.create({
   formGroup: {
     width: "100%",
     marginBottom: 10,
+    position: "relative",
+    zIndex: 1,
+  },
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
   },
   label: {
     fontSize: 14,
@@ -663,6 +688,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     backgroundColor: "#F9F9F9",
+  },
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
+  },
+  scrollView: {
+    maxHeight: 200,
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   uploadSection: {
     width: "100%",

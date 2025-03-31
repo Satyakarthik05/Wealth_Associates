@@ -255,7 +255,7 @@ const PropertyCard = ({ property, closeModal }) => {
                 <FontAwesome5 name="google-play" size={24} color="#000" />
               )}
               <Text style={styles.storeText}>
-                {Platform.OS === "ios" ? "App Store" : "Google Play"}
+                {Platform.OS !== "ios" ? "App Store" : "Google Play"}
               </Text>
             </TouchableOpacity>
 
@@ -264,8 +264,8 @@ const PropertyCard = ({ property, closeModal }) => {
               onPress={() =>
                 Linking.openURL(
                   Platform.OS === "ios"
-                    ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
-                    : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+                  ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
+                  : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
                 )
               }
             >

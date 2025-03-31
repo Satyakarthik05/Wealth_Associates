@@ -7,10 +7,13 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import logo from "../../../assets/man.png"
+import logo1 from "../../../assets/man.png";
+import { Ionicons } from "@expo/vector-icons"; // Make sure to install this package
 
 const { width } = Dimensions.get("window");
 
@@ -19,41 +22,96 @@ export default function ViewInvesters() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSkilledLabours = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("No token found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/investors/getagentinvestor`, {
-          method: "GET",
-          headers: {
-            token: `${token}` || "",
-          },
-        });
-
-        const data = await response.json();
-        if (response.ok && Array.isArray(data.data)) {
-          setAgents(data.data);
-        } else {
-          setAgents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching agents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSkilledLabours();
   }, []);
 
+  const fetchSkilledLabours = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/investors/getagentinvestor`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok && Array.isArray(data.data)) {
+        setAgents(data.data);
+      } else {
+        setAgents([]);
+      }
+    } catch (error) {
+      console.error("Error fetching agents:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/investors/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      if (response.ok) {
+        // Remove the deleted investor from the state
+        setAgents(agents.filter((agent) => agent._id !== id));
+        Alert.alert("Success", "Investor deleted successfully");
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message || "Failed to delete investor");
+      }
+    } catch (error) {
+      console.error("Error deleting investor:", error);
+      Alert.alert("Error", "An error occurred while deleting the investor");
+    }
+  };
+
+  const confirmDelete = (id) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this investor?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => handleDelete(id),
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
-      <Image source={logo} style={styles.avatar} />
+      <View style={styles.cardHeader}>
+        <Image source={logo1} style={styles.avatar} />
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => confirmDelete(item._id)}
+        >
+          <Ionicons name="trash-outline" size={24} color="#ff4444" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <Text style={styles.label}>Name</Text>
@@ -120,7 +178,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "35%" : "90%", // 45% on tablets, 90% on mobile
+    width: width > 600 ? "35%" : "auto", // 45% on tablets, 90% on mobile
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",
@@ -131,12 +189,21 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 15,
   },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: 10,
     backgroundColor: "#ddd",
+  },
+  deleteButton: {
+    padding: 5,
   },
   infoContainer: {
     width: "100%",

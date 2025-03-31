@@ -496,7 +496,7 @@ const ViewAllProperties = ({ navigation }) => {
           </Modal>
 
           {/* Regular Properties */}
-          {regularProperties.length > 0 && (
+          {/* {regularProperties.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Regular Properties</Text>
               <View style={styles.propertiesContainer}>
@@ -572,7 +572,7 @@ const ViewAllProperties = ({ navigation }) => {
                 })}
               </View>
             </>
-          )}
+          )} */}
 
           {/* Approved Properties */}
           {approvedProperties.length > 0 && (
