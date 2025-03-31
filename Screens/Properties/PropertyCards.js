@@ -8,11 +8,11 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
-  Share,
   Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import logo from "../../assets/logo.png";
 import { FontAwesome5, AntDesign } from "@expo/vector-icons";
@@ -30,10 +30,6 @@ const PropertyCard = ({ property, closeModal }) => {
     return logo;
   };
 
-  const handleVisitSite = () => {
-    Linking.openURL("https://www.wealthassociate.in");
-  };
-
   const handleShare = async () => {
     if (!viewShotRef.current) {
       Alert.alert("Error", "Sharing component not ready");
@@ -43,66 +39,50 @@ const PropertyCard = ({ property, closeModal }) => {
     setIsSharing(true);
 
     try {
-      // Capture the view as an image (using base64 for better Android compatibility)
+      // Capture the view as an image
       const uri = await viewShotRef.current.capture({
         format: "jpg",
         quality: 0.9,
-        result: "base64",
       });
 
       if (!uri) {
         throw new Error("Failed to capture image");
       }
 
-      // Prepare share content
-      const message = `Check out this ${
-        property?.propertyType || "property"
-      } in ${property?.location || "a great location"} for ₹${
-        property?.price || "contact for price"
-      }.\n\nDownload our app: ${
-        Platform.OS === "ios"
-          ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
-          : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
-      }`;
+      // Ensure file is saved locally
+      const fileUri = FileSystem.cacheDirectory + "shared-property.jpg";
+      await FileSystem.copyAsync({
+        from: uri,
+        to: fileUri,
+      });
 
-      if (Platform.OS === "android") {
-        // For Android, we need to save the base64 image to a file
-        const fileName = `property_share_${Date.now()}.jpg`;
-        const filePath = `${FileSystem.cacheDirectory}${fileName}`;
-
-        // Write the base64 data to a file
-        await FileSystem.writeAsStringAsync(filePath, uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        // Get file info to verify
-        const fileInfo = await FileSystem.getInfoAsync(filePath);
-        if (!fileInfo.exists) {
-          throw new Error("Failed to save image file");
-        }
-
-        // Share the file
-        await Share.share({
-          url: `file://${filePath}`,
-          message: message,
-          type: "image/jpeg",
-        });
-      } else {
-        // For iOS, use the base64 URI directly
-        await Share.share({
-          url: `data:image/jpeg;base64,${uri}`,
-          message: message,
-        });
+      // Check if sharing is available on the device
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert(
+          "Sharing Not Supported",
+          "Update your device to enable sharing."
+        );
+        return;
       }
+
+      // Share the image with caption
+      await Sharing.shareAsync(fileUri, {
+        dialogTitle: "Property For Sale",
+        mimeType: "image/jpeg",
+        UTI: "image/jpeg", // For iOS
+      });
     } catch (error) {
-      console.error("Sharing failed:", error);
       Alert.alert(
         "Sharing Error",
-        error.message || "Couldn't share the property. Please try again."
+        error.message || "Couldn't share the property."
       );
     } finally {
       setIsSharing(false);
     }
+  };
+  const handleVisitSite = () => {
+    Linking.openURL("https://www.wealthassociate.in");
   };
 
   if (!property) {
@@ -123,11 +103,9 @@ const PropertyCard = ({ property, closeModal }) => {
         options={{
           format: "jpg",
           quality: 0.9,
-          result: "base64",
         }}
         style={styles.viewShotContainer}
       >
-        {/* Rest of your component remains the same */}
         <Text style={styles.propertyForSaleText}>Property For Sale</Text>
 
         <View style={styles.header}>
@@ -204,10 +182,22 @@ const PropertyCard = ({ property, closeModal }) => {
 
             <TouchableOpacity
               style={styles.storeButton}
-              onPress={handleVisitSite}
+              onPress={() =>
+                Linking.openURL(
+                  Platform.OS === "ios"
+                    ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
+                    : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+                )
+              }
             >
-              <FontAwesome5 name="google-play" size={24} color="#000" />
-              <Text style={styles.storeText}>Google Play</Text>
+              {Platform.OS === "ios" ? (
+                <AntDesign name="apple1" size={24} color="#000" />
+              ) : (
+                <AntDesign name="apple1" size={24} color="#000" />
+              )}
+              <Text style={styles.storeText}>
+                {Platform.OS !== "ios" ? "App Store" : "Google Play"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -240,6 +230,7 @@ const PropertyCard = ({ property, closeModal }) => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   templateContainer: {
     backgroundColor: "#5a89cc",
