@@ -4,6 +4,9 @@ const Property = require("../Models/Property");
 const AgentSchema = require("../Models/AgentModel");
 const CustomerSchema = require("../Models/Customer");
 const CoreSchema = require("../Models/CoreModel");
+const skillSchema = require("../Models/SkillModel");
+const nriSchema = require("../Models/NriModel");
+const investorSchema = require("../Models/InvestorModel");
 const mongoose = require("mongoose");
 const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
@@ -35,31 +38,7 @@ const createProperty = async (req, res) => {
     }
 
     // Find the user who posted the property
-    const agent = await AgentSchema.findOne({ MobileNumber: PostedBy });
-    const coreUser = await CoreSchema.findOne({ MobileNumber: PostedBy });
-    const customerUser = await CustomerSchema.findOne({ MobileNumber: PostedBy });
-
-    let postedByUser = null;
-    let userType = "";
-
-    if (agent) {
-      postedByUser = agent;
-      userType = "Agent_Wealth_Associate";
-    } else if (coreUser) {
-      postedByUser = coreUser;
-      userType = "CoreMember";
-    } else if (customerUser) {
-      postedByUser = customerUser;
-      userType = "Customer";
-    } else {
-      postedByUser = {
-        MobileNumber: "998877",
-        FullName: "Admin",
-        Email: "",
-        MyRefferalCode: "",
-      };
-      userType = "Admin";
-    }
+   
 
     // Create and save new property
     const newProperty = new Property({
@@ -67,9 +46,8 @@ const createProperty = async (req, res) => {
       location,
       price,
       photo: photoPath,
-      PostedBy: postedByUser.MobileNumber,
+      PostedBy,
       propertyDetails,
-      PostedUserType: userType,
       Constituency,
     });
 
@@ -92,22 +70,7 @@ const createProperty = async (req, res) => {
     }
 
     // Optional: Send data to call center API
-    try {
-      const callCenterResponse = await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/dfbba5ed-861d-488f-9150-24c7d45ac64c/leads",
-        {
-          params: {
-            name: postedByUser.FullName,
-            mobile: postedByUser.MobileNumber,
-            email: postedByUser.Email,
-            detail1: `PropertyType:${propertyType}, Location:${location}, Price:${price}, ReferralCode:${postedByUser.MyRefferalCode}`,
-          },
-        }
-      );
-      console.log("Call center API response:", callCenterResponse.data);
-    } catch (apiError) {
-      console.error("Failed to call call center API:", apiError.message);
-    }
+    
 
     return res.status(200).json({
       message: "Property added and assigned successfully",

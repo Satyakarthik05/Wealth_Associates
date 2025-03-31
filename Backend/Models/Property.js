@@ -6,7 +6,7 @@ const propertySchema = new mongoose.Schema(
     location: { type: String, required: true },
     price: { type: String, required: true },
     photo: { type: String, required: true },
-    PostedBy: { type: Number, required: true },
+    PostedBy: { type: String, required: true },
     propertyDetails: { type: String,  },
     Constituency: { type: String },
     PostedUserType: { type: String },

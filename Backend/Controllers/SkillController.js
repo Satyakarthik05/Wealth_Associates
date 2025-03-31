@@ -55,6 +55,7 @@ const registerSkilledLabour = async (req, res) => {
         .status(400)
         .json({ message: "Mobile number already registered" });
     }
+    const Password= "wa1234"
 
     const newLabour = new SkilledLabour({
       FullName,
@@ -94,7 +95,7 @@ const SkillLogin = async (req, res) => {
     });
 
     if (!fetchSkill) {
-      res.status(400).json({ message: "SkilledLAbour not found" });
+      res.status(400).json({ message: "SkilledResource not found" });
     } else {
       const token = await jwt.sign({ SkillId: fetchSkill._id }, secret, {
         expiresIn: "30d",

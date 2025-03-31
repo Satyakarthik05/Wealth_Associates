@@ -163,6 +163,25 @@ const fetchReferredCustomers = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+const fetchReferredcusCustomers = async (req, res) => {
+  try {
+    const authenticatedAgent = await CustomerSchema.findById(req.CustomerId);
+    if (!authenticatedAgent) {
+      return res.status(404).json({ error: "Authenticated agent not found" });
+    }
+
+    const myReferralCode = authenticatedAgent.MyRefferalCode;
+
+    const referredAgents = await CustomerSchema.find({
+      ReferredBy: myReferralCode,
+    });
+
+    res.status(200).json({ message: "Your Agents", referredAgents });
+  } catch (error) {
+    console.error("Error fetching referred agents:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 const customerLogin = async (req, res) => {
   const { MobileNumber, Password } = req.body;
@@ -321,6 +340,7 @@ const callDone = async (req, res) => {
 module.exports = {
   CustomerSign,
   fetchReferredCustomers,
+  fetchReferredcusCustomers,
   customerLogin,
   getCustomer,
   getAllCustomers,
