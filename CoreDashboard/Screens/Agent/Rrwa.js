@@ -510,6 +510,7 @@ const RegisterEx = ({ closeModal }) => {
                         setShowExperienceList(false);
                       }}
                       value={referralCode}
+                      editable={false}
                     />
                     <MaterialIcons
                       name="card-giftcard"

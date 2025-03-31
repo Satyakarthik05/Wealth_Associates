@@ -105,6 +105,7 @@ const AddCallExecutive = ({ closeModal, fetchCallExecutives }) => {
             <Picker.Item label="Customers" value="Customers" />
             <Picker.Item label="Property" value="Property" />
             <Picker.Item label="ExpertPanel" value="ExpertPanel" />
+            <Picker.Item label="ALL" value="ALL" />
           </Picker>
         </View>
 

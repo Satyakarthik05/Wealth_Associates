@@ -7,6 +7,8 @@ import {
   Image,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,40 +20,84 @@ export default function ViewSkilledLabours() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSkilledLabours = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("No token found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(
-          `${API_URL}/skillLabour/getmyskilllabour`,
-          {
-            method: "GET",
-            headers: {
-              token: `${token}` || "",
-            },
-          }
-        );
-
-        const data = await response.json();
-        if (response.ok && Array.isArray(data.data)) {
-          setAgents(data.data);
-        } else {
-          setAgents([]);
-        }
-      } catch (error) {
-        console.error("Error fetching agents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSkilledLabours();
   }, []);
+
+  const fetchSkilledLabours = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/skillLabour/getmyskilllabour`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok && Array.isArray(data.data)) {
+        setAgents(data.data);
+      } else {
+        setAgents([]);
+      }
+    } catch (error) {
+      console.error("Error fetching agents:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("No token found in AsyncStorage");
+        return;
+      }
+
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this skilled labor?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Delete",
+            onPress: async () => {
+              const response = await fetch(
+                `${API_URL}/skillLabour/delete/${id}`,
+                {
+                  method: "DELETE",
+                  headers: {
+                    token: `${token}` || "",
+                  },
+                }
+              );
+
+              if (response.ok) {
+                // Remove the deleted item from the state
+                setAgents(agents.filter((agent) => agent._id !== id));
+                Alert.alert("Success", "Skilled labor deleted successfully");
+              } else {
+                const errorData = await response.json();
+                Alert.alert("Error", errorData.message || "Failed to delete");
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error deleting skilled labor:", error);
+      Alert.alert("Error", "An error occurred while deleting");
+    }
+  };
 
   const renderAgentCard = (item) => (
     <View key={item._id} style={styles.card}>
@@ -77,6 +123,13 @@ export default function ViewSkilledLabours() {
           <Text style={styles.label}>Location</Text>
           <Text style={styles.value}>: {item.Location}</Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item._id)}
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -167,5 +220,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: "#888",
+  },
+  deleteButton: {
+    marginTop: 10,
+    backgroundColor: "#ff4444",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: "flex-end",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });

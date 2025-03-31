@@ -412,7 +412,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-        {regularProperties.length > 0 && (
+        {/* {regularProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Regular Properties</Text>
             <ScrollView
@@ -492,7 +492,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               })}
             </ScrollView>
           </>
-        )}
+        )} */}
         {approvedProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Approved Properties</Text>

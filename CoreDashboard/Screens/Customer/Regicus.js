@@ -391,6 +391,7 @@ const RegisterExecute = ({ closeModal }) => {
                 onChangeText={setReferralCode}
                 editable={false}
                 value={referralCode}
+                editable={false}
               />
             </View>
           </View>
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   container: {
-    marginTop:"30%",
+    marginTop: "30%",
     backgroundColor: "white",
     padding: 30,
     borderRadius: 30,

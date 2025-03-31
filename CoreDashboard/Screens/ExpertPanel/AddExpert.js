@@ -12,6 +12,8 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
@@ -173,6 +175,7 @@ const AddExpertForm = ({ closeModal }) => {
         );
 
         setConstituencies(allConstituencies);
+        setFilteredConstituencies(allConstituencies);
       } catch (error) {
         console.error("Error fetching constituencies:", error);
         Alert.alert("Error", "Failed to load location data");
@@ -199,10 +202,36 @@ const AddExpertForm = ({ closeModal }) => {
     if (key === "expertType") {
       setAdditionalFields({});
     }
+
+    // Filter constituencies based on input
+    if (key === "location") {
+      const filtered = constituencies.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredConstituencies(filtered);
+    }
+
+    // Filter expert types based on input
+    if (key === "expertType") {
+      const filtered = expertTypes.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredExpertTypes(filtered);
+    }
   };
 
   const handleAdditionalFieldChange = (key, value) => {
     setAdditionalFields({ ...additionalFields, [key]: value });
+  };
+
+  const selectConstituency = (item) => {
+    setForm({ ...form, location: item.name });
+    setShowLocationDropdown(false);
+  };
+
+  const selectExpertType = (item) => {
+    setForm({ ...form, expertType: item });
+    setShowExpertTypeDropdown(false);
   };
 
   // Select image from gallery
@@ -359,6 +388,24 @@ const AddExpertForm = ({ closeModal }) => {
       setLoading(false);
     }
   };
+
+  const renderConstituencyItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectConstituency(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderExpertTypeItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectExpertType(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.overlay}>
@@ -753,6 +800,27 @@ const styles = StyleSheet.create({
     color: "#E91E63",
     marginBottom: 10,
     textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  dropdownContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    maxHeight: 300,
+    width: "80%",
+    padding: 10,
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
   },
 });
 

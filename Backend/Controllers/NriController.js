@@ -56,7 +56,7 @@ const NRIMemberSign = async (req, res) => {
     if (existingMember) {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
-
+    const Password= "wa1234"
     const newMember = new NRIMember({
       Name,
       Password: "wa1234",

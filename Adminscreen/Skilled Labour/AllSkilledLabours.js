@@ -18,8 +18,10 @@ const { width } = Dimensions.get("window");
 
 export default function AllSkilledLabours() {
   const [agents, setAgents] = useState([]);
+  const [filteredAgents, setFilteredAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [formData, setFormData] = useState({
     FullName: "",
@@ -27,18 +29,18 @@ export default function AllSkilledLabours() {
     MobileNumber: "",
     Location: "",
   });
+  const [filters, setFilters] = useState({
+    location: "",
+    skill: "",
+  });
+  const [uniqueLocations, setUniqueLocations] = useState([]);
+  const [uniqueSkills, setUniqueSkills] = useState([]);
 
   // Fetch skilled labours
   useEffect(() => {
     const fetchSkilledLabours = async () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("No token found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
-
         const response = await fetch(`${API_URL}/skillLabour/list`, {
           method: "GET",
           headers: {
@@ -49,8 +51,18 @@ export default function AllSkilledLabours() {
         const data = await response.json();
         if (response.ok && Array.isArray(data.skilledLabours)) {
           setAgents(data.skilledLabours);
+          setFilteredAgents(data.skilledLabours);
+          
+          // Extract unique locations
+          const locations = [...new Set(data.skilledLabours.map(item => item.Location))];
+          setUniqueLocations(locations);
+          
+          // Extract unique skills
+          const skills = [...new Set(data.skilledLabours.map(item => item.SelectSkill))];
+          setUniqueSkills(skills);
         } else {
           setAgents([]);
+          setFilteredAgents([]);
         }
       } catch (error) {
         console.error("Error fetching agents:", error);
@@ -61,6 +73,21 @@ export default function AllSkilledLabours() {
 
     fetchSkilledLabours();
   }, []);
+
+  // Apply filters when they change
+  useEffect(() => {
+    let result = [...agents];
+    
+    if (filters.location) {
+      result = result.filter(item => item.Location === filters.location);
+    }
+    
+    if (filters.skill) {
+      result = result.filter(item => item.SelectSkill === filters.skill);
+    }
+    
+    setFilteredAgents(result);
+  }, [filters, agents]);
 
   // Handle delete
   const handleDelete = async (id) => {
@@ -135,13 +162,32 @@ export default function AllSkilledLabours() {
             agent._id === updatedAgent._id ? updatedAgent : agent
           )
         );
-        setEditModalVisible(false); // Close the modal
+        setEditModalVisible(false);
       } else {
         console.error("Failed to update agent");
       }
     } catch (error) {
       console.error("Error updating agent:", error);
     }
+  };
+
+  // Handle filter change
+  const handleFilterChange = (name, value) => {
+    setFilters({ ...filters, [name]: value });
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setFilters({
+      location: "",
+      skill: "",
+    });
+    setFilterModalVisible(false);
+  };
+
+  // Apply filters
+  const applyFilters = () => {
+    setFilterModalVisible(false);
   };
 
   // Render agent card
@@ -185,16 +231,25 @@ export default function AllSkilledLabours() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.heading}>Skilled Resource</Text>
+      <View style={styles.header}>
+        <Text style={styles.heading}>Skilled Resource</Text>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setFilterModalVisible(true)}
+        >
+          <Text style={styles.filterButtonText}>Filter</Text>
+        </TouchableOpacity>
+      </View>
+      
       <ScrollView contentContainerStyle={styles.gridContainer}>
         {loading ? (
           <Text style={styles.emptyText}>Loading...</Text>
-        ) : agents.length > 0 ? (
+        ) : filteredAgents.length > 0 ? (
           <View style={width > 600 ? styles.rowWrapper : null}>
-            {agents.map((item) => renderAgentCard(item))}
+            {filteredAgents.map((item) => renderAgentCard(item))}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No skilled Resouces found.</Text>
+          <Text style={styles.emptyText}>No skilled Resources found.</Text>
         )}
       </ScrollView>
 
@@ -248,6 +303,84 @@ export default function AllSkilledLabours() {
           </View>
         </View>
       </Modal>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={filterModalVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filter Skilled Resources</Text>
+            
+            <Text style={styles.filterLabel}>Location:</Text>
+            <View style={styles.filterOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.filterOption,
+                  filters.location === "" && styles.selectedFilterOption
+                ]}
+                onPress={() => handleFilterChange("location", "")}
+              >
+                <Text style={styles.filterOptionText}>All Locations</Text>
+              </TouchableOpacity>
+              {uniqueLocations.map((location) => (
+                <TouchableOpacity
+                  key={location}
+                  style={[
+                    styles.filterOption,
+                    filters.location === location && styles.selectedFilterOption
+                  ]}
+                  onPress={() => handleFilterChange("location", location)}
+                >
+                  <Text style={styles.filterOptionText}>{location}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <Text style={styles.filterLabel}>Skill Type:</Text>
+            <View style={styles.filterOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.filterOption,
+                  filters.skill === "" && styles.selectedFilterOption
+                ]}
+                onPress={() => handleFilterChange("skill", "")}
+              >
+                <Text style={styles.filterOptionText}>All Skills</Text>
+              </TouchableOpacity>
+              {uniqueSkills.map((skill) => (
+                <TouchableOpacity
+                  key={skill}
+                  style={[
+                    styles.filterOption,
+                    filters.skill === skill && styles.selectedFilterOption
+                  ]}
+                  onPress={() => handleFilterChange("skill", skill)}
+                >
+                  <Text style={styles.filterOptionText}>{skill}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={resetFilters}
+              >
+                <Text style={styles.buttonText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.saveButton]}
+                onPress={applyFilters}
+              >
+                <Text style={styles.buttonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -258,12 +391,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     paddingHorizontal: 10,
   },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingRight: 10,
+  },
   heading: {
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "left",
     marginVertical: 15,
     paddingLeft: 10,
+  },
+  filterButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  filterButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   gridContainer: {
     alignItems: "center",
@@ -352,10 +501,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "50%",
+    width: width > 600 ? "60%" : "90%",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
+    maxHeight: "80%",
   },
   modalTitle: {
     fontSize: 18,
@@ -373,6 +523,7 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 10,
   },
   cancelButton: {
     backgroundColor: "#F44336",
@@ -387,5 +538,27 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     flex: 1,
     marginLeft: 10,
+  },
+  filterLabel: {
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  filterOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 15,
+  },
+  filterOption: {
+    padding: 8,
+    margin: 4,
+    borderRadius: 5,
+    backgroundColor: "#e0e0e0",
+  },
+  selectedFilterOption: {
+    backgroundColor: "#2196F3",
+  },
+  filterOptionText: {
+    color: "#000",
   },
 });

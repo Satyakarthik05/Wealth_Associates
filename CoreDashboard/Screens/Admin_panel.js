@@ -409,6 +409,7 @@ const Admin_panel = () => {
             setIsRegionVisible(false);
             setIsRegiValueVisible(false);
             setIsAddExpertVisible(false);
+            setAllSkilledLabour(false);
           }}
         >
           <Image source={logo} style={styles.logo} />
@@ -446,6 +447,7 @@ const Admin_panel = () => {
                 setIsRegionVisible(false);
                 setIsRegiValueVisible(false);
                 setIsAddExpertVisible(false);
+                setAllSkilledLabour(false);
               }}
             />
           </View>

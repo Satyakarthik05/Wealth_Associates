@@ -15,6 +15,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import logo from "../../../assets/logo.png";
 import { FontAwesome5, AntDesign } from "@expo/vector-icons";
@@ -92,6 +93,7 @@ const PropertyCard = ({ property, closeModal }) => {
 
     try {
       // Capture the view as an image
+      // Capture the view as an image
       const uri = await viewShotRef.current.capture({
         format: "jpg",
         quality: 0.9,
@@ -101,6 +103,24 @@ const PropertyCard = ({ property, closeModal }) => {
         throw new Error("Failed to capture image");
       }
 
+      // Ensure file is saved locally
+      const fileUri = FileSystem.cacheDirectory + "shared-property.jpg";
+      await FileSystem.copyAsync({
+        from: uri,
+        to: fileUri,
+      });
+
+      // Check if sharing is available on the device
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert(
+          "Sharing Not Supported",
+          "Update your device to enable sharing."
+        );
+        return;
+      }
+
+      // Share the image with caption
       // Ensure file is saved locally
       const fileUri = FileSystem.cacheDirectory + "shared-property.jpg";
       await FileSystem.copyAsync({
@@ -129,6 +149,12 @@ const PropertyCard = ({ property, closeModal }) => {
           : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
       }`;
 
+      await Sharing.shareAsync(fileUri, {
+        dialogTitle: "Property For Sale",
+        mimeType: "image/jpeg",
+        UTI: "image/jpeg", // For iOS
+        message: message,
+      });
       await Sharing.shareAsync(fileUri, {
         dialogTitle: "Property For Sale",
         mimeType: "image/jpeg",

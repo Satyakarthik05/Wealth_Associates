@@ -1,24 +1,37 @@
 import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   TextInput,
+  TextInput,
   TouchableOpacity,
+  Image,
   Image,
   StyleSheet,
   Platform,
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
+  Dimensions,
+  KeyboardAvoidingView,
+  ScrollView,
   ActivityIndicator,
+  Modal,
   Modal,
   Animated,
 } from "react-native";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../../data/ApiUrl";
+import { Button } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
+import { API_URL } from "../../../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropertyCard from "./PropertyCard";
+
+const { width } = Dimensions.get("window");
 import PropertyCard from "./PropertyCard";
 
 const { width } = Dimensions.get("window");
@@ -224,9 +237,38 @@ const PostProperty = ({ closeModal }) => {
 
       if (status !== "granted") {
         alert("Camera permission is required to take a photo.");
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setPhoto(result.assets[0].uri);
+        }
+      }
+    } catch (error) {
+      console.error("Error selecting image:", error);
+    }
+  };
+
+  const takePhotoWithCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        alert("Camera permission is required to take a photo.");
         return;
       }
 
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
+      }
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -255,11 +297,18 @@ const PostProperty = ({ closeModal }) => {
   };
 
   const handleClosePropertyModal = () => {
+  const handleClosePropertyModal = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
+      setModalVisible(false);
+      setPostedProperty(null);
+      setTimeout(() => {
+        alert("property posted successfully");
+        closeModal();
+      }, 100);
       setModalVisible(false);
       setPostedProperty(null);
       setTimeout(() => {
@@ -415,18 +464,28 @@ const PostProperty = ({ closeModal }) => {
               style={[styles.postButton, loading && styles.disabledButton]}
               onPress={handlePost}
               disabled={loading}
+              style={[styles.postButton, loading && styles.disabledButton]}
+              onPress={handlePost}
+              disabled={loading}
             >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.postButtonText}>Post Property</Text>
               )}
+                <Text style={styles.postButtonText}>Post Property</Text>
+              )}
             </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
+      </ScrollView>
       </ScrollView>
 
       <Modal
@@ -445,9 +504,13 @@ const PostProperty = ({ closeModal }) => {
         </Animated.View>
       </Modal>
     </KeyboardAvoidingView>
+        </Animated.View>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     marginTop: Platform.OS === "ios" ? 90 : 0,
@@ -459,7 +522,13 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
   },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
   title: {
     fontSize: 26,
     fontWeight: "bold",
@@ -551,8 +620,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   uploadPlaceholderText: {
+  uploadPlaceholderText: {
     fontSize: 14,
     color: "#555",
+    marginTop: 8,
+  },
+  removeButton: {
+    marginTop: 10,
+    borderColor: "#D81B60",
     marginTop: 8,
   },
   removeButton: {
@@ -563,7 +638,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 25,
+    marginTop: 25,
   },
+  postButton: {
+    flex: 1,
+    marginRight: 10,
+    backgroundColor: "#D81B60",
   postButton: {
     flex: 1,
     marginRight: 10,
@@ -571,13 +651,25 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 14,
     elevation: 2,
+    paddingVertical: 14,
+    elevation: 2,
   },
+  postButtonText: {
+    color: "#fff",
   postButtonText: {
     color: "#fff",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
+    fontWeight: "bold",
   },
+  cancelButton: {
+    flex: 1,
+    marginLeft: 10,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    paddingVertical: 14,
+    elevation: 2,
   cancelButton: {
     flex: 1,
     marginLeft: 10,
@@ -588,9 +680,16 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#fff",
+  cancelButtonText: {
+    color: "#fff",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -5,
   },
   errorText: {
     color: "red",
@@ -600,13 +699,20 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: "#aaa",
+  disabledButton: {
+    backgroundColor: "#aaa",
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
+export default PostProperty;
 export default PostProperty;

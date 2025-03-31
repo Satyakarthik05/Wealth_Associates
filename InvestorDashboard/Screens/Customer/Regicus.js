@@ -513,6 +513,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 5,
+    backgroundColor:"#e6708e"
   },
   scrollView: {
     maxHeight: 200,

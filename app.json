@@ -18,7 +18,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "ios":"1.2.1"
+      "ios": "1.2.1"
     },
     "android": {
       "usesCleartextTraffic": true,
@@ -31,6 +31,17 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "INTERNET"
+      ],
+      "intentFilters": [
+        {
+          "action": "android.intent.action.SEND",
+          "data": {
+            "mimeType": "image/*"
+          },
+          "category": [
+            "android.intent.category.DEFAULT"
+          ]
+        }
       ],
       "package": "com.wealthassociates.alpha"
     },

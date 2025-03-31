@@ -64,7 +64,9 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
         },
         body: JSON.stringify({
           Name: Details.FullName ? Details.FullName : "name",
-          MobileNumber: Details.MobileIN ? Details.MobileIN : "MobileNumber",
+          MobileNumber: Details.MobileIN
+            ? Details.MobileIN
+            : "MobileNumber",
           ExpertType: expertType,
           ExpertName: expert.name,
           ExpertNo: expert.mobile,

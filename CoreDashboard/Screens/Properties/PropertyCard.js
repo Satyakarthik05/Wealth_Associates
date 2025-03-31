@@ -255,7 +255,7 @@ const PropertyCard = ({ property, closeModal }) => {
                 <FontAwesome5 name="google-play" size={24} color="#000" />
               )}
               <Text style={styles.storeText}>
-                {Platform.OS === "ios" ? "App Store" : "Google Play"}
+                {Platform.OS !== "ios" ? "App Store" : "Google Play"}
               </Text>
             </TouchableOpacity>
 

@@ -11,15 +11,12 @@ import {
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import logo1 from "../../Admin_Pan/assets/man.png"
+import logo1 from "../../Admin_Pan/assets/man.png";
 
 const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
   return (
     <View style={styles.card}>
-      <Image
-        source={logo1}
-        style={styles.avatar}
-      />
+      <Image source={logo1} style={styles.avatar} />
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <Text style={styles.label}>Name:</Text>
@@ -29,6 +26,14 @@ const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
         <View style={styles.row}>
           <Text style={styles.label}>Mobile:</Text>
           <Text style={styles.value}>{viewNri.MobileIN}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>CountryNumber:</Text>
+          <Text style={styles.value}>{viewNri.MobileCountryNo}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Country:</Text>
+          <Text style={styles.value}>{viewNri.Country}</Text>
         </View>
 
         <View style={styles.row}>
@@ -48,12 +53,12 @@ const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.editButton}
           onPress={() => onEdit(viewNri)}
         >
           <Text style={styles.buttonText}>Edit</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => onDelete(viewNri._id)}
@@ -169,7 +174,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginVertical: 10,
     width: 280,
-    height: 320,
+    height: 370,
     justifyContent: "space-between",
     marginHorizontal: 10,
   },

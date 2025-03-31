@@ -78,7 +78,6 @@ const RegisterValue = ({ closeModal }) => {
     fetchDistrictsAndConstituencies();
     fetchExpertise();
   }, []);
-
   const experienceOptions = [
     { name: "0-1 years", code: "01" },
     { name: "1-3 years", code: "02" },
@@ -509,6 +508,7 @@ const RegisterValue = ({ closeModal }) => {
                         setShowExperienceList(false);
                       }}
                       value={referralCode}
+                      editable={false}
                     />
                     <MaterialIcons
                       name="card-giftcard"

@@ -191,62 +191,59 @@ const CallCenterDashboard = () => {
       ];
 
       // Add role-specific menu items
-      if (userDetails.assignedType === "Customer") {
-        baseMenuItems.push({
-          title: "Customers",
-          icon: "people-outline",
-          subItems: ["View Customers"],
-        });
-      } else if (userDetails.assignedType === "Agent") {
-        baseMenuItems.push({
-          title: "Agents",
-          icon: "person-outline",
-          subItems: ["View Agents"],
-        });
-      } else if (userDetails.assignedType === "Property") {
-        baseMenuItems.push({
-          title: "Properties",
-          icon: "home-outline",
-          subItems: [
-            "View Posted Properties",
-            "View Requested Properties",
-            "ViewApprovedProperties",
-          ],
-        });
-      } else if (userDetails.assignedType === "ExpertPanel") {
-        baseMenuItems.push({
-          title: "Expert Panel",
-          icon: "cog-outline",
-          subItems: ["Expert Panel Requests"],
-        });
-      } else {
-        // Admin or full access
-        baseMenuItems.push(
-          {
+      switch (userDetails.assignedType) {
+        case "Agent_Wealth_Associate":
+          baseMenuItems.push({
             title: "Agents",
             icon: "person-outline",
             subItems: ["View Agents"],
-          },
-          {
+          });
+          break;
+        case "Customers":
+          baseMenuItems.push({
             title: "Customers",
             icon: "people-outline",
             subItems: ["View Customers"],
-          },
-          {
+          });
+          break;
+        case "Property":
+          baseMenuItems.push({
             title: "Properties",
             icon: "home-outline",
-            subItems: [
-              "View Posted Properties",
-              "View Requested Properties",
-              "ViewApprovedProperties",
-            ],
-          },
-          {
+            subItems: ["View Posted Properties", "View Requested Properties"],
+          });
+          break;
+        case "ExpertPanel":
+          baseMenuItems.push({
             title: "Expert Panel",
             icon: "cog-outline",
             subItems: ["Expert Panel Requests"],
-          }
-        );
+          });
+          break;
+        default:
+          // Admin or full access
+          baseMenuItems.push(
+            {
+              title: "Agents",
+              icon: "person-outline",
+              subItems: ["View Agents"],
+            },
+            {
+              title: "Customers",
+              icon: "people-outline",
+              subItems: ["View Customers"],
+            },
+            {
+              title: "Properties",
+              icon: "home-outline",
+              subItems: ["View Posted Properties", "View Requested Properties"],
+            },
+            {
+              title: "Expert Panel",
+              icon: "cog-outline",
+              subItems: ["Expert Panel Requests"],
+            }
+          );
       }
 
       // Add View section that everyone can see

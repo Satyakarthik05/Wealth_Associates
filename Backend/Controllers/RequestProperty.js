@@ -23,9 +23,6 @@ const PropertyRequest = async (req, res) => {
     } else {
       agent = await Agent.findOne({ MobileNumber: PostedBy });
 
-      if (!agent) {
-        return res.status(404).json({ message: "Agent not found." });
-      }
     }
 
     const newRequestProperty = new RequestProperty({
@@ -38,24 +35,9 @@ const PropertyRequest = async (req, res) => {
 
     await newRequestProperty.save();
 
-    // Call center API integration
-    try {
-      await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/e811c9e8-53b4-457f-8c09-e4511b22c584/leads",
-        {
-          params: {
-            name: agent.FullName,
-            mobile: agent.MobileNumber,
-            email: agent.Email || "wealthassociation.com@gmail.com",
-            detail1: `PropertyType:${propertyType},Location:${location},Budget:${Budget}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to call call center API:", error.message);
-    }
+    
 
-    // Push notification to all users
+    
     try {
       const allTokens = await PushToken.find({});
 

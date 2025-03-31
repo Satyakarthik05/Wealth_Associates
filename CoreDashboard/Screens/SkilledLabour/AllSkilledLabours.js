@@ -26,6 +26,11 @@ export default function AllSkilledLabours() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [availableSkills, setAvailableSkills] = useState([]);
   const [availableLocations, setAvailableLocations] = useState([]);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [availableLocations, setAvailableLocations] = useState([]);
 
   useEffect(() => {
     const fetchSkilledLabours = async () => {
@@ -160,23 +165,25 @@ export default function AllSkilledLabours() {
               </View>
             </View>
 
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Location:</Text>
-              <View style={styles.filterOptions}>
-                {availableLocations.map((location) => (
-                  <TouchableOpacity
-                    key={location}
-                    style={[
-                      styles.filterOption,
-                      selectedLocation === location && styles.selectedOption,
-                    ]}
-                    onPress={() => setSelectedLocation(location)}
-                  >
-                    <Text>{location}</Text>
-                  </TouchableOpacity>
-                ))}
+            <ScrollView style={{ maxHeight: 200 }}>
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Location:</Text>
+                <View style={styles.filterOptions}>
+                  {availableLocations.map((location) => (
+                    <TouchableOpacity
+                      key={location}
+                      style={[
+                        styles.filterOption,
+                        selectedLocation === location && styles.selectedOption,
+                      ]}
+                      onPress={() => setSelectedLocation(location)}
+                    >
+                      <Text>{location}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            </ScrollView>
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -253,7 +260,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "35%" : "auto",
+    width: width > 600 ? "35%" : "90%",
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",
