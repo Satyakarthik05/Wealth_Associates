@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -13,9 +13,8 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
 
 const AddExpertForm = ({ closeModal }) => {
@@ -37,6 +36,12 @@ const AddExpertForm = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [additionalFields, setAdditionalFields] = useState({});
+
+  // Dropdown states
+  const [locationSearch, setLocationSearch] = useState("");
+  const [expertTypeSearch, setExpertTypeSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [showExpertTypeList, setShowExpertTypeList] = useState(false);
 
   // Expert type specific fields
   const expertFields = {
@@ -134,6 +139,21 @@ const AddExpertForm = ({ closeModal }) => {
     ],
   };
 
+  const expertTypes = [
+    "LEGAL",
+    "REVENUE",
+    "ENGINEERS",
+    "ARCHITECTS",
+    "PLANS & APPROVALS",
+    "VAASTU PANDITS",
+    "LAND SURVEY & VALUERS",
+    "BANKING",
+    "AGRICULTURE",
+    "REGISTRATION & DOCUMENTATION",
+    "AUDITING",
+    "LIAISONING",
+  ];
+
   // Fetch all constituencies
   useEffect(() => {
     const fetchConstituencies = async () => {
@@ -161,6 +181,16 @@ const AddExpertForm = ({ closeModal }) => {
 
     fetchConstituencies();
   }, []);
+
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.filter((item) =>
+    item.name.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
+  // Filter expert types based on search input
+  const filteredExpertTypes = expertTypes.filter((item) =>
+    item.toLowerCase().includes(expertTypeSearch.toLowerCase())
+  );
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
@@ -418,61 +448,83 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             ))}
 
-            {/** Constituency Picker */}
+            {/** Location Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Location (Constituency)</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.location}
-                  style={styles.picker}
-                  onValueChange={(value) => handleChange("location", value)}
-                >
-                  <Picker.Item label="-- Select Constituency --" value="" />
-                  {constituencies.map((constituency) => (
-                    <Picker.Item
-                      key={constituency.name}
-                      label={constituency.name}
-                      value={constituency.name}
-                    />
-                  ))}
-                </Picker>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Constituency"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={locationSearch}
+                  onChangeText={(text) => {
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }}
+                  onFocus={() => {
+                    setShowLocationList(true);
+                    setShowExpertTypeList(false);
+                  }}
+                />
+                {showLocationList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredConstituencies.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("location", item.name);
+                            setLocationSearch(item.name);
+                            setShowLocationList(false);
+                          }}
+                        >
+                          <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
 
-            {/** Expert Type Picker */}
+            {/** Expert Type Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Expert Type</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.expertType}
-                  style={styles.picker}
-                  onValueChange={(itemValue) =>
-                    handleChange("expertType", itemValue)
-                  }
-                >
-                  <Picker.Item label="-- Select Type --" value="" />
-                  <Picker.Item label="LEGAL" value="LEGAL" />
-                  <Picker.Item label="REVENUE" value="REVENUE" />
-                  <Picker.Item label="ENGINEERS" value="ENGINEERS" />
-                  <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
-                  <Picker.Item
-                    label="PLANS & APPROVALS"
-                    value="PLANS & APPROVALS"
-                  />
-                  <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
-                  <Picker.Item
-                    label="LAND SURVEY & VALUERS"
-                    value="LAND SURVEY & VALUERS"
-                  />
-                  <Picker.Item label="BANKING" value="BANKING" />
-                  <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
-                  <Picker.Item
-                    label="REGISTRATION & DOCUMENTATION"
-                    value="REGISTRATION & DOCUMENTATION"
-                  />
-                  <Picker.Item label="AUDITING" value="AUDITING" />
-                  <Picker.Item label="LIAISONING" value="LIAISONING" />
-                </Picker>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Expert Type"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={expertTypeSearch}
+                  onChangeText={(text) => {
+                    setExpertTypeSearch(text);
+                    setShowExpertTypeList(true);
+                  }}
+                  onFocus={() => {
+                    setShowExpertTypeList(true);
+                    setShowLocationList(false);
+                  }}
+                />
+                {showExpertTypeList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredExpertTypes.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("expertType", item);
+                            setExpertTypeSearch(item);
+                            setShowExpertTypeList(false);
+                          }}
+                        >
+                          <Text>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -568,6 +620,12 @@ const styles = StyleSheet.create({
   formGroup: {
     width: "100%",
     marginBottom: 10,
+    position: "relative",
+    zIndex: 1,
+  },
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
   },
   label: {
     fontSize: 14,
@@ -584,18 +642,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#F9F9F9",
   },
-  pickerWrapper: {
-    width: "100%",
-    borderWidth: 1,
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
     borderColor: "#ccc",
-    borderRadius: 25,
-    backgroundColor: "#F9F9F9",
-    overflow: "hidden",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
   },
-  picker: {
-    width: "100%",
-    height: 50,
-    color: "#333",
+  scrollView: {
+    maxHeight: 200,
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   uploadSection: {
     width: "100%",
