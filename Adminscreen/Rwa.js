@@ -296,7 +296,7 @@ const RegisterExecue = ({ closeModal }) => {
             {/* Row 2 */}
             <View style={styles.inputRow}>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select District</Text>
+                <Text style={styles.label}>Select MP Constituency</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     ref={districtRef}
@@ -332,7 +332,7 @@ const RegisterExecue = ({ closeModal }) => {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select MP Constituency</Text>
+                <Text style={styles.label}>Select MLA Constituency</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}
@@ -370,7 +370,7 @@ const RegisterExecue = ({ closeModal }) => {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Select MLA Constituency</Text>
+                <Text style={styles.label}>Select Experience</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.input}

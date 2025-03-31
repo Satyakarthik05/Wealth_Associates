@@ -50,10 +50,10 @@ export default function ViewCustomers() {
 
       const [customersRes, agentsRes, coreMembersRes, districtsRes] =
         await Promise.all([
+          fetch(`${API_URL}/customer/allcustomers`),
           fetch(`${API_URL}/agent/allagents`),
           fetch(`${API_URL}/core/getallcoremembers`),
           fetch(`${API_URL}/alldiscons/alldiscons`),
-          fetch(`${API_URL}/customer/allcustomers`),
         ]);
 
       if (!customersRes.ok) throw new Error("Failed to fetch customers");
@@ -78,7 +78,7 @@ export default function ViewCustomers() {
       setFilteredCustomers(sortedCustomers);
       setAgents(agentsData.data);
       setCoreMembers(coreMembersData.data);
-      setDistricts(districtsData);
+      setDistricts(Array.isArray(districtsData) ? districtsData : []);
 
       loadReferrerNames(sortedCustomers, agentsData.data, coreMembersData.data);
     } catch (error) {
@@ -115,31 +115,26 @@ export default function ViewCustomers() {
   ) => {
     if (!referredByCode) return "N/A";
 
-    // Ensure all parameters are arrays
     const safeCustomers = Array.isArray(customers) ? customers : [];
     const safeAgents = Array.isArray(agents) ? agents : [];
     const safeCoreMembers = Array.isArray(coreMembers) ? coreMembers : [];
 
     try {
-      // Check in customers
       const customerReferrer = safeCustomers.find(
         (c) => c?.MyRefferalCode === referredByCode
       );
       if (customerReferrer) return customerReferrer?.FullName || "Customer";
 
-      // Check in agents
       const agentReferrer = safeAgents.find(
         (a) => a?.MyRefferalCode === referredByCode
       );
       if (agentReferrer) return agentReferrer?.FullName || "Agent";
 
-      // Check in core members
       const coreReferrer = safeCoreMembers.find(
         (m) => m?.MyRefferalCode === referredByCode
       );
       if (coreReferrer) return coreReferrer?.FullName || "Core Member";
 
-      // Special cases
       if (referredByCode === "WA0000000001") return "Wealth Associate";
 
       return "Referrer not found";
@@ -247,7 +242,7 @@ export default function ViewCustomers() {
       CallExecutiveCall: customer.CallExecutiveCall || "",
     });
 
-    if (customer.District) {
+    if (customer.District && Array.isArray(districts)) {
       const selectedDistrict = districts.find(
         (d) => d.parliament === customer.District
       );
@@ -300,12 +295,16 @@ export default function ViewCustomers() {
     }
   };
 
-  const deleteCustomer = (customerId) => {
-    const confirmDelete = () => {
+  const deleteCustomer = async (customerId) => {
+    try {
+      let confirmed = false;
+
       if (Platform.OS === "web") {
-        return window.confirm("Are you sure you want to delete this customer?");
+        confirmed = window.confirm(
+          "Are you sure you want to delete this customer?"
+        );
       } else {
-        return new Promise((resolve) => {
+        confirmed = await new Promise((resolve) => {
           Alert.alert(
             "Confirm Delete",
             "Are you sure you want to delete this customer?",
@@ -324,30 +323,26 @@ export default function ViewCustomers() {
           );
         });
       }
-    };
 
-    confirmDelete().then(async (confirmed) => {
       if (!confirmed) return;
 
-      try {
-        const response = await fetch(
-          `${API_URL}/customer/deletecustomer/${customerId}`,
-          {
-            method: "DELETE",
-          }
-        );
+      const response = await fetch(
+        `${API_URL}/customer/deletecustomer/${customerId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-        if (!response.ok) throw new Error("Failed to delete customer");
+      if (!response.ok) throw new Error("Failed to delete customer");
 
-        setCustomers((prevCustomers) =>
-          prevCustomers.filter((customer) => customer._id !== customerId)
-        );
-        Alert.alert("Success", "Customer deleted successfully");
-      } catch (error) {
-        console.error("Delete error:", error);
-        Alert.alert("Error", "Failed to delete customer");
-      }
-    });
+      setCustomers((prevCustomers) =>
+        prevCustomers.filter((customer) => customer._id !== customerId)
+      );
+      Alert.alert("Success", "Customer deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      Alert.alert("Error", "Failed to delete customer");
+    }
   };
 
   const handleDistrictChange = (district) => {
@@ -356,6 +351,12 @@ export default function ViewCustomers() {
       District: district,
       Contituency: "",
     });
+
+    if (!Array.isArray(districts)) {
+      setConstituencies([]);
+      return;
+    }
+
     const districtData = districts.find((d) => d.parliament === district);
     setConstituencies(districtData?.assemblies || []);
   };
@@ -574,13 +575,14 @@ export default function ViewCustomers() {
                 dropdownIconColor="#000"
               >
                 <Picker.Item label="Select District" value="" />
-                {districts.map((district) => (
-                  <Picker.Item
-                    key={district.parliament}
-                    label={district.parliament}
-                    value={district.parliament}
-                  />
-                ))}
+                {Array.isArray(districts) &&
+                  districts.map((district) => (
+                    <Picker.Item
+                      key={district.parliament}
+                      label={district.parliament}
+                      value={district.parliament}
+                    />
+                  ))}
               </Picker>
             </View>
 
@@ -599,13 +601,14 @@ export default function ViewCustomers() {
                 enabled={!!editedCustomer.District}
               >
                 <Picker.Item label="Select Constituency" value="" />
-                {constituencies.map((constituency) => (
-                  <Picker.Item
-                    key={constituency.name}
-                    label={constituency.name}
-                    value={constituency.name}
-                  />
-                ))}
+                {Array.isArray(constituencies) &&
+                  constituencies.map((constituency) => (
+                    <Picker.Item
+                      key={constituency.name}
+                      label={constituency.name}
+                      value={constituency.name}
+                    />
+                  ))}
               </Picker>
             </View>
 

@@ -35,7 +35,6 @@ import AddNRI from "../NRI/AddNri";
 import AddSkilled from "../SkilledLabour/Rskill";
 import PropertyCards from "../Properties/PropertyCards";
 
-
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
 
@@ -202,7 +201,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10));
+        setProperties(data);
         fetchPropertiess();
       } else {
         console.warn("API returned empty data.");

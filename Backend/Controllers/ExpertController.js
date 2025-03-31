@@ -2,7 +2,103 @@ const expertModel = require("../Models/ExpertModel");
 
 const registerExpert = async (req, res) => {
   try {
-    const { Name, Experttype, Qualification, Experience, Locations, Mobile } = req.body;
+    // Destructure all possible fields from req.body
+    const {
+      // Common fields for all experts
+      name,
+      expertType,
+      qualification,
+      experience,
+      location,
+      mobile,
+      officeAddress,
+      
+      // Legal Expert fields
+      specialization,
+      barCouncilId,
+      courtAffiliation,
+      lawFirmOrganisation,
+      
+      // Revenue Expert fields
+      landTypeExpertise,
+      revenueSpecialisation,
+      govtApproval,
+      certificationLicenseNumber,
+      revenueOrganisation,
+      keyServicesProvided,
+      
+      // Engineers fields
+      engineeringField,
+      engineerCertifications,
+      projectsHandled,
+      engineerOrganisation,
+      specializedSkillsTechnologies,
+      majorProjectsWorkedOn,
+      govtLicensed,
+      
+      // Architects fields
+      architectureType,
+      softwareUsed,
+      architectLicenseNumber,
+      architectFirm,
+      architectMajorProjects,
+      
+      // Survey fields
+      surveyType,
+      govtCertified,
+      surveyOrganisation,
+      surveyLicenseNumber,
+      surveyMajorProjects,
+      
+      // Vaastu Pandits fields
+      vaastuSpecialization,
+      vaastuOrganisation,
+      vaastuCertifications,
+      remediesProvided,
+      consultationMode,
+      
+      // Land Valuers fields
+      valuationType,
+      govtApproved,
+      valuerLicenseNumber,
+      valuerOrganisation,
+      valuationMethods,
+      
+      // Banking fields
+      bankingSpecialisation,
+      bankingService,
+      registeredWith,
+      bankName,
+      bankingGovtApproved,
+      
+      // Agriculture fields
+      agricultureType,
+      agricultureCertifications,
+      agricultureOrganisation,
+      servicesProvided,
+      typesOfCrops,
+      
+      // Registration & Documentation fields
+      registrationSpecialisation,
+      documentType,
+      processingTime,
+      registrationGovtCertified,
+      additionalServices,
+      
+      // Auditing fields
+      auditingSpecialisation,
+      auditType,
+      auditCertificationNumber,
+      auditOrganisation,
+      auditServices,
+      auditGovtCertified,
+      
+      // Licensing fields
+      licensingSpecialisations,
+      licensingCertificationNumber,
+      licensingOrganisation,
+      licensingServicesProvided
+    } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "Photo is required." });
@@ -10,32 +106,166 @@ const registerExpert = async (req, res) => {
 
     const photoPath = `/ExpertMembers/${req.file.filename}`;
     
-    const newExpert = new expertModel({
-      Name,
-      Experttype,
-      Qualification,
-      Experience,
-      Locations,
-      Mobile,
-      photo: photoPath,
-    });
+    // Create base expert object with common fields
+    const expertData = {
+      // Common fields
+      name,
+      expertType,
+      qualification,
+      experience,
+      location,
+      mobile,
+      officeAddress,
+      photo: photoPath
+    };
 
-    await newExpert.save(); // Don't forget await here
+    // Add expert-type-specific fields based on expertType
+    switch(expertType) {
+      case 'Legal':
+        Object.assign(expertData, {
+          specialization,
+          barCouncilId,
+          courtAffiliation,
+          lawFirmOrganisation
+        });
+        break;
+        
+      case 'Revenue':
+        Object.assign(expertData, {
+          landTypeExpertise,
+          revenueSpecialisation,
+          govtApproval,
+          certificationLicenseNumber,
+          revenueOrganisation,
+          keyServicesProvided
+        });
+        break;
+        
+      case 'Engineers':
+        Object.assign(expertData, {
+          engineeringField,
+          certifications: engineerCertifications,
+          projectsHandled,
+          engineerOrganisation,
+          specializedSkillsTechnologies,
+          majorProjectsWorkedOn,
+          govtLicensed
+        });
+        break;
+        
+      case 'Architects':
+        Object.assign(expertData, {
+          architectureType,
+          softwareUsed,
+          architectLicenseNumber,
+          architectFirm,
+          architectMajorProjects
+        });
+        break;
+        
+      case 'Survey':
+        Object.assign(expertData, {
+          surveyType,
+          govtCertified,
+          surveyOrganisation,
+          surveyLicenseNumber,
+          surveyMajorProjects
+        });
+        break;
+        
+      case 'VaastuPandits':
+        Object.assign(expertData, {
+          vaastuSpecialization,
+          vaastuOrganisation,
+          vaastuCertifications,
+          remediesProvided,
+          consultationMode
+        });
+        break;
+        
+      case 'LandValuers':
+        Object.assign(expertData, {
+          valuationType,
+          govtApproved,
+          valuerLicenseNumber,
+          valuerOrganisation,
+          valuationMethods
+        });
+        break;
+        
+      case 'Banking':
+        Object.assign(expertData, {
+          bankingSpecialisation,
+          bankingService,
+          registeredWith,
+          bankName,
+          bankingGovtApproved
+        });
+        break;
+        
+      case 'Agriculture':
+        Object.assign(expertData, {
+          agricultureType,
+          agricultureCertifications,
+          agricultureOrganisation,
+          servicesProvided,
+          typesOfCrops
+        });
+        break;
+        
+      case 'RegistrationAndDocumentation':
+        Object.assign(expertData, {
+          registrationSpecialisation,
+          documentType,
+          processingTime,
+          registrationGovtCertified,
+          additionalServices
+        });
+        break;
+        
+      case 'Auditing':
+        Object.assign(expertData, {
+          auditingSpecialisation,
+          auditType,
+          auditCertificationNumber,
+          auditOrganisation,
+          auditServices,
+          auditGovtCertified
+        });
+        break;
+        
+      case 'Licensing':
+        Object.assign(expertData, {
+          licensingSpecialisations,
+          licensingCertificationNumber,
+          licensingOrganisation,
+          licensingServicesProvided
+        });
+        break;
+    }
 
-    res.status(200).json({ 
-      message: "Expert Registered successfully",
+    const newExpert = new expertModel(expertData);
+    await newExpert.save();
+
+    res.status(201).json({ 
+      success: true,
+      message: "Expert registered successfully",
       expert: newExpert 
     });
+    
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ message: "Error registering expert" });
+    console.error("Expert registration error:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error registering expert",
+      error: error.message 
+    });
   }
 };
-
 const getExpertsByType = async (req, res) => {
   try {
     const { expertType } = req.params;
-    const experts = await expertModel.find({ Experttype: expertType });
+    const experts = await expertModel.find({ expertType: expertType });
 
     if (experts.length > 0) {
       res.status(200).json({ success: true, experts });

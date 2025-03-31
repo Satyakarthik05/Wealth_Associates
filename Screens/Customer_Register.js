@@ -178,9 +178,6 @@ const RegisterCustomer = ({ closeModal }) => {
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      setErrorMessage(
-        "Failed to connect to the server. Please try again later."
-      );
     } finally {
       setIsLoading(false);
     }
