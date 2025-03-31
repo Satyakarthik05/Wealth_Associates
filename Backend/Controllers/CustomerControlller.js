@@ -62,7 +62,6 @@ const CustomerSign = async (req, res) => {
     const Password = "wa1234";
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
-
     const finalReferredBy = ReferredBy || "WA0000000001";
 
     const newCustomer = new CustomerSchema({
@@ -78,33 +77,20 @@ const CustomerSign = async (req, res) => {
       RegisteredBY,
     });
 
-    let smsResponse;
-    try {
-      smsResponse = await sendSMS(
-        MobileNumber,
-        // FullName,
-        Password,
-        // finalReferredBy,
-        refferedby
-      );
-    } catch (error) {
-      console.error("Failed to send SMS:", error.message);
-      smsResponse = "SMS sending failed";
-    }
+    // 1. Find available call executive (round-robin assignment)
     const callExecutives = await CallExecutive.find({
-      assignedType: "Customers",
-    })
-      .sort({ lastAssignedAt: 1 })
-      .limit(1);
+      assignedType: "Customers"
+    }).sort({ lastAssignedAt: 1 }).limit(1);
 
     if (callExecutives.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No call executives available for agent assignment" });
+      return res.status(400).json({
+        message: "No call executives available for customer assignment"
+      });
     }
 
     const assignedExecutive = callExecutives[0];
 
+    // 2. Assign the customer to the executive
     assignedExecutive.assignedUsers.push({
       userType: "Customers",
       userId: newCustomer._id,
@@ -112,8 +98,23 @@ const CustomerSign = async (req, res) => {
     assignedExecutive.lastAssignedAt = new Date();
     await assignedExecutive.save();
 
+    // 3. Save the new customer
     await newCustomer.save();
 
+    // 4. Send SMS
+    let smsResponse;
+    try {
+      smsResponse = await sendSMS(
+        MobileNumber,
+        Password,
+        refferedby
+      );
+    } catch (error) {
+      console.error("Failed to send SMS:", error.message);
+      smsResponse = "SMS sending failed";
+    }
+
+    // 5. Call center API integration
     try {
       const callCenterResponse = await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/9e7ab9c6-ae34-428a-9820-81a8009aa6c9/leads",
@@ -122,19 +123,20 @@ const CustomerSign = async (req, res) => {
             name: FullName,
             mobile: MobileNumber,
             email: "wealthassociation.com@gmail.com",
-            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`, // Adjust this as necessary
+            detail1: `RefereralCode:${refferedby},ReferredBy:${finalReferredBy}`,
           },
         }
       );
-
       console.log("Call center API response:", callCenterResponse.data);
     } catch (error) {
       console.error("Failed to call call center API:", error.message);
     }
 
     res.status(200).json({
-      message: "Customer Registration successful",
+      message: "Customer Registration and assignment successful",
       smsResponse,
+      assignedTo: assignedExecutive.name,
+      executivePhone: assignedExecutive.phone,
     });
   } catch (error) {
     console.error("Error during registration:", error.message);

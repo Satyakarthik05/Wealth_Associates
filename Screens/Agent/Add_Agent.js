@@ -66,7 +66,7 @@ const Add_Agent = ({ closeModal }) => {
   // Fetch expertise
   const fetchExpertise = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/expertise`);
+      const response = await fetch(`${API_URL}/discons/propertytype`);
       const data = await response.json();
       setExpertiseOptions(data);
     } catch (error) {
@@ -83,7 +83,11 @@ const Add_Agent = ({ closeModal }) => {
     { name: "0-1 years", code: "01" },
     { name: "1-3 years", code: "02" },
     { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
+    { name: "5-10 years", code: "04" },
+    { name: "10-15 years", code: "04" },
+    { name: "15-20 years", code: "04" },
+    { name: "20-25 years", code: "04" },
+    { name: "25+ years", code: "04" },
   ];
 
   // Filter districts based on search input

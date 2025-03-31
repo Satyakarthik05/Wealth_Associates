@@ -59,6 +59,11 @@ const actionButtons = [
     icon: "home-search",
     component: RequestProperty,
   },
+  // {
+  //   title: "Add a member",
+  //   icon: "account-plus",
+  //   component: AddClubMember,
+  // },
   { title: "Request Expert", icon: "account-check", component: RequestExpert },
 ];
 
