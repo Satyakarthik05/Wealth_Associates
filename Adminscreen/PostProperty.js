@@ -153,12 +153,7 @@ const PostProperty = ({ closeModal }) => {
 
         const result = await response.json();
         if (response.ok) {
-          setModalVisible(true);
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }).start();
+          closeModal();
         } else {
           alert(`Error: ${result.message}`);
         }

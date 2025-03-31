@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,13 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Image,
+  ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { API_URL } from "../data/ApiUrl";
 
 const AddExpertForm = ({ closeModal }) => {
@@ -25,9 +30,131 @@ const AddExpertForm = ({ closeModal }) => {
     experience: "",
     location: "",
     mobile: "",
+    officeAddress: "",
   });
 
+  const [photo, setPhoto] = useState(null);
+  const [file, setFile] = useState(null);
   const [constituencies, setConstituencies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [additionalFields, setAdditionalFields] = useState({});
+
+  // Dropdown states
+  const [locationSearch, setLocationSearch] = useState("");
+  const [expertTypeSearch, setExpertTypeSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [showExpertTypeList, setShowExpertTypeList] = useState(false);
+
+  // Expert type specific fields
+  const expertFields = {
+    LEGAL: [
+      { key: "specialization", label: "Specialization" },
+      { key: "barCouncilId", label: "Bar Council ID" },
+      { key: "courtAffiliation", label: "Court Affiliation" },
+      { key: "lawFirmOrganisation", label: "Law Firm/Organization" },
+    ],
+    REVENUE: [
+      { key: "landTypeExpertise", label: "Land Type Expertise" },
+      { key: "revenueSpecialisation", label: "Revenue Specialisation" },
+      { key: "govtApproval", label: "Government Approval" },
+      {
+        key: "certificationLicenseNumber",
+        label: "Certification/License Number",
+      },
+      { key: "revenueOrganisation", label: "Organization" },
+      { key: "keyServicesProvided", label: "Key Services Provided" },
+    ],
+    ENGINEERS: [
+      { key: "engineeringField", label: "Engineering Field" },
+      { key: "engineerCertifications", label: "Certifications" },
+      { key: "projectsHandled", label: "Projects Handled" },
+      { key: "engineerOrganisation", label: "Organization" },
+      {
+        key: "specializedSkillsTechnologies",
+        label: "Specialized Skills/Technologies",
+      },
+      { key: "majorProjectsWorkedOn", label: "Major Projects Worked On" },
+      { key: "govtLicensed", label: "Government Licensed" },
+    ],
+    ARCHITECTS: [
+      { key: "architectureType", label: "Architecture Type" },
+      { key: "softwareUsed", label: "Software Used" },
+      { key: "architectLicenseNumber", label: "License Number" },
+      { key: "architectFirm", label: "Firm/Organization" },
+      { key: "architectMajorProjects", label: "Major Projects" },
+    ],
+    "PLANS & APPROVALS": [
+      { key: "approvalType", label: "Approval Type" },
+      { key: "govtApproved", label: "Government Approved" },
+      { key: "approvalOrganisation", label: "Organization" },
+      { key: "approvalLicenseNumber", label: "License Number" },
+      { key: "approvalMajorProjects", label: "Major Projects" },
+    ],
+    "VAASTU PANDITS": [
+      { key: "vaastuSpecialization", label: "Vaastu Specialization" },
+      { key: "vaastuOrganisation", label: "Organization" },
+      { key: "vaastuCertifications", label: "Certifications" },
+      { key: "remediesProvided", label: "Remedies Provided" },
+      { key: "consultationMode", label: "Consultation Mode" },
+    ],
+    "LAND SURVEY & VALUERS": [
+      { key: "surveyType", label: "Survey Type" },
+      { key: "govtCertified", label: "Government Certified" },
+      { key: "surveyOrganisation", label: "Organization" },
+      { key: "surveyLicenseNumber", label: "License Number" },
+      { key: "surveyMajorProjects", label: "Major Projects" },
+    ],
+    BANKING: [
+      { key: "bankingSpecialisation", label: "Banking Specialisation" },
+      { key: "bankingService", label: "Banking Service" },
+      { key: "registeredWith", label: "Registered With" },
+      { key: "bankName", label: "Bank Name" },
+      { key: "bankingGovtApproved", label: "Government Approved" },
+    ],
+    AGRICULTURE: [
+      { key: "agricultureType", label: "Agriculture Type" },
+      { key: "agricultureCertifications", label: "Certifications" },
+      { key: "agricultureOrganisation", label: "Organization" },
+      { key: "servicesProvided", label: "Services Provided" },
+      { key: "typesOfCrops", label: "Types of Crops" },
+    ],
+    "REGISTRATION & DOCUMENTATION": [
+      { key: "registrationSpecialisation", label: "Specialisation" },
+      { key: "documentType", label: "Document Type" },
+      { key: "processingTime", label: "Processing Time" },
+      { key: "registrationGovtCertified", label: "Government Certified" },
+      { key: "additionalServices", label: "Additional Services" },
+    ],
+    AUDITING: [
+      { key: "auditingSpecialisation", label: "Auditing Specialisation" },
+      { key: "auditType", label: "Audit Type" },
+      { key: "auditCertificationNumber", label: "Certification Number" },
+      { key: "auditOrganisation", label: "Organization" },
+      { key: "auditServices", label: "Audit Services" },
+      { key: "auditGovtCertified", label: "Government Certified" },
+    ],
+    LIAISONING: [
+      { key: "liaisoningSpecialisations", label: "Liaisoning Specialisations" },
+      { key: "liaisoningCertificationNumber", label: "Certification Number" },
+      { key: "liaisoningOrganisation", label: "Organization" },
+      { key: "liaisoningServicesProvided", label: "Services Provided" },
+    ],
+  };
+
+  const expertTypes = [
+    "LEGAL",
+    "REVENUE",
+    "ENGINEERS",
+    "ARCHITECTS",
+    "PLANS & APPROVALS",
+    "VAASTU PANDITS",
+    "LAND SURVEY & VALUERS",
+    "BANKING",
+    "AGRICULTURE",
+    "REGISTRATION & DOCUMENTATION",
+    "AUDITING",
+    "LIAISONING",
+  ];
 
   // Fetch all constituencies
   useEffect(() => {
@@ -48,6 +175,7 @@ const AddExpertForm = ({ closeModal }) => {
         );
 
         setConstituencies(allConstituencies);
+        setFilteredConstituencies(allConstituencies);
       } catch (error) {
         console.error("Error fetching constituencies:", error);
         Alert.alert("Error", "Failed to load location data");
@@ -57,8 +185,120 @@ const AddExpertForm = ({ closeModal }) => {
     fetchConstituencies();
   }, []);
 
+  // Filter constituencies based on search input
+  const filteredConstituencies = constituencies.filter((item) =>
+    item.name.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
+  // Filter expert types based on search input
+  const filteredExpertTypes = expertTypes.filter((item) =>
+    item.toLowerCase().includes(expertTypeSearch.toLowerCase())
+  );
+
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
+
+    // Reset additional fields when expert type changes
+    if (key === "expertType") {
+      setAdditionalFields({});
+    }
+
+    // Filter constituencies based on input
+    if (key === "location") {
+      const filtered = constituencies.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredConstituencies(filtered);
+    }
+
+    // Filter expert types based on input
+    if (key === "expertType") {
+      const filtered = expertTypes.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredExpertTypes(filtered);
+    }
+  };
+
+  const handleAdditionalFieldChange = (key, value) => {
+    setAdditionalFields({ ...additionalFields, [key]: value });
+  };
+
+  const selectConstituency = (item) => {
+    setForm({ ...form, location: item.name });
+    setShowLocationDropdown(false);
+  };
+
+  const selectExpertType = (item) => {
+    setForm({ ...form, expertType: item });
+    setShowExpertTypeDropdown(false);
+  };
+
+  // Select image from gallery
+  const selectImageFromGallery = async () => {
+    try {
+      if (Platform.OS === "web") {
+        // Handle image selection for web
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setPhoto(imageUrl); // Set the image URL for display
+            setFile(file); // Store the file for FormData
+          }
+        };
+        input.click();
+      } else {
+        // Handle image selection for mobile
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.status !== "granted") {
+          Alert.alert("Permission is required to upload a photo.");
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setPhoto(result.assets[0].uri);
+        }
+      }
+    } catch (error) {
+      console.error("Error selecting image from gallery:", error);
+      Alert.alert("Error", "Failed to select image");
+    }
+  };
+
+  // Take photo with camera
+  const takePhotoWithCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("Camera permission is required to take a photo.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error opening camera:", error);
+      Alert.alert("Error", "Failed to take photo");
+    }
   };
 
   const handleSubmit = async () => {
@@ -68,26 +308,70 @@ const AddExpertForm = ({ closeModal }) => {
       !form.qualification ||
       !form.experience ||
       !form.location ||
-      !form.mobile
+      !form.mobile ||
+      !form.officeAddress ||
+      !photo
     ) {
-      Alert.alert("Error", "Please fill all the fields.");
+      Alert.alert("Error", "Please fill all the fields and upload a photo.");
       return;
     }
 
+    setLoading(true);
     try {
+      const formData = new FormData();
+
+      // Add common fields
+      formData.append("name", form.name);
+      formData.append("expertType", form.expertType);
+      formData.append("qualification", form.qualification);
+      formData.append("experience", form.experience);
+      formData.append("location", form.location);
+      formData.append("mobile", form.mobile);
+      formData.append("officeAddress", form.officeAddress);
+
+      // Add expert-type-specific fields
+      Object.keys(additionalFields).forEach((key) => {
+        formData.append(key, additionalFields[key]);
+      });
+
+      // Handle image upload
+      if (photo) {
+        if (Platform.OS === "web") {
+          if (file) {
+            // Append the file for web
+            formData.append("photo", file);
+          } else if (typeof photo === "string" && photo.startsWith("blob:")) {
+            // Convert Blob URL to File
+            const response = await fetch(photo);
+            const blob = await response.blob();
+            const file = new File([blob], "photo.jpg", { type: blob.type });
+            formData.append("photo", file);
+          }
+        } else {
+          // Append the image URI for mobile
+          const localUri = photo;
+          const filename = localUri.split("/").pop();
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image`;
+
+          formData.append("photo", {
+            uri: localUri,
+            name: filename,
+            type,
+          });
+        }
+      } else {
+        Alert.alert("Error", "No photo selected.");
+        return;
+      }
+
       const response = await fetch(`${API_URL}/expert/registerExpert`, {
         method: "POST",
+        body: formData,
         headers: {
-          "Content-Type": "application/json",
+          // Don't set Content-Type for FormData, it is automatically set
+          Accept: "application/json",
         },
-        body: JSON.stringify({
-          Name: form.name,
-          Experttype: form.expertType,
-          Qualification: form.qualification,
-          Experience: form.experience,
-          Locations: form.location,
-          Mobile: form.mobile,
-        }),
       });
 
       const data = await response.json();
@@ -100,8 +384,28 @@ const AddExpertForm = ({ closeModal }) => {
     } catch (error) {
       Alert.alert("Error", "Something went wrong. Please try again.");
       console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const renderConstituencyItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectConstituency(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderExpertTypeItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectExpertType(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.overlay}>
@@ -117,7 +421,44 @@ const AddExpertForm = ({ closeModal }) => {
               <Text style={styles.headerText}>Add Expert</Text>
             </View>
 
-            {/** Form Fields */}
+            {/** Photo Upload Section */}
+            <View style={styles.uploadSection}>
+              <Text style={styles.label}>Expert Photo</Text>
+              {photo ? (
+                <View style={styles.photoContainer}>
+                  <Image source={{ uri: photo }} style={styles.uploadedImage} />
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => setPhoto(null)}
+                  >
+                    <Text style={styles.removeButtonText}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.uploadOptions}>
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={selectImageFromGallery}
+                  >
+                    <MaterialIcons
+                      name="photo-library"
+                      size={24}
+                      color="#555"
+                    />
+                    <Text style={styles.uploadButtonText}>Gallery</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={takePhotoWithCamera}
+                  >
+                    <MaterialIcons name="camera-alt" size={24} color="#555" />
+                    <Text style={styles.uploadButtonText}>Camera</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/** Mandatory Form Fields */}
             {[
               { label: "Name", key: "name", placeholder: "Enter expert name" },
               {
@@ -136,6 +477,11 @@ const AddExpertForm = ({ closeModal }) => {
                 placeholder: "Ex. 9063392872",
                 keyboardType: "numeric",
               },
+              {
+                label: "Office Address",
+                key: "officeAddress",
+                placeholder: "Full address",
+              },
             ].map(({ label, key, placeholder, keyboardType }) => (
               <View style={styles.formGroup} key={key}>
                 <Text style={styles.label}>{label}</Text>
@@ -149,65 +495,120 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             ))}
 
-            {/** Constituency Picker */}
+            {/** Location Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Location (Constituency)</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.location}
-                  style={styles.picker}
-                  onValueChange={(value) => handleChange("location", value)}
-                >
-                  <Picker.Item label="-- Select Constituency --" value="" />
-                  {constituencies.map((constituency) => (
-                    <Picker.Item
-                      key={constituency.name}
-                      label={constituency.name}
-                      value={constituency.name}
-                    />
-                  ))}
-                </Picker>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Constituency"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={locationSearch}
+                  onChangeText={(text) => {
+                    setLocationSearch(text);
+                    setShowLocationList(true);
+                  }}
+                  onFocus={() => {
+                    setShowLocationList(true);
+                    setShowExpertTypeList(false);
+                  }}
+                />
+                {showLocationList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredConstituencies.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("location", item.name);
+                            setLocationSearch(item.name);
+                            setShowLocationList(false);
+                          }}
+                        >
+                          <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
 
-            {/** Expert Type Picker */}
+            {/** Expert Type Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Expert Type</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.expertType}
-                  style={styles.picker}
-                  onValueChange={(itemValue) =>
-                    handleChange("expertType", itemValue)
-                  }
-                >
-                  <Picker.Item label="-- Select Type --" value="" />
-                  <Picker.Item label="LEGAL" value="LEGAL" />
-                  <Picker.Item label="REVENUE" value="REVENUE" />
-                  <Picker.Item label="ENGINEERS" value="ENGINEERS" />
-                  <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
-                  <Picker.Item label="SURVEY" value="SURVEY" />
-                  <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
-                  <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
-                  <Picker.Item label="BANKING" value="BANKING" />
-                  <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
-                  <Picker.Item
-                    label="REGISTRATION & DOCUMENTATION"
-                    value="REGISTRATION & DOCUMENTATION"
-                  />
-                  <Picker.Item label="DESIGNING" value="DESIGNING" />
-                  <Picker.Item
-                    label="MATERIALS & CONTRACTS"
-                    value="MATERIALS & CONTRACTS"
-                  />
-                </Picker>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search Expert Type"
+                  placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                  value={expertTypeSearch}
+                  onChangeText={(text) => {
+                    setExpertTypeSearch(text);
+                    setShowExpertTypeList(true);
+                  }}
+                  onFocus={() => {
+                    setShowExpertTypeList(true);
+                    setShowLocationList(false);
+                  }}
+                />
+                {showExpertTypeList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filteredExpertTypes.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.listItem}
+                          onPress={() => {
+                            handleChange("expertType", item);
+                            setExpertTypeSearch(item);
+                            setShowExpertTypeList(false);
+                          }}
+                        >
+                          <Text>{item}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
+
+            {/** Additional Fields for Selected Expert Type */}
+            {form.expertType && expertFields[form.expertType] && (
+              <View style={styles.additionalFieldsSection}>
+                <Text style={styles.sectionHeader}>
+                  {form.expertType.replace(/([A-Z])/g, " $1").trim()} Details
+                </Text>
+                {expertFields[form.expertType].map(({ key, label }) => (
+                  <View style={styles.formGroup} key={key}>
+                    <Text style={styles.label}>{label}</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder={`Enter ${label}`}
+                      value={additionalFields[key] || ""}
+                      onChangeText={(text) =>
+                        handleAdditionalFieldChange(key, text)
+                      }
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/** Buttons */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.addButton} onPress={handleSubmit}>
-                <Text style={styles.addText}>Add</Text>
+              <TouchableOpacity
+                style={[styles.addButton, loading && styles.disabledButton]}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.addText}>Add</Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
@@ -247,7 +648,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     maxWidth: 400,
-    maxHeight: "90%",
+    marginVertical: 20,
   },
   header: {
     width: "100%",
@@ -266,6 +667,12 @@ const styles = StyleSheet.create({
   formGroup: {
     width: "100%",
     marginBottom: 10,
+    position: "relative",
+    zIndex: 1,
+  },
+  inputWrapper: {
+    position: "relative",
+    zIndex: 1,
   },
   label: {
     fontSize: 14,
@@ -282,18 +689,68 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#F9F9F9",
   },
-  pickerWrapper: {
-    width: "100%",
-    borderWidth: 1,
+  dropdownContainer: {
+    position: "absolute",
+    bottom: "100%",
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: "#FFF",
     borderColor: "#ccc",
-    borderRadius: 25,
-    backgroundColor: "#F9F9F9",
-    overflow: "hidden",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 5,
+    backgroundColor: "#e6708e",
+    maxHeight: 200,
   },
-  picker: {
+  scrollView: {
+    maxHeight: 200,
+  },
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  uploadSection: {
     width: "100%",
-    height: 50,
-    color: "#333",
+    marginBottom: 15,
+  },
+  photoContainer: {
+    alignItems: "center",
+  },
+  uploadedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#E91E63",
+  },
+  uploadOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  uploadButton: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#f0f0f0",
+    width: "45%",
+  },
+  uploadButtonText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: "#555",
+  },
+  removeButton: {
+    backgroundColor: "#ff4444",
+    padding: 8,
+    borderRadius: 5,
+  },
+  removeButtonText: {
+    color: "white",
+    fontSize: 12,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -306,6 +763,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 25,
+    flex: 1,
+    marginRight: 10,
+    alignItems: "center",
   },
   addText: {
     color: "white",
@@ -316,10 +776,51 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 25,
+    flex: 1,
+    marginLeft: 10,
+    alignItems: "center",
   },
   cancelText: {
     color: "white",
     fontWeight: "bold",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+  },
+  additionalFieldsSection: {
+    width: "100%",
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#E91E63",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  dropdownContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    maxHeight: 300,
+    width: "80%",
+    padding: 10,
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
   },
 });
 
