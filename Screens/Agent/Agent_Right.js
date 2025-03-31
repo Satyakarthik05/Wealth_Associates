@@ -213,7 +213,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10));
+        setProperties(data);
         fetchPropertiess();
       } else {
         console.warn("API returned empty data.");

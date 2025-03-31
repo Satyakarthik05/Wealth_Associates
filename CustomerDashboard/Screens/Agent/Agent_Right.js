@@ -30,14 +30,14 @@ import logo from "../../../assets/man.png";
 import logo1 from "../../../assets/Logo Final 1.png";
 import logo2 from "../../../assets/Main-Logo (1) 1.png";
 import logo3 from "../../../assets/Meenakshi-Icon-Blac (2) 1.png";
-import logo4 from "../../../assets/Surya Avenue Logo[1] 1.png"
-import logo5 from "../../../assets/Logo 1.png"
-import logo6 from "../../../assets/Land.jpg"
-import logo7 from "../../../assets/residntial.jpg"
-import logo8 from "../../../assets/commercial.jpg"
-import logo9 from "../../../assets/villa.jpg"
-import logo10 from "../../../assets/house.png"
-import logo11 from "../../../assets/logo.png"
+import logo4 from "../../../assets/Surya Avenue Logo[1] 1.png";
+import logo5 from "../../../assets/Logo 1.png";
+import logo6 from "../../../assets/Land.jpg";
+import logo7 from "../../../assets/residntial.jpg";
+import logo8 from "../../../assets/commercial.jpg";
+import logo9 from "../../../assets/villa.jpg";
+import logo10 from "../../../assets/house.png";
+import logo11 from "../../../assets/logo.png";
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
 import AddInvestor from "../Investors/AddInvestors";
@@ -211,7 +211,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10));
+        setProperties(data);
         fetchPropertiess();
       } else {
         console.warn("API returned empty data.");
