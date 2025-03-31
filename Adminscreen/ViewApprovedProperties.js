@@ -12,6 +12,8 @@ import {
   Alert,
   Modal,
   TextInput,
+  Linking,
+  Share,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../data/ApiUrl";
@@ -23,7 +25,9 @@ const ViewAllProperties = () => {
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
     location: "",
@@ -60,7 +64,7 @@ const ViewAllProperties = () => {
     try {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
-      if (data && Array.isArray(data) && data.length > 0) {
+      if (data && Array.isArray(data)) {
         setProperties(data);
       } else {
         console.warn("API returned empty data.");
@@ -78,7 +82,6 @@ const ViewAllProperties = () => {
     fetchConstituencies();
   }, []);
 
-  // Function to get last 4 characters of ID
   const getLastFourChars = (id) => {
     return id ? id.slice(-4) : "N/A";
   };
@@ -93,7 +96,6 @@ const ViewAllProperties = () => {
     )
   );
 
-  // Filter properties based on search criteria
   const filteredProperties = properties.filter((property) => {
     const matchesId = idSearch
       ? getLastFourChars(property._id)
@@ -161,6 +163,11 @@ const ViewAllProperties = () => {
       photo: property.photo,
     });
     setIsModalVisible(true);
+  };
+
+  const handleViewDetails = (property) => {
+    setSelectedPropertyDetails(property);
+    setIsDetailsModalVisible(true);
   };
 
   const handleSave = async () => {
@@ -246,6 +253,181 @@ const ViewAllProperties = () => {
     }
   };
 
+  const formatPropertyDetails = (property) => {
+    let details = `*Property Details*\n\n`;
+    details += `*ID:* ${getLastFourChars(property._id)}\n`;
+    details += `*Type:* ${property.propertyType}\n`;
+    details += `*Location:* ${property.location}\n`;
+    details += `*Constituency:* ${property.Constituency || "N/A"}\n`;
+    details += `*Price:* ₹${parseInt(property.price).toLocaleString()}\n`;
+    details += `*Details:* ${property.propertyDetails || "N/A"}\n`;
+    details += `*Posted By:* ${property.PostedBy || "N/A"}\n`;
+    details += `*User Type:* ${property.PostedUserType || "N/A"}\n\n`;
+
+    // Add dynamic data
+    details += `*Specifications:*\n`;
+    Object.entries(property).forEach(([key, value]) => {
+      if (
+        [
+          "_id",
+          "propertyType",
+          "location",
+          "price",
+          "photo",
+          "propertyDetails",
+          "PostedBy",
+          "PostedUserType",
+          "Constituency",
+        ].includes(key)
+      ) {
+        return;
+      }
+
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        details += `\n*${key.toUpperCase()}:*\n`;
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          if (subValue !== null && subValue !== undefined && subValue !== "") {
+            const formattedKey = subKey
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase());
+            details += `  ${formattedKey}: ${subValue}\n`;
+          }
+        });
+      } else if (value !== null && value !== undefined && value !== "") {
+        const formattedKey = key
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase());
+        details += `${formattedKey}: ${value}\n`;
+      }
+    });
+
+    return details;
+  };
+
+  const shareOnWhatsApp = () => {
+    if (!selectedPropertyDetails) return;
+
+    const message = formatPropertyDetails(selectedPropertyDetails);
+
+    if (Platform.OS === "web") {
+      // Web: Opens WhatsApp Web with recent chats (no way to skip)
+      window.open(
+        `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
+        "_blank"
+      );
+    } else {
+      // Mobile: Forces "New Chat" screen (works on most devices)
+      const url = `whatsapp://send?phone=&text=${encodeURIComponent(message)}`;
+
+      Linking.canOpenURL(url)
+        .then((supported) => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            // Fallback: Open WhatsApp normally if deep link fails
+            Linking.openURL(
+              `whatsapp://send?text=${encodeURIComponent(message)}`
+            ).catch(() => Alert.alert("Error", "WhatsApp not installed"));
+          }
+        })
+        .catch(() => {
+          Alert.alert("Error", "Could not open WhatsApp");
+        });
+    }
+  };
+
+  const renderDynamicData = (data) => {
+    if (!data) return null;
+
+    // Handle case where data is an array
+    if (Array.isArray(data)) {
+      return (
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Items:</Text>
+          <View style={styles.arrayContainer}>
+            {data.map((item, index) => (
+              <Text key={index} style={styles.detailValue}>
+                {typeof item === "object"
+                  ? JSON.stringify(item)
+                  : item.toString()}
+              </Text>
+            ))}
+          </View>
+        </View>
+      );
+    }
+
+    // Handle case where data is an object
+    return Object.entries(data).map(([key, value]) => {
+      if (value === null || value === undefined || value === "") return null;
+
+      // Skip these fields as they're already displayed in basic info
+      if (
+        [
+          "_id",
+          "propertyType",
+          "location",
+          "price",
+          "photo",
+          "propertyDetails",
+          "PostedBy",
+          "PostedUserType",
+          "Constituency",
+        ].includes(key)
+      ) {
+        return null;
+      }
+
+      // Format key for display
+      const formattedKey = key
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase())
+        .replace(/([a-z])([A-Z])/g, "$1 $2");
+
+      // Handle nested objects (like agricultureDetails)
+      if (typeof value === "object" && !Array.isArray(value)) {
+        return (
+          <View key={key} style={styles.nestedSection}>
+            <Text style={styles.nestedTitle}>{formattedKey}:</Text>
+            {renderDynamicData(value)}
+          </View>
+        );
+      }
+
+      // Handle arrays within objects
+      if (Array.isArray(value)) {
+        return (
+          <View key={key} style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{formattedKey}:</Text>
+            <View style={styles.arrayContainer}>
+              {value.map((item, index) => (
+                <Text key={index} style={styles.detailValue}>
+                  {typeof item === "object"
+                    ? JSON.stringify(item)
+                    : item.toString()}
+                </Text>
+              ))}
+            </View>
+          </View>
+        );
+      }
+
+      // Handle primitive values
+      return (
+        <View key={key} style={styles.detailRow}>
+          <Text style={styles.detailLabel}>{formattedKey}:</Text>
+          <Text style={styles.detailValue}>
+            {value.toString() === "true"
+              ? "Yes"
+              : value.toString() === "false"
+              ? "No"
+              : value.toString()}
+          </Text>
+        </View>
+      );
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {loading ? (
@@ -270,7 +452,6 @@ const ViewAllProperties = () => {
             </View>
           </View>
 
-          {/* Search Bar for Property ID */}
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
@@ -296,7 +477,7 @@ const ViewAllProperties = () => {
                       <Text style={styles.idText}>ID: {propertyId}</Text>
                     </View>
                     <Text style={styles.title}>{item.propertyType}</Text>
-                    <Text style={styles.title}>PostedBy:{item.PostedBy}</Text>
+                    <Text style={styles.title}>PostedBy: {item.PostedBy}</Text>
                     <Text style={styles.title}>{item.propertyDetails}</Text>
                     <Text style={styles.info}>Location: {item.location}</Text>
                     <Text style={styles.budget}>
@@ -304,6 +485,12 @@ const ViewAllProperties = () => {
                     </Text>
                   </View>
                   <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.viewButton]}
+                      onPress={() => handleViewDetails(item)}
+                    >
+                      <Text style={styles.buttonText}>View Details</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.button, styles.editButton]}
                       onPress={() => handleEdit(item)}
@@ -333,7 +520,6 @@ const ViewAllProperties = () => {
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Edit Property</Text>
 
-                {/* Property Type Dropdown */}
                 <View style={styles.dropdownContainer}>
                   <Text style={styles.dropdownLabel}>Property Type:</Text>
                   <View style={styles.dropdown}>
@@ -359,7 +545,6 @@ const ViewAllProperties = () => {
                   </View>
                 </View>
 
-                {/* Location Dropdown */}
                 <View style={styles.dropdownContainer}>
                   <Text style={styles.dropdownLabel}>Location:</Text>
                   <View style={styles.dropdown}>
@@ -404,6 +589,124 @@ const ViewAllProperties = () => {
                     onPress={handleSave}
                   >
                     <Text style={styles.modalButtonText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Details Modal */}
+          <Modal
+            visible={isDetailsModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsDetailsModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={[styles.detailsModalContent, { maxHeight: "90%" }]}>
+                <Text style={styles.modalTitle}>Property Details</Text>
+
+                {selectedPropertyDetails && (
+                  <>
+                    <View style={styles.detailImageContainer}>
+                      <Image
+                        source={
+                          selectedPropertyDetails.photo
+                            ? {
+                                uri: `${API_URL}${selectedPropertyDetails.photo}`,
+                              }
+                            : require("../assets/logo.png")
+                        }
+                        style={styles.detailImage}
+                      />
+                    </View>
+
+                    <ScrollView style={styles.detailsScrollView}>
+                      <View style={styles.detailSection}>
+                        <Text style={styles.detailSectionTitle}>
+                          Basic Information
+                        </Text>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Property ID:</Text>
+                          <Text style={styles.detailValue}>
+                            {getLastFourChars(selectedPropertyDetails._id)}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Type:</Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.propertyType}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Location:</Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.location}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Constituency:</Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.Constituency || "N/A"}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Price:</Text>
+                          <Text style={styles.detailValue}>
+                            ₹{" "}
+                            {parseInt(
+                              selectedPropertyDetails.price
+                            ).toLocaleString()}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>
+                            Property Details:
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.propertyDetails || "N/A"}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Posted By:</Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.PostedBy || "N/A"}
+                          </Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>
+                            Posted User Type:
+                          </Text>
+                          <Text style={styles.detailValue}>
+                            {selectedPropertyDetails.PostedUserType || "N/A"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.detailSection}>
+                        <Text style={styles.detailSectionTitle}>
+                          Property Specifications
+                        </Text>
+                        {renderDynamicData(selectedPropertyDetails)}
+                      </View>
+                    </ScrollView>
+                  </>
+                )}
+
+                <View style={styles.detailsModalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.whatsappButton]}
+                    onPress={shareOnWhatsApp}
+                  >
+                    <Text style={styles.modalButtonText}>
+                      Share on WhatsApp
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.closeButton]}
+                    onPress={() => setIsDetailsModalVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Close</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -480,20 +783,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: 2,
+  },
+  viewButton: {
+    backgroundColor: "#4CAF50",
   },
   editButton: {
     backgroundColor: "#3498db",
   },
   deleteButton: {
-    backgroundColor: "red",
+    backgroundColor: "#e74c3c",
   },
   approveButton: {
-    backgroundColor: "green",
+    backgroundColor: "#2ecc71",
   },
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
+    fontSize: 12,
   },
   modalContainer: {
     flex: 1,
@@ -506,6 +813,12 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: Platform.OS === "web" ? "50%" : "90%",
+  },
+  detailsModalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: Platform.OS === "web" ? "70%" : "90%",
   },
   modalTitle: {
     fontSize: 18,
@@ -547,11 +860,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 5,
   },
+  closeButton: {
+    backgroundColor: "#3498db",
+    marginTop: 10,
+  },
+  whatsappButton: {
+    backgroundColor: "#25D366",
+    marginTop: 10,
+    marginRight: 5,
+  },
   cancelButton: {
     backgroundColor: "#ccc",
   },
   saveButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#2ecc71",
   },
   modalButtonText: {
     color: "#fff",
@@ -567,6 +889,66 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     backgroundColor: "#fff",
+  },
+  detailImageContainer: {
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  detailImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+  },
+  detailsScrollView: {
+    maxHeight: Platform.OS === "web" ? 400 : 300,
+  },
+  detailSection: {
+    marginBottom: 15,
+    backgroundColor: "#f9f9f9",
+    padding: 10,
+    borderRadius: 8,
+  },
+  detailSectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#3498db",
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  detailLabel: {
+    fontWeight: "bold",
+    width: "40%",
+  },
+  detailValue: {
+    width: "60%",
+    textAlign: "right",
+  },
+  nestedSection: {
+    marginLeft: 10,
+    marginTop: 5,
+    borderLeftWidth: 2,
+    borderLeftColor: "#ddd",
+    paddingLeft: 10,
+  },
+  nestedTitle: {
+    fontWeight: "bold",
+    color: "#555",
+    marginBottom: 5,
+  },
+  arrayContainer: {
+    width: "60%",
+  },
+  detailsModalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
 });
 

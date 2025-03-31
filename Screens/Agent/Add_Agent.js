@@ -84,10 +84,10 @@ const Add_Agent = ({ closeModal }) => {
     { name: "1-3 years", code: "02" },
     { name: "3-5 years", code: "03" },
     { name: "5-10 years", code: "04" },
-    { name: "10-15 years", code: "04" },
-    { name: "15-20 years", code: "04" },
-    { name: "20-25 years", code: "04" },
-    { name: "25+ years", code: "04" },
+    { name: "10-15 years", code: "05" },
+    { name: "15-20 years", code: "06" },
+    { name: "20-25 years", code: "07" },
+    { name: "25+ years", code: "08" },
   ];
 
   // Filter districts based on search input

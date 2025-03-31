@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { API_URL } from "../data/ApiUrl";
 
-const ExpertCard = ({ expert }) => {
+const ExpertCard = ({ expert, onResolve }) => {
   return (
     <View style={styles.card}>
       <Image
@@ -35,10 +35,30 @@ const ExpertCard = ({ expert }) => {
           <Text style={styles.label}>Expert Name:</Text>
           <Text style={styles.value}>{expert.ExpertName}</Text>
         </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Expert MobileNumber:</Text>
+          <Text style={styles.value}>{expert.ExpertNo}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Status:</Text>
+          <Text
+            style={[
+              styles.value,
+              expert.resolved ? styles.resolvedText : styles.unresolvedText,
+            ]}
+          >
+            {expert.resolved ? "Resolved" : "Unresolved"}
+          </Text>
+        </View>
       </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Resolved</Text>
-      </TouchableOpacity>
+      {!expert.resolved && (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => onResolve(expert._id)}
+        >
+          <Text style={styles.buttonText}>Mark as Resolved</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -50,17 +70,43 @@ const ExpertList = () => {
   const isWebView = width > 600;
 
   useEffect(() => {
+    fetchExperts();
+  }, []);
+
+  const fetchExperts = () => {
+    setLoading(true);
     fetch(`${API_URL}/requestexpert/all`)
       .then((response) => response.json())
       .then((data) => {
-        setExperts(data);
+        // Sort experts: unresolved first, then resolved
+        const sortedExperts = [...data].sort((a, b) =>
+          a.resolved === b.resolved ? 0 : a.resolved ? 1 : -1
+        );
+        setExperts(sortedExperts);
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching experts:", error);
         setLoading(false);
       });
-  }, []);
+  };
+
+  const handleResolve = (id) => {
+    fetch(`${API_URL}/requestexpert/resolve/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then(() => {
+        // Refresh the list after updating
+        fetchExperts();
+      })
+      .catch((error) => {
+        console.error("Error resolving expert:", error);
+      });
+  };
 
   if (loading) {
     return (
@@ -76,7 +122,9 @@ const ExpertList = () => {
     <FlatList
       data={experts}
       keyExtractor={(item) => item._id.toString()}
-      renderItem={({ item }) => <ExpertCard expert={item} />}
+      renderItem={({ item }) => (
+        <ExpertCard expert={item} onResolve={handleResolve} />
+      )}
       contentContainerStyle={
         isWebView ? styles.webContainer : styles.listContainer
       }
@@ -105,7 +153,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginVertical: 10,
     width: 280,
-    height: 300,
+    height: 340,
     justifyContent: "space-between",
     marginHorizontal: 10,
   },
@@ -135,12 +183,21 @@ const styles = StyleSheet.create({
     color: "#555",
     textAlign: "right",
   },
+  resolvedText: {
+    color: "green",
+    fontWeight: "bold",
+  },
+  unresolvedText: {
+    color: "red",
+    fontWeight: "bold",
+  },
   button: {
     backgroundColor: "#e91e63",
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 20,
     alignSelf: "center",
+    marginTop: 10,
   },
   buttonText: {
     color: "#fff",
