@@ -1,11 +1,11 @@
 const Agent = require("../Models/AgentModel");
 const RequestProperty = require("../Models/RequestProperty");
 const axios = require("axios");
+const PushToken = require("../Models/NotificationToken");
 
 const PropertyRequest = async (req, res) => {
   try {
-    const { propertyTitle, propertyType, location, Budget, PostedBy } =
-      req.body;
+    const { propertyTitle, propertyType, location, Budget, PostedBy } = req.body;
 
     if (!PostedBy) {
       return res
@@ -38,6 +38,7 @@ const PropertyRequest = async (req, res) => {
 
     await newRequestProperty.save();
 
+    // Call center API integration
     try {
       await axios.get(
         "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/e811c9e8-53b4-457f-8c09-e4511b22c584/leads",
@@ -52,6 +53,45 @@ const PropertyRequest = async (req, res) => {
       );
     } catch (error) {
       console.error("Failed to call call center API:", error.message);
+    }
+
+    // Push notification to all users
+    try {
+      const allTokens = await PushToken.find({});
+
+      if (allTokens.length > 0) {
+        const title = "Wealth Associates\nNew Property Request";
+        const body = `New ${propertyType} requested in ${location} with budget ₹${Budget}`;
+
+        const notifications = allTokens.map((user) => ({
+          to: user.expoPushToken,
+          sound: "default",
+          title,
+          body,
+        }));
+
+        // Send notifications in chunks of 100
+        const chunks = [];
+        while (notifications.length) {
+          chunks.push(notifications.splice(0, 100));
+        }
+
+        for (const chunk of chunks) {
+          try {
+            await fetch("https://exp.host/--/api/v2/push/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(chunk),
+            });
+          } catch (err) {
+            console.error("Error sending push notification chunk:", err);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error sending push notifications:", error);
     }
 
     res.status(200).json({
