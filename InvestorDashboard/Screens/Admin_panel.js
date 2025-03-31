@@ -81,7 +81,7 @@ const menuItems = [
 
   {
     title: "Investors",
-    icon: "business-outline",
+    icon: "card-outline",
     subItems: ["Add Investor", "View Investors"],
   },
 
@@ -207,6 +207,7 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setIsNriVisible(false);
     setIsViewNriVisible(false);
+    setAllSkilledLabour(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -349,10 +350,9 @@ const Admin_panel = () => {
 
   return (
     <View style={styles.container}>
-      {(Platform.OS === "android" ||
-        Platform.OS === "ios") && (
-          <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-        )}
+      {(Platform.OS === "android" || Platform.OS === "ios") && (
+        <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+      )}
 
       <View style={styles.navbar}>
         <TouchableOpacity

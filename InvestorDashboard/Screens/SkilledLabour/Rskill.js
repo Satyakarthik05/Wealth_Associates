@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
+    marginTop:"30%"
   },
   header: {
     backgroundColor: "#E91E63",

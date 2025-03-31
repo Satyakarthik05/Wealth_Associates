@@ -182,10 +182,22 @@ const PropertyCard = ({ property, closeModal }) => {
 
             <TouchableOpacity
               style={styles.storeButton}
-              onPress={handleVisitSite}
+              onPress={() =>
+                Linking.openURL(
+                  Platform.OS !== "ios"
+                    ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
+                    : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+                )
+              }
             >
-              <AntDesign name="apple1" size={24} color="#000" />
-              <Text style={styles.storeText}>App Store</Text>
+              {Platform.OS !== "ios" ? (
+                <AntDesign name="apple1" size={24} color="#000" />
+              ) : (
+                <FontAwesome5 name="google-play" size={24} color="#000" />
+              )}
+              <Text style={styles.storeText}>
+                {Platform.OS !== "ios" ? "App Store" : "Google Play"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

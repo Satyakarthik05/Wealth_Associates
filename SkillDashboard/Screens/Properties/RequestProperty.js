@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 0.5,
     borderColor: "black",
+    marginTop:"30%"
   },
   header: {
     fontSize: 18,

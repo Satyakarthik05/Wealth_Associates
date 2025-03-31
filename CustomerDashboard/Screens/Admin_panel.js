@@ -213,6 +213,7 @@ const Admin_panel = () => {
     setIsAddNriVisible(false);
     setIsViewNriVisible(false);
     setIsAddInvestVisible(false);
+    setAllSkilledLabour(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);

@@ -71,7 +71,7 @@ const AddInvestor = ({ closeModal }) => {
       return;
     }
 
-    if (!Details || !Details.MobileNumber) {
+    if (!Details || !Details.MobileIN) {
       Alert.alert(
         "Error",
         "Agent details are not available. Please try again."

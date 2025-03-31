@@ -56,7 +56,7 @@ const PostProperty = ({ closeModal }) => {
       });
 
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileIN);
+      setPostedBy(newDetails.MobileNumber);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: "#fff",
+    backgroundColor: "#e6708e",
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 8,

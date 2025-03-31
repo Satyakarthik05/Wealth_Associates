@@ -155,12 +155,12 @@ const RequestedProperties = () => {
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
-                {/* <TouchableOpacity
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => handleEditPress(item)}
                 >
                   <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </View>
             </View>
           ))}

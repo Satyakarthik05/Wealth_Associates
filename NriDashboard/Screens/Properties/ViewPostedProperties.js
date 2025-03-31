@@ -207,12 +207,12 @@ const ViewPostedProperties = () => {
                   <Text style={styles.budget}>
                     ₹ {parseInt(item.price).toLocaleString()}
                   </Text>
-                  {/* <TouchableOpacity
+                  <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditPress(item)}
                   >
                     <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity> */}
+                  </TouchableOpacity>
                 </View>
               </View>
             );

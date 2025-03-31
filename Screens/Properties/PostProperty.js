@@ -56,7 +56,7 @@ const PostProperty = ({ closeModal }) => {
         },
       });
       const newDetails = await response.json();
-      setPostedBy(newDetails.MobileIN);
+      setPostedBy(newDetails.MobileNumber);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);

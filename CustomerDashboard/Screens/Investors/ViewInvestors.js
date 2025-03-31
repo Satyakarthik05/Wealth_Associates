@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
-    width: width > 600 ? "35%" : "90%", // 45% on tablets, 90% on mobile
+    width: width > 600 ? "35%" : "auto", // 45% on tablets, 90% on mobile
     paddingVertical: 20,
     paddingHorizontal: 15,
     alignItems: "center",

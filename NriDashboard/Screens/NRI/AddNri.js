@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
     width: 320,
     alignSelf: "center",
     elevation: 4,
+    marginTop:"30%"
   },
   header: {
     backgroundColor: "#E91E63",

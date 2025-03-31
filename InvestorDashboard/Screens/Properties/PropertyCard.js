@@ -263,13 +263,13 @@ const PropertyCard = ({ property, closeModal }) => {
               style={styles.storeButton}
               onPress={() =>
                 Linking.openURL(
-                  Platform.OS === "ios"
+                  Platform.OS !== "ios"
                     ? "https://apps.apple.com/in/app/wealth-associate/id6743356719"
                     : "https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
                 )
               }
             >
-              {Platform.OS === "ios" ? (
+              {Platform.OS !== "ios" ? (
                 <AntDesign name="apple1" size={24} color="#000" />
               ) : (
                 <FontAwesome5 name="google-play" size={24} color="#000" />
