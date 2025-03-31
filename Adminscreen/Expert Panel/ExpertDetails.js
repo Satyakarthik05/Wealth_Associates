@@ -9,11 +9,10 @@ import {
   Image,
   Platform,
   Alert,
-  Modal,
-  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../data/ApiUrl";
+import logo1 from "../../assets/man.png";
 
 const ExpertDetails = ({ expertType, onSwitch }) => {
   const [experts, setExperts] = useState([]);
@@ -21,24 +20,10 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   const [error, setError] = useState(null);
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
-  const [selectedExpert, setSelectedExpert] = useState(null); // State to store the selected expert
-  const [updatedData, setUpdatedData] = useState({
-    // State for updated expert data
-    Name: "",
-    Qualification: "",
-    Experience: "",
-    Locations: "",
-    Mobile: "",
-  });
 
   useEffect(() => {
     if (!expertType) return;
-    fetchExperts();
-  }, [expertType]);
 
-  const fetchExperts = () => {
-    setLoading(true);
     fetch(`${API_URL}/expert/getexpert/${expertType}`)
       .then((response) => response.json())
       .then((data) => {
@@ -50,11 +35,11 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
         setError("Failed to fetch experts. Please try again later.");
         setLoading(false);
       });
-  };
+  }, [expertType]);
 
   const getDetails = async () => {
     try {
-      // const token = await AsyncStorage.getItem("authToken");
+      const token = await AsyncStorage.getItem("authToken");
       const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
@@ -70,68 +55,45 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
     }
   };
 
-  const modifyExpert = async (expertId, updatedData) => {
+  const requestExpert = async (expert) => {
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/expert/update/${expertId}`, {
-        method: "PUT",
+      const response = await fetch(`${API_URL}/requestexpert/register`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          token: `${token}`,
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({
+          Name: Details.FullName ? Details.FullName : "name",
+          MobileNumber: Details.MobileNumber
+            ? Details.MobileNumber
+            : "MobileNumber",
+          ExpertType: expertType,
+          ExpertName: expert.Name,
+          ExpertNo: expert.Mobile,
+          RequestedBy: "WealthAssociate",
+        }),
       });
 
       const result = await response.json();
-
       if (response.ok) {
-        Alert.alert("Success", "Expert updated successfully");
-        fetchExperts();
-        setIsModalVisible(false); // Close the modal after successful update
+        if (Platform.OS === "web") {
+          window.alert("Expert Requested Successfully");
+        } else {
+          Alert.alert("Expert Requested");
+        }
       } else {
-        Alert.alert("Error", result.message || "Failed to update expert");
+        Alert.alert(
+          "Request Failed",
+          result.message || "Something went wrong."
+        );
       }
     } catch (error) {
-      console.error("Error updating expert:", error);
-      Alert.alert("Error", "An error occurred while updating the expert");
+      console.error("Request error:", error);
+      Alert.alert(
+        "Network error",
+        "Please check your internet connection and try again."
+      );
     }
-  };
-
-  const deleteExpert = async (expertId) => {
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/expert/delete/${expertId}`, {
-        method: "DELETE",
-        headers: {
-          token: `${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Success", "Expert deleted successfully");
-        fetchExperts();
-      } else {
-        Alert.alert("Error", result.message || "Failed to delete expert");
-      }
-    } catch (error) {
-      console.error("Error deleting expert:", error);
-      Alert.alert("Error", "An error occurred while deleting the expert");
-    }
-  };
-
-  const openEditModal = (expert) => {
-    setSelectedExpert(expert); // Set the selected expert
-    setUpdatedData({
-      // Pre-fill the modal with existing data
-      Name: expert.Name,
-      Qualification: expert.Qualification,
-      Experience: expert.Experience,
-      Locations: expert.Locations,
-      Mobile: expert.Mobile,
-    });
-    setIsModalVisible(true); // Show the modal
   };
 
   useEffect(() => {
@@ -141,7 +103,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => onSwitch(null)}>
-        {/* <Text style={styles.backButton}>Back</Text> */}
+        <Text style={styles.backButton}>Back</Text>
       </TouchableOpacity>
       <Text style={styles.header}>{expertType} Experts</Text>
 
@@ -154,9 +116,10 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
           {experts.map((item, index) => (
             <View key={item._id} style={styles.expertCard}>
               <Image
-                source={require("../../assets/man.png")}
+                source={item.photo ? { uri: `${API_URL}${item.photo}` } : logo1}
                 style={styles.profileImage}
               />
+
               <Text style={styles.expertName}>{item.Name}</Text>
               <Text style={styles.expertDetails}>
                 <Text style={styles.label}>Qualification:</Text>{" "}
@@ -169,32 +132,12 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
               <Text style={styles.expertDetails}>
                 <Text style={styles.label}>Location:</Text> {item.Locations}
               </Text>
-              <View style={styles.buttons}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => openEditModal(item)} // Open the modal with expert data
-                >
-                  <Text style={styles.requestButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => {
-                    Alert.alert(
-                      "Delete Expert",
-                      "Are you sure you want to delete this expert?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Delete",
-                          onPress: () => deleteExpert(item._id),
-                        },
-                      ]
-                    );
-                  }}
-                >
-                  <Text style={styles.requestButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.requestButton}
+                onPress={() => requestExpert(item)}
+              >
+                <Text style={styles.requestButtonText}>Request Expert</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
@@ -203,74 +146,6 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
           No experts found for this category.
         </Text>
       )}
-
-      {/* Modal for Editing Expert Details */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Edit Expert Details</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Name"
-              value={updatedData.Name}
-              onChangeText={(text) =>
-                setUpdatedData({ ...updatedData, Name: text })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Qualification"
-              value={updatedData.Qualification}
-              onChangeText={(text) =>
-                setUpdatedData({ ...updatedData, Qualification: text })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Experience"
-              value={updatedData.Experience}
-              onChangeText={(text) =>
-                setUpdatedData({ ...updatedData, Experience: text })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Location"
-              value={updatedData.Locations}
-              onChangeText={(text) =>
-                setUpdatedData({ ...updatedData, Locations: text })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile"
-              value={updatedData.Mobile}
-              onChangeText={(text) =>
-                setUpdatedData({ ...updatedData, Mobile: text })
-              }
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => setIsModalVisible(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => modifyExpert(selectedExpert._id, updatedData)}
-              >
-                <Text style={styles.modalButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -313,69 +188,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   errorText: { textAlign: "center", fontSize: 16, color: "red", marginTop: 20 },
-  editButton: {
+  requestButton: {
     backgroundColor: "#007bff",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  deleteButton: {
-    backgroundColor: "red",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
   },
   requestButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  buttons: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-    flexDirection: "row",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: Platform.OS === "web" ? "40%" : "90%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalButton: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 5,
-    width: "45%",
-    alignItems: "center",
-  },
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
 });
 
 export default ExpertDetails;

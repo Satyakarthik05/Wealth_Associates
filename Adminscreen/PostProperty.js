@@ -322,10 +322,7 @@ const PostProperty = ({ closeModal }) => {
           <View style={styles.inputWrapper}>
             <View style={styles.inputContainer}>
               <TextInput
-                style={[
-                  styles.input,
-                  showPropertyTypeList && styles.inputWithDropdown,
-                ]}
+                style={styles.input}
                 placeholder="Search Property Type"
                 placeholderTextColor="rgba(25, 25, 25, 0.5)"
                 value={propertyType || propertyTypeSearch}
@@ -334,13 +331,7 @@ const PostProperty = ({ closeModal }) => {
                   setPropertyType("");
                   setShowPropertyTypeList(true);
                 }}
-                onFocus={() => {
-                  setShowPropertyTypeList(true);
-                  setShowLocationList(false);
-                }}
-                onBlur={() =>
-                  setTimeout(() => setShowPropertyTypeList(false), 200)
-                }
+                onFocus={() => setShowPropertyTypeList(true)}
               />
               {propertyType && (
                 <TouchableOpacity
@@ -394,10 +385,7 @@ const PostProperty = ({ closeModal }) => {
           <View style={styles.inputWrapper}>
             <View style={styles.inputContainer}>
               <TextInput
-                style={[
-                  styles.input,
-                  showLocationList && styles.inputWithDropdown,
-                ]}
+                style={styles.input}
                 placeholder="Ex. Vijayawada"
                 value={location || locationSearch}
                 onChangeText={(text) => {
@@ -405,11 +393,7 @@ const PostProperty = ({ closeModal }) => {
                   setLocation("");
                   setShowLocationList(true);
                 }}
-                onFocus={() => {
-                  setShowLocationList(true);
-                  setShowPropertyTypeList(false);
-                }}
-                onBlur={() => setTimeout(() => setShowLocationList(false), 200)}
+                onFocus={() => setShowLocationList(true)}
               />
               {location && (
                 <TouchableOpacity
@@ -421,7 +405,7 @@ const PostProperty = ({ closeModal }) => {
               )}
             </View>
             {showLocationList && (
-              <View style={[styles.dropdownContainer, { zIndex: 1000 }]}>
+              <View style={styles.dropdownContainer}>
                 {filteredConstituencies.map((item) => (
                   <TouchableOpacity
                     key={`${item.code}-${item.name}`}
@@ -552,11 +536,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     fontSize: 15,
   },
-  inputWithDropdown: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    marginBottom: 0,
-  },
   clearButton: {
     position: "absolute",
     right: 10,
@@ -564,9 +543,10 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     position: "relative",
-    // marginBottom: 15,
-    // zIndex: 1,
+    marginBottom: 15,
+    zIndex: 1,
   },
+
   dropdownContainer: {
     position: "absolute",
     top: "100%",
@@ -596,12 +576,21 @@ const styles = StyleSheet.create({
       },
     }),
   },
+
   listItem: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     backgroundColor: "#fff",
+    zIndex: 1000,
     backgroundColor: "#e6708e",
+  },
+
+  // Add this new style for the input when dropdown is open
+  inputWithDropdown: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 0,
   },
   uploadSection: {
     alignItems: "center",
