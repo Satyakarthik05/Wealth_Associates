@@ -1,31 +1,34 @@
 const expertModel = require("../Models/ExpertModel");
 
 const registerExpert = async (req, res) => {
-  const { Name, Experttype, Qualification, Experience, Locations, Mobile } =
-    req.body;
+  try {
+    const { Name, Experttype, Qualification, Experience, Locations, Mobile } = req.body;
 
-    let photoPath = null;
-    if (req.file) {
-      photoPath = `/ExpertMembers/${req.file.filename}`;
-    } else {
+    if (!req.file) {
       return res.status(400).json({ message: "Photo is required." });
     }
-  const newExpert = new expertModel({
-    Name,
-    Experttype,
-    Qualification,
-    Experience,
-    Locations,
-    Mobile,
-    photo: photoPath,
-  });
 
-  newExpert.save();
+    const photoPath = `/ExpertMembers/${req.file.filename}`;
+    
+    const newExpert = new expertModel({
+      Name,
+      Experttype,
+      Qualification,
+      Experience,
+      Locations,
+      Mobile,
+      photo: photoPath,
+    });
 
-  if (newExpert) {
-    res.status(200).json({ message: "Expert Registered successfully" });
-  } else {
-    return res.status(400).json({ message: "Expert not Registered" });
+    await newExpert.save(); // Don't forget await here
+
+    res.status(200).json({ 
+      message: "Expert Registered successfully",
+      expert: newExpert 
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Error registering expert" });
   }
 };
 

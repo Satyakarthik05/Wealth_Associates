@@ -39,7 +39,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
 app.use("/coreProjects", express.static(path.join(__dirname, "coreProjects")));
-app.use("/expert", express.static(path.join(__dirname, "expert")));
+app.use(
+  "/ExpertMembers",
+  express.static(path.join(__dirname, "ExpertMembers"))
+);
+
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
