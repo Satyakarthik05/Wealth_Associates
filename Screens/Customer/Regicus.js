@@ -389,6 +389,7 @@ const RegisterExecute = ({ closeModal }) => {
                 placeholder="Referral Code"
                 placeholderTextColor="rgba(25, 25, 25, 0.5)"
                 onChangeText={setReferralCode}
+                editable={false}
                 value={referralCode}
               />
             </View>
@@ -432,6 +433,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    fontSize:20
   },
   container: {
     backgroundColor: "white",
@@ -507,7 +512,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: "#FFF",
+    backgroundColor: "#e6708e",
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 5,

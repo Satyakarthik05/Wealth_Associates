@@ -216,6 +216,8 @@ const Admin_panel = () => {
     setIsNriVisible(false);
     setIsNriViewVisible(false);
     setIsExecuVisible(false);
+    setAllSkilledLabour(false);
+
     // setRegisterExecutive(false)
 
     if (Platform.OS === "android" || Platform.OS === "ios") {

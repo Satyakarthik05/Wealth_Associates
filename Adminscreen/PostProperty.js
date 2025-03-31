@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,61 +11,58 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  Animated,
 } from "react-native";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../data/ApiUrl";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// import PropertyCard from "./PropertyCard";
 
 const { width } = Dimensions.get("window");
 
 const PostProperty = ({ closeModal }) => {
+  // State declarations
   const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [photo, setPhoto] = useState(null);
+  const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
-  // const [PostedBy, setPostedBy] = useState("");
+  const [PostedBy, setPostedBy] = useState("");
   const [loading, setLoading] = useState(false);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [showPropertyTypeList, setShowPropertyTypeList] = useState(false);
+  const [postedProperty, setPostedProperty] = useState(null);
+  const [constituencies, setConstituencies] = useState([]);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [showLocationList, setShowLocationList] = useState(false);
+  const [propertyDetails, setPropertyDetails] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const blobToFile = (blob, fileName) => {
-    return new File([blob], fileName, { type: blob.type });
-  };
-
-  let PostedBy = "admin";
-
-  // const propertyTypes = [
-  //   { name: "villas", code: "01" },
-  //   { name: "Commersial", code: "02" },
-  //   { name: "Land", code: "03" },
-  //   { name: "House", code: "04" },
-  // ];
-
-  // Fetch agent details
+  // Data fetching functions
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/core/getcore`, {
+      const response = await fetch(`${API_URL}/agent/AgentDetails`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
         },
       });
-
       const newDetails = await response.json();
-      // setPostedBy(newDetails.MobileNumber);
+      setPostedBy(newDetails.MobileIN);
       setDetails(newDetails);
     } catch (error) {
       console.error("Error fetching agent details:", error);
     }
   };
 
-  // Fetch property types from backend
   const fetchPropertyTypes = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/propertytype`);
@@ -76,73 +73,92 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
+      const data = await response.json();
+      setConstituencies(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
     fetchPropertyTypes();
+    fetchData();
   }, []);
 
-  // Filter property types based on search input
+  // Filter functions for dropdowns
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
   );
 
-  // Validate form inputs
+  const filteredConstituencies = constituencies.flatMap((item) =>
+    item.assemblies.filter((assembly) =>
+      assembly.name.toLowerCase().includes(locationSearch.toLowerCase())
+    )
+  );
+
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
-    if (!propertyType)
-      newErrors.propertyType = "Please select a property type.";
-    if (!location) newErrors.location = "Location is required.";
-    if (!price) newErrors.price = "Price is required.";
-    if (!photo) newErrors.photo = "Please upload a photo.";
+    if (!propertyType) newErrors.propertyType = "Please select a property type";
+    if (!location) newErrors.location = "Location is required";
+    if (!price) newErrors.price = "Price is required";
+    if (!photo) newErrors.photo = "Please upload a photo";
+    if (!propertyDetails) newErrors.propertyDetails = "Details are required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle property posting
+  // Form submission
   const handlePost = async () => {
     if (validateForm()) {
       setLoading(true);
       try {
-        let response;
-        if (Platform.OS === "web") {
-          const file = await blobToFile(photo, "photo.jpg");
+        const formData = new FormData();
+        formData.append("propertyType", propertyType);
+        formData.append("location", location);
+        formData.append("price", price);
+        formData.append("PostedBy", "Admin");
+        formData.append("fullName", Details.FullName || Details.Name);
+        formData.append("mobile", Details.MobileNumber || PostedBy);
+        formData.append("Constituency", constituencies);
+        formData.append("propertyDetails", propertyDetails);
 
-          const formData = new FormData();
-          formData.append("propertyType", propertyType);
-          formData.append("location", location);
-          formData.append("price", price);
-          formData.append("photo", file);
-          formData.append("PostedBy", PostedBy);
-
-          response = await fetch(`${API_URL}/properties/addProperty`, {
-            method: "POST",
-            body: formData,
-          });
-        } else {
-          const formData = new FormData();
-          formData.append("propertyType", propertyType);
-          formData.append("location", location);
-          formData.append("price", price);
-          formData.append("photo", {
-            uri: photo,
-            name: "photo.jpg",
-            type: "image/jpeg",
-          });
-          formData.append("PostedBy", PostedBy);
-
-          response = await fetch(`${API_URL}/properties/addProperty`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+        if (photo) {
+          if (Platform.OS === "web") {
+            if (file) {
+              formData.append("photo", file);
+            } else if (typeof photo === "string" && photo.startsWith("blob:")) {
+              const response = await fetch(photo);
+              const blob = await response.blob();
+              const file = new File([blob], "photo.jpg", { type: blob.type });
+              formData.append("photo", file);
+            }
+          } else {
+            formData.append("photo", {
+              uri: photo,
+              name: "photo.jpg",
+              type: "image/jpeg",
+            });
+          }
         }
+
+        const response = await fetch(`${API_URL}/properties/addProperty`, {
+          method: "POST",
+          body: formData,
+        });
 
         const result = await response.json();
         if (response.ok) {
-          alert("Success: Property Posted!");
-          closeModal();
+          setModalVisible(true);
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
         } else {
           alert(`Error: ${result.message}`);
         }
@@ -155,26 +171,42 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Image handling functions
   const selectImageFromGallery = async () => {
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (Platform.OS === "web") {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setPhoto(imageUrl);
+            setFile(file);
+          }
+        };
+        input.click();
+      } else {
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (permissionResult.status !== "granted") {
-        alert("Permission is required to upload a photo.");
-        return;
-      }
+        if (permissionResult.status !== "granted") {
+          alert("Permission is required to upload a photo.");
+          return;
+        }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setPhoto(result.assets[0].uri);
+        }
       }
     } catch (error) {
-      console.error("Error selecting image from gallery:", error);
+      console.error("Error selecting image:", error);
     }
   };
 
@@ -201,6 +233,46 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Helper functions
+  const getPropertyDetailsPlaceholder = () => {
+    switch (propertyType.toLowerCase()) {
+      case "land":
+        return "Enter area in acres";
+      case "apartment":
+        return "Enter area in square feet";
+      case "house":
+        return "Enter number of bedrooms";
+      default:
+        return "Enter property details";
+    }
+  };
+
+  const handleClosePropertyModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
+      setPostedProperty(null);
+      setTimeout(() => {
+        alert("property posted successfully");
+        closeModal();
+      }, 100);
+    });
+  };
+
+  // Clear dropdown selection
+  const clearPropertyTypeSelection = () => {
+    setPropertyType("");
+    setPropertyTypeSearch("");
+  };
+
+  const clearLocationSelection = () => {
+    setLocation("");
+    setLocationSearch("");
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -210,6 +282,7 @@ const PostProperty = ({ closeModal }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Post a Property</Text>
         <View style={styles.formContainer}>
+          {/* Photo Upload Section */}
           <Text style={styles.label}>Upload Photo</Text>
           <View style={styles.uploadSection}>
             {photo ? (
@@ -229,6 +302,7 @@ const PostProperty = ({ closeModal }) => {
                   style={styles.uploadPlaceholder}
                   onPress={selectImageFromGallery}
                 >
+                  <MaterialIcons name="photo-library" size={24} color="#555" />
                   <Text style={styles.uploadPlaceholderText}>Gallery</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -242,26 +316,46 @@ const PostProperty = ({ closeModal }) => {
             )}
           </View>
           {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
+
+          {/* Property Type Dropdown */}
           <Text style={styles.label}>Property Type</Text>
           <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Search Property Type"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              value={propertyTypeSearch}
-              onChangeText={(text) => {
-                setPropertyTypeSearch(text);
-                setShowPropertyTypeList(true);
-              }}
-              onFocus={() => {
-                setShowPropertyTypeList(true);
-              }}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  showPropertyTypeList && styles.inputWithDropdown,
+                ]}
+                placeholder="Search Property Type"
+                placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                value={propertyType || propertyTypeSearch}
+                onChangeText={(text) => {
+                  setPropertyTypeSearch(text);
+                  setPropertyType("");
+                  setShowPropertyTypeList(true);
+                }}
+                onFocus={() => {
+                  setShowPropertyTypeList(true);
+                  setShowLocationList(false);
+                }}
+                onBlur={() =>
+                  setTimeout(() => setShowPropertyTypeList(false), 200)
+                }
+              />
+              {propertyType && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearPropertyTypeSelection}
+                >
+                  <MaterialIcons name="clear" size={20} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
             {showPropertyTypeList && (
-              <View style={styles.dropdownContainer}>
+              <View style={[styles.dropdownContainer, { zIndex: 1000 }]}>
                 {filteredPropertyTypes.map((item) => (
                   <TouchableOpacity
-                    key={`${item.code}-${item.name}`} // Ensure unique key
+                    key={`${item.code}-${item.name}`}
                     style={styles.listItem}
                     onPress={() => {
                       setPropertyType(item.name);
@@ -278,25 +372,88 @@ const PostProperty = ({ closeModal }) => {
           {errors.propertyType && (
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
+
+          {/* Property Details */}
+          {propertyType && (
+            <>
+              <Text style={styles.label}>Property Details</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={getPropertyDetailsPlaceholder()}
+                value={propertyDetails}
+                onChangeText={setPropertyDetails}
+              />
+              {errors.propertyDetails && (
+                <Text style={styles.errorText}>{errors.propertyDetails}</Text>
+              )}
+            </>
+          )}
+
+          {/* Location Dropdown */}
           <Text style={styles.label}>Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex. Vijayawada"
-            value={location}
-            onChangeText={setLocation}
-          />
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  showLocationList && styles.inputWithDropdown,
+                ]}
+                placeholder="Ex. Vijayawada"
+                value={location || locationSearch}
+                onChangeText={(text) => {
+                  setLocationSearch(text);
+                  setLocation("");
+                  setShowLocationList(true);
+                }}
+                onFocus={() => {
+                  setShowLocationList(true);
+                  setShowPropertyTypeList(false);
+                }}
+                onBlur={() => setTimeout(() => setShowLocationList(false), 200)}
+              />
+              {location && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearLocationSelection}
+                >
+                  <MaterialIcons name="clear" size={20} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
+            {showLocationList && (
+              <View style={[styles.dropdownContainer, { zIndex: 1000 }]}>
+                {filteredConstituencies.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.code}-${item.name}`}
+                    style={styles.listItem}
+                    onPress={() => {
+                      setLocation(item.name);
+                      setLocationSearch(item.name);
+                      setShowLocationList(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
           {errors.location && (
             <Text style={styles.errorText}>{errors.location}</Text>
           )}
+
+          {/* Price Input */}
           <Text style={styles.label}>Price</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ex. 50,00,000"
-            keyboardType="numeric"
+            placeholder="Enter Price"
             value={price}
             onChangeText={setPrice}
+            keyboardType="numeric"
           />
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
+
+          {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.postButton, loading && styles.disabledButton]}
@@ -306,22 +463,32 @@ const PostProperty = ({ closeModal }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.postButtonText}>Post</Text>
+                <Text style={styles.postButtonText}>Post Property</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-          {loading && (
-            <ActivityIndicator
-              style={styles.loadingIndicator}
-              size="large"
-              color="#D81B60"
-            />
-          )}
         </View>
       </ScrollView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleClosePropertyModal}
+      >
+        <Animated.View style={[styles.modalContainer, { opacity: fadeAnim }]}>
+          {postedProperty && (
+            <PropertyCard
+              property={postedProperty}
+              closeModal={handleClosePropertyModal}
+            />
+          )}
+        </Animated.View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -329,18 +496,22 @@ const PostProperty = ({ closeModal }) => {
 // Styles
 const styles = StyleSheet.create({
   container: {
+    marginTop: Platform.OS === "ios" ? 90 : 0,
     flex: 1,
     backgroundColor: "#fff",
-    width: Platform.OS === "android" ? "90%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "40%",
     borderRadius: 30,
   },
-  scrollContainer: { flexGrow: 1, padding: 20 },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
   title: {
     fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
-    color: "#ccc",
+    color: "#fff",
     backgroundColor: "#D81B60",
     width: "100%",
     borderRadius: 20,
@@ -351,7 +522,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   formContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
@@ -361,44 +532,87 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
   },
-  label: { fontSize: 16, marginBottom: 8, color: "#555" },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#555",
+    fontWeight: "500",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    padding: 10,
+    padding: 12,
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
+    fontSize: 15,
+  },
+  inputWithDropdown: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 0,
+  },
+  clearButton: {
+    position: "absolute",
+    right: 10,
+    padding: 8,
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1,
+    // marginBottom: 15,
+    // zIndex: 1,
   },
   dropdownContainer: {
     position: "absolute",
-    bottom: "100%",
+    top: "100%",
     left: 0,
     right: 0,
-    zIndex: 1000,
-    backgroundColor: "#FFF",
+    backgroundColor: "#e6708e",
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 5,
+    borderTopWidth: 0,
+    borderRadius: 8,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     maxHeight: 200,
-    overflow: "scroll",
+    zIndex: 1000,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    ...Platform.select({
+      web: {
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        overflow: "auto",
+      },
+      default: {
+        overflow: "scroll",
+      },
+    }),
   },
   listItem: {
-    padding: 10,
+    padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#eee",
+    backgroundColor: "#fff",
+    backgroundColor: "#e6708e",
   },
-  uploadSection: { alignItems: "center", marginBottom: 20 },
+  uploadSection: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
   uploadedImage: {
-    width: 100,
-    height: 100,
+    width: 150,
+    height: 150,
     borderRadius: 10,
     marginBottom: 10,
+    resizeMode: "cover",
   },
   uploadOptions: {
     flexDirection: "row",
@@ -406,27 +620,36 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   uploadPlaceholder: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#ddd",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f9f9f9",
   },
-  uploadPlaceholderText: { fontSize: 12, color: "#555", marginTop: 5 },
+  uploadPlaceholderText: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 8,
+  },
+  removeButton: {
+    marginTop: 10,
+    borderColor: "#D81B60",
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20,
+    marginTop: 25,
   },
   postButton: {
     flex: 1,
     marginRight: 10,
     backgroundColor: "#D81B60",
-    borderRadius: 6,
-    paddingVertical: 12,
+    borderRadius: 8,
+    paddingVertical: 14,
+    elevation: 2,
   },
   postButtonText: {
     color: "#fff",
@@ -437,9 +660,10 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: "#000",
-    borderRadius: 6,
-    paddingVertical: 12,
+    backgroundColor: "#333",
+    borderRadius: 8,
+    paddingVertical: 14,
+    elevation: 2,
   },
   cancelButtonText: {
     color: "#fff",
@@ -447,13 +671,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  errorText: { color: "red", fontSize: 12, marginTop: -8, marginBottom: 10 },
-  disabledButton: {
-    backgroundColor: "#ccc",
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: -5,
+    marginBottom: 10,
   },
-  loadingIndicator: {
-    marginTop: 20,
-    alignSelf: "center",
+  disabledButton: {
+    backgroundColor: "#aaa",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
