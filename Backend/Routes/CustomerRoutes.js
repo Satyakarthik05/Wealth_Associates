@@ -15,6 +15,11 @@ app.get(
   verifyAgentToken,
   CustomerController.fetchReferredCustomers
 );
+app.get(
+  "/mycusCustomers",
+  verifCustomerToken,
+  CustomerController.fetchReferredcusCustomers
+);
 app.post("/updateCustomerDetails", CustomerController.updateCustomerDetails);
 app.get("/allcustomers", CustomerController.getAllCustomers);
 app.delete("/deletecustomer/:id", CustomerController.deleteCustomer);
