@@ -24,7 +24,7 @@ import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../../data/ApiUrl";
 import RequestedProperties from "../../Screens/Properties/ViewRequestedProperties";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import PropertyCards from "../Properties/PropertyCards";
+import PropertyCard from "./PropertyCard";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../assets/man.png";
 import logo1 from "../../assets/Logo Final 1.png";
@@ -213,7 +213,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10));
+        setProperties(data);
         fetchPropertiess();
       } else {
         console.warn("API returned empty data.");
@@ -914,7 +914,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       >
         <View style={styles.modalContainer}>
           {postedProperty && ( // Only render PropertyCard if postedProperty exists
-            <PropertyCards
+            <PropertyCard
               property={postedProperty}
               closeModal={() => setPostedProperty(null)}
             />
