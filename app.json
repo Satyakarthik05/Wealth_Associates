@@ -17,7 +17,8 @@
       "jsEngine": "hermes",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "ios":"1.2.1"
     },
     "android": {
       "usesCleartextTraffic": true,

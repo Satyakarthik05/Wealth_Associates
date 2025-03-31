@@ -73,6 +73,19 @@ const getCallExecutives = async (req, res) => {
   }
 };
 
+const getCallExe = async (req, res) => {
+  try {
+    const agentDetails = await CallExecutive.findById(req.AgentId);
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const updateCallExecutive = async (req, res) => {
   try {
     const { id } = req.params;
@@ -245,99 +258,167 @@ const myagents = async (req, res) => {
 };
 const myCustomers = async (req, res) => {
   try {
-    // Get the raw data directly from MongoDB
-    const db = mongoose.connection.db;
-    const executive = await db
-      .collection("callexecutives")
-      .findOne(
-        { _id: new mongoose.Types.ObjectId(req.AgentId) },
-        { projection: { assignedUsers: 1, name: 1, phone: 1 } }
-      );
+    // 1. Validate and convert AgentId
+    if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Agent ID format",
+        receivedId: req.AgentId,
+      });
+    }
 
-    // Check if the executive exists
-    if (!executive) {
+    const executiveId = new mongoose.Types.ObjectId(req.AgentId);
+
+    // 2. Get executive with valid customers and populate all necessary fields
+    const executive = await CallExecutive.aggregate([
+      { $match: { _id: executiveId } },
+      { $unwind: "$assignedUsers" },
+      {
+        $match: {
+          "assignedUsers.userType": "Customers",
+          "assignedUsers.userId": { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "assignedUsers.userId",
+          foreignField: "_id",
+          as: "customerDetails",
+        },
+      },
+      { $unwind: "$customerDetails" },
+      {
+        $project: {
+          _id: 0,
+          customer: {
+            $mergeObjects: [
+              "$customerDetails",
+              {
+                assignmentId: "$assignedUsers._id",
+                assignedAt: "$assignedUsers.assignedAt",
+              },
+            ],
+          },
+          executiveInfo: {
+            name: "$name",
+            phone: "$phone",
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          customers: { $push: "$customer" },
+          executiveInfo: { $first: "$executiveInfo" },
+        },
+      },
+    ]);
+
+    if (!executive || executive.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Executive not found",
-      });
-    }
-
-    console.log("Direct DB data:", JSON.stringify(executive, null, 2));
-
-    // Filter valid assignments for customers
-    const validAssignments =
-      executive.assignedUsers?.filter(
-        (a) =>
-          a.userType === "Customers" &&
-          a.userId &&
-          mongoose.Types.ObjectId.isValid(a.userId)
-      ) || [];
-
-    console.log("Valid assignments:", validAssignments);
-
-    // Return if no valid assignments are found
-    if (validAssignments.length === 0) {
-      return res.json({
-        success: true,
-        data: [],
         message: "No valid customer assignments found",
-        debug: {
-          rawAssignments: executive.assignedUsers || [],
-          executiveId: req.AgentId,
-        },
       });
     }
 
-    // Get customer IDs from valid assignments
-    const customerIds = validAssignments.map(
-      (a) => new mongoose.Types.ObjectId(a.userId)
-    );
-
-    // Fetch customer data from the database
-    const customers = await db
-      .collection("customers")
-      .find(
-        { _id: { $in: customerIds } },
-        {
-          projection: {
-            FullName: 1,
-            MobileNumber: 1,
-            District: 1,
-            Contituency: 1,
-            Occupation: 1,
-            MyRefferalCode: 1,
-            CallExecutiveCall: 1,
-          },
-        }
-      )
-      .toArray();
-
-    // Prepare the final response data
-    const responseData = validAssignments
-      .map((assignment) => {
-        const customer = customers.find((c) => c._id.equals(assignment.userId));
-        if (customer) {
-          return {
-            ...customer,
-            assignmentId: assignment._id,
-            assignedAt: assignment.assignedAt,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
-
-    // Send the final response
+    // 3. Format the response with all customer details
+    const result = executive[0];
+    
     res.json({
       success: true,
-      data: responseData,
-      executiveInfo: {
-        name: executive.name,
-        phone: executive.phone,
-      },
+      data: result.customers,
+      executiveInfo: result.executiveInfo,
     });
   } catch (error) {
+    console.error("Error in myCustomers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+const myProperties = async (req, res) => {
+  try {
+    // 1. Get executiveId from authenticated user (should come from token)
+    const executiveId = req.AgentId; // Make sure your auth middleware sets this
+    
+    if (!mongoose.Types.ObjectId.isValid(executiveId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Executive ID format",
+      });
+    }
+
+    const executiveObjectId = new mongoose.Types.ObjectId(executiveId);
+
+    // 2. Clean up invalid assignments
+    await CallExecutive.updateOne(
+      { _id: executiveObjectId },
+      { $pull: { assignedUsers: { userId: null } } }
+    );
+
+    // 3. Get executive with property details
+    const executive = await CallExecutive.aggregate([
+      { $match: { _id: executiveObjectId } },
+      { $unwind: "$assignedUsers" },
+      {
+        $match: {
+          "assignedUsers.userType": "Property",
+          "assignedUsers.userId": { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "properties",
+          localField: "assignedUsers.userId",
+          foreignField: "_id",
+          as: "propertyDetails",
+        },
+      },
+      { $unwind: "$propertyDetails" },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          property: "$propertyDetails",
+          assignmentId: "$assignedUsers._id",
+          assignedAt: "$assignedUsers.assignedAt"
+        }
+      }
+    ]);
+
+    if (!executive || executive.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid property assignments found",
+      });
+    }
+
+    // Format the response to match frontend expectations
+    const response = {
+      success: true,
+      data: executive.map(item => ({
+        ...item.property,
+        assignmentId: item.assignmentId,
+        assignedAt: item.assignedAt,
+        // Ensure these fields are included if needed by frontend
+        PostedBy: item.property.PostedBy,
+        PostedUserType: item.property.PostedUserType
+      })),
+      executiveInfo: {
+        name: executive[0]?.name || '',
+        phone: executive[0]?.phone || ''
+      }
+    };
+
+    res.json(response);
+    
+  } catch (error) {
     console.error("Final error:", error);
+    console.error("Error in myProperties:", error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve customers",
@@ -353,4 +434,6 @@ module.exports = {
   CallExecutiveLogin,
   myagents,
   myCustomers,
+  myProperties,
+  getCallExe
 };
