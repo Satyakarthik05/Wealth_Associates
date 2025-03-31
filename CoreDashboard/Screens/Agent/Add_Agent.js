@@ -509,7 +509,7 @@ const Add_Agent = ({ closeModal }) => {
                         setShowExperienceList(false);
                       }}
                       value={referralCode}
-                      editable={false}
+                      // editable={false}
                     />
                     <MaterialIcons
                       name="card-giftcard"
