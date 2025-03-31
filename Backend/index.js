@@ -26,6 +26,7 @@ const DistrictConstituency = require("./Routes/DistrictConsttuencyRoutes");
 const Constituency = require("./Models/DistrictsConstituencysModel");
 const ReqExp = require("./Routes/ReqExpRoutes");
 const CallExecuteRoute = require("./Routes/CallExecutiveRouts");
+const PushToken=require("./Models/NotificationToken")
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -99,6 +100,86 @@ app.get("/serverCheck", (req, res) => {
 
 https.createServer(options, app).listen(443, () => {
   console.log("HTTPS Server running on port 443");
+});
+app.post('/send-notification', async (req, res) => {
+  try {
+    const { title, message } = req.body;
+
+    // Validate input
+    if (!title || !message) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Both title and message are required" 
+      });
+    }
+
+    // Get all registered push tokens
+    const allTokens = await PushToken.find({});
+    
+    if (!allTokens.length) {
+      return res.status(200).json({ 
+        success: true,
+        message: "No devices registered to receive notifications" 
+      });
+    }
+
+    // Prepare notifications
+    const notifications = allTokens.map((user) => ({
+      to: user.expoPushToken,
+      sound: "default",
+      title: title,
+      body: message,
+      data: { 
+        type: 'custom_notification',
+        sentAt: new Date().toISOString() 
+      }
+    }));
+
+    // Send notifications in chunks (Expo recommends max 100 per request)
+    const chunkSize = 100;
+    const chunks = [];
+    
+    for (let i = 0; i < notifications.length; i += chunkSize) {
+      chunks.push(notifications.slice(i, i + chunkSize));
+    }
+
+    // Send each chunk
+    for (const chunk of chunks) {
+      try {
+        const response = await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(chunk),
+        });
+
+        const data = await response.json();
+        console.log('Expo push response:', data);
+      } catch (err) {
+        console.error('Error sending push notification chunk:', err);
+      }
+    }
+
+    res.status(200).json({ 
+      success: true,
+      message: `Notification sent to ${allTokens.length} devices`,
+      data: {
+        title,
+        message,
+        devices: allTokens.length
+      }
+    });
+
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error",
+      error: error.message 
+    });
+  }
 });
 
 const http = require("http");
