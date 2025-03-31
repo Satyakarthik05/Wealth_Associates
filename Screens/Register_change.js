@@ -8,38 +8,57 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import logo1 from "../assets/logo.png";
 
-const RegisterAsScreen = ({ navigation }) => {
-  const loginOptions = [
+const RegisterAsScreen = () => {
+  const navigation = useNavigation();
+
+  const registerOptions = [
     {
-      name: "WealthAssociate",
+      name: "Wealth Associate",
       icon: (
         <MaterialIcons name="real-estate-agent" size={hp("4%")} color="white" />
       ),
-      navigateTo: "Register", // This is the screen you want to navigate to
+      navigateTo: "Register",
     },
     {
       name: "Wealth Customer",
       icon: <FontAwesome5 name="user" size={hp("4%")} color="white" />,
-      navigateTo: "RegisterCustomer", // Correct the navigation target if needed
+      navigateTo: "RegisterCustomer",
+    },
+    {
+      name: "Wealth Investor",
+      icon: (
+        <FontAwesome5 name="hand-holding-usd" size={hp("4%")} color="white" />
+      ),
+      navigateTo: "invreg",
+    },
+    {
+      name: "Wealth NRI",
+      icon: <MaterialIcons name="flight" size={hp("4%")} color="white" />,
+      navigateTo: "nrireg",
+    },
+    {
+      name: "Skilled Resource",
+      icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
+      navigateTo: "skillreg",
     },
   ];
 
   return (
     <View style={styles.container}>
-      <Image source={logo1} style={styles.logo} />
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
       <Text style={styles.welcomeText}>Welcome To Wealth Associates</Text>
-      <Text style={styles.loginAsText}>Register as</Text>
+      <Text style={styles.registerAsText}>Register as</Text>
 
       {Platform.OS === "web" ? (
         <View style={styles.card}>
           <View style={styles.gridContainer}>
-            {loginOptions.map((option, index) => (
+            {registerOptions.map((option, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.button}
@@ -53,7 +72,7 @@ const RegisterAsScreen = ({ navigation }) => {
         </View>
       ) : (
         <View style={styles.gridContainer}>
-          {loginOptions.map((option, index) => (
+          {registerOptions.map((option, index) => (
             <TouchableOpacity
               key={index}
               style={styles.button}
@@ -74,34 +93,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     alignItems: "center",
-    paddingTop: hp("5%"),
+    paddingTop: Platform.OS === "ios" ? hp("2%") : hp("5%"),
   },
   logo: {
     width: wp("50%"),
     height: hp("20%"),
     resizeMode: "contain",
     marginBottom: hp("3%"),
-    // marginRight: Platform.OS === "web" ? hp("15%") : hp("0%"),
-    // marginLeft: Platform.OS === "android" ? "0%" : "10%",
-    // alignSelf: Platform.OS === "web" ? "flex-end" : "auto",
-    marginTop: Platform.OS === "web" ? hp("0%") : hp("0%"),
   },
   welcomeText: {
-    fontSize: Platform.OS === "android" ? hp("2.5%") : hp("3%"),
+    fontSize:
+      Platform.OS === "android" || Platform.OS === "ios"
+        ? hp("2.59%")
+        : hp("3%"),
     fontWeight: "bold",
     color: "#D81B60",
     marginBottom: hp("1%"),
-    // alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
   },
-  loginAsText: {
-    fontSize: Platform.OS === "android" ? hp("3%") : hp("3%"),
-
+  registerAsText: {
+    fontSize:
+      Platform.OS === "android" || Platform.OS === "ios" ? hp("3%") : hp("3%"),
     fontWeight: "600",
-    //marginBottom:Platform.OS === "android" ? hp("2%") : hp("2%"),
-    marginTop: Platform.OS === "android" ? hp("3%") : hp("2%"),
-
-    // alignSelf: Platform.OS === "web" ? "flex-start" : "auto",
-    // marginLeft: Platform.OS === "android" ? "30%" : "auto",
+    marginBottom:
+      Platform.OS === "android" || Platform.OS === "ios" ? hp("2%") : hp("2%"),
   },
   card: {
     backgroundColor: "#fff",
@@ -111,15 +125,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    width: Platform.OS === "android" ? wp("60%") : wp("60%"),
+    width: wp("60%"),
     alignItems: "center",
     justifyContent: "center",
     marginTop: hp("2%"),
+    height: "400px",
   },
   gridContainer: {
-    // flexDirection: "row",
-    display: "flex",
-    flexDirection: Platform.OS === "android" ? "column" : "row",
+    flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     width: Platform.OS === "web" ? "100%" : "40px",
@@ -127,9 +140,8 @@ const styles = StyleSheet.create({
   button: {
     width: Platform.OS === "web" ? "15%" : wp("38%"),
     maxWidth: Platform.OS === "web" ? 200 : 180,
-    height: Platform.OS === "android" ? 100 : "100px",
-    // height: hp("12%"),
-    // maxHeight: 120,
+    height: hp("12%"),
+    maxHeight: 120,
     backgroundColor: "#D81B60",
     borderRadius: Platform.OS === "web" ? 15 : wp("3%"),
     alignItems: "center",
@@ -143,10 +155,8 @@ const styles = StyleSheet.create({
         : { width: 0, height: 0 },
     shadowOpacity: Platform.OS === "ios" || Platform.OS === "web" ? 0.2 : 0,
     shadowRadius: Platform.OS === "ios" || Platform.OS === "web" ? 5 : 0,
-    marginBottom: Platform.OS === "android" ? hp("0%") : hp("10%"),
-    marginTop: Platform.OS === "web" ? hp("0%") : hp("8%"),
-
-    //justifyContent:Platform.OS === "android"? "center" : "none"
+    marginBottom:
+      Platform.OS === "android" || Platform.OS === "ios" ? hp("0%") : hp("10%"),
   },
   buttonText: {
     color: "white",

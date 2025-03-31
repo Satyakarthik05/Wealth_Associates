@@ -9,10 +9,14 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../../data/ApiUrl";
+import { API_URL } from "../data/ApiUrl";
+import { useNavigation } from "@react-navigation/native";
 
 const AddInvestor = ({ closeModal }) => {
   const [fullName, setFullName] = useState("");
@@ -26,7 +30,7 @@ const AddInvestor = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
-
+  const navigation = useNavigation();
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -70,14 +74,6 @@ const AddInvestor = ({ closeModal }) => {
       return;
     }
 
-    if (!Details || !Details.MobileNumber) {
-      Alert.alert(
-        "Error",
-        "Agent details are not available. Please try again."
-      );
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/investors/register`, {
@@ -88,7 +84,7 @@ const AddInvestor = ({ closeModal }) => {
           SelectSkill: skill,
           Location: location,
           MobileNumber: mobileNumber,
-          AddedBy: Details.MobileNumber,
+          AddedBy: "WA0000000001",
           RegisteredBy: "WealthAssociate",
         }),
       });
@@ -99,7 +95,7 @@ const AddInvestor = ({ closeModal }) => {
         setSkill("");
         setLocation("");
         setMobileNumber("");
-        closeModal();
+        navigation.navigate("Starting Screen");
       } else {
         Alert.alert("Error", data.message || "Registration failed");
       }
@@ -132,129 +128,151 @@ const AddInvestor = ({ closeModal }) => {
   };
 
   return (
-    // <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Register Investor</Text>
-      </View>
-
-      <View style={styles.form}>
-        {/* Full Name Input */}
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          style={styles.input}
-          placeholder="Full Name"
-          placeholderTextColor="#999"
-        />
-
-        {/* Category Select */}
-        <Text style={styles.label}>Select Category</Text>
-        <View style={styles.inputContainer}>
-          <View style={styles.searchInputContainer}>
-            <TouchableOpacity
-              style={[styles.searchInput, { justifyContent: "center" }]}
-              onPress={() => {
-                setShowDropdown(!showDropdown);
-                setShowLocationList(false);
-              }}
-            >
-              <Text style={skill ? {} : styles.placeholderText}>
-                {skill || "-- Select Category --"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setShowDropdown(!showDropdown)}
-              style={styles.dropdownToggle}
-            >
-              <Text style={styles.dropdownToggleText}>
-                {showDropdown ? "▲" : "▼"}
-              </Text>
-            </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Register Investor</Text>
           </View>
-          {showDropdown && renderDropdown()}
-        </View>
 
-        {/* Location Input */}
-        <Text style={styles.label}>Location</Text>
-        <View style={styles.inputContainer}>
-          <View style={styles.searchInputContainer}>
+          <View style={styles.form}>
+            {/* Full Name Input */}
+            <Text style={styles.label}>Full Name</Text>
             <TextInput
-              style={styles.searchInput}
-              placeholder="Ex. Vijayawada"
+              value={fullName}
+              onChangeText={setFullName}
+              style={styles.input}
+              placeholder="Full Name"
               placeholderTextColor="#999"
-              value={location}
-              onChangeText={(text) => {
-                setLocation(text);
-                setLocationSearch(text);
-                setShowLocationList(text.length > 0);
-              }}
-              onFocus={() => {
-                setShowLocationList(true);
-                setShowDropdown(false);
-              }}
             />
-            <TouchableOpacity
-              onPress={() => setShowLocationList(!showLocationList)}
-              style={styles.dropdownToggle}
-            >
-              <Text style={styles.dropdownToggleText}>
-                {showLocationList ? "▲" : "▼"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {showLocationList && filteredConstituencies.length > 0 && (
-            <View style={styles.dropdownContainer}>
-              <ScrollView style={styles.scrollContainer}>
-                {filteredConstituencies.map((item) => (
-                  <TouchableOpacity
-                    key={`${item.code}-${item.name}`}
-                    style={styles.listItem}
-                    onPress={() => {
-                      setLocation(item.name);
-                      setShowLocationList(false);
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+
+            {/* Category Select */}
+            <Text style={styles.label}>Select Category</Text>
+            <View style={styles.inputContainer}>
+              <View style={styles.searchInputContainer}>
+                <TouchableOpacity
+                  style={[styles.searchInput, { justifyContent: "center" }]}
+                  onPress={() => {
+                    setShowDropdown(!showDropdown);
+                    setShowLocationList(false);
+                  }}
+                >
+                  <Text style={skill ? {} : styles.placeholderText}>
+                    {skill || "-- Select Category --"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowDropdown(!showDropdown)}
+                  style={styles.dropdownToggle}
+                >
+                  <Text style={styles.dropdownToggleText}>
+                    {showDropdown ? "▲" : "▼"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {showDropdown && renderDropdown()}
             </View>
-          )}
-        </View>
 
-        {/* Mobile Number Input */}
-        <Text style={styles.label}>Mobile Number</Text>
-        <TextInput
-          value={mobileNumber}
-          onChangeText={(text) => setMobileNumber(text.replace(/[^0-9]/g, ""))}
-          keyboardType="phone-pad"
-          style={styles.input}
-          placeholder="Mobile Number"
-          placeholderTextColor="#999"
-          maxLength={10}
-        />
+            {/* Location Input */}
+            <Text style={styles.label}>Location</Text>
+            <View style={styles.inputContainer}>
+              <View style={styles.searchInputContainer}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Ex. Vijayawada"
+                  placeholderTextColor="#999"
+                  value={location}
+                  onChangeText={(text) => {
+                    setLocation(text);
+                    setLocationSearch(text);
+                    setShowLocationList(text.length > 0);
+                  }}
+                  onFocus={() => {
+                    setShowLocationList(true);
+                    setShowDropdown(false);
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowLocationList(!showLocationList)}
+                  style={styles.dropdownToggle}
+                >
+                  <Text style={styles.dropdownToggleText}>
+                    {showLocationList ? "▲" : "▼"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {showLocationList && filteredConstituencies.length > 0 && (
+                <View style={styles.dropdownContainer}>
+                  <ScrollView style={styles.scrollContainer}>
+                    {filteredConstituencies.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.listItem}
+                        onPress={() => {
+                          setLocation(item.name);
+                          setShowLocationList(false);
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.registerButton, loading && styles.disabledButton]}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Register</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+            {/* Mobile Number Input */}
+            <Text style={styles.label}>Mobile Number</Text>
+            <TextInput
+              value={mobileNumber}
+              onChangeText={(text) =>
+                setMobileNumber(text.replace(/[^0-9]/g, ""))
+              }
+              keyboardType="phone-pad"
+              style={styles.input}
+              placeholder="Mobile Number"
+              placeholderTextColor="#999"
+              maxLength={10}
+            />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.registerButton,
+                  loading && styles.disabledButton,
+                ]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Register</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => navigation.navigate("RegisterAS")}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
-    // </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -270,6 +288,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
+    top: "10%",
   },
   header: {
     backgroundColor: "#E91E63",
@@ -290,6 +309,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: 5,
+  },
+  logo: {
+    width: 150,
+    height: 120,
+    alignSelf: "center",
+    marginTop: 10,
+    marginBottom: 10,
   },
   input: {
     borderWidth: 1,

@@ -1,29 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   TextInput,
-  TextInput,
   TouchableOpacity,
-  Image,
   Image,
   StyleSheet,
   Platform,
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
-  Dimensions,
-  KeyboardAvoidingView,
-  ScrollView,
   ActivityIndicator,
-  Modal,
   Modal,
   Animated,
 } from "react-native";
-import { Button } from "react-native-paper";
-import * as ImagePicker from "expo-image-picker";
-import { API_URL } from "../../../data/ApiUrl";
 import { Button } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../../data/ApiUrl";
@@ -32,11 +22,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCard from "./PropertyCard";
 
 const { width } = Dimensions.get("window");
-import PropertyCard from "./PropertyCard";
-
-const { width } = Dimensions.get("window");
 
 const PostProperty = ({ closeModal }) => {
+  // State declarations
   const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
@@ -57,7 +45,7 @@ const PostProperty = ({ closeModal }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Fetch agent details
+  // Data fetching functions
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -67,7 +55,6 @@ const PostProperty = ({ closeModal }) => {
           token: `${token}` || "",
         },
       });
-
       const newDetails = await response.json();
       setPostedBy(newDetails.MobileIN);
       setDetails(newDetails);
@@ -76,7 +63,6 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Fetch property types
   const fetchPropertyTypes = async () => {
     try {
       const response = await fetch(`${API_URL}/discons/propertytype`);
@@ -87,7 +73,6 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
-  // Fetch constituencies
   const fetchData = async () => {
     try {
       const response = await fetch(`${API_URL}/alldiscons/alldiscons`);
@@ -104,6 +89,7 @@ const PostProperty = ({ closeModal }) => {
     fetchData();
   }, []);
 
+  // Filter functions for dropdowns
   const filteredPropertyTypes = propertyTypes.filter((item) =>
     item.name.toLowerCase().includes(propertyTypeSearch.toLowerCase())
   );
@@ -114,6 +100,7 @@ const PostProperty = ({ closeModal }) => {
     )
   );
 
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
     if (!propertyType) newErrors.propertyType = "Please select a property type";
@@ -125,6 +112,7 @@ const PostProperty = ({ closeModal }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Form submission
   const handlePost = async () => {
     if (validateForm()) {
       setLoading(true);
@@ -134,8 +122,8 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("fullName", Details.FullName || Details.Name);
-        formData.append("mobile", Details.MobileNumber || PostedBy);
+        formData.append("fullName", Details.Name || Details.Name);
+        formData.append("mobile", Details.MobileIN || PostedBy);
         formData.append("Constituency", constituencies);
         formData.append("propertyDetails", propertyDetails);
 
@@ -170,9 +158,9 @@ const PostProperty = ({ closeModal }) => {
             location,
             price,
             propertyType,
-            PostedBy: Details.MobileNumber || PostedBy,
-            fullName: Details.FullName || Details.Name,
-            mobile: Details.MobileNumber || PostedBy,
+            PostedBy: Details.MobileIN || PostedBy,
+            fullName: Details.Name || Details.Name,
+            mobile: Details.MobileIN || PostedBy,
             propertyDetails,
           });
           setModalVisible(true);
@@ -193,6 +181,7 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Image handling functions
   const selectImageFromGallery = async () => {
     try {
       if (Platform.OS === "web") {
@@ -237,38 +226,9 @@ const PostProperty = ({ closeModal }) => {
 
       if (status !== "granted") {
         alert("Camera permission is required to take a photo.");
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          setPhoto(result.assets[0].uri);
-        }
-      }
-    } catch (error) {
-      console.error("Error selecting image:", error);
-    }
-  };
-
-  const takePhotoWithCamera = async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-      if (status !== "granted") {
-        alert("Camera permission is required to take a photo.");
         return;
       }
 
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
-      }
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -283,6 +243,7 @@ const PostProperty = ({ closeModal }) => {
     }
   };
 
+  // Helper functions
   const getPropertyDetailsPlaceholder = () => {
     switch (propertyType.toLowerCase()) {
       case "land":
@@ -297,7 +258,6 @@ const PostProperty = ({ closeModal }) => {
   };
 
   const handleClosePropertyModal = () => {
-  const handleClosePropertyModal = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
@@ -309,13 +269,18 @@ const PostProperty = ({ closeModal }) => {
         alert("property posted successfully");
         closeModal();
       }, 100);
-      setModalVisible(false);
-      setPostedProperty(null);
-      setTimeout(() => {
-        alert("property posted successfully");
-        closeModal();
-      }, 100);
     });
+  };
+
+  // Clear dropdown selection
+  const clearPropertyTypeSelection = () => {
+    setPropertyType("");
+    setPropertyTypeSearch("");
+  };
+
+  const clearLocationSelection = () => {
+    setLocation("");
+    setLocationSearch("");
   };
 
   return (
@@ -327,6 +292,7 @@ const PostProperty = ({ closeModal }) => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Post a Property</Text>
         <View style={styles.formContainer}>
+          {/* Photo Upload Section */}
           <Text style={styles.label}>Upload Photo</Text>
           <View style={styles.uploadSection}>
             {photo ? (
@@ -361,22 +327,31 @@ const PostProperty = ({ closeModal }) => {
           </View>
           {errors.photo && <Text style={styles.errorText}>{errors.photo}</Text>}
 
+          {/* Property Type Dropdown */}
           <Text style={styles.label}>Property Type</Text>
           <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Search Property Type"
-              placeholderTextColor="rgba(25, 25, 25, 0.5)"
-              value={propertyTypeSearch}
-              onChangeText={(text) => {
-                setPropertyTypeSearch(text);
-                setShowPropertyTypeList(true);
-              }}
-              onFocus={() => setShowPropertyTypeList(true)}
-              onBlur={() =>
-                setTimeout(() => setShowPropertyTypeList(false), 200)
-              }
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Search Property Type"
+                placeholderTextColor="rgba(25, 25, 25, 0.5)"
+                value={propertyType || propertyTypeSearch}
+                onChangeText={(text) => {
+                  setPropertyTypeSearch(text);
+                  setPropertyType("");
+                  setShowPropertyTypeList(true);
+                }}
+                onFocus={() => setShowPropertyTypeList(true)}
+              />
+              {propertyType && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearPropertyTypeSelection}
+                >
+                  <MaterialIcons name="clear" size={20} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
             {showPropertyTypeList && (
               <View style={styles.dropdownContainer}>
                 {filteredPropertyTypes.map((item) => (
@@ -399,6 +374,7 @@ const PostProperty = ({ closeModal }) => {
             <Text style={styles.errorText}>{errors.propertyType}</Text>
           )}
 
+          {/* Property Details */}
           {propertyType && (
             <>
               <Text style={styles.label}>Property Details</Text>
@@ -414,19 +390,30 @@ const PostProperty = ({ closeModal }) => {
             </>
           )}
 
+          {/* Location Dropdown */}
           <Text style={styles.label}>Location</Text>
           <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex. Vijayawada"
-              value={locationSearch}
-              onChangeText={(text) => {
-                setLocationSearch(text);
-                setShowLocationList(true);
-              }}
-              onFocus={() => setShowLocationList(true)}
-              onBlur={() => setTimeout(() => setShowLocationList(false), 200)}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex. Vijayawada"
+                value={location || locationSearch}
+                onChangeText={(text) => {
+                  setLocationSearch(text);
+                  setLocation("");
+                  setShowLocationList(true);
+                }}
+                onFocus={() => setShowLocationList(true)}
+              />
+              {location && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearLocationSelection}
+                >
+                  <MaterialIcons name="clear" size={20} color="#999" />
+                </TouchableOpacity>
+              )}
+            </View>
             {showLocationList && (
               <View style={styles.dropdownContainer}>
                 {filteredConstituencies.map((item) => (
@@ -449,6 +436,7 @@ const PostProperty = ({ closeModal }) => {
             <Text style={styles.errorText}>{errors.location}</Text>
           )}
 
+          {/* Price Input */}
           <Text style={styles.label}>Price</Text>
           <TextInput
             style={styles.input}
@@ -459,35 +447,27 @@ const PostProperty = ({ closeModal }) => {
           />
           {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
 
+          {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.postButton, loading && styles.disabledButton]}
-              onPress={handlePost}
-              disabled={loading}
               style={[styles.postButton, loading && styles.disabledButton]}
               onPress={handlePost}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
-              {loading ? (
-                <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.postButtonText}>Post Property</Text>
               )}
-                <Text style={styles.postButtonText}>Post Property</Text>
-              )}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
             <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-      </ScrollView>
 
+      {/* Success Modal */}
       <Modal
         visible={modalVisible}
         transparent={true}
@@ -504,9 +484,6 @@ const PostProperty = ({ closeModal }) => {
         </Animated.View>
       </Modal>
     </KeyboardAvoidingView>
-        </Animated.View>
-      </Modal>
-    </KeyboardAvoidingView>
   );
 };
 
@@ -516,19 +493,13 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === "ios" ? 90 : 0,
     flex: 1,
     backgroundColor: "#fff",
-    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : "40%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "100%" : "40%",
     borderRadius: 30,
   },
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 20,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
   title: {
     fontSize: 26,
     fontWeight: "bold",
@@ -561,7 +532,12 @@ const styles = StyleSheet.create({
     color: "#555",
     fontWeight: "500",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
@@ -569,6 +545,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: "#f9f9f9",
     fontSize: 15,
+  },
+  clearButton: {
+    position: "absolute",
+    right: 10,
+    padding: 8,
   },
   inputWrapper: {
     position: "relative",
@@ -587,6 +568,7 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     overflow: "scroll",
     elevation: 5,
+    backgroundColor: "#e6708e",
   },
   listItem: {
     padding: 12,
@@ -620,14 +602,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
   },
   uploadPlaceholderText: {
-  uploadPlaceholderText: {
     fontSize: 14,
     color: "#555",
-    marginTop: 8,
-  },
-  removeButton: {
-    marginTop: 10,
-    borderColor: "#D81B60",
     marginTop: 8,
   },
   removeButton: {
@@ -638,12 +614,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 25,
-    marginTop: 25,
   },
-  postButton: {
-    flex: 1,
-    marginRight: 10,
-    backgroundColor: "#D81B60",
   postButton: {
     flex: 1,
     marginRight: 10,
@@ -651,25 +622,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 14,
     elevation: 2,
-    paddingVertical: 14,
-    elevation: 2,
   },
-  postButtonText: {
-    color: "#fff",
   postButtonText: {
     color: "#fff",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
-    fontWeight: "bold",
   },
-  cancelButton: {
-    flex: 1,
-    marginLeft: 10,
-    backgroundColor: "#333",
-    borderRadius: 8,
-    paddingVertical: 14,
-    elevation: 2,
   cancelButton: {
     flex: 1,
     marginLeft: 10,
@@ -680,16 +639,9 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#fff",
-  cancelButtonText: {
-    color: "#fff",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginTop: -5,
   },
   errorText: {
     color: "red",
@@ -699,20 +651,13 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: "#aaa",
-  disabledButton: {
-    backgroundColor: "#aaa",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
 
-export default PostProperty;
 export default PostProperty;

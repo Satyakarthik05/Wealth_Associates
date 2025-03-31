@@ -28,6 +28,9 @@ import CallCenterDashboard from "./CallCenterDash/CallCenterDashboard";
 import CallCenterLogin from "./CallCenterDash/Login_screen";
 import New_Password from "./Screens/New_Password";
 import { API_URL } from "./data/ApiUrl";
+import NriRegister from "./Screens/AddNri";
+import InvestorRegister from "./Screens/AddInvestors";
+import SkilledRegister from "./Screens/Rskill";
 
 // ✅ Keep NavigationIndependentTree
 import { NavigationIndependentTree } from "@react-navigation/native";
@@ -216,6 +219,21 @@ export default function App() {
           <Stack.Screen
             name="CallCenterLogin"
             component={CallCenterLogin}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="nrireg"
+            component={NriRegister}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="invreg"
+            component={InvestorRegister}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="skillreg"
+            component={SkilledRegister}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
