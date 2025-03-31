@@ -29,12 +29,110 @@ const AddExpertForm = ({ closeModal }) => {
     experience: "",
     location: "",
     mobile: "",
+    officeAddress: "",
   });
 
   const [photo, setPhoto] = useState(null);
   const [file, setFile] = useState(null);
   const [constituencies, setConstituencies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [additionalFields, setAdditionalFields] = useState({});
+
+  // Expert type specific fields
+  const expertFields = {
+    LEGAL: [
+      { key: "specialization", label: "Specialization" },
+      { key: "barCouncilId", label: "Bar Council ID" },
+      { key: "courtAffiliation", label: "Court Affiliation" },
+      { key: "lawFirmOrganisation", label: "Law Firm/Organization" },
+    ],
+    REVENUE: [
+      { key: "landTypeExpertise", label: "Land Type Expertise" },
+      { key: "revenueSpecialisation", label: "Revenue Specialisation" },
+      { key: "govtApproval", label: "Government Approval" },
+      {
+        key: "certificationLicenseNumber",
+        label: "Certification/License Number",
+      },
+      { key: "revenueOrganisation", label: "Organization" },
+      { key: "keyServicesProvided", label: "Key Services Provided" },
+    ],
+    ENGINEERS: [
+      { key: "engineeringField", label: "Engineering Field" },
+      { key: "engineerCertifications", label: "Certifications" },
+      { key: "projectsHandled", label: "Projects Handled" },
+      { key: "engineerOrganisation", label: "Organization" },
+      {
+        key: "specializedSkillsTechnologies",
+        label: "Specialized Skills/Technologies",
+      },
+      { key: "majorProjectsWorkedOn", label: "Major Projects Worked On" },
+      { key: "govtLicensed", label: "Government Licensed" },
+    ],
+    ARCHITECTS: [
+      { key: "architectureType", label: "Architecture Type" },
+      { key: "softwareUsed", label: "Software Used" },
+      { key: "architectLicenseNumber", label: "License Number" },
+      { key: "architectFirm", label: "Firm/Organization" },
+      { key: "architectMajorProjects", label: "Major Projects" },
+    ],
+    "PLANS & APPROVALS": [
+      { key: "approvalType", label: "Approval Type" },
+      { key: "govtApproved", label: "Government Approved" },
+      { key: "approvalOrganisation", label: "Organization" },
+      { key: "approvalLicenseNumber", label: "License Number" },
+      { key: "approvalMajorProjects", label: "Major Projects" },
+    ],
+    "VAASTU PANDITS": [
+      { key: "vaastuSpecialization", label: "Vaastu Specialization" },
+      { key: "vaastuOrganisation", label: "Organization" },
+      { key: "vaastuCertifications", label: "Certifications" },
+      { key: "remediesProvided", label: "Remedies Provided" },
+      { key: "consultationMode", label: "Consultation Mode" },
+    ],
+    "LAND SURVEY & VALUERS": [
+      { key: "surveyType", label: "Survey Type" },
+      { key: "govtCertified", label: "Government Certified" },
+      { key: "surveyOrganisation", label: "Organization" },
+      { key: "surveyLicenseNumber", label: "License Number" },
+      { key: "surveyMajorProjects", label: "Major Projects" },
+    ],
+    BANKING: [
+      { key: "bankingSpecialisation", label: "Banking Specialisation" },
+      { key: "bankingService", label: "Banking Service" },
+      { key: "registeredWith", label: "Registered With" },
+      { key: "bankName", label: "Bank Name" },
+      { key: "bankingGovtApproved", label: "Government Approved" },
+    ],
+    AGRICULTURE: [
+      { key: "agricultureType", label: "Agriculture Type" },
+      { key: "agricultureCertifications", label: "Certifications" },
+      { key: "agricultureOrganisation", label: "Organization" },
+      { key: "servicesProvided", label: "Services Provided" },
+      { key: "typesOfCrops", label: "Types of Crops" },
+    ],
+    "REGISTRATION & DOCUMENTATION": [
+      { key: "registrationSpecialisation", label: "Specialisation" },
+      { key: "documentType", label: "Document Type" },
+      { key: "processingTime", label: "Processing Time" },
+      { key: "registrationGovtCertified", label: "Government Certified" },
+      { key: "additionalServices", label: "Additional Services" },
+    ],
+    AUDITING: [
+      { key: "auditingSpecialisation", label: "Auditing Specialisation" },
+      { key: "auditType", label: "Audit Type" },
+      { key: "auditCertificationNumber", label: "Certification Number" },
+      { key: "auditOrganisation", label: "Organization" },
+      { key: "auditServices", label: "Audit Services" },
+      { key: "auditGovtCertified", label: "Government Certified" },
+    ],
+    LIAISONING: [
+      { key: "liaisoningSpecialisations", label: "Liaisoning Specialisations" },
+      { key: "liaisoningCertificationNumber", label: "Certification Number" },
+      { key: "liaisoningOrganisation", label: "Organization" },
+      { key: "liaisoningServicesProvided", label: "Services Provided" },
+    ],
+  };
 
   // Fetch all constituencies
   useEffect(() => {
@@ -66,6 +164,15 @@ const AddExpertForm = ({ closeModal }) => {
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
+
+    // Reset additional fields when expert type changes
+    if (key === "expertType") {
+      setAdditionalFields({});
+    }
+  };
+
+  const handleAdditionalFieldChange = (key, value) => {
+    setAdditionalFields({ ...additionalFields, [key]: value });
   };
 
   // Select image from gallery
@@ -143,6 +250,7 @@ const AddExpertForm = ({ closeModal }) => {
       !form.experience ||
       !form.location ||
       !form.mobile ||
+      !form.officeAddress ||
       !photo
     ) {
       Alert.alert("Error", "Please fill all the fields and upload a photo.");
@@ -152,12 +260,20 @@ const AddExpertForm = ({ closeModal }) => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("Name", form.name);
-      formData.append("Experttype", form.expertType);
-      formData.append("Qualification", form.qualification);
-      formData.append("Experience", form.experience);
-      formData.append("Locations", form.location);
-      formData.append("Mobile", form.mobile);
+
+      // Add common fields
+      formData.append("name", form.name);
+      formData.append("expertType", form.expertType);
+      formData.append("qualification", form.qualification);
+      formData.append("experience", form.experience);
+      formData.append("location", form.location);
+      formData.append("mobile", form.mobile);
+      formData.append("officeAddress", form.officeAddress);
+
+      // Add expert-type-specific fields
+      Object.keys(additionalFields).forEach((key) => {
+        formData.append(key, additionalFields[key]);
+      });
 
       // Handle image upload
       if (photo) {
@@ -174,10 +290,15 @@ const AddExpertForm = ({ closeModal }) => {
           }
         } else {
           // Append the image URI for mobile
+          const localUri = photo;
+          const filename = localUri.split("/").pop();
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image`;
+
           formData.append("photo", {
-            uri: photo,
-            name: "photo.jpg",
-            type: "image/jpeg",
+            uri: localUri,
+            name: filename,
+            type,
           });
         }
       } else {
@@ -190,6 +311,7 @@ const AddExpertForm = ({ closeModal }) => {
         body: formData,
         headers: {
           // Don't set Content-Type for FormData, it is automatically set
+          Accept: "application/json",
         },
       });
 
@@ -259,7 +381,7 @@ const AddExpertForm = ({ closeModal }) => {
               )}
             </View>
 
-            {/** Form Fields */}
+            {/** Mandatory Form Fields */}
             {[
               { label: "Name", key: "name", placeholder: "Enter expert name" },
               {
@@ -277,6 +399,11 @@ const AddExpertForm = ({ closeModal }) => {
                 key: "mobile",
                 placeholder: "Ex. 9063392872",
                 keyboardType: "numeric",
+              },
+              {
+                label: "Office Address",
+                key: "officeAddress",
+                placeholder: "Full address",
               },
             ].map(({ label, key, placeholder, keyboardType }) => (
               <View style={styles.formGroup} key={key}>
@@ -328,9 +455,15 @@ const AddExpertForm = ({ closeModal }) => {
                   <Picker.Item label="REVENUE" value="REVENUE" />
                   <Picker.Item label="ENGINEERS" value="ENGINEERS" />
                   <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
-                  <Picker.Item label="SURVEY" value="SURVEY" />
+                  <Picker.Item
+                    label="PLANS & APPROVALS"
+                    value="PLANS & APPROVALS"
+                  />
                   <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
-                  <Picker.Item label="LAND VALUERS" value="LAND VALUERS" />
+                  <Picker.Item
+                    label="LAND SURVEY & VALUERS"
+                    value="LAND SURVEY & VALUERS"
+                  />
                   <Picker.Item label="BANKING" value="BANKING" />
                   <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
                   <Picker.Item
@@ -342,6 +475,28 @@ const AddExpertForm = ({ closeModal }) => {
                 </Picker>
               </View>
             </View>
+
+            {/** Additional Fields for Selected Expert Type */}
+            {form.expertType && expertFields[form.expertType] && (
+              <View style={styles.additionalFieldsSection}>
+                <Text style={styles.sectionHeader}>
+                  {form.expertType.replace(/([A-Z])/g, " $1").trim()} Details
+                </Text>
+                {expertFields[form.expertType].map(({ key, label }) => (
+                  <View style={styles.formGroup} key={key}>
+                    <Text style={styles.label}>{label}</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder={`Enter ${label}`}
+                      value={additionalFields[key] || ""}
+                      onChangeText={(text) =>
+                        handleAdditionalFieldChange(key, text)
+                      }
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/** Buttons */}
             <View style={styles.buttonContainer}>
@@ -394,6 +549,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     maxWidth: 400,
+    marginVertical: 20,
   },
   header: {
     width: "100%",
@@ -516,6 +672,20 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: "#ccc",
+  },
+  additionalFieldsSection: {
+    width: "100%",
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#E91E63",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });
 

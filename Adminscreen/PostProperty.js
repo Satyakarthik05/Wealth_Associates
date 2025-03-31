@@ -343,7 +343,7 @@ const PostProperty = ({ closeModal }) => {
               )}
             </View>
             {showPropertyTypeList && (
-              <View style={styles.dropdownContainer}>
+              <View style={[styles.dropdownContainer, { zIndex: 1000 }]}>
                 {filteredPropertyTypes.map((item) => (
                   <TouchableOpacity
                     key={`${item.code}-${item.name}`}

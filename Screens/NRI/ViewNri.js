@@ -129,6 +129,7 @@ const ViewNri = () => {
 
   return (
     <View style={isWebView ? styles.webContainer : styles.listContainer}>
+      <Text style={styles.heading}>NRI</Text>
       {nriMembers.map((item) => (
         <ViewNriCard
           key={item._id.toString()}
@@ -144,6 +145,13 @@ const ViewNri = () => {
 const styles = StyleSheet.create({
   listContainer: {
     paddingVertical: 20,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "left",
+    marginVertical: 15,
+    paddingLeft: 10,
   },
   webContainer: {
     justifyContent: "center",
