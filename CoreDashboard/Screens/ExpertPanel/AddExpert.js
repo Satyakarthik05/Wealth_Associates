@@ -12,8 +12,9 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
@@ -37,6 +38,26 @@ const AddExpertForm = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [additionalFields, setAdditionalFields] = useState({});
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showExpertTypeDropdown, setShowExpertTypeDropdown] = useState(false);
+  const [filteredConstituencies, setFilteredConstituencies] = useState([]);
+  const [filteredExpertTypes, setFilteredExpertTypes] = useState([]);
+
+  // Expert type options
+  const expertTypes = [
+    "LEGAL",
+    "REVENUE",
+    "ENGINEERS",
+    "ARCHITECTS",
+    "PLANS & APPROVALS",
+    "VAASTU PANDITS",
+    "LAND SURVEY & VALUERS",
+    "BANKING",
+    "AGRICULTURE",
+    "REGISTRATION & DOCUMENTATION",
+    "AUDITING",
+    "LIAISONING",
+  ];
 
   // Expert type specific fields
   const expertFields = {
@@ -153,6 +174,7 @@ const AddExpertForm = ({ closeModal }) => {
         );
 
         setConstituencies(allConstituencies);
+        setFilteredConstituencies(allConstituencies);
       } catch (error) {
         console.error("Error fetching constituencies:", error);
         Alert.alert("Error", "Failed to load location data");
@@ -162,6 +184,10 @@ const AddExpertForm = ({ closeModal }) => {
     fetchConstituencies();
   }, []);
 
+  useEffect(() => {
+    setFilteredExpertTypes(expertTypes);
+  }, []);
+
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
 
@@ -169,10 +195,36 @@ const AddExpertForm = ({ closeModal }) => {
     if (key === "expertType") {
       setAdditionalFields({});
     }
+
+    // Filter constituencies based on input
+    if (key === "location") {
+      const filtered = constituencies.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredConstituencies(filtered);
+    }
+
+    // Filter expert types based on input
+    if (key === "expertType") {
+      const filtered = expertTypes.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredExpertTypes(filtered);
+    }
   };
 
   const handleAdditionalFieldChange = (key, value) => {
     setAdditionalFields({ ...additionalFields, [key]: value });
+  };
+
+  const selectConstituency = (item) => {
+    setForm({ ...form, location: item.name });
+    setShowLocationDropdown(false);
+  };
+
+  const selectExpertType = (item) => {
+    setForm({ ...form, expertType: item });
+    setShowExpertTypeDropdown(false);
   };
 
   // Select image from gallery
@@ -330,6 +382,24 @@ const AddExpertForm = ({ closeModal }) => {
     }
   };
 
+  const renderConstituencyItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectConstituency(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderExpertTypeItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.dropdownItem}
+      onPress={() => selectExpertType(item)}
+    >
+      <Text style={styles.dropdownItemText}>{item}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.overlay}>
       <KeyboardAvoidingView
@@ -418,62 +488,72 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             ))}
 
-            {/** Constituency Picker */}
+            {/** Location (Constituency) Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Location (Constituency)</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.location}
-                  style={styles.picker}
-                  onValueChange={(value) => handleChange("location", value)}
+              <TextInput
+                style={styles.input}
+                placeholder="Search or select constituency"
+                value={form.location}
+                onChangeText={(text) => handleChange("location", text)}
+                onFocus={() => setShowLocationDropdown(true)}
+              />
+              {showLocationDropdown && (
+                <Modal
+                  transparent={true}
+                  visible={showLocationDropdown}
+                  onRequestClose={() => setShowLocationDropdown(false)}
                 >
-                  <Picker.Item label="-- Select Constituency --" value="" />
-                  {constituencies.map((constituency) => (
-                    <Picker.Item
-                      key={constituency.name}
-                      label={constituency.name}
-                      value={constituency.name}
-                    />
-                  ))}
-                </Picker>
-              </View>
+                  <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowLocationDropdown(false)}
+                  >
+                    <View style={styles.dropdownContainer}>
+                      <FlatList
+                        data={filteredConstituencies}
+                        renderItem={renderConstituencyItem}
+                        keyExtractor={(item) => item.name}
+                        keyboardShouldPersistTaps="handled"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
+              )}
             </View>
 
-            {/** Expert Type Picker */}
+            {/** Expert Type Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Expert Type</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={form.expertType}
-                  style={styles.picker}
-                  onValueChange={(itemValue) =>
-                    handleChange("expertType", itemValue)
-                  }
+              <TextInput
+                style={styles.input}
+                placeholder="Search or select expert type"
+                value={form.expertType}
+                onChangeText={(text) => handleChange("expertType", text)}
+                onFocus={() => setShowExpertTypeDropdown(true)}
+              />
+              {showExpertTypeDropdown && (
+                <Modal
+                  transparent={true}
+                  visible={showExpertTypeDropdown}
+                  onRequestClose={() => setShowExpertTypeDropdown(false)}
                 >
-                  <Picker.Item label="-- Select Type --" value="" />
-                  <Picker.Item label="LEGAL" value="LEGAL" />
-                  <Picker.Item label="REVENUE" value="REVENUE" />
-                  <Picker.Item label="ENGINEERS" value="ENGINEERS" />
-                  <Picker.Item label="ARCHITECTS" value="ARCHITECTS" />
-                  <Picker.Item
-                    label="PLANS & APPROVALS"
-                    value="PLANS & APPROVALS"
-                  />
-                  <Picker.Item label="VAASTU PANDITS" value="VAASTU PANDITS" />
-                  <Picker.Item
-                    label="LAND SURVEY & VALUERS"
-                    value="LAND SURVEY & VALUERS"
-                  />
-                  <Picker.Item label="BANKING" value="BANKING" />
-                  <Picker.Item label="AGRICULTURE" value="AGRICULTURE" />
-                  <Picker.Item
-                    label="REGISTRATION & DOCUMENTATION"
-                    value="REGISTRATION & DOCUMENTATION"
-                  />
-                  <Picker.Item label="AUDITING" value="AUDITING" />
-                  <Picker.Item label="LIAISONING" value="LIAISONING" />
-                </Picker>
-              </View>
+                  <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowExpertTypeDropdown(false)}
+                  >
+                    <View style={styles.dropdownContainer}>
+                      <FlatList
+                        data={filteredExpertTypes}
+                        renderItem={renderExpertTypeItem}
+                        keyExtractor={(item) => item}
+                        keyboardShouldPersistTaps="handled"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
+              )}
             </View>
 
             {/** Additional Fields for Selected Expert Type */}
@@ -584,19 +664,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#F9F9F9",
   },
-  pickerWrapper: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    backgroundColor: "#F9F9F9",
-    overflow: "hidden",
-  },
-  picker: {
-    width: "100%",
-    height: 50,
-    color: "#333",
-  },
   uploadSection: {
     width: "100%",
     marginBottom: 15,
@@ -686,6 +753,27 @@ const styles = StyleSheet.create({
     color: "#E91E63",
     marginBottom: 10,
     textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  dropdownContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    maxHeight: 300,
+    width: "80%",
+    padding: 10,
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
   },
 });
 
