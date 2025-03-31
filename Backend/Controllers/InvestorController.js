@@ -53,6 +53,7 @@ const registerInvestors = async (req, res) => {
         .status(400)
         .json({ message: "Mobile number already registered" });
     }
+    const Password= "wa1234"
 
     const newInvestor = new Investors({
       FullName,

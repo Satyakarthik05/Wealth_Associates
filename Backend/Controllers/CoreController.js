@@ -54,7 +54,7 @@ const CoreSign = async (req, res) => {
       return res.status(400).json({ message: "Mobile number already exists" });
     }
 
-    const Password = "WealthAssociation";
+    const Password = "wa1234";
     const random = Math.floor(1000000 + Math.random() * 9000000);
     const refferedby = `${MyRefferalCode}${random}`;
 

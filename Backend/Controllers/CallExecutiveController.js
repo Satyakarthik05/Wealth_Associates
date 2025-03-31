@@ -73,6 +73,19 @@ const getCallExecutives = async (req, res) => {
   }
 };
 
+const getCallExe = async (req, res) => {
+  try {
+    const agentDetails = await CallExecutive.findById(req.AgentId);
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const updateCallExecutive = async (req, res) => {
   try {
     const { id } = req.params;
@@ -256,14 +269,7 @@ const myCustomers = async (req, res) => {
 
     const executiveId = new mongoose.Types.ObjectId(req.AgentId);
 
-    // 2. Clean up invalid assignments first
-    const cleanupResult = await CallExecutive.updateOne(
-      { _id: executiveId },
-      { $pull: { assignedUsers: { userId: null } } }
-    );
-    console.log(`Cleaned ${cleanupResult.modifiedCount} invalid assignments`);
-
-    // 3. Get executive with valid agents
+    // 2. Get executive with valid customers and populate all necessary fields
     const executive = await CallExecutive.aggregate([
       { $match: { _id: executiveId } },
       { $unwind: "$assignedUsers" },
@@ -275,25 +281,36 @@ const myCustomers = async (req, res) => {
       },
       {
         $lookup: {
-          from: "Customers",
+          from: "customers",
           localField: "assignedUsers.userId",
           foreignField: "_id",
-          as: "agentDetails",
+          as: "customerDetails",
         },
       },
-      { $unwind: "$agentDetails" },
+      { $unwind: "$customerDetails" },
+      {
+        $project: {
+          _id: 0,
+          customer: {
+            $mergeObjects: [
+              "$customerDetails",
+              {
+                assignmentId: "$assignedUsers._id",
+                assignedAt: "$assignedUsers.assignedAt",
+              },
+            ],
+          },
+          executiveInfo: {
+            name: "$name",
+            phone: "$phone",
+          },
+        },
+      },
       {
         $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          phone: { $first: "$phone" },
-          agents: {
-            $push: {
-              agent: "$agentDetails",
-              assignmentId: "$assignedUsers._id",
-              assignedAt: "$assignedUsers.assignedAt",
-            },
-          },
+          _id: null,
+          customers: { $push: "$customer" },
+          executiveInfo: { $first: "$executiveInfo" },
         },
       },
     ]);
@@ -301,33 +318,110 @@ const myCustomers = async (req, res) => {
     if (!executive || executive.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No valid agent assignments found",
+        message: "No valid customer assignments found",
       });
     }
 
-    // 4. Format the response
+    // 3. Format the response with all customer details
     const result = executive[0];
-    const assignedAgents = result.agents.map((item) => ({
-      ...item.agent,
-      assignmentId: item.assignmentId,
-      assignedAt: item.assignedAt,
-    }));
-
+    
     res.json({
       success: true,
-      data: assignedAgents,
-      executiveInfo: {
-        name: result.name,
-        phone: result.phone,
-      },
+      data: result.customers,
+      executiveInfo: result.executiveInfo,
     });
   } catch (error) {
-    console.error("Error in myagents:", error);
+    console.error("Error in myCustomers:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
       error: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
+  }
+};
+
+const myProperties = async (req, res) => {
+  try {
+    // 1. Get executiveId from authenticated user (should come from token)
+    const executiveId = req.AgentId; // Make sure your auth middleware sets this
+    
+    if (!mongoose.Types.ObjectId.isValid(executiveId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Executive ID format",
+      });
+    }
+
+    const executiveObjectId = new mongoose.Types.ObjectId(executiveId);
+
+    // 2. Clean up invalid assignments
+    await CallExecutive.updateOne(
+      { _id: executiveObjectId },
+      { $pull: { assignedUsers: { userId: null } } }
+    );
+
+    // 3. Get executive with property details
+    const executive = await CallExecutive.aggregate([
+      { $match: { _id: executiveObjectId } },
+      { $unwind: "$assignedUsers" },
+      {
+        $match: {
+          "assignedUsers.userType": "Property",
+          "assignedUsers.userId": { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "properties",
+          localField: "assignedUsers.userId",
+          foreignField: "_id",
+          as: "propertyDetails",
+        },
+      },
+      { $unwind: "$propertyDetails" },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          property: "$propertyDetails",
+          assignmentId: "$assignedUsers._id",
+          assignedAt: "$assignedUsers.assignedAt"
+        }
+      }
+    ]);
+
+    if (!executive || executive.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid property assignments found",
+      });
+    }
+
+    // Format the response to match frontend expectations
+    const response = {
+      success: true,
+      data: executive.map(item => ({
+        ...item.property,
+        assignmentId: item.assignmentId,
+        assignedAt: item.assignedAt,
+        // Ensure these fields are included if needed by frontend
+        PostedBy: item.property.PostedBy,
+        PostedUserType: item.property.PostedUserType
+      })),
+      executiveInfo: {
+        name: executive[0]?.name || '',
+        phone: executive[0]?.phone || ''
+      }
+    };
+
+    res.json(response);
+    
+  } catch (error) {
+    console.error("Error in myProperties:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
     });
   }
 };
@@ -339,4 +433,6 @@ module.exports = {
   CallExecutiveLogin,
   myagents,
   myCustomers,
+  myProperties,
+  getCallExe
 };
