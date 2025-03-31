@@ -12,9 +12,11 @@ import {
   Alert,
   Modal,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import modal components
 import HouseUpdateModal from "./Flats";
@@ -23,10 +25,11 @@ import LandUpdateModal from "./Plotform";
 
 const { width, height } = Dimensions.get("window");
 
-const ViewAllProperties = () => {
+const ViewAssignedProperties = () => {
   // State management
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [selectedLocationFilter, setSelectedLocationFilter] = useState("");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -42,49 +45,79 @@ const ViewAllProperties = () => {
   const [constituencies, setConstituencies] = useState([]);
   const [idSearch, setIdSearch] = useState("");
   const [currentUpdateModal, setCurrentUpdateModal] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  const [executiveInfo, setExecutiveInfo] = useState(null);
 
-  // Fetch data with useCallback to memoize the function
+  // Get auth token
+  const getAuthToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return token;
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      throw error;
+    }
+  };
+
+  // Fetch data with error handling
   const fetchData = useCallback(async () => {
     try {
-      const [propertiesRes, typesRes, constituenciesRes] = await Promise.all([
-        fetch(`${API_URL}/properties/getallPropertys`),
+      setLoading(true);
+      const token = await getAuthToken();
+
+      const response = await fetch(`${API_URL}/callexe/myproperties`, {
+        headers: { token },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to fetch properties");
+      }
+
+      // Update state with the response data
+      setProperties(result.data || []);
+      setExecutiveInfo(result.executiveInfo || null);
+
+      // Fetch additional data if needed
+      const [typesRes, constituenciesRes] = await Promise.all([
         fetch(`${API_URL}/discons/propertytype`),
         fetch(`${API_URL}/alldiscons/alldiscons`),
       ]);
 
-      const propertiesData = await propertiesRes.json();
       const typesData = await typesRes.json();
       const constituenciesData = await constituenciesRes.json();
 
-      setProperties(propertiesData);
       setPropertyTypes(typesData);
       setConstituencies(constituenciesData);
     } catch (error) {
       console.error("Error fetching data:", error);
-      Alert.alert("Error", "Failed to load data");
+      Alert.alert("Error", error.message || "Failed to load data");
+      setProperties([]);
+      setExecutiveInfo(null);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
-  // Set up auto-refresh on component mount and clean up on unmount
+  // Handle manual refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, [fetchData]);
+
+  // Initial data fetch
   useEffect(() => {
     fetchData();
-
-    // Set up interval to refresh every 10 seconds
-    const interval = setInterval(fetchData, 10000);
-    setRefreshInterval(interval);
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
   }, [fetchData]);
 
   // Helper functions
   const getLastFourChars = (id) => id?.slice(-4) || "N/A";
 
-  // Filter properties based on search and filter criteria
+  // Filter and sort properties
   const filteredProperties = properties
     .filter((property) =>
       idSearch
@@ -112,32 +145,22 @@ const ViewAllProperties = () => {
   // Get unique locations for filter dropdown
   const uniqueLocations = [
     ...new Set(properties.map((p) => p.location)),
-  ].filter((l) => l);
+  ].filter(Boolean);
 
-  // Modal handlers
+  // Property update handler
   const handleUpdate = (property) => {
     setSelectedProperty(property);
-
     const type = property.propertyType.toLowerCase();
 
-    // Handle commercial properties
     if (type.includes("commercial")) {
-      if (Platform.OS === "web") {
-        alert(
-          "Commercial Property\nNo extra details required for commercial properties. Just approve it."
-        );
-      } else {
-        Alert.alert(
-          "Commercial Property",
-          "No extra details required for commercial properties. Just approve it.",
-          [{ text: "OK", onPress: () => setIsUpdateModalVisible(false) }]
-        );
-      }
-      setIsUpdateModalVisible(false);
+      Alert.alert(
+        "Commercial Property",
+        "No extra details required for commercial properties. Just approve it.",
+        [{ text: "OK", onPress: () => setIsUpdateModalVisible(false) }]
+      );
       return;
     }
 
-    // Handle residential properties
     if (
       type.includes("flat") ||
       type.includes("apartment") ||
@@ -145,43 +168,35 @@ const ViewAllProperties = () => {
       type.includes("villa")
     ) {
       setCurrentUpdateModal("house");
-    }
-    // Handle plot/land properties
-    else if (type.includes("plot")) {
+    } else if (type.includes("plot")) {
       setCurrentUpdateModal("land");
-    }
-    // Handle agricultural properties
-    else if (type.includes("farmland") || type.includes("agricultural")) {
+    } else if (type.includes("farmland") || type.includes("agricultural")) {
       setCurrentUpdateModal("agriculture");
     }
 
     setIsUpdateModalVisible(true);
   };
 
+  // Save updated property details
   const handleUpdateSave = async (updatedData) => {
     try {
+      const token = await getAuthToken();
       const response = await fetch(
         `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            token,
+          },
           body: JSON.stringify(updatedData),
         }
       );
 
       const result = await response.json();
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
-        setProperties(
-          properties.map((p) =>
-            p._id === selectedProperty._id ? { ...p, ...updatedData } : p
-          )
-        );
-        setIsUpdateModalVisible(false);
         await fetchData();
+        setIsUpdateModalVisible(false);
         Alert.alert("Success", "Property updated successfully");
       } else {
         Alert.alert("Error", result.message || "Update failed");
@@ -192,6 +207,7 @@ const ViewAllProperties = () => {
     }
   };
 
+  // Edit property handler
   const handleEdit = (property) => {
     setSelectedProperty(property);
     setEditedDetails({
@@ -203,27 +219,24 @@ const ViewAllProperties = () => {
     setIsEditModalVisible(true);
   };
 
+  // Save edited property
   const handleSave = async () => {
     try {
+      const token = await getAuthToken();
       const response = await fetch(
         `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            token,
+          },
           body: JSON.stringify(editedDetails),
         }
       );
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
-        setProperties(
-          properties.map((p) =>
-            p._id === selectedProperty._id ? { ...p, ...editedDetails } : p
-          )
-        );
+        await fetchData();
         setIsEditModalVisible(false);
         Alert.alert("Success", "Changes saved");
       } else {
@@ -236,31 +249,26 @@ const ViewAllProperties = () => {
     }
   };
 
+  // Delete property handler
   const handleDelete = async (id) => {
     const confirm = await new Promise((resolve) => {
-      if (Platform.OS === "web") {
-        resolve(window.confirm("Delete this property?"));
-      } else {
-        Alert.alert("Confirm", "Delete this property?", [
-          { text: "Cancel", onPress: () => resolve(false) },
-          { text: "Delete", onPress: () => resolve(true) },
-        ]);
-      }
+      Alert.alert("Confirm", "Delete this property?", [
+        { text: "Cancel", onPress: () => resolve(false) },
+        { text: "Delete", onPress: () => resolve(true) },
+      ]);
     });
 
     if (!confirm) return;
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(`${API_URL}/properties/delete/${id}`, {
         method: "DELETE",
+        headers: { token },
       });
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
-        setProperties(properties.filter((p) => p._id !== id));
+        await fetchData();
         Alert.alert("Success", "Property deleted");
       } else {
         const error = await response.json();
@@ -272,38 +280,26 @@ const ViewAllProperties = () => {
     }
   };
 
+  // Approve property handler
   const handleApprove = async (id) => {
     const confirm = await new Promise((resolve) => {
-      if (Platform.OS === "web") {
-        resolve(
-          window.confirm("Are you sure you want to approve this property?")
-        );
-      } else {
-        Alert.alert("Confirm Approval", "Approve this property?", [
-          { text: "Cancel", onPress: () => resolve(false) },
-          { text: "Approve", onPress: () => resolve(true) },
-        ]);
-      }
+      Alert.alert("Confirm Approval", "Approve this property?", [
+        { text: "Cancel", onPress: () => resolve(false) },
+        { text: "Approve", onPress: () => resolve(true) },
+      ]);
     });
 
     if (!confirm) return;
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(`${API_URL}/properties/approve/${id}`, {
         method: "POST",
+        headers: { token },
       });
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
-        // Update the local state to reflect approval
-        setProperties(
-          properties.map((property) =>
-            property._id === id ? { ...property, approved: true } : property
-          )
-        );
+        await fetchData();
         Alert.alert("Success", "Property approved successfully");
       } else {
         const error = await response.json();
@@ -315,7 +311,7 @@ const ViewAllProperties = () => {
     }
   };
 
-  // Modal renderers
+  // Render update modal based on property type
   const renderUpdateModal = () => {
     if (!selectedProperty || !currentUpdateModal) return null;
 
@@ -350,7 +346,7 @@ const ViewAllProperties = () => {
     );
   };
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#3498db" />
@@ -360,9 +356,20 @@ const ViewAllProperties = () => {
 
   return (
     <View style={styles.mainContainer}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.header}>
-          <Text style={styles.heading}>All Properties</Text>
+          <Text style={styles.heading}>My Assigned Properties</Text>
+          {executiveInfo && (
+            <Text style={styles.executiveInfo}>
+              Assigned to: {executiveInfo.name} ({executiveInfo.phone})
+            </Text>
+          )}
+
           <View style={styles.filterRow}>
             <View style={styles.filterContainer}>
               <Text style={styles.filterLabel}>Sort by Price:</Text>
@@ -413,12 +420,12 @@ const ViewAllProperties = () => {
 
         <View style={styles.grid}>
           {filteredProperties.length > 0 ? (
-            filteredProperties.map((item) => (
-              <View key={item._id} style={styles.card}>
+            filteredProperties.map((property) => (
+              <View key={property._id} style={styles.card}>
                 <Image
                   source={
-                    item.photo
-                      ? { uri: `${API_URL}${item.photo}` }
+                    property.photo
+                      ? { uri: `${API_URL}${property.photo}` }
                       : require("../../../assets/logo.png")
                   }
                   style={styles.image}
@@ -426,54 +433,63 @@ const ViewAllProperties = () => {
                 <View style={styles.details}>
                   <View style={styles.idContainer}>
                     <Text style={styles.idText}>
-                      ID: {getLastFourChars(item._id)}
+                      ID: {getLastFourChars(property._id)}
                     </Text>
                   </View>
-                  <Text style={styles.title}>{item.propertyType}</Text>
-                  <Text style={styles.info}>Posted by: {item.PostedBy}</Text>
-                  <Text style={styles.info}>Location: {item.location}</Text>
-                  <Text style={styles.budget}>
-                    ₹ {parseInt(item.price).toLocaleString()}
+                  <Text style={styles.title}>{property.propertyType}</Text>
+                  <Text style={styles.info}>
+                    Posted by: {property.PostedBy}
                   </Text>
-                  {item.approved && (
-                    <Text style={styles.approvedText}>Approved</Text>
-                  )}
+                  <Text style={styles.info}>Location: {property.location}</Text>
+                  <Text style={styles.budget}>
+                    ₹ {parseInt(property.price).toLocaleString()}
+                  </Text>
+                  <Text style={styles.assignedText}>
+                    Assigned on:{" "}
+                    {new Date(property.assignedAt).toLocaleDateString()}
+                  </Text>
                 </View>
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity
                     style={[styles.button, styles.editButton]}
-                    onPress={() => handleEdit(item)}
+                    onPress={() => handleEdit(property)}
                   >
                     <Text style={styles.buttonText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.updateButton]}
-                    onPress={() => handleUpdate(item)}
+                    onPress={() => handleUpdate(property)}
                   >
                     <Text style={styles.buttonText}>Update</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.deleteButton]}
-                    onPress={() => handleDelete(item._id)}
+                    onPress={() => handleDelete(property._id)}
                   >
                     <Text style={styles.buttonText}>Delete</Text>
                   </TouchableOpacity>
-                  {!item.approved && (
-                    <TouchableOpacity
-                      style={[styles.button, styles.approveButton]}
-                      onPress={() => handleApprove(item._id)}
-                    >
-                      <Text style={styles.buttonText}>Approve</Text>
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    style={[styles.button, styles.approveButton]}
+                    onPress={() => handleApprove(property._id)}
+                  >
+                    <Text style={styles.buttonText}>Approve</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ))
           ) : (
             <View style={styles.noResultsContainer}>
               <Text style={styles.noResultsText}>
-                No properties found matching your criteria
+                {properties.length === 0
+                  ? "No properties assigned to you"
+                  : "No properties match your filters"}
               </Text>
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={fetchData}
+              >
+                <Text style={styles.refreshButtonText}>Refresh</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -564,6 +580,9 @@ const ViewAllProperties = () => {
   );
 };
 
+// ... (keep the styles object the same as in your original code)
+
+// export default ViewAssignedProperties;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
@@ -593,6 +612,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: Platform.OS === "web" ? 0 : 10,
+  },
+  executiveInfo: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 10,
   },
   filterContainer: {
     flexDirection: "row",
@@ -686,6 +710,11 @@ const styles = StyleSheet.create({
     color: "#2ecc71",
     fontWeight: "bold",
     marginTop: 5,
+  },
+  assignedText: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 3,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -799,6 +828,16 @@ const styles = StyleSheet.create({
     color: "#555",
     textAlign: "center",
   },
+  refreshButton: {
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  refreshButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });
 
-export default ViewAllProperties;
+export default ViewAssignedProperties;

@@ -417,10 +417,11 @@ const myProperties = async (req, res) => {
     res.json(response);
     
   } catch (error) {
+    console.error("Final error:", error);
     console.error("Error in myProperties:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to retrieve customers",
       error: error.message,
     });
   }

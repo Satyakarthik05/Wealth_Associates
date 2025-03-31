@@ -50,10 +50,13 @@ const Register_screen = () => {
   const navigation = useNavigation();
 
   const experienceOptions = [
-    { name: "0-1 years", code: "01" },
-    { name: "1-3 years", code: "02" },
-    { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
+    { name: "Beginner", code: "01" },
+    { name: "1-5 years", code: "02" },
+    { name: "5-10 years", code: "03" },
+    { name: "10-15 years", code: "04" },
+    { name: "15-20 years", code: "04" },
+    { name: "20-25 years", code: "04" },
+    { name: "25+ years", code: "04" },
   ];
 
   const filteredDistricts = parliaments.filter((item) =>
@@ -277,7 +280,7 @@ const Register_screen = () => {
                     <TextInput
                       ref={districtRef}
                       style={styles.input}
-                      placeholder="Search District"
+                      placeholder="Select parliament"
                       placeholderTextColor="rgba(25, 25, 25, 0.5)"
                       value={districtSearch}
                       onChangeText={(text) => {
@@ -315,7 +318,7 @@ const Register_screen = () => {
                   <View style={styles.inputWrapper}>
                     <TextInput
                       style={styles.input}
-                      placeholder="Search Constituency"
+                      placeholder="Select Assemblie"
                       placeholderTextColor="rgba(25, 25, 25, 0.5)"
                       value={constituencySearch}
                       onChangeText={(text) => {

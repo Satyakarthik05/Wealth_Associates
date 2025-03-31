@@ -163,7 +163,7 @@ const menuItems = [
 
 const AdminDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
-    (Platform.OS !== "android" || Platform.OS !== "ios")
+    Platform.OS !== "android" || Platform.OS !== "ios"
   );
   const [expandedItems, setExpandedItems] = useState({});
   const [isViewCustVisible, setIsViewCustVisible] = useState(false);
@@ -496,31 +496,30 @@ const AdminDashboard = () => {
               style={styles.icon}
             />
             <Text style={styles.language}>English</Text>
-            
           </View>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Main Screen"),
+                AsyncStorage.removeItem("userType");
+            }}
+            style={{
+              backgroundColor: "pink",
+              width: 60,
+              height: 20,
+              borderRadius: 10,
+              display: "flex",
+              textAlign: "center",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text>Logout</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Main Layout */}
       <View style={styles.mainContent}>
-      <TouchableOpacity
-              onPress={() => {
-                navigation.navigate("Main Screen"),
-                  AsyncStorage.removeItem("userType");
-              }}
-              style={{
-                backgroundColor: "pink",
-                width: 60,
-                height: 20,
-                borderRadius: 10,
-                display: "flex",
-                textAlign: "center",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text>Logout</Text>
-            </TouchableOpacity>
         {/* Sidebar */}
         <View
           style={[

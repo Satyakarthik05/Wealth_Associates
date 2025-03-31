@@ -233,7 +233,7 @@ const RegisterExecute = ({ closeModal }) => {
 
         <View style={styles.row}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Select District</Text>
+            <Text style={styles.label}>Select MP Constituency</Text>
             <TextInput
               style={styles.input}
               placeholder="Search District"
@@ -269,7 +269,7 @@ const RegisterExecute = ({ closeModal }) => {
             )}
           </View>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Select Constituency</Text>
+            <Text style={styles.label}>Select MLA Constituency</Text>
             <TextInput
               style={styles.input}
               placeholder="Search Constituency"
@@ -362,7 +362,8 @@ const RegisterExecute = ({ closeModal }) => {
               placeholder="Referral Code"
               placeholderTextColor="rgba(25, 25, 25, 0.5)"
               onChangeText={setReferralCode}
-              value={referralCode}
+              // value={referralCode}
+              defaultValue="WA0000000001"
             />
           </View>
         </View>
