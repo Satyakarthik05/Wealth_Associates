@@ -27,7 +27,7 @@ const ViewCallExecutives = () => {
 
   const fetchExecutives = () => {
     setRefreshing(true);
-    fetch("http://localhost:3000/callexe/call-executives")
+    fetch(`${API_URL}/callexe/call-executives`)
       .then((response) => response.json())
       .then((data) => setExecutives(data))
       .catch((error) => console.error("Error fetching executives:", error))
