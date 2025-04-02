@@ -122,8 +122,8 @@ const PostProperty = ({ closeModal }) => {
         formData.append("location", location);
         formData.append("price", price);
         formData.append("PostedBy", PostedBy);
-        formData.append("fullName", Details.Name || Details.Name);
-        formData.append("mobile", Details.MobileIN || PostedBy);
+        formData.append("fullName", Details.FullName || Details.Name);
+        formData.append("mobile", Details.MobileNumber || PostedBy);
         formData.append("Constituency", constituencies);
         formData.append("propertyDetails", propertyDetails);
 
@@ -159,7 +159,7 @@ const PostProperty = ({ closeModal }) => {
             price,
             propertyType,
             PostedBy: Details.MobileIN || PostedBy,
-            fullName: Details.Name || Details.Name,
+            fullName: Details.FullName || Details.Name,
             mobile: Details.MobileIN || PostedBy,
             propertyDetails,
           });
@@ -538,13 +538,12 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    backgroundColor: "#f9f9f9",
-    fontSize: 15,
+    borderWidth: 2,
+    borderColor: "#bbb",
+    borderRadius: 25,
+    padding: 10,
+    fontSize: 14,
+    backgroundColor: "#fff",
   },
   clearButton: {
     position: "absolute",
@@ -555,25 +554,18 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   dropdownContainer: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#e6708e",
-    borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 8,
+    borderColor: "#ccc",
+    borderRadius: 5,
     marginTop: 5,
-    maxHeight: 200,
+    maxHeight: 300,
     overflow: "scroll",
-    elevation: 5,
     backgroundColor: "#e6708e",
   },
   listItem: {
-    padding: 12,
+    padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#ccc",
   },
   uploadSection: {
     alignItems: "center",

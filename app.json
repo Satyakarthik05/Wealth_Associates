@@ -11,6 +11,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/38b6a11f-476f-46f4-8263-95fe96a6d8ca"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.wealthassociates.alpha",
@@ -18,7 +23,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "ios": "1.2.1"
+      "ios": "1.2.2"
     },
     "android": {
       "usesCleartextTraffic": true,
@@ -30,9 +35,22 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
         "INTERNET"
       ],
       "intentFilters": [
+        {
+          "action": "android.intent.action.SEND",
+          "data": {
+            "mimeType": "image/*"
+          },
+          "category": [
+            "android.intent.category.DEFAULT"
+          ]
+        },
         {
           "action": "android.intent.action.SEND",
           "data": {
@@ -52,6 +70,7 @@
       "eas": {
         "projectId": "38b6a11f-476f-46f4-8263-95fe96a6d8ca"
       }
-    }
+    },
+    "runtimeVersion": "1.0.0"
   }
 }
