@@ -9,14 +9,32 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { API_URL } from "../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
+// Web-compatible checkbox component
+const PlatformCheckbox = ({ label, status, onPress }) => {
+  if (Platform.OS === "web") {
+    return (
+      <View style={styles.webCheckboxContainer}>
+        <input
+          type="checkbox"
+          checked={status === "checked"}
+          onChange={onPress}
+          style={styles.webCheckbox}
+        />
+        <Text style={styles.webCheckboxLabel}>{label}</Text>
+      </View>
+    );
+  }
+  return <Checkbox.Item label={label} status={status} onPress={onPress} />;
+};
+
 const PropertyForm = ({ closeModal, propertyId, initialData }) => {
-  // Initialize form state with default values
   const [formData, setFormData] = useState({
     bhk: "",
     area: "",
@@ -36,7 +54,6 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form only once when component mounts
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -56,7 +73,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
         },
       });
     }
-  }, []); // Empty dependency array ensures this runs only once
+  }, [initialData]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -79,7 +96,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/properties/${propertyId}/dynamic`,
+        `${API_URL}/properties/${propertyId}/dynamic`,
         {
           method: "PATCH",
           headers: {
@@ -132,7 +149,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
       <Text style={styles.heading}>Furnishing</Text>
       <View style={styles.checkboxContainer}>
         {["Semi-Furnished", "Fully-Furnished"].map((option) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={option}
             label={option}
             status={formData.furnishing === option ? "checked" : "unchecked"}
@@ -150,7 +167,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
       <Text style={styles.heading}>Project Status</Text>
       <View style={styles.checkboxContainer}>
         {["Ready to Move", "Under Construction"].map((option) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={option}
             label={option}
             status={formData.projectStatus === option ? "checked" : "unchecked"}
@@ -168,7 +185,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
       <Text style={styles.heading}>Property Facing</Text>
       <View style={styles.checkboxContainer}>
         {["East", "West", "North", "South", "Corner"].map((direction) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={direction}
             label={direction}
             status={formData.facing === direction ? "checked" : "unchecked"}
@@ -196,7 +213,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
       <Text style={styles.heading}>Car Parking</Text>
       <View style={styles.checkboxContainer}>
         {["Yes", "No"].map((option) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={option}
             label={option}
             status={formData.carParking === option ? "checked" : "unchecked"}
@@ -210,16 +227,6 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
         ))}
       </View>
 
-      {/* Total Flat Area */}
-      {/* <Text style={styles.heading}>Total Flat Area (sq. ft)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g., 3000 sq.ft"
-        keyboardType="numeric"
-        value={formData.totalArea}
-        onChangeText={(text) => handleInputChange("totalArea", text)}
-      /> */}
-
       {/* Project Facilities */}
       <Text style={styles.heading}>Project Facilities</Text>
       <View style={styles.checkboxContainer}>
@@ -228,7 +235,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
           { label: "100% Vastu", key: "vastu" },
           { label: "Clear Title & Documents", key: "documents" },
         ].map(({ label, key }) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={key}
             label={label}
             status={formData.facilities[key] ? "checked" : "unchecked"}
@@ -241,7 +248,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
       <Text style={styles.heading}>Bank Loan Facility</Text>
       <View style={styles.checkboxContainer}>
         {["Yes", "No"].map((option) => (
-          <Checkbox.Item
+          <PlatformCheckbox
             key={option}
             label={option}
             status={formData.blankLane === option ? "checked" : "unchecked"}
@@ -348,6 +355,20 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  // Web-specific styles
+  webCheckboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  webCheckbox: {
+    marginRight: 8,
+    width: 18,
+    height: 18,
+  },
+  webCheckboxLabel: {
+    fontSize: 16,
   },
 });
 

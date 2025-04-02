@@ -77,7 +77,7 @@ const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/properties/${propertyId}/dynamic`,
+        `${API_URL}/properties/${propertyId}/dynamic`,
         {
           method: "PATCH",
           headers: {

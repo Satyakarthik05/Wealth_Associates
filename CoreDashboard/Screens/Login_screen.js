@@ -105,11 +105,7 @@ export default function Login_screen() {
           <View style={styles.card}>
             {Platform.OS !== "android" && Platform.OS !== "ios" && (
               <View style={styles.leftSection}>
-                <Image
-                  source={logo}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
+                <Image source={logo} style={styles.logo} resizeMode="contain" />
               </View>
             )}
 
@@ -119,11 +115,15 @@ export default function Login_screen() {
                 Platform.OS === "android" ? { flex: 1 } : null,
               ]}
             >
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.navigate("App")}
+              >
+                <Icon name="arrow-back" size={24} color="#E82E5F" />
+              </TouchableOpacity>
               <Image
                 source={
-                  Platform.OS === "android"
-                    ? illustrations1
-                    : illustartions2
+                  Platform.OS === "android" ? illustrations1 : illustartions2
                 }
                 style={styles.illustration}
                 resizeMode="contain"
@@ -279,6 +279,13 @@ const styles = StyleSheet.create({
     color: "#E82E5F",
     marginBottom: 20,
     textAlign: "center",
+  },
+  backButton: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    padding: 10,
   },
   label: {
     fontFamily: "Cairo",

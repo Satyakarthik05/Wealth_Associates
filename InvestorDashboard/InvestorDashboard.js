@@ -75,6 +75,11 @@ export default function CustomerDashboard() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="Starting Screen"
+            component={StartingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="Home"
             component={Admin_panel}
             options={{ headerShown: false }}
