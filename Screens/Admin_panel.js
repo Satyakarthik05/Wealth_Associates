@@ -483,7 +483,7 @@ const Admin_panel = () => {
             <ScrollView>
               <View style={styles.userContent}>
                 <Text style={styles.usersContentText}>
-                  Welcome Back:
+                  Welcome :
                   <Text style={{ color: "#E82E5F" }}>
                     {" "}
                     {Details.FullName ? Details.FullName : "yourname"}
