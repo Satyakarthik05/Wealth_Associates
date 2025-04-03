@@ -4,6 +4,7 @@
     "slug": "wealthassociates",
     "scheme": "wealthassociates",
     "version": "1.2.0",
+    "runtimeVersion": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -17,9 +18,6 @@
       "enabled": true,
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
-    },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
     },
     "ios": {
       "supportsTablet": true,
