@@ -11,15 +11,9 @@ import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-
-// Configure notification handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+import { Linking } from "react-native";
+import * as Updates from "expo-updates";
+import { NavigationIndependentTree } from "@react-navigation/native";
 
 // Screens
 import MainScreen from "./Screens/MainScreen";
@@ -46,10 +40,15 @@ import { API_URL } from "./data/ApiUrl";
 import NriRegister from "./Screens/AddNri";
 import InvestorRegister from "./Screens/AddInvestors";
 import SkilledRegister from "./Screens/Rskill";
-import { NavigationIndependentTree } from "@react-navigation/native";
-import { Newspaper } from "lucide-react-native";
-import { Linking } from "react-native";
-import * as Updates from "expo-updates";
+
+// Configure notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const Stack = createStackNavigator();
 const APP_VERSION = "1.0.1";
@@ -57,29 +56,48 @@ const APP_VERSION = "1.0.1";
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState("Main Screen");
+  const [expoPushToken, setExpoPushToken] = useState("");
 
-  // Handle notifications when app is in foreground
+  // Enhanced notification handling
   useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(
+    const initializeNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      setExpoPushToken(token);
+      if (token) {
+        await sendTokenToBackend(token);
+      }
+    };
+
+    initializeNotifications();
+
+    // Foreground notification handler
+    const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
-        console.log("Notification received:", notification);
-        // You can add custom handling here if needed
+        console.log("Notification received (foreground):", notification);
+        // You can handle the notification here if needed
       }
     );
 
-    return () => subscription.remove();
-  }, []);
-
-  // Handle notification taps when app is in background/quit
-  useEffect(() => {
+    // Background/quit notification handler
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("Notification tapped:", response.notification);
-        // Handle navigation based on notification if needed
+        console.log(
+          "Notification tapped (background/quit):",
+          response.notification
+        );
+        // Handle navigation based on notification
+        const data = response.notification.request.content.data;
+        if (data?.url) {
+          Linking.openURL(data.url);
+        }
       });
 
-    return () => responseListener.remove();
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
   }, []);
+
   const linking = {
     prefixes: ["https://www.wealthassociate.in"],
     config: {
@@ -94,7 +112,6 @@ export default function App() {
     async function checkForUpdates() {
       try {
         if (!__DEV__) {
-          // Only check in production
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
             await Updates.fetchUpdateAsync();
@@ -166,9 +183,6 @@ export default function App() {
               setInitialRoute("Main Screen");
           }
         }
-
-        // Setup push notifications
-        await setupPushNotifications();
       } catch (error) {
         console.error("Error during app initialization:", error);
       } finally {
@@ -334,14 +348,13 @@ export default function App() {
   );
 }
 
-async function setupPushNotifications() {
+async function registerForPushNotificationsAsync() {
   try {
     if (!Device.isDevice) {
       console.log("Must use physical device for Push Notifications");
-      return;
+      return null;
     }
 
-    // Check or request permissions
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -352,11 +365,15 @@ async function setupPushNotifications() {
     }
 
     if (finalStatus !== "granted") {
-      Alert.alert("Permission required", "Push notifications need permission");
-      return;
+      Alert.alert(
+        "Permission required",
+        "Push notifications need permission to work properly",
+        [{ text: "OK" }],
+        { cancelable: false }
+      );
+      return null;
     }
 
-    // Get the push token
     const token = (
       await Notifications.getExpoPushTokenAsync({
         projectId: "38b6a11f-476f-46f4-8263-95fe96a6d8ca",
@@ -368,25 +385,52 @@ async function setupPushNotifications() {
 
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
-        name: "Default Channel",
+        name: "default",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: "#FF231F7C",
         sound: "default",
+        showBadge: true,
       });
     }
 
-    try {
-      await fetch(`${API_URL}/noti/register-token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-    } catch (error) {
-      console.log("Couldn't send token to backend:", error);
-    }
+    // Send a test notification
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Notifications Enabled",
+        body: "You will now receive important updates from WealthAssociate",
+        data: { test: "notification_data" },
+      },
+      trigger: { seconds: 2 },
+    });
+
+    return token;
   } catch (error) {
-    console.error("Error setting up notifications:", error);
+    console.error("Error registering for push notifications:", error);
+    return null;
+  }
+}
+
+async function sendTokenToBackend(token) {
+  try {
+    const response = await fetch(`${API_URL}/noti/register-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        deviceId: Device.modelName || "unknown",
+        platform: Platform.OS,
+        osVersion: Platform.Version,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to register token");
+    }
+
+    console.log("Token successfully registered with backend");
+  } catch (error) {
+    console.error("Error sending token to backend:", error);
   }
 }
 

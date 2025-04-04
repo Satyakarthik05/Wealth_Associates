@@ -4,6 +4,7 @@
     "slug": "wealthassociates",
     "scheme": "wealthassociates",
     "version": "1.2.0",
+    "runtimeVersion": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -18,13 +19,11 @@
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
     },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.wealthassociates.alpha",
       "jsEngine": "hermes",
+      "buildNumber": "1.2.1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
@@ -36,7 +35,6 @@
       "ios": "1.2.2"
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
@@ -50,7 +48,6 @@
         "RECEIVE_BOOT_COMPLETED",
         "com.google.android.c2dm.permission.RECEIVE"
       ],
-      "useNextNotificationsApi": true,
       "package": "com.wealthassociates.alpha",
       "intentFilters": [
         {
@@ -76,11 +73,11 @@
           ]
         }
       ],
-      "notification": {
-        "icon": "./assets/logo.png",
-        "color": "#FF231F7C",
-        "defaultMode": "default"
-      }
+      "allowBackup": true,
+      "usesCleartextTraffic": true,
+      "networkInspector": {
+    "usesCleartextTraffic": true
+  }
     },
     "web": {
       "favicon": "./assets/icon-512.png"
@@ -92,6 +89,11 @@
     },
     "plugins": [
       "expo-notifications"
-    ]
+    ],
+    "notification": {
+      "icon": "./assets/logo.png",
+      "color": "#FF231F7C",
+      "androidMode": "default"
+    }
   }
 }

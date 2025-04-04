@@ -85,7 +85,6 @@ const CallCenterDashboard = () => {
       setIsSidebarExpanded(false);
     }
 
-    // Activate the selected view
     switch (subItem) {
       case "Dashboard":
         // Already showing dashboard by default
@@ -196,14 +195,14 @@ const CallCenterDashboard = () => {
           baseMenuItems.push({
             title: "Agents",
             icon: "person-outline",
-            subItems: ["View Agents"],
+            subItems: ["View Agents", "View Customers"],
           });
           break;
         case "Customers":
           baseMenuItems.push({
             title: "Customers",
             icon: "people-outline",
-            subItems: ["View Customers"],
+            subItems: ["View Customers", "View Agents"],
           });
           break;
         case "Property":
