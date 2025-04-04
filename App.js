@@ -11,7 +11,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import * as Updates from 'expo-updates';
 
 // Configure notification handler
 Notifications.setNotificationHandler({
