@@ -12,6 +12,7 @@ const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
 
+
 const getReferrerDetails = async (req, res) => {
   const { PostedBy } = req.params;
 
@@ -96,6 +97,7 @@ const getReferrerDetails = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 // Create a new property
 const createProperty = async (req, res) => {

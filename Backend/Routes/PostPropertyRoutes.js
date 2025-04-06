@@ -58,7 +58,9 @@ router.put(
 router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
 router.put("/approveupdate/:id", ApprovedProperty.updatePropertyAdmin);
 router.get("/getApproveProperty", ApprovedProperty.GetAllApprovdPropertys);
+router.get("/getsoldProperty", ApprovedProperty.GetAllSoldedPropertys);
 router.post("/approve/:id", ApprovedProperty.approveProperty);
+router.post("/sold/:id", ApprovedProperty.SoldProperty);
 router.get("/nearby/:constituency", PostPropertyController.getNearbyProperties);
 router.post(
   "/getPropertyreffered",

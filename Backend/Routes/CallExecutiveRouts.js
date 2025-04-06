@@ -8,7 +8,8 @@ const {
   myagents,
   myCustomers,
   myProperties
-  ,getCallExe
+  ,getCallExe,
+  editExecutive
 } = require("../Controllers/CallExecutiveController");
 const callcentertoken = require("../middleWares/callcentertoken");
 
@@ -20,7 +21,7 @@ router.post("/logincall-executives", CallExecutiveLogin);
 router.get("/getcallexe",callcentertoken, getCallExe);
 
 router.get("/call-executives", getCallExecutives);
-router.put("/call-executives/:id", updateCallExecutive);
+router.put("/call-executives/:id",editExecutive);
 router.delete("/call-executives/:id", deleteCallExecutive);
 router.get("/myagents", callcentertoken, myagents);
 router.get("/mycustomers", callcentertoken, myCustomers);

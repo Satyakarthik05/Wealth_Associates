@@ -193,6 +193,26 @@ export default function App() {
     initializeApp();
   }, []);
 
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        // Check if an update is available
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          // Download the update
+          await Updates.fetchUpdateAsync();
+          // Apply the update and reload the app
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        console.log('Error checking for updates:', error);
+      }
+    }
+
+    // Run the update check when the app mounts
+    checkForUpdates();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
   if (isLoading) {
     return (
       <View style={styles.container}>

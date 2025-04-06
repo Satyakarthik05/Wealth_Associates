@@ -31,7 +31,8 @@
             "CFBundleURLSchemes": ["wealthassociates"]
           }
         ]
-      }
+      },
+      "ios": "1.2.2"
     },
     "android": {
       "adaptiveIcon": {

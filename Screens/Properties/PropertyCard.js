@@ -269,7 +269,7 @@ const PropertyCard = ({ property, closeModal }) => {
                 )
               }
             >
-              {Platform.OS === "ios" ? (
+              {Platform.OS !== "ios" ? (
                 <AntDesign name="apple1" size={24} color="#000" />
               ) : (
                 <FontAwesome5 name="google-play" size={24} color="#000" />
