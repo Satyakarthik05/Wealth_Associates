@@ -5,7 +5,12 @@ const RequestpropertySchema = new mongoose.Schema({
   propertyType: { type: String, required: true },
   location: { type: String, required: true },
   Budget: { type: String, required: true },
-  PostedBy: { type: String, required: true }, // Change from ObjectId to String
+  PostedBy: { type: String, required: true }, 
+  Approved: {
+    type: String,
+    enum: ["Pending", "Done"], // Add this to enforce specific values
+    default: "Pending",
+  },
 });
 
 const requestProperty = mongoose.model(

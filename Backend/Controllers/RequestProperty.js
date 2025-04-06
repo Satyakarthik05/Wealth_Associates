@@ -35,15 +35,42 @@ const PropertyRequest = async (req, res) => {
 
     await newRequestProperty.save();
 
-    
 
-    
+    res.status(200).json({
+      message: "Requested property successfully",
+      newRequestProperty,
+    });
+  } catch (error) {
+    console.error("Error while requesting property:", error);
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
+};
+
+
+
+// Approve a property request
+const approveRequestProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Step 1: Find the property first
+    const property = await RequestProperty.findById(id);
+
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    // Step 2: Update its approval status
+    property.Approved = "Done";
+    const updatedProperty = await property.save();
+
+    // Step 3: Send push notifications using property details
     try {
       const allTokens = await PushToken.find({});
 
       if (allTokens.length > 0) {
         const title = "Wealth Associates\nNew Property Request";
-        const body = `New ${propertyType} requested in ${location} with budget ₹${Budget}`;
+        const body = `New ${property.propertyType} requested in ${property.location} with budget ₹${property.Budget}`;
 
         const notifications = allTokens.map((user) => ({
           to: user.expoPushToken,
@@ -77,14 +104,15 @@ const PropertyRequest = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Requested property successfully",
-      newRequestProperty,
+      message: "Property approved successfully",
+      property: updatedProperty
     });
   } catch (error) {
-    console.error("Error while requesting property:", error);
-    res.status(500).json({ message: "Internal Server Error", error });
+    console.error("Error approving property:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 const GetMyRequestedPropertys = async (req, res) => {
   try {
@@ -205,4 +233,5 @@ module.exports = {
   UpdateRequestedProperty,
   AdminUpdateRequestedProperty,
   DeleteRequestedProperty,
+  approveRequestProperty
 };

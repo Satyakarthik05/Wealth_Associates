@@ -12,6 +12,93 @@ const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
 
+
+const getReferrerDetails = async (req, res) => {
+  const { PostedBy } = req.params;
+
+  try {
+    const collectionsPrimary = [AgentSchema, CustomerSchema, CoreSchema];
+    let foundUser = null;
+    let foundIn = "";
+
+    for (let model of collectionsPrimary) {
+      const user = await model.findOne({ MobileNumber: PostedBy });
+      if (user) {
+        foundUser = user;
+        foundIn = model.modelName;
+        console.log(`PostedBy found in: ${foundIn}`, user);
+        break;
+      }
+    }
+
+    if (foundUser && foundUser.ReferredBy) {
+      const referredCode = foundUser.ReferredBy;
+      console.log("ReferredBy code:", referredCode);
+
+      for (let model of collectionsPrimary) {
+        const ref = await model.findOne({ MyRefferalCode: referredCode });
+        console.log(
+          `Searching in ${model.modelName} with code: ${referredCode}`,
+          ref
+        );
+        if (ref) {
+          return res.json({
+            postedByName: foundUser.FullName,
+            name: ref.FullName,
+            phone: ref.MobileNumber,
+            source: model.modelName,
+          });
+        }
+      }
+    }
+
+    const collectionsSecondary = [nriSchema, skillSchema, investorSchema];
+    for (let model of collectionsSecondary) {
+      const key = model.modelName === "NRI" ? "MobileIN" : "MobileNumber";
+      const user = await model.findOne({ [key]: PostedBy });
+      if (user && user.AddedBy) {
+        const addedBy = user.AddedBy;
+        const postedByName =
+          model.modelName === "NRI" ? user.Name : user.FullName;
+
+        const allCollections = [
+          AgentSchema,
+          CustomerSchema,
+          CoreSchema,
+          nriSchema,
+          skillSchema,
+          investorSchema,
+        ];
+
+        for (let searchModel of allCollections) {
+          const field =
+            searchModel.modelName === "NRI" ? "MobileIN" : "MobileNumber";
+          const ref = await searchModel.findOne({ [field]: addedBy });
+          if (ref) {
+            const refName =
+              searchModel.modelName === "NRI" ? ref.Name : ref.FullName;
+            const refPhone =
+              field === "MobileIN" ? ref.MobileIN : ref.MobileNumber;
+
+            return res.json({
+              postedByName,
+              name: refName,
+              phone: refPhone,
+              source: searchModel.modelName,
+            });
+          }
+        }
+      }
+    }
+
+    return res.status(404).json({ message: "Referrer not found." });
+  } catch (error) {
+    console.error("Error fetching referrer:", error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
 // Create a new property
 const createProperty = async (req, res) => {
   try {
@@ -349,4 +436,5 @@ module.exports = {
   getNearbyProperties,
   getReferredByDetails,
   updateDynamicData,
+  getReferrerDetails,
 };

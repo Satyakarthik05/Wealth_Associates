@@ -13,6 +13,7 @@ app.get(
   RequestProperty.GetMyRequestedPropertys
 );
 app.delete("/delete/:id", RequestProperty.DeleteRequestedProperty);
+app.put("/approve/:id", RequestProperty.approveRequestProperty);
 
 // New route for updating a requested property
 app.put(

@@ -282,13 +282,15 @@ const deleteAgent = async (req, res) => {
 
 const updateAgentByadmin = async (req, res) => {
   const { id } = req.params;
-  const { FullName, District, Contituency, MobileNumber, MyRefferalCode } =
+  const { FullName, District, Contituency, MobileNumber, MyRefferalCode,
+    ReferredBy } =
     req.body;
 
   try {
     const updatedAgent = await AgentSchema.findByIdAndUpdate(
       id,
-      { FullName, District, Contituency, MobileNumber, MyRefferalCode },
+      { FullName, District, Contituency, MobileNumber, MyRefferalCode,
+        ReferredBy },
       { new: true }
     );
 

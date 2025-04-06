@@ -1,6 +1,7 @@
 const Property = require("../Models/Property");
 const ApprovedProperty = require("../Models/ApprovedPropertys");
 const PushToken = require("../Models/NotificationToken");
+const SoldedProperty=require("../Models/SoldPropertyModel")
 
 const approveProperty = async (req, res) => {
   try {
@@ -142,9 +143,65 @@ const updatePropertyAdmin = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+const SoldProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Find the property by ID
+    const property = await ApprovedProperty.findById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found." });
+    }
+
+    // 2. Create an approved property entry
+    const SoldProperty = new SoldedProperty({
+      propertyType: property.propertyType,
+      location: property.location,
+      price: property.price,
+      photo: property.photo,
+      Constituency: property.Constituency,
+      PostedBy: property.PostedBy,
+      propertyDetails: property.propertyDetails
+        ? property.propertyDetails
+        : "no details",
+      PostedUserType: property.PostedUserType,
+      dynamicData: property.dynamicData || {},
+    });
+
+    await SoldProperty.save();
+    console.log("Original property dynamicData:", property.dynamicData);
+    console.log("Approved property dynamicData:", SoldProperty.dynamicData);
+    await ApprovedProperty.findByIdAndDelete(id);
+
+    // 6. Send final response
+    res.status(200).json({
+      message: "Property approved and push notifications sent to users",
+      SoldProperty,
+    });
+  } catch (error) {
+    console.error("Error approving property:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
+const GetAllSoldedPropertys = async (req, res) => {
+  try {
+    const properties = await SoldedProperty.find();
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Error fetching properties", error });
+  }
+};
 module.exports = {
   approveProperty,
   GetAllApprovdPropertys,
   deletProperty,
   updatePropertyAdmin,
+  SoldProperty,
+  GetAllSoldedPropertys,
 };

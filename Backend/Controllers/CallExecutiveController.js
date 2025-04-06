@@ -86,60 +86,29 @@ const getCallExe = async (req, res) => {
   }
 };
 
-const updateCallExecutive = async (req, res) => {
+const editExecutive = async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, location, password, assignedType } = req.body;
+
   try {
-    const { id } = req.params;
-    const { name, phone, location, password } = req.body;
+    const updateData = { name, phone, location, assignedType,password };
+   
 
-    // Check if executive exists
-    const existingExecutive = await CallExecutive.findById(id);
-    if (!existingExecutive) {
-      return res.status(404).json({
-        success: false,
-        message: "Call executive not found",
-      });
-    }
-
-    // Check if phone number is being changed to an existing number
-    if (phone && phone !== existingExecutive.phone) {
-      const phoneExists = await CallExecutive.findOne({ phone });
-      if (phoneExists) {
-        return res.status(400).json({
-          success: false,
-          message: "Phone number already exists",
-        });
-      }
-    }
-
-    // Update fields
-    if (name) existingExecutive.name = name;
-    if (phone) existingExecutive.phone = phone;
-    if (location) existingExecutive.location = location;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      existingExecutive.password = await bcrypt.hash(password, salt);
-    }
-
-    const updatedExecutive = await existingExecutive.save();
-
-    // Remove password from response
-    const executiveData = updatedExecutive.toObject();
-    delete executiveData.password;
-
-    res.status(200).json({
-      success: true,
-      message: "Call executive updated successfully",
-      data: executiveData,
+    const updatedExecutive = await CallExecutive.findByIdAndUpdate(id, updateData, {
+      new: true,
     });
+
+    if (!updatedExecutive) {
+      return res.status(404).json({ message: "Executive not found" });
+    }
+
+    res.status(200).json({ message: "Executive updated successfully" });
   } catch (error) {
-    console.error("Error updating call executive:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Error updating executive", error });
   }
 };
+
+
 
 // Delete call executive
 const deleteCallExecutive = async (req, res) => {
@@ -340,89 +309,146 @@ const myCustomers = async (req, res) => {
   }
 };
 
+
+
 const myProperties = async (req, res) => {
   try {
-    // 1. Get executiveId from authenticated user (should come from token)
-    const executiveId = req.AgentId; // Make sure your auth middleware sets this
-    
-    if (!mongoose.Types.ObjectId.isValid(executiveId)) {
+    console.log('1. Starting myProperties with AgentId:', req.AgentId);
+
+    // 1. Validate and convert AgentId
+    if (!mongoose.Types.ObjectId.isValid(req.AgentId)) {
+      console.log('2. Invalid AgentId format:', req.AgentId);
       return res.status(400).json({
         success: false,
-        message: "Invalid Executive ID format",
+        message: "Invalid Agent ID format",
+        receivedId: req.AgentId,
       });
     }
 
-    const executiveObjectId = new mongoose.Types.ObjectId(executiveId);
+    const executiveId = new mongoose.Types.ObjectId(req.AgentId);
+    console.log('3. Converted executiveId:', executiveId);
 
-    // 2. Clean up invalid assignments
-    await CallExecutive.updateOne(
-      { _id: executiveObjectId },
-      { $pull: { assignedUsers: { userId: null } } }
-    );
+    // Debug: Check the raw executive document
+    const executiveDoc = await CallExecutive.findById(executiveId).lean();
+    console.log('4. Raw executive document:', JSON.stringify(executiveDoc, null, 2));
+    
+    if (!executiveDoc) {
+      console.log('5. No executive document found');
+      return res.status(404).json({
+        success: false,
+        message: "Executive not found"
+      });
+    }
 
-    // 3. Get executive with property details
-    const executive = await CallExecutive.aggregate([
-      { $match: { _id: executiveObjectId } },
+    console.log('6. Assignments found:', executiveDoc.assignedUsers?.length || 0);
+    console.log('7. Sample assignment:', executiveDoc.assignedUsers?.[0]);
+
+    // 2. Aggregation pipeline
+    console.log('8. Starting aggregation pipeline');
+    const pipeline = [
+      { $match: { _id: executiveId } },
       { $unwind: "$assignedUsers" },
       {
         $match: {
           "assignedUsers.userType": "Property",
-          "assignedUsers.userId": { $exists: true, $ne: null },
-        },
+          "assignedUsers.userId": { $exists: true, $ne: null }
+        }
+      },
+      {
+        $addFields: {
+          "convertedUserId": {
+            $cond: {
+              if: { $eq: [{ $type: "$assignedUsers.userId" }, "string"] },
+              then: { $toObjectId: "$assignedUsers.userId" },
+              else: "$assignedUsers.userId"
+            }
+          }
+        }
       },
       {
         $lookup: {
           from: "properties",
-          localField: "assignedUsers.userId",
+          localField: "convertedUserId",
           foreignField: "_id",
-          as: "propertyDetails",
-        },
+          as: "propertyDetails"
+        }
       },
-      { $unwind: "$propertyDetails" },
+      { $unwind: { path: "$propertyDetails", preserveNullAndEmptyArrays: false } },
       {
         $project: {
-          name: 1,
-          phone: 1,
-          property: "$propertyDetails",
-          assignmentId: "$assignedUsers._id",
-          assignedAt: "$assignedUsers.assignedAt"
+          property: {
+            $mergeObjects: [
+              "$propertyDetails",
+              {
+                assignmentId: "$assignedUsers._id",
+                assignedAt: "$assignedUsers.assignedAt"
+              }
+            ]
+          },
+          executiveInfo: {
+            name: "$name",
+            phone: "$phone"
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          properties: { $push: "$property" },
+          executiveInfo: { $first: "$executiveInfo" }
         }
       }
-    ]);
+    ];
 
-    if (!executive || executive.length === 0) {
+    console.log('9. Full aggregation pipeline:', JSON.stringify(pipeline, null, 2));
+    
+    const result = await CallExecutive.aggregate(pipeline);
+    console.log('10. Aggregation result:', JSON.stringify(result, null, 2));
+
+    // 3. Handle results
+    if (!result.length || !result[0].properties.length) {
+      console.log('11. No valid properties found in result');
+      
+      // Additional debug: Check if properties exist for the userIds
+      const assignedUserIds = executiveDoc.assignedUsers
+        ?.filter(a => a.userType === "Property" && a.userId)
+        ?.map(a => a.userId) || [];
+      
+      console.log('12. Assigned userIds:', assignedUserIds);
+      
+      if (assignedUserIds.length > 0) {
+        const properties = await mongoose.connection.db.collection("properties")
+          .find({ _id: { $in: assignedUserIds } })
+          .toArray();
+        console.log('13. Properties found for these IDs:', properties.length);
+      }
+      
       return res.status(404).json({
         success: false,
         message: "No valid property assignments found",
+        debug: {
+          executiveId: req.AgentId,
+          assignmentsCount: executiveDoc.assignedUsers?.length || 0,
+          propertyAssignments: executiveDoc.assignedUsers?.filter(a => a.userType === "Property") || []
+        }
       });
     }
 
-    // Format the response to match frontend expectations
-    const response = {
+    // 4. Successful response
+    console.log('14. Successfully found properties:', result[0].properties.length);
+    res.json({
       success: true,
-      data: executive.map(item => ({
-        ...item.property,
-        assignmentId: item.assignmentId,
-        assignedAt: item.assignedAt,
-        // Ensure these fields are included if needed by frontend
-        PostedBy: item.property.PostedBy,
-        PostedUserType: item.property.PostedUserType
-      })),
-      executiveInfo: {
-        name: executive[0]?.name || '',
-        phone: executive[0]?.phone || ''
-      }
-    };
+      data: result[0].properties,
+      executiveInfo: result[0].executiveInfo
+    });
 
-    res.json(response);
-    
   } catch (error) {
-    console.error("Final error:", error);
-    console.error("Error in myProperties:", error);
+    console.error('15. Error in myProperties:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to retrieve customers",
+      message: "Server error",
       error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
@@ -430,10 +456,10 @@ module.exports = {
   addCallExecutive,
   getCallExecutives,
   deleteCallExecutive,
-  updateCallExecutive,
   CallExecutiveLogin,
   myagents,
   myCustomers,
   myProperties,
-  getCallExe
+  getCallExe,
+  editExecutive,
 };
