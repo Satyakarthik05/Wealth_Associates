@@ -38,6 +38,7 @@ router.post(
 );
 
 router.get("/getallPropertys", PostPropertyController.GetAllPropertys);
+router.get("/getreqreff/:PostedBy", PostPropertyController.getReferrerDetails);
 
 router.get("/getAdminProperties", PostPropertyController.AdminProperties);
 

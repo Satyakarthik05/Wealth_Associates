@@ -98,9 +98,9 @@ app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
 
-https.createServer(options, app).listen(443, () => {
-  console.log("HTTPS Server running on port 443");
-});
+// https.createServer(options, app).listen(443, () => {
+//   console.log("HTTPS Server running on port 443");
+// });
 app.post('/send-notification', async (req, res) => {
   try {
     const { title, message } = req.body;
@@ -182,18 +182,18 @@ app.post('/send-notification', async (req, res) => {
   }
 });
 
-const http = require("http");
-http
-  .createServer((req, res) => {
-    res.writeHead(301, {
-      Location: "https://" + req.headers["host"] + req.url,
-    });
-    res.end();
-  })
-  .listen(80, () => {
-    console.log("Redirecting HTTP to HTTPS");
-  });
+// const http = require("http");
+// http
+//   .createServer((req, res) => {
+//     res.writeHead(301, {
+//       Location: "https://" + req.headers["host"] + req.url,
+//     });
+//     res.end();
+//   })
+//   .listen(80, () => {
+//     console.log("Redirecting HTTP to HTTPS");
+//   });
 
-// app.listen("3000", () => {
-//   console.log("Server is running succssfully");
-// });
+app.listen("3000", () => {
+  console.log("Server is running succssfully");
+});
