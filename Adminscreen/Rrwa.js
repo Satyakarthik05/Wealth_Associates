@@ -66,7 +66,7 @@ const RegisterEx = ({ closeModal }) => {
   // Fetch expertise
   const fetchExpertise = async () => {
     try {
-      const response = await fetch(`${API_URL}/discons/propertytype`);
+      const response = await fetch(`${API_URL}/discons/expertise`);
       const data = await response.json();
       setExpertiseOptions(data);
     } catch (error) {

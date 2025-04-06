@@ -65,6 +65,7 @@ import ExpertDetails from "../Adminscreen/Expert Panel/ExpertDetails";
 import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
 import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
 import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
+import SoldPropertys from "../Adminscreen/SoldPropertys";
 
 const menuItems = [
   {
@@ -97,6 +98,7 @@ const menuItems = [
       "View Requested Properties",
       "View All Properties",
       "ViewApprovedProperties",
+      "View SoldedPropertys",
     ],
   },
   {
@@ -213,6 +215,7 @@ const AdminDashboard = () => {
   const [expertType, setExpertType] = useState(null);
   const [isViewCallVisible, setIsViewCallVisible] = useState(false);
   const [isAddCallVisible, setIsAddCallVisible] = useState(false);
+  const [isSoldPropertys, setSoldPropertys] = useState(false);
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -283,6 +286,7 @@ const AdminDashboard = () => {
     setViewApprovedProperties(false);
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
+    setSoldPropertys(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -375,6 +379,8 @@ const AdminDashboard = () => {
       setIsAddCallVisible(true);
     } else if (subItem === "View Call Executive") {
       setIsViewCallVisible(true);
+    } else if (subItem === "View SoldedPropertys") {
+      setSoldPropertys(true);
     }
   };
 
@@ -443,6 +449,7 @@ const AdminDashboard = () => {
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     if (isViewCallVisible) return <ViewCallExecutives />;
+    if (isSoldPropertys) return <SoldPropertys />;
 
     return <Dashboard />;
   };

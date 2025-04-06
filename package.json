@@ -23,6 +23,7 @@
     "eas": "^0.1.0",
     "expo": "~52.0.42",
     "expo-clipboard": "~7.0.1",
+    "expo-dev-client": "^5.0.20",
     "expo-device": "~7.0.3",
     "expo-image-picker": "~16.0.6",
     "expo-intent-launcher": "~12.0.2",

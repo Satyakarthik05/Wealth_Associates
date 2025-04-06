@@ -103,7 +103,16 @@ const ViewAssignedProperties = () => {
     }
   }, []);
 
-  // Handle manual refresh
+  // useEffect(() => {
+  //     // Initial load
+  //     fetchData();
+
+  //     // Set up interval
+  //     const intervalId = setInterval(fetchData, 10000); // 10 seconds
+
+  //     // Cleanup function
+  //     return () => clearInterval(intervalId);
+  //   }, [fetchData]);
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
@@ -150,53 +159,56 @@ const ViewAssignedProperties = () => {
   // Property update handler
   const handleUpdate = (property) => {
     setSelectedProperty(property);
+
     const type = property.propertyType.toLowerCase();
 
-    if (type.includes("commercial")) {
-      Alert.alert(
-        "Commercial Property",
-        "No extra details required for commercial properties. Just approve it.",
-        [{ text: "OK", onPress: () => setIsUpdateModalVisible(false) }]
-      );
-      return;
-    }
-
+    // Handle residential properties
     if (
       type.includes("flat") ||
       type.includes("apartment") ||
       type.includes("individualhouse") ||
-      type.includes("villa")
+      type.includes("villa") ||
+      type.includes("house") ||
+      type.includes("commercial")
     ) {
       setCurrentUpdateModal("house");
-    } else if (type.includes("plot")) {
+    }
+    // Handle plot/land properties
+    else if (type.includes("plot")) {
       setCurrentUpdateModal("land");
-    } else if (type.includes("farmland") || type.includes("agricultural")) {
+    }
+    // Handle agricultural properties
+    else if (type.includes("land") || type.includes("agricultural")) {
       setCurrentUpdateModal("agriculture");
     }
 
     setIsUpdateModalVisible(true);
   };
 
-  // Save updated property details
   const handleUpdateSave = async (updatedData) => {
     try {
-      const token = await getAuthToken();
       const response = await fetch(
         `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            token,
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedData),
         }
       );
 
       const result = await response.json();
       if (response.ok) {
-        await fetchData();
+        // Clear and restart the refresh interval
+        if (refreshInterval) clearInterval(refreshInterval);
+        setRefreshInterval(setInterval(fetchData, 10000));
+
+        setProperties(
+          properties.map((p) =>
+            p._id === selectedProperty._id ? { ...p, ...updatedData } : p
+          )
+        );
         setIsUpdateModalVisible(false);
+        await fetchData();
         Alert.alert("Success", "Property updated successfully");
       } else {
         Alert.alert("Error", result.message || "Update failed");

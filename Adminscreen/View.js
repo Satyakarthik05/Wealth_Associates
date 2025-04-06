@@ -139,6 +139,10 @@ export default function ViewAgents() {
         (agent) =>
           (agent.FullName &&
             agent.FullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (agent.AgentType &&
+            agent.AgentType.toLowerCase().includes(
+              searchQuery.toLowerCase()
+            )) ||
           (agent.MobileNumber && agent.MobileNumber.includes(searchQuery)) ||
           (agent.MyRefferalCode &&
             agent.MyRefferalCode.toLowerCase().includes(
@@ -223,6 +227,7 @@ export default function ViewAgents() {
       Contituency: agent.Contituency,
       MobileNumber: agent.MobileNumber,
       MyRefferalCode: agent.MyRefferalCode,
+      ReferredBy: agent.ReferredBy,
     });
 
     if (agent.District) {
@@ -278,8 +283,8 @@ export default function ViewAgents() {
     }
   };
 
-  const handleDeleteAgent = (agentId) => {
-    const confirmDelete = () => {
+  const handleDeleteAgent = async (agentId) => {
+    const confirmDelete = async () => {
       if (Platform.OS === "web") {
         return window.confirm("Are you sure you want to delete this agent?");
       } else {
@@ -300,29 +305,27 @@ export default function ViewAgents() {
       }
     };
 
-    confirmDelete().then(async (confirmed) => {
+    try {
+      const confirmed = await confirmDelete();
       if (!confirmed) return;
 
-      try {
-        const response = await fetch(
-          `${API_URL}/agent/deleteagent/${agentId}`,
-          { method: "DELETE" }
-        );
+      const response = await fetch(`${API_URL}/agent/deleteagent/${agentId}`, {
+        method: "DELETE",
+      });
 
-        if (!response.ok) throw new Error("Failed to delete agent");
+      if (!response.ok) throw new Error("Failed to delete agent");
 
-        setAgents((prevAgents) =>
-          prevAgents.filter((agent) => agent._id !== agentId)
-        );
-        setFilteredAgents((prevAgents) =>
-          prevAgents.filter((agent) => agent._id !== agentId)
-        );
-        Alert.alert("Success", "Agent deleted successfully");
-      } catch (error) {
-        console.error("Delete error:", error);
-        Alert.alert("Error", "Failed to delete agent");
-      }
-    });
+      setAgents((prevAgents) =>
+        prevAgents.filter((agent) => agent._id !== agentId)
+      );
+      setFilteredAgents((prevAgents) =>
+        prevAgents.filter((agent) => agent._id !== agentId)
+      );
+      Alert.alert("Success", "Agent deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      Alert.alert("Error", "Failed to delete agent");
+    }
   };
 
   return (
@@ -416,10 +419,22 @@ export default function ViewAgents() {
                   )}
                   {agent.ReferredBy && (
                     <View style={styles.row}>
+                      <Text style={styles.label}>ReferredByCode</Text>
+                      <Text style={styles.value}>: {agent.ReferredBy}</Text>
+                    </View>
+                  )}
+                  {agent.ReferredBy && (
+                    <View style={styles.row}>
                       <Text style={styles.label}>Referred By</Text>
                       <Text style={styles.value}>
                         : {referrerNames[agent.ReferredBy] || "Loading..."}
                       </Text>
+                    </View>
+                  )}
+                  {agent.AgentType && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>AgentType</Text>
+                      <Text style={styles.value}>{agent.AgentType}</Text>
                     </View>
                   )}
                   <View style={styles.row}>
@@ -547,6 +562,15 @@ export default function ViewAgents() {
               value={editedAgent.MyRefferalCode}
               onChangeText={(text) =>
                 setEditedAgent({ ...editedAgent, MyRefferalCode: text })
+              }
+            />
+            <Text style={styles.inputLabel}>ReferralBY Code</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="ReferredBy referral Code"
+              value={editedAgent.ReferredBy}
+              onChangeText={(text) =>
+                setEditedAgent({ ...editedAgent, ReferredBy: text })
               }
             />
 

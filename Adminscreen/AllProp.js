@@ -42,11 +42,11 @@ const ViewAllProperties = () => {
   const [constituencies, setConstituencies] = useState([]);
   const [idSearch, setIdSearch] = useState("");
   const [currentUpdateModal, setCurrentUpdateModal] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  // const [refreshInterval, setRefreshInterval] = useState(null);
 
-  // Fetch data with useCallback to memoize the function
   const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
       const [propertiesRes, typesRes, constituenciesRes] = await Promise.all([
         fetch(`${API_URL}/properties/getallPropertys`),
         fetch(`${API_URL}/discons/propertytype`),
@@ -62,29 +62,24 @@ const ViewAllProperties = () => {
       setConstituencies(constituenciesData);
     } catch (error) {
       console.error("Error fetching data:", error);
-      Alert.alert("Error", "Failed to load data");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API_URL]);
 
-  // Set up auto-refresh on component mount and clean up on unmount
   useEffect(() => {
+    // Initial load
     fetchData();
 
-    // Set up interval to refresh every 10 seconds
-    const interval = setInterval(fetchData, 10000);
-    setRefreshInterval(interval);
+    // Set up interval
+    const intervalId = setInterval(fetchData, 10000); // 10 seconds
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    // Cleanup function
+    return () => clearInterval(intervalId);
   }, [fetchData]);
 
-  // Helper functions
   const getLastFourChars = (id) => id?.slice(-4) || "N/A";
 
-  // Filter properties based on search and filter criteria
   const filteredProperties = properties
     .filter((property) =>
       idSearch
@@ -120,30 +115,14 @@ const ViewAllProperties = () => {
 
     const type = property.propertyType.toLowerCase();
 
-    // Handle commercial properties
-    if (type.includes("commercial")) {
-      if (Platform.OS === "web") {
-        alert(
-          "Commercial Property\nNo extra details required for commercial properties. Just approve it."
-        );
-      } else {
-        Alert.alert(
-          "Commercial Property",
-          "No extra details required for commercial properties. Just approve it.",
-          [{ text: "OK", onPress: () => setIsUpdateModalVisible(false) }]
-        );
-      }
-      setIsUpdateModalVisible(false);
-      return;
-    }
-
     // Handle residential properties
     if (
       type.includes("flat") ||
       type.includes("apartment") ||
       type.includes("individualhouse") ||
       type.includes("villa") ||
-      type.includes("house")
+      type.includes("house") ||
+      type.includes("commercial")
     ) {
       setCurrentUpdateModal("house");
     }
