@@ -47,12 +47,12 @@ const ViewNriCard = ({ viewNri, onEdit, onDelete }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.editButton}
           onPress={() => onEdit(viewNri)}
         >
           <Text style={styles.buttonText}>Edit</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => onDelete(viewNri._id)}

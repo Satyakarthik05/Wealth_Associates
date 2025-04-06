@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, ActivityIndicator, View, Alert } from "react-native";
+import {
+  StyleSheet,
+  ActivityIndicator,
+  View,
+  Alert,
+  Platform,
+} from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import { Linking } from "react-native";
+import * as Updates from "expo-updates";
+import { NavigationIndependentTree } from "@react-navigation/native";
 
 // Screens
 import MainScreen from "./Screens/MainScreen";
@@ -28,22 +37,109 @@ import CallCenterDashboard from "./CallCenterDash/CallCenterDashboard";
 import CallCenterLogin from "./CallCenterDash/Login_screen";
 import New_Password from "./Screens/New_Password";
 import { API_URL } from "./data/ApiUrl";
+import NriRegister from "./Screens/AddNri";
+import InvestorRegister from "./Screens/AddInvestors";
+import SkilledRegister from "./Screens/Rskill";
 
-// ✅ Keep NavigationIndependentTree
-import { NavigationIndependentTree } from "@react-navigation/native";
-import { Newspaper } from "lucide-react-native";
+// Configure notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const Stack = createStackNavigator();
-const APP_VERSION = "1.0.1"; // Change this when updating the app
+const APP_VERSION = "1.0.1";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState("Main Screen");
+  const [expoPushToken, setExpoPushToken] = useState("");
+
+  // Enhanced notification handling
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      setExpoPushToken(token);
+      if (token) {
+        await sendTokenToBackend(token);
+      }
+    };
+
+    initializeNotifications();
+
+    // Foreground notification handler
+    const notificationListener = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("Notification received (foreground):", notification);
+        // You can handle the notification here if needed
+      }
+    );
+
+    // Background/quit notification handler
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(
+          "Notification tapped (background/quit):",
+          response.notification
+        );
+        // Handle navigation based on notification
+        const data = response.notification.request.content.data;
+        if (data?.url) {
+          Linking.openURL(data.url);
+        }
+      });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
+
+  const linking = {
+    prefixes: ["https://www.wealthassociate.in"],
+    config: {
+      screens: {
+        "Main Screen": "",
+        PrivacyPolicy: "privacy_policy",
+      },
+    },
+  };
+
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        if (!__DEV__) {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            Alert.alert(
+              "Update Available",
+              "A new version of the app is available. Restart to apply the update.",
+              [
+                {
+                  text: "Restart Now",
+                  onPress: async () => {
+                    await Updates.reloadAsync();
+                  },
+                },
+              ]
+            );
+          }
+        }
+      } catch (error) {
+        console.log("Error checking for updates:", error);
+      }
+    }
+
+    checkForUpdates();
+  }, []);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Check if app version has changed
         const storedVersion = await AsyncStorage.getItem("appVersion");
         if (storedVersion !== APP_VERSION) {
           console.log("New version detected, clearing authToken...");
@@ -51,7 +147,6 @@ export default function App() {
           await AsyncStorage.setItem("appVersion", APP_VERSION);
         }
 
-        // Check login status
         const token = await AsyncStorage.getItem("authToken");
         const userType = await AsyncStorage.getItem("userType");
 
@@ -88,9 +183,6 @@ export default function App() {
               setInitialRoute("Main Screen");
           }
         }
-
-        // Register for push notifications
-        await registerForPushNotificationsAsync();
       } catch (error) {
         console.error("Error during app initialization:", error);
       } finally {
@@ -100,6 +192,26 @@ export default function App() {
 
     initializeApp();
   }, []);
+
+  useEffect(() => {
+    async function checkForUpdates() {
+      try {
+        // Check if an update is available
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          // Download the update
+          await Updates.fetchUpdateAsync();
+          // Apply the update and reload the app
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        console.log('Error checking for updates:', error);
+      }
+    }
+
+    // Run the update check when the app mounts
+    checkForUpdates();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   if (isLoading) {
     return (
@@ -111,7 +223,9 @@ export default function App() {
 
   return (
     <NavigationIndependentTree>
-      <NavigationContainer>
+      <NavigationContainer
+        linking={Platform.OS === "web" ? linking : undefined}
+      >
         <Stack.Navigator initialRouteName={initialRoute}>
           <Stack.Screen
             name="Main Screen"
@@ -123,11 +237,6 @@ export default function App() {
             component={RegisterAsScreen}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
-            name="LoginAS"
-            component={login}
-            options={{ headerShown: false }}
-          /> */}
           <Stack.Screen
             name="Starting Screen"
             component={StartingScreen}
@@ -218,18 +327,32 @@ export default function App() {
             component={CallCenterLogin}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="nrireg"
+            component={NriRegister}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="invreg"
+            component={InvestorRegister}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="skillreg"
+            component={SkilledRegister}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
   );
 }
 
-// ✅ Push Notification Registration
 async function registerForPushNotificationsAsync() {
   try {
     if (!Device.isDevice) {
-      Alert.alert("Error", "Must use a physical device for push notifications");
-      return;
+      console.log("Must use physical device for Push Notifications");
+      return null;
     }
 
     const { status: existingStatus } =
@@ -242,29 +365,75 @@ async function registerForPushNotificationsAsync() {
     }
 
     if (finalStatus !== "granted") {
-      Alert.alert("Error", "Failed to get permission for notifications");
-      return;
+      Alert.alert(
+        "Permission required",
+        "Push notifications need permission to work properly",
+        [{ text: "OK" }],
+        { cancelable: false }
+      );
+      return null;
     }
 
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const token = (
+      await Notifications.getExpoPushTokenAsync({
+        projectId: "38b6a11f-476f-46f4-8263-95fe96a6d8ca",
+      })
+    ).data;
+
     console.log("Expo Push Token:", token);
+    await AsyncStorage.setItem("expoPushToken", token);
 
-    if (token) {
-      await AsyncStorage.setItem("expoPushToken", token);
-
-      // Send token to backend
-      await fetch(`${API_URL}/noti/register-token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+        sound: "default",
+        showBadge: true,
       });
     }
+
+    // Send a test notification
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Notifications Enabled",
+        body: "You will now receive important updates from WealthAssociate",
+        data: { test: "notification_data" },
+      },
+      trigger: { seconds: 2 },
+    });
+
+    return token;
   } catch (error) {
     console.error("Error registering for push notifications:", error);
+    return null;
   }
 }
 
-// ✅ Styles
+async function sendTokenToBackend(token) {
+  try {
+    const response = await fetch(`${API_URL}/noti/register-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        deviceId: Device.modelName || "unknown",
+        platform: Platform.OS,
+        osVersion: Platform.Version,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to register token");
+    }
+
+    console.log("Token successfully registered with backend");
+  } catch (error) {
+    console.error("Error sending token to backend:", error);
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

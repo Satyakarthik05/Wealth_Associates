@@ -68,9 +68,9 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
             ? Details.MobileNumber
             : "MobileNumber",
           ExpertType: expertType,
-          ExpertName: expert.Name,
-          ExpertNo: expert.Mobile,
-          RequestedBy: "WealthAssociate",
+          ExpertName: expert.name,
+          ExpertNo: expert.mobile,
+          RequestedBy: "Customer",
         }),
       });
 
@@ -120,17 +120,17 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
                 style={styles.profileImage}
               />
 
-              <Text style={styles.expertName}>{item.Name}</Text>
+              <Text style={styles.expertName}>{item.name}</Text>
               <Text style={styles.expertDetails}>
                 <Text style={styles.label}>Qualification:</Text>{" "}
-                {item.Qualification}
+                {item.qualification}
               </Text>
               <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Experience:</Text> {item.Experience}{" "}
+                <Text style={styles.label}>Experience:</Text> {item.experience}{" "}
                 Years
               </Text>
               <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Location:</Text> {item.Locations}
+                <Text style={styles.label}>Location:</Text> {item.location}
               </Text>
               <TouchableOpacity
                 style={styles.requestButton}

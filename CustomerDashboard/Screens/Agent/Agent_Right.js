@@ -16,7 +16,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import CustomModal from "../../../Components/CustomModal";
-import PostProperty from "./PropertyCard";
+import PostProperty from "../Properties/PostProperty";
 import RequestProperty from "../Properties/RequestProperty";
 import AddClubMember from "../Customer/Regicus";
 import RequestExpert from "../ExpertPanel/Requested_expert";
@@ -27,17 +27,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PropertyCard from "./PropertyCard";
 import { Ionicons } from "@expo/vector-icons";
 import logo from "../../../assets/man.png";
-import logo1 from "../../../assets/Logo Final 1.png";
-import logo2 from "../../../assets/Main-Logo (1) 1.png";
-import logo3 from "../../../assets/Meenakshi-Icon-Blac (2) 1.png";
-import logo4 from "../../../assets/Surya Avenue Logo[1] 1.png";
-import logo5 from "../../../assets/Logo 1.png";
-import logo6 from "../../../assets/Land.jpg";
-import logo7 from "../../../assets/residntial.jpg";
-import logo8 from "../../../assets/commercial.jpg";
-import logo9 from "../../../assets/villa.jpg";
-import logo10 from "../../../assets/house.png";
-import logo11 from "../../../assets/logo.png";
+
 // Import nested action components
 import AddCustomer from "../Customer/Regicus";
 import AddInvestor from "../Investors/AddInvestors";
@@ -72,21 +62,21 @@ const nestedActionButtons = [
 const coreClients = [
   {
     name: "Harischandra Townships",
-    logo: logo1,
+    logo: require("../../../assets/Logo Final 1.png"),
   },
 ];
 
 const coreProjects = [
-  { name: "Bay Town", logo: logo2 },
+  { name: "Bay Town", logo: require("../../../assets/Main-Logo (1) 1.png") },
   {
     name: "Icon",
-    logo: logo3,
+    logo: require("../../../assets/Meenakshi-Icon-Blac (2) 1.png"),
   },
   {
     name: "Surya Avenue",
-    logo: logo4,
+    logo: require("../../../assets/Surya Avenue Logo[1] 1.png"),
   },
-  { name: "The Park Vue", logo: logo5 },
+  { name: "The Park Vue", logo: require("../../../assets/Logo 1.png") },
 ];
 const numColumns = width > 800 ? 4 : 1;
 
@@ -158,15 +148,15 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
   const getImageByPropertyType = (propertyType) => {
     switch (propertyType.toLowerCase()) {
       case "land":
-        return logo6;
+        return require("../../../assets/Land.jpg");
       case "residential":
-        return logo7;
+        return require("../../../assets/residntial.jpg");
       case "commercial":
-        return logo8;
+        return require("../../../assets/commercial.jpg");
       case "villa":
-        return logo9;
+        return require("../../../assets/villa.jpg");
       default:
-        return logo10;
+        return require("../../../assets/house.png");
     }
   };
 
@@ -422,7 +412,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-        {regularProperties.length > 0 && (
+        {/* {regularProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Regular Properties</Text>
             <ScrollView
@@ -433,7 +423,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {regularProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : logo11;
+                  : require("../../../assets/logo.png");
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -502,7 +492,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               })}
             </ScrollView>
           </>
-        )}
+        )} */}
         {approvedProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Approved Properties</Text>
@@ -514,7 +504,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {approvedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : logo11;
+                  : require("../../../assets/logo.png");
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -595,7 +585,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {wealthProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : logo11;
+                  : require("../../../assets/logo.png");
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 
@@ -676,7 +666,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               {listedProperties.map((property, index) => {
                 const imageUri = property.photo
                   ? { uri: `${API_URL}${property.photo}` }
-                  : logo11;
+                  : require("../../../assets/logo.png");
                 const propertyTag = getPropertyTag(property.createdAt);
                 const propertyId = getLastFourChars(property._id);
 

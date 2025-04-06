@@ -150,6 +150,12 @@ export default function Login_screen() {
                   : null,
               ]}
             >
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Icon name="arrow-back" size={24} color="#E82E5F" />
+              </TouchableOpacity>
               <Image
                 source={
                   Platform.OS === "android" || Platform.OS === "ios"
@@ -303,6 +309,13 @@ const styles = StyleSheet.create({
     height: 120,
     alignSelf: "center",
     marginBottom: 20,
+  },
+  backButton: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    padding: 10,
   },
   welcomeText: {
     fontFamily: "Cairo",

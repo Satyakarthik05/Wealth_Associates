@@ -71,7 +71,7 @@ const AddInvestor = ({ closeModal }) => {
       return;
     }
 
-    if (!Details || !Details.MobileNumber) {
+    if (!Details || !Details.MobileIN) {
       Alert.alert(
         "Error",
         "Agent details are not available. Please try again."
@@ -90,7 +90,7 @@ const AddInvestor = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileIN,
-          RegisteredBy: "Customer",
+          RegisteredBy: "NRI",
         }),
       });
       const data = await response.json();

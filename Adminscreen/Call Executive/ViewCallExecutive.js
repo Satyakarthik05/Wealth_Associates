@@ -11,6 +11,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../data/ApiUrl";
 
 const ViewCallExecutives = () => {
@@ -23,20 +24,32 @@ const ViewCallExecutives = () => {
     phone: "",
     location: "",
     password: "",
+    assignedType: "Property",
   });
 
   const fetchExecutives = () => {
     setRefreshing(true);
-    fetch("http://localhost:3000/callexe/call-executives")
+    fetch(`${API_URL}/callexe/call-executives`)
       .then((response) => response.json())
       .then((data) => setExecutives(data))
-      .catch((error) => console.error("Error fetching executives:", error))
+      .catch((error) => {
+        console.error("Error fetching executives:", error);
+        showAlert("Error", "Failed to fetch executives");
+      })
       .finally(() => setRefreshing(false));
   };
 
   useEffect(() => {
     fetchExecutives();
   }, []);
+
+  const showAlert = (title, message) => {
+    if (Platform.OS === "web") {
+      alert(`${title}\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
 
   const handleEditPress = (executive) => {
     setCurrentExecutive(executive);
@@ -45,40 +58,44 @@ const ViewCallExecutives = () => {
       phone: executive.phone,
       location: executive.location,
       password: "", // Don't show current password for security
+      assignedType: executive.assignedType || "Property",
     });
     setEditModalVisible(true);
   };
 
   const handleDelete = (executive) => {
-    if (Platform.OS === "web") {
-      const confirmDelete = window.confirm(
-        `Are you sure you want to delete ${executive.name}?`
-      );
-      if (confirmDelete) {
-        deleteExecutive(executive._id);
+    const deleteConfirmation = () => {
+      const confirmMessage = `Are you sure you want to delete ${executive.name}?`;
+      if (Platform.OS === "web") {
+        const confirmDelete = window.confirm(confirmMessage);
+        if (confirmDelete) {
+          deleteExecutive(executive._id);
+        }
+      } else {
+        Alert.alert(
+          "Delete Executive",
+          confirmMessage,
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            {
+              text: "Delete",
+              onPress: () => deleteExecutive(executive._id),
+              style: "destructive",
+            },
+          ],
+          { cancelable: true }
+        );
       }
-    } else {
-      Alert.alert(
-        "Delete Executive",
-        `Are you sure you want to delete ${executive.name}?`,
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Delete",
-            onPress: () => deleteExecutive(executive._id),
-            style: "destructive",
-          },
-        ],
-        { cancelable: true }
-      );
-    }
+    };
+
+    deleteConfirmation();
   };
 
   const deleteExecutive = (id) => {
-    fetch(`http://localhost:3000/callexe/call-executives/${id}`, {
+    fetch(`${API_URL}/callexe/call-executives/${id}`, {
       method: "DELETE",
     })
       .then((response) => {
@@ -87,17 +104,17 @@ const ViewCallExecutives = () => {
       })
       .then(() => {
         fetchExecutives();
-        Alert.alert("Success", "Executive deleted successfully");
+        showAlert("Success", "Executive deleted successfully");
       })
       .catch((error) => {
         console.error("Error deleting executive:", error);
-        Alert.alert("Error", error.message || "Failed to delete executive");
+        showAlert("Error", error.message || "Failed to delete executive");
       });
   };
 
   const handleUpdate = () => {
     if (!editedData.name || !editedData.phone || !editedData.location) {
-      Alert.alert("Error", "Please fill all required fields");
+      showAlert("Error", "Please fill all required fields");
       return;
     }
 
@@ -107,7 +124,10 @@ const ViewCallExecutives = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...editedData,
+        name: editedData.name,
+        phone: editedData.phone,
+        location: editedData.location,
+        assignedType: editedData.assignedType,
         // Only send password if it was changed
         password: editedData.password || undefined,
       }),
@@ -119,11 +139,11 @@ const ViewCallExecutives = () => {
       .then(() => {
         fetchExecutives();
         setEditModalVisible(false);
-        Alert.alert("Success", "Executive updated successfully");
+        showAlert("Success", "Executive updated successfully");
       })
       .catch((error) => {
         console.error("Error updating executive:", error);
-        Alert.alert("Error", error.message || "Failed to update executive");
+        showAlert("Error", error.message || "Failed to update executive");
       });
   };
 
@@ -141,7 +161,9 @@ const ViewCallExecutives = () => {
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.detail}>Phone: {item.phone}</Text>
               <Text style={styles.detail}>Location: {item.location}</Text>
-              <Text style={styles.detail}>Password: {item.password}</Text>
+              <Text style={styles.detail}>
+                Type: {item.assignedType || "Property"}
+              </Text>
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -183,6 +205,7 @@ const ViewCallExecutives = () => {
                 onChangeText={(text) =>
                   setEditedData({ ...editedData, name: text })
                 }
+                placeholder="e.g. Aravind"
               />
             </View>
 
@@ -195,6 +218,7 @@ const ViewCallExecutives = () => {
                   setEditedData({ ...editedData, phone: text })
                 }
                 keyboardType="phone-pad"
+                placeholder="e.g. 7981663360"
               />
             </View>
 
@@ -206,7 +230,26 @@ const ViewCallExecutives = () => {
                 onChangeText={(text) =>
                   setEditedData({ ...editedData, location: text })
                 }
+                placeholder="e.g. Gudivada"
               />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Assigned Type</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={editedData.assignedType}
+                  onValueChange={(itemValue) =>
+                    setEditedData({ ...editedData, assignedType: itemValue })
+                  }
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Customers" value="Customers" />
+                  <Picker.Item label="Property" value="Property" />
+                  <Picker.Item label="ExpertPanel" value="ExpertPanel" />
+                  <Picker.Item label="ALL" value="ALL" />
+                </Picker>
+              </View>
             </View>
 
             <View style={styles.formGroup}>
@@ -220,6 +263,7 @@ const ViewCallExecutives = () => {
                   setEditedData({ ...editedData, password: text })
                 }
                 secureTextEntry
+                placeholder="e.g. 1234"
               />
             </View>
 
@@ -248,57 +292,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
+    color: "#333",
   },
   card: {
-    backgroundColor: "white",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowRadius: 6,
     elevation: 3,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   infoContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 4,
   },
   detail: {
     fontSize: 14,
-    color: "#555",
+    color: "#7f8c8d",
+    marginBottom: 3,
   },
   buttonContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginLeft: 10,
   },
   button: {
-    padding: 8,
-    borderRadius: 5,
-    marginLeft: 10,
-    minWidth: 60,
+    padding: 10,
+    borderRadius: 6,
+    marginLeft: 8,
+    minWidth: 70,
     alignItems: "center",
+    justifyContent: "center",
+    height: 40,
   },
   editButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#3498db",
   },
   deleteButton: {
-    backgroundColor: "#f44336",
+    backgroundColor: "#e74c3c",
   },
   buttonText: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "600",
+    fontSize: 14,
   },
   // Modal styles
   modalContainer: {
@@ -311,29 +364,42 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     width: "90%",
     maxWidth: 400,
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 12,
+    padding: 24,
   },
   modalHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#2c3e50",
   },
   formGroup: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#34495e",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
+    borderColor: "#bdc3c7",
+    borderRadius: 8,
+    padding: 12,
     fontSize: 16,
+    backgroundColor: "#f8f9fa",
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#bdc3c7",
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#f8f9fa",
+  },
+  picker: {
+    width: "100%",
   },
   modalButtonContainer: {
     flexDirection: "row",
@@ -342,19 +408,21 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     padding: 12,
-    borderRadius: 5,
-    minWidth: 100,
+    borderRadius: 8,
+    minWidth: 120,
     alignItems: "center",
+    justifyContent: "center",
   },
   cancelButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#95a5a6",
   },
   saveButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#27ae60",
   },
   modalButtonText: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
 

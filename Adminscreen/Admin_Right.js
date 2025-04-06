@@ -31,6 +31,11 @@ const Dashboard = () => {
   // State for properties
   const [allProperties, setAllProperties] = useState([]);
   const [approvedProperties, setApprovedProperties] = useState([]);
+  const [isNotificationModalVisible, setIsNotificationModalVisible] =
+    useState(false);
+  const [notificationTitle, setNotificationTitle] = useState("");
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -238,6 +243,43 @@ const Dashboard = () => {
       Alert.alert("Error", "Failed to delete property");
     }
   };
+  const handleSendNotification = async () => {
+    if (!notificationTitle || !notificationMessage) {
+      Alert.alert("Error", "Both title and message are required");
+      return;
+    }
+
+    setIsSendingNotification(true);
+
+    try {
+      const response = await fetch(`${API_URL}/send-notification`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: notificationTitle,
+          message: notificationMessage,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", "Notification sent successfully");
+        setIsNotificationModalVisible(false);
+        setNotificationTitle("");
+        setNotificationMessage("");
+      } else {
+        Alert.alert("Error", result.message || "Failed to send notification");
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      Alert.alert("Error", "An error occurred while sending the notification");
+    } finally {
+      setIsSendingNotification(false);
+    }
+  };
 
   // Handle property edit
   const handleEdit = (property, isApproved = false) => {
@@ -350,6 +392,14 @@ const Dashboard = () => {
           />
         ))}
       </View>
+      <TouchableOpacity
+        style={styles.sendNotificationButton}
+        onPress={() => setIsNotificationModalVisible(true)}
+      >
+        <Text style={styles.sendNotificationButtonText}>
+          Send Push Notification
+        </Text>
+      </TouchableOpacity>
 
       {/* Pending Properties Section */}
       <View style={styles.propertiesHeader}>
@@ -564,6 +614,54 @@ const Dashboard = () => {
                 onPress={handleSave}
               >
                 <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Notification Modal */}
+      <Modal
+        visible={isNotificationModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsNotificationModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Send Push Notification</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Notification Title"
+              value={notificationTitle}
+              onChangeText={setNotificationTitle}
+            />
+
+            <TextInput
+              style={[styles.input, { height: 100, textAlignVertical: "top" }]}
+              placeholder="Notification Message"
+              value={notificationMessage}
+              onChangeText={setNotificationMessage}
+              multiline
+            />
+
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsNotificationModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSendNotification}
+                disabled={isSendingNotification}
+              >
+                {isSendingNotification ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Send</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -792,6 +890,22 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 5,
     alignItems: "center",
+  },
+  sendNotificationButton: {
+    backgroundColor: "#9b59b6",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  sendNotificationButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   deleteButton: {
     backgroundColor: "#e74c3c",

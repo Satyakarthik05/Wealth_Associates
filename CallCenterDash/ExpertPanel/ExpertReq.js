@@ -20,25 +20,39 @@ const ExpertCard = ({ expert, onResolve }) => {
       />
       <View style={styles.infoContainer}>
         <View style={styles.row}>
-          <Text style={styles.label}>Name:</Text>
-          <Text style={styles.value}>{expert.Name}</Text>
+          <Text style={styles.label}>Requested By:</Text>
+          <Text style={styles.value}>{expert.WantedBy || expert.Name}</Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Mobile Number:</Text>
-          <Text style={styles.value}>{expert.MobileNumber}</Text>
-        </View>
+        {expert.MobileNumber && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Mobile Number:</Text>
+            <Text style={styles.value}>{expert.MobileNumber}</Text>
+          </View>
+        )}
         <View style={styles.row}>
           <Text style={styles.label}>Expert Type:</Text>
-          <Text style={styles.value}>{expert.ExpertType}</Text>
+          <Text style={styles.value}>
+            {expert.expertType || expert.ExpertType}
+          </Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Expert Name:</Text>
-          <Text style={styles.value}>{expert.ExpertName}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Expert MobileNumber:</Text>
-          <Text style={styles.value}>{expert.ExpertNo}</Text>
-        </View>
+        {expert.reason && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Reason:</Text>
+            <Text style={styles.value}>{expert.reason}</Text>
+          </View>
+        )}
+        {expert.ExpertName && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Expert Name:</Text>
+            <Text style={styles.value}>{expert.ExpertName}</Text>
+          </View>
+        )}
+        {expert.ExpertNo && (
+          <View style={styles.row}>
+            <Text style={styles.label}>Expert Mobile:</Text>
+            <Text style={styles.value}>{expert.ExpertNo}</Text>
+          </View>
+        )}
         <View style={styles.row}>
           <Text style={styles.label}>Status:</Text>
           <Text
@@ -54,7 +68,7 @@ const ExpertCard = ({ expert, onResolve }) => {
       {!expert.resolved && (
         <TouchableOpacity
           style={styles.button}
-          onPress={() => onResolve(expert._id)}
+          onPress={() => onResolve(expert._id, expert.UserType)}
         >
           <Text style={styles.buttonText}>Mark as Resolved</Text>
         </TouchableOpacity>
@@ -73,26 +87,51 @@ const ExpertList = () => {
     fetchExperts();
   }, []);
 
-  const fetchExperts = () => {
+  const fetchExperts = async () => {
     setLoading(true);
-    fetch(`${API_URL}/requestexpert/all`)
-      .then((response) => response.json())
-      .then((data) => {
-        // Sort experts: unresolved first, then resolved
-        const sortedExperts = [...data].sort((a, b) =>
-          a.resolved === b.resolved ? 0 : a.resolved ? 1 : -1
-        );
-        setExperts(sortedExperts);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching experts:", error);
-        setLoading(false);
-      });
+    try {
+      // Fetch both types of expert requests
+      const [directResponse, generalResponse] = await Promise.all([
+        fetch(`${API_URL}/direqexp/all`),
+        fetch(`${API_URL}/requestexpert/all`),
+      ]);
+
+      const directData = await directResponse.json();
+      const generalData = await generalResponse.json();
+
+      // Combine and normalize the data
+      const combined = [
+        ...directData.map((item) => ({
+          ...item,
+          UserType: "direct", // Mark as direct expert request
+        })),
+        ...generalData.map((item) => ({
+          ...item,
+          UserType: "general", // Mark as general expert request
+        })),
+      ];
+
+      // Sort experts: unresolved first, then resolved
+      const sortedExperts = combined.sort((a, b) =>
+        a.resolved === b.resolved ? 0 : a.resolved ? 1 : -1
+      );
+
+      setExperts(sortedExperts);
+    } catch (error) {
+      console.error("Error fetching experts:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResolve = (id) => {
-    fetch(`${API_URL}/requestexpert/resolve/${id}`, {
+  const handleResolve = (id, userType) => {
+    // Determine the correct endpoint based on request type
+    const endpoint =
+      userType === "direct"
+        ? `${API_URL}/direqexp/resolve/${id}`
+        : `${API_URL}/requestexpert/resolve/${id}`;
+
+    fetch(endpoint, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -100,8 +139,7 @@ const ExpertList = () => {
     })
       .then((response) => response.json())
       .then(() => {
-        // Refresh the list after updating
-        fetchExperts();
+        fetchExperts(); // Refresh the list
       })
       .catch((error) => {
         console.error("Error resolving expert:", error);

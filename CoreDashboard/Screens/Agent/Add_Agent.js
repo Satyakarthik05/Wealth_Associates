@@ -83,7 +83,11 @@ const Add_Agent = ({ closeModal }) => {
     { name: "0-1 years", code: "01" },
     { name: "1-3 years", code: "02" },
     { name: "3-5 years", code: "03" },
-    { name: "5+ years", code: "04" },
+    { name: "5-10 years", code: "04" },
+    { name: "10-15 years", code: "05" },
+    { name: "15-20 years", code: "06" },
+    { name: "20-25 years", code: "07" },
+    { name: "25+ years", code: "08" },
   ];
 
   // Filter districts based on search input
@@ -177,7 +181,7 @@ const Add_Agent = ({ closeModal }) => {
       ReferredBy: referralCode || "WA0000000001",
       Password: "Wealth",
       MyRefferalCode: referenceId,
-      AgentType: "CoreMember",
+      AgentType: "WealthAssociate",
     };
 
     try {
@@ -497,6 +501,7 @@ const Add_Agent = ({ closeModal }) => {
                       placeholder="Referral Code"
                       placeholderTextColor="rgba(25, 25, 25, 0.5)"
                       onChangeText={setReferralCode}
+                      editable={false}
                       onFocus={() => {
                         setShowDistrictList(false);
                         setShowConstituencyList(false);
@@ -504,6 +509,7 @@ const Add_Agent = ({ closeModal }) => {
                         setShowExperienceList(false);
                       }}
                       value={referralCode}
+                      // editable={false}
                     />
                     <MaterialIcons
                       name="card-giftcard"

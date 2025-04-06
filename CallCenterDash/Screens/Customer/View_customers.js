@@ -205,76 +205,57 @@ export default function ViewCustomers() {
 
   // Mark customer as done
   const handleMarkAsDone = async (customerId) => {
-    const confirmed = await new Promise((resolve) => {
-      Alert.alert("Confirm", "Mark this customer as done?", [
-        { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
-        { text: "Confirm", onPress: () => resolve(true) },
-      ]);
-    });
+    const confirm = () => {
+      if (Platform.OS === "web") {
+        return window.confirm(
+          "Are you sure you want to mark this customer as done?"
+        );
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert("Confirm", "Mark this customer as done?", [
+            { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+            { text: "Confirm", onPress: () => resolve(true) },
+          ]);
+        });
+      }
+    };
 
-    if (!confirmed) return;
+    if (!(await confirm())) return;
 
     try {
-      const token = await getAuthToken();
-
       const response = await fetch(
         `${API_URL}/customer/markasdone/${customerId}`,
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ CallExecutiveCall: "Done" }),
         }
       );
 
       if (!response.ok) throw new Error("Failed to update status");
 
-      // Optimistic update
-      setCustomers((prev) =>
-        prev
-          .map((c) =>
-            c._id === customerId ? { ...c, CallExecutiveCall: "Done" } : c
-          )
-          .sort((a, b) => {
-            if (
-              a.CallExecutiveCall === "Done" &&
-              b.CallExecutiveCall !== "Done"
-            )
-              return 1;
-            if (
-              a.CallExecutiveCall !== "Done" &&
-              b.CallExecutiveCall === "Done"
-            )
-              return -1;
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          })
-      );
-
-      setFilteredCustomers((prev) =>
-        prev
-          .map((c) =>
-            c._id === customerId ? { ...c, CallExecutiveCall: "Done" } : c
-          )
-          .sort((a, b) => {
-            if (
-              a.CallExecutiveCall === "Done" &&
-              b.CallExecutiveCall !== "Done"
-            )
-              return 1;
-            if (
-              a.CallExecutiveCall !== "Done" &&
-              b.CallExecutiveCall === "Done"
-            )
-              return -1;
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          })
-      );
+      setCustomers((prevCustomers) => {
+        const updated = prevCustomers.map((customer) =>
+          customer._id === customerId
+            ? { ...customer, CallExecutiveCall: "Done" }
+            : customer
+        );
+        return updated.sort((a, b) => {
+          if (a.CallExecutiveCall === "Done" && b.CallExecutiveCall !== "Done")
+            return 1;
+          if (a.CallExecutiveCall !== "Done" && b.CallExecutiveCall === "Done")
+            return -1;
+          return 0;
+        });
+      });
 
       Alert.alert("Success", "Customer marked as done");
     } catch (error) {
       console.error("Update error:", error);
-      Alert.alert("Error", error.message || "Failed to update status");
+      Alert.alert("Error", "Failed to update customer status");
+      fetchAllData();
     }
   };
 
@@ -351,18 +332,22 @@ export default function ViewCustomers() {
 
   // Delete customer
   const handleDeleteCustomer = async (customerId) => {
-    const confirmed = await new Promise((resolve) => {
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this customer?",
-        [
-          { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
-          { text: "Delete", onPress: () => resolve(true) },
-        ]
-      );
-    });
+    const confirm = () => {
+      if (Platform.OS === "web") {
+        return window.confirm(
+          "Are you sure you want to mark this customer as done?"
+        );
+      } else {
+        return new Promise((resolve) => {
+          Alert.alert("Confirm", "Mark this customer as done?", [
+            { text: "Cancel", onPress: () => resolve(false), style: "cancel" },
+            { text: "Confirm", onPress: () => resolve(true) },
+          ]);
+        });
+      }
+    };
 
-    if (!confirmed) return;
+    if (!confirm) return;
 
     try {
       const token = await getAuthToken();

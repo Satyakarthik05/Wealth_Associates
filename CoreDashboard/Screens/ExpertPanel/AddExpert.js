@@ -14,12 +14,13 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { API_URL } from "../../../data/ApiUrl";
 
 const AddExpertForm = ({ closeModal }) => {
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 400;
+  const locationInputRef = useRef();
 
   const [form, setForm] = useState({
     name: "",
@@ -38,12 +39,11 @@ const AddExpertForm = ({ closeModal }) => {
   const [additionalFields, setAdditionalFields] = useState({});
 
   // Dropdown states
-  const [locationSearch, setLocationSearch] = useState("");
-  const [expertTypeSearch, setExpertTypeSearch] = useState("");
-  const [showLocationList, setShowLocationList] = useState(false);
-  const [showExpertTypeList, setShowExpertTypeList] = useState(false);
+  const [filteredConstituencies, setFilteredConstituencies] = useState([]);
+  const [filteredExpertTypes, setFilteredExpertTypes] = useState([]);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showExpertTypeDropdown, setShowExpertTypeDropdown] = useState(false);
 
-  // Expert type specific fields
   const expertFields = {
     LEGAL: [
       { key: "specialization", label: "Specialization" },
@@ -164,7 +164,6 @@ const AddExpertForm = ({ closeModal }) => {
         }
         const data = await response.json();
 
-        // Extract all constituencies from all districts
         const allConstituencies = data.flatMap((district) =>
           district.assemblies.map((assembly) => ({
             name: assembly.name,
@@ -173,6 +172,8 @@ const AddExpertForm = ({ closeModal }) => {
         );
 
         setConstituencies(allConstituencies);
+        setFilteredConstituencies(allConstituencies);
+        setFilteredExpertTypes(expertTypes);
       } catch (error) {
         console.error("Error fetching constituencies:", error);
         Alert.alert("Error", "Failed to load location data");
@@ -182,22 +183,25 @@ const AddExpertForm = ({ closeModal }) => {
     fetchConstituencies();
   }, []);
 
-  // Filter constituencies based on search input
-  const filteredConstituencies = constituencies.filter((item) =>
-    item.name.toLowerCase().includes(locationSearch.toLowerCase())
-  );
-
-  // Filter expert types based on search input
-  const filteredExpertTypes = expertTypes.filter((item) =>
-    item.toLowerCase().includes(expertTypeSearch.toLowerCase())
-  );
-
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
 
-    // Reset additional fields when expert type changes
     if (key === "expertType") {
       setAdditionalFields({});
+    }
+
+    if (key === "location") {
+      const filtered = constituencies.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredConstituencies(filtered);
+    }
+
+    if (key === "expertType") {
+      const filtered = expertTypes.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredExpertTypes(filtered);
     }
   };
 
@@ -205,11 +209,9 @@ const AddExpertForm = ({ closeModal }) => {
     setAdditionalFields({ ...additionalFields, [key]: value });
   };
 
-  // Select image from gallery
   const selectImageFromGallery = async () => {
     try {
       if (Platform.OS === "web") {
-        // Handle image selection for web
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
@@ -217,13 +219,12 @@ const AddExpertForm = ({ closeModal }) => {
           const file = event.target.files[0];
           if (file) {
             const imageUrl = URL.createObjectURL(file);
-            setPhoto(imageUrl); // Set the image URL for display
-            setFile(file); // Store the file for FormData
+            setPhoto(imageUrl);
+            setFile(file);
           }
         };
         input.click();
       } else {
-        // Handle image selection for mobile
         const permissionResult =
           await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -247,7 +248,6 @@ const AddExpertForm = ({ closeModal }) => {
     }
   };
 
-  // Take photo with camera
   const takePhotoWithCamera = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -291,7 +291,6 @@ const AddExpertForm = ({ closeModal }) => {
     try {
       const formData = new FormData();
 
-      // Add common fields
       formData.append("name", form.name);
       formData.append("expertType", form.expertType);
       formData.append("qualification", form.qualification);
@@ -300,26 +299,21 @@ const AddExpertForm = ({ closeModal }) => {
       formData.append("mobile", form.mobile);
       formData.append("officeAddress", form.officeAddress);
 
-      // Add expert-type-specific fields
       Object.keys(additionalFields).forEach((key) => {
         formData.append(key, additionalFields[key]);
       });
 
-      // Handle image upload
       if (photo) {
         if (Platform.OS === "web") {
           if (file) {
-            // Append the file for web
             formData.append("photo", file);
           } else if (typeof photo === "string" && photo.startsWith("blob:")) {
-            // Convert Blob URL to File
             const response = await fetch(photo);
             const blob = await response.blob();
             const file = new File([blob], "photo.jpg", { type: blob.type });
             formData.append("photo", file);
           }
         } else {
-          // Append the image URI for mobile
           const localUri = photo;
           const filename = localUri.split("/").pop();
           const match = /\.(\w+)$/.exec(filename);
@@ -340,7 +334,6 @@ const AddExpertForm = ({ closeModal }) => {
         method: "POST",
         body: formData,
         headers: {
-          // Don't set Content-Type for FormData, it is automatically set
           Accept: "application/json",
         },
       });
@@ -374,7 +367,6 @@ const AddExpertForm = ({ closeModal }) => {
               <Text style={styles.headerText}>Add Expert</Text>
             </View>
 
-            {/** Photo Upload Section */}
             <View style={styles.uploadSection}>
               <Text style={styles.label}>Expert Photo</Text>
               {photo ? (
@@ -411,7 +403,6 @@ const AddExpertForm = ({ closeModal }) => {
               )}
             </View>
 
-            {/** Mandatory Form Fields */}
             {[
               { label: "Name", key: "name", placeholder: "Enter expert name" },
               {
@@ -448,7 +439,7 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             ))}
 
-            {/** Location Dropdown */}
+            {/* Location Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Location (Constituency)</Text>
               <View style={styles.inputWrapper}>
@@ -456,30 +447,40 @@ const AddExpertForm = ({ closeModal }) => {
                   style={styles.input}
                   placeholder="Search Constituency"
                   placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                  value={locationSearch}
+                  value={form.location}
+                  ref={locationInputRef}
                   onChangeText={(text) => {
-                    setLocationSearch(text);
-                    setShowLocationList(true);
+                    handleChange("location", text);
+                    setShowLocationDropdown(true);
                   }}
                   onFocus={() => {
-                    setShowLocationList(true);
-                    setShowExpertTypeList(false);
+                    setShowLocationDropdown(true);
+                    setShowExpertTypeDropdown(false);
                   }}
+                  onBlur={() =>
+                    setTimeout(() => setShowLocationDropdown(false), 200)
+                  }
                 />
-                {showLocationList && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={styles.scrollView}>
+                {showLocationDropdown && (
+                  <View style={styles.dropdownList}>
+                    <ScrollView
+                      style={styles.dropdownScroll}
+                      keyboardShouldPersistTaps="always"
+                    >
                       {filteredConstituencies.map((item, index) => (
                         <TouchableOpacity
                           key={index}
-                          style={styles.listItem}
+                          style={styles.dropdownItem}
                           onPress={() => {
                             handleChange("location", item.name);
-                            setLocationSearch(item.name);
-                            setShowLocationList(false);
+                            setShowLocationDropdown(false);
+                            // Focus management - optional
+                            // this.locationInput.blur();
                           }}
                         >
-                          <Text>{item.name}</Text>
+                          <Text style={styles.dropdownItemText}>
+                            {item.name}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -488,7 +489,6 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             </View>
 
-            {/** Expert Type Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Expert Type</Text>
               <View style={styles.inputWrapper}>
@@ -496,30 +496,32 @@ const AddExpertForm = ({ closeModal }) => {
                   style={styles.input}
                   placeholder="Search Expert Type"
                   placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                  value={expertTypeSearch}
+                  value={form.expertType}
                   onChangeText={(text) => {
-                    setExpertTypeSearch(text);
-                    setShowExpertTypeList(true);
+                    handleChange("expertType", text);
+                    setShowExpertTypeDropdown(true);
                   }}
                   onFocus={() => {
-                    setShowExpertTypeList(true);
-                    setShowLocationList(false);
+                    setShowExpertTypeDropdown(true);
+                    setShowLocationDropdown(false);
                   }}
+                  onBlur={() =>
+                    setTimeout(() => setShowExpertTypeDropdown(false), 200)
+                  }
                 />
-                {showExpertTypeList && (
-                  <View style={styles.dropdownContainer}>
-                    <ScrollView style={styles.scrollView}>
+                {showExpertTypeDropdown && (
+                  <View style={styles.dropdownList}>
+                    <ScrollView style={styles.dropdownScroll}>
                       {filteredExpertTypes.map((item, index) => (
                         <TouchableOpacity
                           key={index}
-                          style={styles.listItem}
+                          style={styles.dropdownItem}
                           onPress={() => {
                             handleChange("expertType", item);
-                            setExpertTypeSearch(item);
-                            setShowExpertTypeList(false);
+                            setShowExpertTypeDropdown(false);
                           }}
                         >
-                          <Text>{item}</Text>
+                          <Text style={styles.dropdownItemText}>{item}</Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -528,7 +530,6 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             </View>
 
-            {/** Additional Fields for Selected Expert Type */}
             {form.expertType && expertFields[form.expertType] && (
               <View style={styles.additionalFieldsSection}>
                 <Text style={styles.sectionHeader}>
@@ -550,7 +551,6 @@ const AddExpertForm = ({ closeModal }) => {
               </View>
             )}
 
-            {/** Buttons */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.addButton, loading && styles.disabledButton]}
@@ -625,7 +625,6 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     position: "relative",
-    zIndex: 1,
   },
   label: {
     fontSize: 14,
@@ -642,27 +641,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#F9F9F9",
   },
-  dropdownContainer: {
-    position: "absolute",
-    bottom: "100%",
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: "#FFF",
-    borderColor: "#ccc",
+  dropdownList: {
+    width: "100%",
+    maxHeight: 200,
+    backgroundColor: "#fff",
     borderWidth: 1,
+    borderColor: "#ccc",
     borderRadius: 5,
-    marginBottom: 5,
-    backgroundColor: "#e6708e",
+    marginTop: 5,
+    zIndex: 1000,
+    elevation: 5,
+  },
+  dropdownScroll: {
     maxHeight: 200,
   },
-  scrollView: {
-    maxHeight: 200,
-  },
-  listItem: {
+  dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#eee",
+  },
+  dropdownItemText: {
+    fontSize: 16,
   },
   uploadSection: {
     width: "100%",

@@ -2,7 +2,9 @@
   "expo": {
     "name": "WealthAssociate",
     "slug": "wealthassociates",
+    "scheme": "wealthassociates",
     "version": "1.2.0",
+    "runtimeVersion": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -11,17 +13,28 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "url": "https://u.expo.dev/38b6a11f-476f-46f4-8263-95fe96a6d8ca",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.wealthassociates.alpha",
       "jsEngine": "hermes",
+      "buildNumber": "1.2.1",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["wealthassociates"]
+          }
+        ]
       },
-      "ios":"1.2.1"
+      "ios": "1.2.2"
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
@@ -30,9 +43,41 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "INTERNET"
+        "INTERNET",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "com.google.android.c2dm.permission.RECEIVE"
       ],
-      "package": "com.wealthassociates.alpha"
+      "package": "com.wealthassociates.alpha",
+      "intentFilters": [
+        {
+          "action": "android.intent.action.SEND",
+          "data": {
+            "mimeType": "image/*"
+          },
+          "category": [
+            "android.intent.category.DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "wealthassociates",
+              "host": "*"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "allowBackup": true,
+      "usesCleartextTraffic": true,
+      "networkInspector": {
+    "usesCleartextTraffic": true
+  }
     },
     "web": {
       "favicon": "./assets/icon-512.png"
@@ -41,6 +86,14 @@
       "eas": {
         "projectId": "38b6a11f-476f-46f4-8263-95fe96a6d8ca"
       }
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "notification": {
+      "icon": "./assets/logo.png",
+      "color": "#FF231F7C",
+      "androidMode": "default"
     }
   }
 }

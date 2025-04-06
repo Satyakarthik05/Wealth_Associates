@@ -92,7 +92,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyType,
       location,
       Budget: budget,
-      PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
+      PostedBy: Details.MobileNumber, 
     };
 
     setLoading(true);
@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 0.5,
     borderColor: "black",
+    marginTop:"30%"
   },
   header: {
     fontSize: 18,

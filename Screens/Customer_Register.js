@@ -16,6 +16,7 @@ import { API_URL } from "../data/ApiUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import logo1 from "../assets/logo.png";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
@@ -40,7 +41,7 @@ const RegisterCustomer = ({ closeModal }) => {
   const [occupationOptions, setOccupationOptions] = useState([]);
   const [Details, setDetails] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
-
+  const navigation = useNavigation();
   // Fetch all districts and constituencies
   const fetchDistrictsAndConstituencies = async () => {
     try {
@@ -394,10 +395,11 @@ const RegisterCustomer = ({ closeModal }) => {
                     style={styles.input}
                     placeholder="Referral Code"
                     placeholderTextColor="rgba(25, 25, 25, 0.5)"
-                    value={referralCode}
+                    // value={referralCode}
                     onChangeText={setReferralCode}
                     onFocus={closeAllDropdowns}
                     defaultValue="WA0000000001"
+                    editable={false}
                   />
                   <MaterialIcons
                     name="card-giftcard"
@@ -420,7 +422,7 @@ const RegisterCustomer = ({ closeModal }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={closeModal}
+              onPress={() => navigation.navigate("Starting Screen")}
               disabled={isLoading}
             >
               <Text style={styles.buttonText}>Cancel</Text>

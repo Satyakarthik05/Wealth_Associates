@@ -40,7 +40,7 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
   const getDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const response = await fetch(`${API_URL}/skillLabour/getskilled`, {
+      const response = await fetch(`${API_URL}/investors/getinvestor`, {
         method: "GET",
         headers: {
           token: `${token}` || "",
@@ -68,8 +68,8 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
             ? Details.MobileNumber
             : "MobileNumber",
           ExpertType: expertType,
-          ExpertName: expert.Name,
-          ExpertNo: expert.Mobile,
+          ExpertName: expert.name,
+          ExpertNo: expert.mobile,
           RequestedBy: "WealthAssociate",
         }),
       });
@@ -120,17 +120,17 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
                 style={styles.profileImage}
               />
 
-              <Text style={styles.expertName}>{item.Name}</Text>
+              <Text style={styles.expertName}>{item.name}</Text>
               <Text style={styles.expertDetails}>
                 <Text style={styles.label}>Qualification:</Text>{" "}
-                {item.Qualification}
+                {item.qualification}
               </Text>
               <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Experience:</Text> {item.Experience}{" "}
+                <Text style={styles.label}>Experience:</Text> {item.experience}{" "}
                 Years
               </Text>
               <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Location:</Text> {item.Locations}
+                <Text style={styles.label}>Location:</Text> {item.location}
               </Text>
               <TouchableOpacity
                 style={styles.requestButton}

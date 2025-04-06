@@ -89,7 +89,7 @@ const AddInvestor = ({ closeModal }) => {
           Location: location,
           MobileNumber: mobileNumber,
           AddedBy: Details.MobileNumber,
-          RegisteredBy: "Core",
+          RegisteredBy: "WealthAssociate",
         }),
       });
       const data = await response.json();

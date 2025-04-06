@@ -201,7 +201,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data.slice(-10));
+        setProperties(data);
         fetchPropertiess();
       } else {
         console.warn("API returned empty data.");
@@ -412,7 +412,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         <CustomModal isVisible={isModalVisible} closeModal={closeModal}>
           {modalContent}
         </CustomModal>
-        {regularProperties.length > 0 && (
+        {/* {regularProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Regular Properties</Text>
             <ScrollView
@@ -492,7 +492,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               })}
             </ScrollView>
           </>
-        )}
+        )} */}
         {approvedProperties.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Approved Properties</Text>

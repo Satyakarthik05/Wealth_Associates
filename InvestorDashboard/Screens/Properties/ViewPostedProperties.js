@@ -159,7 +159,8 @@ const ViewPostedProperties = () => {
               >
                 <Text style={styles.filterButtonText}>
                   {selectedFilter
-                    ? filterOptions.find((opt) => opt.value === selectedFilter)?.label || "Select filter"
+                    ? filterOptions.find((opt) => opt.value === selectedFilter)
+                        ?.label || "Select filter"
                     : "Select filter"}
                 </Text>
                 <MaterialIcons
@@ -207,12 +208,12 @@ const ViewPostedProperties = () => {
                   <Text style={styles.budget}>
                     ₹ {parseInt(item.price).toLocaleString()}
                   </Text>
-                  {/* <TouchableOpacity
+                  <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditPress(item)}
                   >
                     <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity> */}
+                  </TouchableOpacity>
                 </View>
               </View>
             );
@@ -276,7 +277,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
@@ -353,7 +355,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
   },
   loader: {
-    marginTop: 50
+    marginTop: 50,
   },
   grid: {
     flexDirection: "column",
@@ -375,10 +377,10 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 150,
-    borderRadius: 8
+    borderRadius: 8,
   },
   details: {
-    marginTop: 10
+    marginTop: 10,
   },
   title: {
     fontSize: 16,
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
   },
   info: {
     fontSize: 14,
-    color: "#555"
+    color: "#555",
   },
   budget: {
     fontSize: 14,
@@ -404,7 +406,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: "white",
-    fontSize: 14
+    fontSize: 14,
   },
   modalContainer: {
     flex: 1,

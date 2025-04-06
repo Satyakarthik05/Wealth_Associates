@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
   Alert,
+  Modal,
   TouchableWithoutFeedback,
   FlatList,
 } from "react-native";
@@ -75,7 +76,7 @@ const RequestedExpert = ({ closeModal }) => {
       expertType: selectedExpert,
       reason: reason,
       WantedBy: Details ? Details.MobileIN : "Number",
-      UserType: "Nri ",
+      UserType: "NRI",
     };
 
     try {

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
-import logo1 from "../../../assets/man.png"
+import logo1 from "../../../assets/man.png";
 
 const { width } = Dimensions.get("window");
 
@@ -27,7 +27,7 @@ export default function ViewCustomers() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/customer/myCustomers`, {
+        const response = await fetch(`${API_URL}/customer/mycusCustomers`, {
           method: "GET",
           headers: {
             token: `${token}` || "",

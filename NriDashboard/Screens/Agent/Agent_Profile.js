@@ -174,6 +174,7 @@ const Agent_Profile = ({ onDetailsUpdates }) => {
 
   const LogOut = async () => {
     await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("@profileImage");
     navigation.navigate("App");
   };
 

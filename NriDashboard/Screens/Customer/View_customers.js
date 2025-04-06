@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
@@ -17,43 +19,86 @@ export default function ViewCustomers() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (!token) {
-          console.error("Token not found in AsyncStorage");
-          setLoading(false);
-          return;
-        }
+    fetchCustomers();
+  }, []);
 
-        const response = await fetch(`${API_URL}/customer/getmycustomer`, {
-          method: "GET",
+  const fetchCustomers = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/customer/getmycustomer`, {
+        method: "GET",
+        headers: {
+          token: `${token}` || "",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch customers");
+      }
+
+      const data = await response.json();
+      setCustomers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (customerId) => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        console.error("Token not found in AsyncStorage");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/customer/deletecustomer/${customerId}`,
+        {
+          method: "DELETE",
           headers: {
             token: `${token}` || "",
           },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch customers");
         }
+      );
 
-        const data = await response.json();
-
-        // Check if the response is an array and update the state
-        if (Array.isArray(data)) {
-          setCustomers(data);
-        } else {
-          setCustomers([]);
-        }
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Failed to delete customer");
       }
-    };
 
-    fetchCustomers();
-  }, []);
+      // Refresh the customer list after successful deletion
+      fetchCustomers();
+      Alert.alert("Success", "Customer deleted successfully");
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      Alert.alert("Error", "Failed to delete customer");
+    }
+  };
+
+  const confirmDelete = (customerId, customerName) => {
+    Alert.alert(
+      "Confirm Delete",
+      `Are you sure you want to delete ${customerName}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => handleDelete(customerId),
+          style: "destructive",
+        },
+      ]
+    );
+  };
 
   if (loading) {
     return (
@@ -104,6 +149,12 @@ export default function ViewCustomers() {
                   <Text style={styles.value}>: {item.Locations}</Text>
                 </View>
               </View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => confirmDelete(item._id, item.FullName)}
+              >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
@@ -148,6 +199,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     marginBottom: 15,
+    position: "relative",
   },
   avatar: {
     width: 80,
@@ -180,5 +232,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: "#666",
+  },
+  deleteButton: {
+    backgroundColor: "#ff4444",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });

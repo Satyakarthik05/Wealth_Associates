@@ -70,7 +70,6 @@ const ViewPostedProperties = () => {
         setProperties(data);
       } else {
         setProperties([]);
-        console.error("Unexpected API response:", data);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -134,7 +133,6 @@ const ViewPostedProperties = () => {
       );
 
       if (response.ok) {
-        console.log("Updated successfully");
         setEditModalVisible(false);
         fetchProperties();
       } else {
@@ -149,48 +147,54 @@ const ViewPostedProperties = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.heading}>My Properties</Text>
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Sort by:</Text>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
-              <TouchableOpacity
-                style={styles.filterButton}
-                onPress={() => setShowFilterList(!showFilterList)}
-              >
-                <Text style={styles.filterButtonText}>
-                  {selectedFilter
-                    ? filterOptions.find((opt) => opt.value === selectedFilter)?.label || "Select filter"
-                    : "Select filter"}
-                </Text>
-                <MaterialIcons
-                  name={showFilterList ? "arrow-drop-up" : "arrow-drop-down"}
-                  size={24}
-                  color="#E82E5F"
-                  style={styles.icon}
-                />
-              </TouchableOpacity>
-              {showFilterList && (
-                <View style={styles.dropdownContainer}>
-                  <ScrollView style={styles.scrollView}>
-                    {filterOptions.map((item) => (
-                      <TouchableOpacity
-                        key={item.value}
-                        style={styles.listItem}
-                        onPress={() => handleFilterChange(item.value)}
-                      >
-                        <Text>{item.label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
+        {properties.length > 0 && (
+          <View style={styles.filterContainer}>
+            <Text style={styles.filterLabel}>Sort by:</Text>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputWrapper}>
+                <TouchableOpacity
+                  style={styles.filterButton}
+                  onPress={() => setShowFilterList(!showFilterList)}
+                >
+                  <Text style={styles.filterButtonText}>
+                    {selectedFilter
+                      ? filterOptions.find((opt) => opt.value === selectedFilter)?.label || "Select filter"
+                      : "Select filter"}
+                  </Text>
+                  <MaterialIcons
+                    name={showFilterList ? "arrow-drop-up" : "arrow-drop-down"}
+                    size={24}
+                    color="#E82E5F"
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+                {showFilterList && (
+                  <View style={styles.dropdownContainer}>
+                    <ScrollView style={styles.scrollView}>
+                      {filterOptions.map((item) => (
+                        <TouchableOpacity
+                          key={item.value}
+                          style={styles.listItem}
+                          onPress={() => handleFilterChange(item.value)}
+                        >
+                          <Text>{item.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </View>
 
       {loading ? (
         <ActivityIndicator size="large" color="#E82E5F" style={styles.loader} />
+      ) : properties.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>You have no properties posted yet</Text>
+        </View>
       ) : (
         <View style={styles.grid}>
           {properties.map((item) => {
@@ -207,12 +211,6 @@ const ViewPostedProperties = () => {
                   <Text style={styles.budget}>
                     ₹ {parseInt(item.price).toLocaleString()}
                   </Text>
-                  {/* <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => handleEditPress(item)}
-                  >
-                    <Text style={styles.editButtonText}>Edit</Text>
-                  </TouchableOpacity> */}
                 </View>
               </View>
             );
@@ -355,6 +353,17 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 50
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#555",
+    textAlign: "center",
+  },
   grid: {
     flexDirection: "column",
     width: "100%",
@@ -394,17 +403,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 5,
     color: "#E82E5F",
-  },
-  editButton: {
-    marginTop: 10,
-    backgroundColor: "#E82E5F",
-    padding: 8,
-    borderRadius: 15,
-    alignItems: "center",
-  },
-  editButtonText: {
-    color: "white",
-    fontSize: 14
   },
   modalContainer: {
     flex: 1,
