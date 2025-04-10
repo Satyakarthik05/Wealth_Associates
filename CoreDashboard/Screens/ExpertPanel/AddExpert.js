@@ -457,9 +457,11 @@ const AddExpertForm = ({ closeModal }) => {
                     setShowLocationDropdown(true);
                     setShowExpertTypeDropdown(false);
                   }}
-                  onBlur={() =>
-                    setTimeout(() => setShowLocationDropdown(false), 200)
-                  }
+                  onBlur={() => {
+                    if (!showLocationDropdown) {
+                      setTimeout(() => setShowLocationDropdown(false), 200);
+                    }
+                  }}
                 />
                 {showLocationDropdown && (
                   <View style={styles.dropdownList}>
@@ -474,9 +476,9 @@ const AddExpertForm = ({ closeModal }) => {
                           onPress={() => {
                             handleChange("location", item.name);
                             setShowLocationDropdown(false);
-                            // Focus management - optional
-                            // this.locationInput.blur();
+                            locationInputRef.current.blur();
                           }}
+                          onPressIn={() => setShowLocationDropdown(true)} // Keep dropdown open during press
                         >
                           <Text style={styles.dropdownItemText}>
                             {item.name}
@@ -505,9 +507,11 @@ const AddExpertForm = ({ closeModal }) => {
                     setShowExpertTypeDropdown(true);
                     setShowLocationDropdown(false);
                   }}
-                  onBlur={() =>
-                    setTimeout(() => setShowExpertTypeDropdown(false), 200)
-                  }
+                  onBlur={() => {
+                    if (!showExpertTypeDropdown) {
+                      setTimeout(() => setShowExpertTypeDropdown(false), 200);
+                    }
+                  }}
                 />
                 {showExpertTypeDropdown && (
                   <View style={styles.dropdownList}>
@@ -520,6 +524,7 @@ const AddExpertForm = ({ closeModal }) => {
                             handleChange("expertType", item);
                             setShowExpertTypeDropdown(false);
                           }}
+                          onPressIn={() => setShowExpertTypeDropdown(true)} // Keep dropdown open during press
                         >
                           <Text style={styles.dropdownItemText}>{item}</Text>
                         </TouchableOpacity>
@@ -529,7 +534,6 @@ const AddExpertForm = ({ closeModal }) => {
                 )}
               </View>
             </View>
-
             {form.expertType && expertFields[form.expertType] && (
               <View style={styles.additionalFieldsSection}>
                 <Text style={styles.sectionHeader}>
