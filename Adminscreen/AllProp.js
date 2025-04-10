@@ -68,14 +68,23 @@ const ViewAllProperties = () => {
   }, [API_URL]);
 
   useEffect(() => {
-    // Initial load
+    let intervalId;
+
+    // Only set interval if modals are NOT open
+    if (!isEditModalVisible && !isUpdateModalVisible) {
+      intervalId = setInterval(() => {
+        fetchData();
+      }, 20000);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isEditModalVisible, isUpdateModalVisible]);
+
+  // Initial data fetch
+  useEffect(() => {
     fetchData();
-
-    // Set up interval
-    const intervalId = setInterval(fetchData, 10000); // 10 seconds
-
-    // Cleanup function
-    return () => clearInterval(intervalId);
   }, [fetchData]);
 
   const getLastFourChars = (id) => id?.slice(-4) || "N/A";

@@ -179,6 +179,9 @@ export default function App() {
             case "Admin":
               setInitialRoute("Admin");
               break;
+            case "Call center":
+              setInitialRoute("CallCenterDashboard");
+              break;
             default:
               setInitialRoute("Main Screen");
           }
@@ -205,7 +208,7 @@ export default function App() {
           await Updates.reloadAsync();
         }
       } catch (error) {
-        console.log('Error checking for updates:', error);
+        console.log("Error checking for updates:", error);
       }
     }
 
@@ -418,9 +421,6 @@ async function sendTokenToBackend(token) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token,
-        deviceId: Device.modelName || "unknown",
-        platform: Platform.OS,
-        osVersion: Platform.Version,
       }),
     });
 

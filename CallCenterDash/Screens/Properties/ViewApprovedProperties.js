@@ -642,12 +642,6 @@ const ViewAllProperties = () => {
                           </Text>
                         </View>
                         <View style={styles.detailRow}>
-                          <Text style={styles.detailLabel}>Constituency:</Text>
-                          <Text style={styles.detailValue}>
-                            {selectedPropertyDetails.Constituency || "N/A"}
-                          </Text>
-                        </View>
-                        <View style={styles.detailRow}>
                           <Text style={styles.detailLabel}>Price:</Text>
                           <Text style={styles.detailValue}>
                             ₹{" "}

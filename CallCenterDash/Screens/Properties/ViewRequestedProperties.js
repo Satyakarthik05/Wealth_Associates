@@ -322,7 +322,7 @@ const RequestedProperties = () => {
                       {referralDetails.postedByName || "N/A"}
                     </Text>
                     <Text style={styles.detailText}>
-                      <Text style={styles.detailLabel}>Phone:</Text>{" "}
+                      <Text style={styles.detailLabel}>Referral Name</Text>{" "}
                       {referralDetails.name || "N/A"}
                     </Text>
                     <Text style={styles.detailText}>

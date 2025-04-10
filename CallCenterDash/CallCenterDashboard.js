@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
+import Viewallagents from "./Screens/Agent/ViewAllAgents";
 
 // Importing components
 import Dashboard from "./Screens/Callcentre";
@@ -49,6 +50,7 @@ const CallCenterDashboard = () => {
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [details, setDetails] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
+  const [isViewallagents, setViewallagents] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -80,6 +82,7 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -119,6 +122,9 @@ const CallCenterDashboard = () => {
       case "View Skilled Resource":
         setIsViewSkillVisible(true);
         break;
+      case "View All Agents":
+        setViewallagents(true);
+        break;
       case "View NRI Members":
         setIsViewNriVisible(true);
         break;
@@ -137,6 +143,7 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
   };
 
   const renderContent = () => {
@@ -151,6 +158,7 @@ const CallCenterDashboard = () => {
     if (isViewSkillVisible) return <AllSkilledLabours />;
     if (isViewNriVisible) return <ViewNri />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
+    if (isViewallagents) return <Viewallagents />;
     return <Dashboard />;
   };
 
@@ -166,6 +174,7 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
   };
 
   const getDetails = async () => {
@@ -253,6 +262,7 @@ const CallCenterDashboard = () => {
           "View Skilled Resource",
           "View NRI Members",
           "View Investors",
+          "View All Agents",
         ],
       });
 

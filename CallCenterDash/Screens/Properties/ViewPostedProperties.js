@@ -34,6 +34,7 @@ const ViewAssignedProperties = () => {
   const [selectedLocationFilter, setSelectedLocationFilter] = useState("");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
@@ -60,6 +61,8 @@ const ViewAssignedProperties = () => {
       throw error;
     }
   };
+
+  // Add this function near your other handler functions (around line 200 in your code)
 
   // Fetch data with error handling
   const fetchData = useCallback(async () => {
@@ -101,22 +104,36 @@ const ViewAssignedProperties = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [API_URL]);
 
-  // useEffect(() => {
-  //     // Initial load
-  //     fetchData();
-
-  //     // Set up interval
-  //     const intervalId = setInterval(fetchData, 10000); // 10 seconds
-
-  //     // Cleanup function
-  //     return () => clearInterval(intervalId);
-  //   }, [fetchData]);
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
   }, [fetchData]);
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalVisible(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalVisible(false);
+  };
+
+  useEffect(() => {
+    let intervalId;
+
+    // Only set interval if modals are NOT open
+    if (!isEditModalVisible && !isUpdateModalVisible) {
+      intervalId = setInterval(() => {
+        fetchData();
+      }, 20000);
+    }
+
+    return () => {
+      // Clear interval when component unmounts or modals open
+      clearInterval(intervalId);
+    };
+  }, [isEditModalVisible, isUpdateModalVisible]);
 
   // Initial data fetch
   useEffect(() => {
@@ -295,10 +312,16 @@ const ViewAssignedProperties = () => {
   // Approve property handler
   const handleApprove = async (id) => {
     const confirm = await new Promise((resolve) => {
-      Alert.alert("Confirm Approval", "Approve this property?", [
-        { text: "Cancel", onPress: () => resolve(false) },
-        { text: "Approve", onPress: () => resolve(true) },
-      ]);
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to approve this property?")
+        );
+      } else {
+        Alert.alert("Confirm Approval", "Approve this property?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Approve", onPress: () => resolve(true) },
+        ]);
+      }
     });
 
     if (!confirm) return;
@@ -592,9 +615,6 @@ const ViewAssignedProperties = () => {
   );
 };
 
-// ... (keep the styles object the same as in your original code)
-
-// export default ViewAssignedProperties;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
