@@ -21,6 +21,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "deploymentTarget": "15.1",
       "bundleIdentifier": "com.wealthassociates.alpha",
       "jsEngine": "hermes",
       "buildNumber": "1.2.1",
@@ -31,10 +32,10 @@
             "CFBundleURLSchemes": ["wealthassociates"]
           }
         ]
-      },
-      "ios": "1.2.2"
+      }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
@@ -46,9 +47,14 @@
         "INTERNET",
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
-        "com.google.android.c2dm.permission.RECEIVE"
+        "com.google.android.c2dm.permission.RECEIVE",
+        "com.anddoes.launcher.permission.UPDATE_COUNT",
+        "com.google.android.c2dm.permission.RECEIVE",
+        "com.sec.android.provider.badge.permission.READ",
+        "com.sec.android.provider.badge.permission.WRITE"
       ],
       "package": "com.wealthassociates.alpha",
+      "versionCode": 12,
       "intentFilters": [
         {
           "action": "android.intent.action.SEND",
@@ -75,9 +81,10 @@
       ],
       "allowBackup": true,
       "usesCleartextTraffic": true,
+      "useNextNotificationsApi": true,
       "networkInspector": {
-    "usesCleartextTraffic": true
-  }
+        "usesCleartextTraffic": true
+      }
     },
     "web": {
       "favicon": "./assets/icon-512.png"
@@ -88,12 +95,27 @@
       }
     },
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 33,
+            "targetSdkVersion": 33,
+            "buildToolsVersion": "33.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ]
     ],
     "notification": {
       "icon": "./assets/logo.png",
       "color": "#FF231F7C",
-      "androidMode": "default"
+      "androidMode": "default",
+      "androidCollapsedTitle": "WealthAssociate",
+      "androidChannelId": "default"
     }
   }
 }

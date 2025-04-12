@@ -26,7 +26,10 @@ const DistrictConstituency = require("./Routes/DistrictConsttuencyRoutes");
 const Constituency = require("./Models/DistrictsConstituencysModel");
 const ReqExp = require("./Routes/ReqExpRoutes");
 const CallExecuteRoute = require("./Routes/CallExecutiveRouts");
-const PushToken=require("./Models/NotificationToken")
+const PushToken = require("./Models/NotificationToken");
+const admin = require('firebase-admin');
+const { Expo } = require('expo-server-sdk');
+const expo = new Expo();
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -98,89 +101,152 @@ app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
 
-// https.createServer(options, app).listen(443, () => {
-//   console.log("HTTPS Server running on port 443");
-// });
-app.post('/send-notification', async (req, res) => {
+const serviceAccount = require('./wealthassociate-73b2e-firebase-adminsdk-fbsvc-8061ec845d.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+app.post("/send-notification", async (req, res) => {
   try {
-    const { title, message } = req.body;
+    const { title, message, data } = req.body;
 
     // Validate input
     if (!title || !message) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Both title and message are required" 
+        message: "Both title and message are required",
       });
     }
 
     // Get all registered push tokens
     const allTokens = await PushToken.find({});
-    
+
     if (!allTokens.length) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: true,
-        message: "No devices registered to receive notifications" 
+        message: "No devices registered to receive notifications",
       });
     }
 
-    // Prepare notifications
-    const notifications = allTokens.map((user) => ({
-      to: user.expoPushToken,
-      sound: "default",
-      title: title,
-      body: message,
-      data: { 
-        type: 'custom_notification',
-        sentAt: new Date().toISOString() 
-      }
-    }));
+    // Separate Expo and FCM tokens
+    const expoMessages = [];
+    const fcmMessages = [];
 
-    // Send notifications in chunks (Expo recommends max 100 per request)
-    const chunkSize = 100;
-    const chunks = [];
-    
-    for (let i = 0; i < notifications.length; i += chunkSize) {
-      chunks.push(notifications.slice(i, i + chunkSize));
-    }
+    allTokens.forEach((user) => {
+      const notificationData = {
+        ...data,
+        type: "custom_notification",
+        sentAt: new Date().toISOString(),
+      };
 
-    // Send each chunk
-    for (const chunk of chunks) {
-      try {
-        const response = await fetch('https://exp.host/--/api/v2/push/send', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(chunk),
+      if (Expo.isExpoPushToken(user.expoPushToken)) {
+        // Expo push notification (iOS and some Android)
+        expoMessages.push({
+          to: user.expoPushToken,
+          sound: "default",
+          title,
+          body: message,
+          data: notificationData,
+          ...(user.deviceType === "android" && {
+            priority: "high",
+            channelId: "default"
+          })
         });
-
-        const data = await response.json();
-        console.log('Expo push response:', data);
-      } catch (err) {
-        console.error('Error sending push notification chunk:', err);
+      } else {
+        // FCM push notification (Android)
+        fcmMessages.push({
+          token: user.expoPushToken,
+          notification: {
+            title,
+            body: message,
+          },
+          data: notificationData,
+          android: {
+            priority: "high",
+            notification: {
+              channelId: "default",
+              sound: "default"
+            }
+          }
+        });
       }
-    }
+    });
 
-    res.status(200).json({ 
+    // Send Expo notifications
+    const expoResults = await sendExpoNotifications(expoMessages);
+    
+    // Send FCM notifications
+    const fcmResults = await sendFcmNotifications(fcmMessages);
+
+    res.status(200).json({
       success: true,
-      message: `Notification sent to ${allTokens.length} devices`,
+      message: `Notifications processed for ${allTokens.length} devices`,
       data: {
         title,
         message,
-        devices: allTokens.length
-      }
+        expoResults,
+        fcmResults
+      },
     });
 
   } catch (error) {
-    console.error('Error sending notification:', error);
-    res.status(500).json({ 
+    console.error("Error sending notification:", error);
+    res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message 
+      error: error.message,
     });
   }
 });
+
+// Helper function for Expo notifications
+async function sendExpoNotifications(messages) {
+  if (!messages.length) return [];
+  
+  const chunks = expo.chunkPushNotifications(messages);
+  const results = [];
+  
+  for (const chunk of chunks) {
+    try {
+      const receipts = await expo.sendPushNotificationsAsync(chunk);
+      results.push(...receipts);
+    } catch (error) {
+      console.error('Error sending Expo chunk:', error);
+      results.push({ error: error.message });
+    }
+  }
+  
+  return results;
+}
+
+// Helper function for FCM notifications
+async function sendFcmNotifications(messages) {
+  if (!messages.length) return [];
+  
+  const results = [];
+  
+  for (const message of messages) {
+    try {
+      const response = await admin.messaging().send(message);
+      results.push({
+        success: true,
+        messageId: response
+      });
+    } catch (error) {
+      console.error('Error sending FCM:', error);
+      results.push({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+  
+  return results;
+}
+// https.createServer(options, app).listen(443, () => {
+//   console.log("HTTPS Server running on port 443");
+// });
 
 // const http = require("http");
 // http
@@ -191,9 +257,9 @@ app.post('/send-notification', async (req, res) => {
 //     res.end();
 //   })
 //   .listen(80, () => {
-//     console.log("Redirecting HTTP to HTTPS");
-//   });
+  //     console.log("Redirecting HTTP to HTTPS");
+  //   });
 
-app.listen("3000", () => {
+  app.listen("3000", () => {
   console.log("Server is running succssfully");
 });

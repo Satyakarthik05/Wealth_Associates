@@ -12,13 +12,13 @@ const registerExpert = async (req, res) => {
       location,
       mobile,
       officeAddress,
-      
+
       // Legal Expert fields
       specialization,
       barCouncilId,
       courtAffiliation,
       lawFirmOrganisation,
-      
+
       // Revenue Expert fields
       landTypeExpertise,
       revenueSpecialisation,
@@ -26,7 +26,7 @@ const registerExpert = async (req, res) => {
       certificationLicenseNumber,
       revenueOrganisation,
       keyServicesProvided,
-      
+
       // Engineers fields
       engineeringField,
       engineerCertifications,
@@ -35,56 +35,56 @@ const registerExpert = async (req, res) => {
       specializedSkillsTechnologies,
       majorProjectsWorkedOn,
       govtLicensed,
-      
+
       // Architects fields
       architectureType,
       softwareUsed,
       architectLicenseNumber,
       architectFirm,
       architectMajorProjects,
-      
+
       // Survey fields
       surveyType,
       govtCertified,
       surveyOrganisation,
       surveyLicenseNumber,
       surveyMajorProjects,
-      
+
       // Vaastu Pandits fields
       vaastuSpecialization,
       vaastuOrganisation,
       vaastuCertifications,
       remediesProvided,
       consultationMode,
-      
+
       // Land Valuers fields
       valuationType,
       govtApproved,
       valuerLicenseNumber,
       valuerOrganisation,
       valuationMethods,
-      
+
       // Banking fields
       bankingSpecialisation,
       bankingService,
       registeredWith,
       bankName,
       bankingGovtApproved,
-      
+
       // Agriculture fields
       agricultureType,
       agricultureCertifications,
       agricultureOrganisation,
       servicesProvided,
       typesOfCrops,
-      
+
       // Registration & Documentation fields
       registrationSpecialisation,
       documentType,
       processingTime,
       registrationGovtCertified,
       additionalServices,
-      
+
       // Auditing fields
       auditingSpecialisation,
       auditType,
@@ -92,12 +92,12 @@ const registerExpert = async (req, res) => {
       auditOrganisation,
       auditServices,
       auditGovtCertified,
-      
+
       // Licensing fields
       licensingSpecialisations,
       licensingCertificationNumber,
       licensingOrganisation,
-      licensingServicesProvided
+      licensingServicesProvided,
     } = req.body;
 
     if (!req.file) {
@@ -105,8 +105,7 @@ const registerExpert = async (req, res) => {
     }
 
     const photoPath = `/ExpertMembers/${req.file.filename}`;
-    
-    // Create base expert object with common fields
+
     const expertData = {
       // Common fields
       name,
@@ -116,32 +115,32 @@ const registerExpert = async (req, res) => {
       location,
       mobile,
       officeAddress,
-      photo: photoPath
+      photo: photoPath,
     };
 
     // Add expert-type-specific fields based on expertType
-    switch(expertType) {
-      case 'Legal':
+    switch (expertType) {
+      case "Legal":
         Object.assign(expertData, {
           specialization,
           barCouncilId,
           courtAffiliation,
-          lawFirmOrganisation
+          lawFirmOrganisation,
         });
         break;
-        
-      case 'Revenue':
+
+      case "Revenue":
         Object.assign(expertData, {
           landTypeExpertise,
           revenueSpecialisation,
           govtApproval,
           certificationLicenseNumber,
           revenueOrganisation,
-          keyServicesProvided
+          keyServicesProvided,
         });
         break;
-        
-      case 'Engineers':
+
+      case "Engineers":
         Object.assign(expertData, {
           engineeringField,
           certifications: engineerCertifications,
@@ -149,97 +148,97 @@ const registerExpert = async (req, res) => {
           engineerOrganisation,
           specializedSkillsTechnologies,
           majorProjectsWorkedOn,
-          govtLicensed
+          govtLicensed,
         });
         break;
-        
-      case 'Architects':
+
+      case "Architects":
         Object.assign(expertData, {
           architectureType,
           softwareUsed,
           architectLicenseNumber,
           architectFirm,
-          architectMajorProjects
+          architectMajorProjects,
         });
         break;
-        
-      case 'Survey':
+
+      case "Survey":
         Object.assign(expertData, {
           surveyType,
           govtCertified,
           surveyOrganisation,
           surveyLicenseNumber,
-          surveyMajorProjects
+          surveyMajorProjects,
         });
         break;
-        
-      case 'VaastuPandits':
+
+      case "VaastuPandits":
         Object.assign(expertData, {
           vaastuSpecialization,
           vaastuOrganisation,
           vaastuCertifications,
           remediesProvided,
-          consultationMode
+          consultationMode,
         });
         break;
-        
-      case 'LandValuers':
+
+      case "LandValuers":
         Object.assign(expertData, {
           valuationType,
           govtApproved,
           valuerLicenseNumber,
           valuerOrganisation,
-          valuationMethods
+          valuationMethods,
         });
         break;
-        
-      case 'Banking':
+
+      case "Banking":
         Object.assign(expertData, {
           bankingSpecialisation,
           bankingService,
           registeredWith,
           bankName,
-          bankingGovtApproved
+          bankingGovtApproved,
         });
         break;
-        
-      case 'Agriculture':
+
+      case "Agriculture":
         Object.assign(expertData, {
           agricultureType,
           agricultureCertifications,
           agricultureOrganisation,
           servicesProvided,
-          typesOfCrops
+          typesOfCrops,
         });
         break;
-        
-      case 'RegistrationAndDocumentation':
+
+      case "RegistrationAndDocumentation":
         Object.assign(expertData, {
           registrationSpecialisation,
           documentType,
           processingTime,
           registrationGovtCertified,
-          additionalServices
+          additionalServices,
         });
         break;
-        
-      case 'Auditing':
+
+      case "Auditing":
         Object.assign(expertData, {
           auditingSpecialisation,
           auditType,
           auditCertificationNumber,
           auditOrganisation,
           auditServices,
-          auditGovtCertified
+          auditGovtCertified,
         });
         break;
-        
-      case 'Licensing':
+
+      case "Licensing":
         Object.assign(expertData, {
           licensingSpecialisations,
           licensingCertificationNumber,
           licensingOrganisation,
-          licensingServicesProvided
+          licensingServicesProvided,
         });
         break;
     }
@@ -247,18 +246,17 @@ const registerExpert = async (req, res) => {
     const newExpert = new expertModel(expertData);
     await newExpert.save();
 
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
       message: "Expert registered successfully",
-      expert: newExpert 
+      expert: newExpert,
     });
-    
   } catch (error) {
     console.error("Expert registration error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Error registering expert",
-      error: error.message 
+      error: error.message,
     });
   }
 };
