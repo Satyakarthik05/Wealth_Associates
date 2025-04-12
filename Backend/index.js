@@ -101,7 +101,19 @@ app.get("/serverCheck", (req, res) => {
   res.send("Hello Welcome to my wealthAssociat server");
 });
 
-const serviceAccount = require('./wealthassociate-73b2e-firebase-adminsdk-fbsvc-8061ec845d.json');
+const serviceAccount = {
+  "type": "service_account",
+  "project_id": "wealthassociate-73b2e",
+  "private_key_id": "8061ec845d264912da25d3a991eeaae7a86b1985",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDxlk0qAR9VQ0dw\nd7f4A12JBb5Xj3Ybe8amk89bOHCZZrcpNRdQsy2GvSAMWR6zJWMieq38P2iEQ4GI\ntndnOUWjZnAA9kCwcUjsbb7qUcPSrKQIkVDpmM/gha1+odRcdWDw9FKjG5Lvvfxz\nyUiI0I3Xj5ujsAVCQ9jRSQNlcxPL779LfcSMs2vRG6ltLMtKhZVtkz6XqV4sRGCU\nc38SD9X35yPqrv2nVfxtsiZWr/e1klEjEdNswyZssi/JG0RtKccR2+DMPw4u72km\nSm8L9CNVRkpLqDKnyOdB1y4/8GV7F7BcdA7/6rYwg7rzajzPqQB9a847IFyBi+oJ\nRdib09LJAgMBAAECggEAQ+kKtuiK3MZlUhWtNsAHbomZSHbQ7gfcvx2kt9FFQbHw\ngdplO++qOAp49E+nBBfZ5qrStqpCYI+zXXFhXjhovXaBvJt8crzdkWyGMssaP2H9\nWFU1B/1HTid1rjeigP0T65falPQe2VqwGQI3bBIoFTTOvPQxfj+hNq+OD1oKchRe\nglsuovHP9kos9hdpbg0ind3vFYMO7pIx7o1dEGacciGgeYdjeOdJa5gwfcRB05Ub\nlWMtL6ILW7M96eIVG3yM1hTOt6Rk0KLfc3ucUqVX44g6joLpqQXXu91nAlnx+XI8\nlKrUrQTCsKTD4jwYetlr+/+Rs230XHBkxSF5KWbIOwKBgQD5WQftFg/+EgGEoJz6\nyK5soItNf/0ok9R5dK2EGhLigYxC4FnhFLGVYzy6NA1xuuHwuLXqKM1yI8yyY+HT\nJowSwn3+wGqrIA2OWlUwXh3vHxN1KHiQIK48UXx6lFrnj7sjpDFKoAbv2ye+EN3p\nBH8PTn0A1dFFHpCx4oQa5r6WawKBgQD4CER7pL0/tRvkIxSR8psj1wkU+Qs3qgcb\nEGoDwRikGwWuT4ed5jktEzuF9/o740LaQ1edxVe76s/UzMHIoeWh/HtTF15nMuCa\nUi+f9jR+wHn+NflVa2GqgVY8avJ1eNrpvcPO2OsUxyliji995HhMHP4Fzojd+gHL\n1NKCb3xAmwKBgQCNtZmZlpZUMOuH8rgElxT6S2ugCgNYkluJA1Sx5Reifzm1sEek\ncdxTKGkU8gxJ/In4AyHwCGxqWAo3wChRlnC5IKv2omh9BORvaMtNh8+/XIv0Y6HR\nV6FuSmlSSQo43CjhIqmY3cXTf1vg2zki+xkzG8pTNTGP9MULM88cctMSLQKBgDSc\nJFKJne6+bp0UZ8+RQyD2AqIlNSDoertd3u7O7XgZlzni+qQeajBKbQy8jaJYURzU\nvefkLPjaFJ1RlSUGWhvi3xG/2jFPlF6HYjyuz3G3R+kI78sTjNLKvkzwbl9GdECy\nFK9ySWLN39RczmwIow+Z8rOunE9hMTJYARLTrOpTAoGAcLowxR5SzXda/7npEVvG\n2RjsbjV6l1WS3o/9jw+HwdoYS9RZVCMSf2p0qV7zmcQOzV1QkP+ImqaDKX7qy7xC\nEpztX3UxGXofxwi7uTfC/iPkSGZt4NxKY72R93Buy+u2fIbybrS4MV3piSD2h4a7\nwPOU46ueTsiV4z1yXtfvSnw=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@wealthassociate-73b2e.iam.gserviceaccount.com",
+  "client_id": "100459711122157944921",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40wealthassociate-73b2e.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
