@@ -30,6 +30,7 @@ import ExpertPanelReq from "./ExpertPanel/ExpertReq";
 import ViewAllInvesters from "./Screens/View/ViewAllInvestors";
 import AllSkilledLabours from "./Screens/View/AllSkilledLabours";
 import ViewNri from "./Screens/View/ViewNri";
+import ExpertPanel from "./ExpertPanel/ExpertRoute";
 
 const CallCenterDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
@@ -51,6 +52,7 @@ const CallCenterDashboard = () => {
   const [details, setDetails] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [isViewallagents, setViewallagents] = useState(false);
+  const [isExpertPanel, setExpertPanel] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -83,6 +85,7 @@ const CallCenterDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
     setViewallagents(false);
+    setExpertPanel(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -125,6 +128,9 @@ const CallCenterDashboard = () => {
       case "View All Agents":
         setViewallagents(true);
         break;
+      case "ExpertPanel":
+        setExpertPanel(true);
+        break;
       case "View NRI Members":
         setIsViewNriVisible(true);
         break;
@@ -144,6 +150,7 @@ const CallCenterDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
     setViewallagents(false);
+    setExpertPanel(false);
   };
 
   const renderContent = () => {
@@ -159,6 +166,7 @@ const CallCenterDashboard = () => {
     if (isViewNriVisible) return <ViewNri />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     if (isViewallagents) return <Viewallagents />;
+    if (isExpertPanel) return <ExpertPanel />;
     return <Dashboard />;
   };
 
@@ -175,6 +183,7 @@ const CallCenterDashboard = () => {
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
     setViewallagents(false);
+    setExpertPanel(false);
   };
 
   const getDetails = async () => {
@@ -225,7 +234,7 @@ const CallCenterDashboard = () => {
           baseMenuItems.push({
             title: "Expert Panel",
             icon: "cog-outline",
-            subItems: ["Expert Panel Requests"],
+            subItems: ["Expert Panel Requests", "ExpertPanel"],
           });
           break;
         default:
@@ -249,7 +258,7 @@ const CallCenterDashboard = () => {
             {
               title: "Expert Panel",
               icon: "cog-outline",
-              subItems: ["Expert Panel Requests"],
+              subItems: ["Expert Panel Requests", "ExpertPanel"],
             }
           );
       }
