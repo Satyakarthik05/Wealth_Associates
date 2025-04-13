@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
 import Viewallagents from "./Screens/Agent/ViewAllAgents";
+import NewExperts from "./ExpertPanel/NewExperts";
 
 // Importing components
 import Dashboard from "./Screens/Callcentre";
@@ -53,6 +54,7 @@ const CallCenterDashboard = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [isViewallagents, setViewallagents] = useState(false);
   const [isExpertPanel, setExpertPanel] = useState(false);
+  const [isNewExperts,setNewExperts]= useState(false)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -86,6 +88,7 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
+    setNewExperts(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -131,6 +134,9 @@ const CallCenterDashboard = () => {
       case "ExpertPanel":
         setExpertPanel(true);
         break;
+      case "NewExperts":
+        setNewExperts(true);
+        break;
       case "View NRI Members":
         setIsViewNriVisible(true);
         break;
@@ -151,6 +157,7 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
+    setNewExperts(false)
   };
 
   const renderContent = () => {
@@ -167,6 +174,7 @@ const CallCenterDashboard = () => {
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     if (isViewallagents) return <Viewallagents />;
     if (isExpertPanel) return <ExpertPanel />;
+    if(isNewExperts)return<NewExperts/>
     return <Dashboard />;
   };
 
@@ -184,6 +192,7 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
+    setNewExperts(false)
   };
 
   const getDetails = async () => {
@@ -234,7 +243,7 @@ const CallCenterDashboard = () => {
           baseMenuItems.push({
             title: "Expert Panel",
             icon: "cog-outline",
-            subItems: ["Expert Panel Requests", "ExpertPanel"],
+            subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
           });
           break;
         default:
@@ -258,7 +267,7 @@ const CallCenterDashboard = () => {
             {
               title: "Expert Panel",
               icon: "cog-outline",
-              subItems: ["Expert Panel Requests", "ExpertPanel"],
+              subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
             }
           );
       }

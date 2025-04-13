@@ -148,13 +148,13 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
       console.error("Error fetching core projects:", error);
     }
   };
+
   const handleOpenLink = (url) => {
     if (url) {
       Linking.openURL(url).catch((err) =>
         console.error("Couldn't load page", err)
       );
     } else {
-      // Handle case where website is not available
       alert("Website link not available");
     }
   };
