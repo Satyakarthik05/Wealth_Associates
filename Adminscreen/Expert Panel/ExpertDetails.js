@@ -68,8 +68,8 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
             ? Details.MobileNumber
             : "MobileNumber",
           ExpertType: expertType,
-          ExpertName: expert.Name,
-          ExpertNo: expert.Mobile,
+          ExpertName: expert.name,
+          ExpertNo: expert.mobile,
           RequestedBy: "WealthAssociate",
         }),
       });
@@ -96,6 +96,190 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
     }
   };
 
+  const renderField = (label, value) => {
+    if (!value) return null;
+    return (
+      <Text style={styles.expertDetails}>
+        <Text style={styles.label}>{label}: </Text>
+        {value}
+      </Text>
+    );
+  };
+
+  const renderExpertSpecificFields = (expert) => {
+    switch (expertType) {
+      case "LEGAL":
+        return (
+          <>
+            {renderField("Specialization", expert.specialization)}
+            {renderField("Bar Council ID", expert.barCouncilId)}
+            {renderField("Court Affiliation", expert.courtAffiliation)}
+            {renderField("Law Firm/Organisation", expert.lawFirmOrganisation)}
+          </>
+        );
+      case "REVENUE":
+        return (
+          <>
+            {renderField("Land Type Expertise", expert.landTypeExpertise)}
+            {renderField(
+              "Revenue Specialisation",
+              expert.revenueSpecialisation
+            )}
+            {renderField("Government Approval", expert.govtApproval)}
+            {renderField(
+              "Certification License Number",
+              expert.certificationLicenseNumber
+            )}
+            {renderField("Revenue Organisation", expert.revenueOrganisation)}
+            {renderField("Key Services Provided", expert.keyServicesProvided)}
+          </>
+        );
+      case "ENGINEERS":
+        return (
+          <>
+            {renderField("Engineering Field", expert.engineeringField)}
+            {renderField("Certifications", expert.certifications)}
+            {renderField("Projects Handled", expert.projectsHandled)}
+            {renderField("Engineer Organisation", expert.engineerOrganisation)}
+            {renderField(
+              "Specialized Skills/Technologies",
+              expert.specializedSkillsTechnologies
+            )}
+            {renderField(
+              "Major Projects Worked On",
+              expert.majorProjectsWorkedOn
+            )}
+            {renderField("Government Licensed", expert.govtLicensed)}
+          </>
+        );
+      case "ARCHITECTS":
+        return (
+          <>
+            {renderField("Architecture Type", expert.architectureType)}
+            {renderField("Software Used", expert.softwareUsed)}
+            {renderField(
+              "Architect License Number",
+              expert.architectLicenseNumber
+            )}
+            {renderField("Architect Firm", expert.architectFirm)}
+            {renderField("Major Projects", expert.architectMajorProjects)}
+          </>
+        );
+      case "PLANS & APPROVALS":
+        return (
+          <>
+            {renderField("Approval Type", expert.approvalType)}
+            {renderField("Government Department", expert.govtDepartment)}
+            {renderField("Processing Time", expert.processingTime)}
+            {renderField("Approval Organisation", expert.approvalOrganisation)}
+            {renderField("Services Provided", expert.servicesProvided)}
+          </>
+        );
+      case "VAASTU PANDITS":
+        return (
+          <>
+            {renderField("Vaastu Specialization", expert.vaastuSpecialization)}
+            {renderField("Vaastu Organisation", expert.vaastuOrganisation)}
+            {renderField("Vaastu Certifications", expert.vaastuCertifications)}
+            {renderField("Remedies Provided", expert.remediesProvided)}
+            {renderField("Consultation Mode", expert.consultationMode)}
+          </>
+        );
+      case "LAND SURVEY & VALUERS":
+        return (
+          <>
+            {renderField("Survey Type", expert.surveyType)}
+            {renderField("Valuation Type", expert.valuationType)}
+            {renderField("Government Approved", expert.govtApproved)}
+            {renderField("Survey License Number", expert.surveyLicenseNumber)}
+            {renderField("Valuer License Number", expert.valuerLicenseNumber)}
+            {renderField("Survey Organisation", expert.surveyOrganisation)}
+            {renderField("Valuer Organisation", expert.valuerOrganisation)}
+          </>
+        );
+      case "BANKING":
+        return (
+          <>
+            {renderField(
+              "Banking Specialisation",
+              expert.bankingSpecialisation
+            )}
+            {renderField("Banking Service", expert.bankingService)}
+            {renderField("Registered With", expert.registeredWith)}
+            {renderField("Bank Name", expert.bankName)}
+            {renderField("Government Approved", expert.bankingGovtApproved)}
+          </>
+        );
+      case "AGRICULTURE":
+        return (
+          <>
+            {renderField("Agriculture Type", expert.agricultureType)}
+            {renderField(
+              "Agriculture Certifications",
+              expert.agricultureCertifications
+            )}
+            {renderField(
+              "Agriculture Organisation",
+              expert.agricultureOrganisation
+            )}
+            {renderField("Services Provided", expert.servicesProvided)}
+            {renderField("Types of Crops", expert.typesOfCrops)}
+          </>
+        );
+      case "REGISTRATION & DOCUMENTATION":
+        return (
+          <>
+            {renderField(
+              "Registration Specialisation",
+              expert.registrationSpecialisation
+            )}
+            {renderField("Document Type", expert.documentType)}
+            {renderField("Processing Time", expert.processingTime)}
+            {renderField(
+              "Government Certified",
+              expert.registrationGovtCertified
+            )}
+            {renderField("Additional Services", expert.additionalServices)}
+          </>
+        );
+      case "AUDITING":
+        return (
+          <>
+            {renderField(
+              "Auditing Specialisation",
+              expert.auditingSpecialisation
+            )}
+            {renderField("Audit Type", expert.auditType)}
+            {renderField(
+              "Audit Certification Number",
+              expert.auditCertificationNumber
+            )}
+            {renderField("Audit Organisation", expert.auditOrganisation)}
+            {renderField("Audit Services", expert.auditServices)}
+            {renderField("Government Certified", expert.auditGovtCertified)}
+          </>
+        );
+      case "LIAISONING":
+        return (
+          <>
+            {renderField(
+              "Liaisoning Specialisations",
+              expert.liaisoningSpecialisations
+            )}
+            {renderField("Government Departments", expert.govtDepartments)}
+            {renderField(
+              "Liaisoning Organisation",
+              expert.liaisoningOrganisation
+            )}
+            {renderField("Services Provided", expert.servicesProvided)}
+            {renderField("Processing Time", expert.processingTime)}
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   useEffect(() => {
     getDetails();
   }, []);
@@ -113,28 +297,36 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
         <Text style={styles.errorText}>{error}</Text>
       ) : experts.length > 0 ? (
         <ScrollView contentContainerStyle={styles.cardContainer}>
-          {experts.map((item, index) => (
-            <View key={item._id} style={styles.expertCard}>
+          {experts.map((expert) => (
+            <View key={expert._id} style={styles.expertCard}>
               <Image
-                source={item.photo ? { uri: `${API_URL}${item.photo}` } : logo1}
+                source={
+                  expert.photo ? { uri: `${API_URL}${expert.photo}` } : logo1
+                }
                 style={styles.profileImage}
               />
 
-              <Text style={styles.expertName}>{item.Name}</Text>
-              <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Qualification:</Text>{" "}
-                {item.Qualification}
-              </Text>
-              <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Experience:</Text> {item.Experience}{" "}
-                Years
-              </Text>
-              <Text style={styles.expertDetails}>
-                <Text style={styles.label}>Location:</Text> {item.Locations}
-              </Text>
+              <Text style={styles.expertName}>{expert.name}</Text>
+
+              {/* Basic Information */}
+              <View style={styles.detailsContainer}>
+                {renderField("Type", expert.expertType)}
+                {renderField("Qualification", expert.qualification)}
+                {renderField("Experience", expert.experience)}
+                {renderField("Location", expert.location)}
+                {renderField("Mobile", expert.mobile)}
+                {renderField("Office Address", expert.officeAddress)}
+                {renderField("Call Executive Call", expert.CallExecutiveCall)}
+              </View>
+
+              {/* Expert-specific fields */}
+              <View style={styles.specializationContainer}>
+                {renderExpertSpecificFields(expert)}
+              </View>
+
               <TouchableOpacity
                 style={styles.requestButton}
-                onPress={() => requestExpert(item)}
+                onPress={() => requestExpert(expert)}
               >
                 <Text style={styles.requestButtonText}>Request Expert</Text>
               </TouchableOpacity>
@@ -151,7 +343,12 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: "10%",
+  },
   backButton: { fontSize: 16, color: "blue", marginBottom: 10 },
   header: {
     fontSize: 22,
@@ -179,7 +376,24 @@ const styles = StyleSheet.create({
   },
   profileImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 10 },
   expertName: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
-  expertDetails: { fontSize: 14, color: "#555", textAlign: "center" },
+  detailsContainer: {
+    width: "100%",
+    marginBottom: 10,
+  },
+  specializationContainer: {
+    width: "100%",
+    marginBottom: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  expertDetails: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 4,
+    textAlign: "left",
+    width: "100%",
+  },
   label: { fontWeight: "bold", color: "#333" },
   noExperts: {
     textAlign: "center",
@@ -194,6 +408,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
+    width: "100%",
   },
   requestButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });
