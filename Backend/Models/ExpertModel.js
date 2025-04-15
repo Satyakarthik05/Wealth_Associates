@@ -10,9 +10,12 @@ const expertSchema = new mongoose.Schema({
   mobile: { type: String, required: true },
   photo: { type: String, required: true },
   officeAddress:{type:String,requird:true},
+  CallExecutiveCall: {
+    type: String,
+    enum: ["Pending", "Done"],
+    default: "Pending",
+  },
   
-  // Expert-specific fields (using mixed type to accommodate different structures)
-  // Legal Expert fields
   specialization: String,
   barCouncilId: String,
   courtAffiliation: String,
@@ -77,7 +80,6 @@ const expertSchema = new mongoose.Schema({
   servicesProvided: String,
   typesOfCrops: String,
   
-  // Registration & Documentation fields
   registrationSpecialisation: String,
   documentType: String,
   processingTime: String,

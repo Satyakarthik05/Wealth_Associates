@@ -1,5 +1,37 @@
 const expertModel = require("../Models/ExpertModel");
 
+const sendSMS = async (MobileNumber, Password, AddedBy) => {
+  try {
+    const apiUrl =
+      process.env.SMS_API_URL || "http://bulksms.astinsoft.com/api/v2/sms/Send";
+    const params = {
+      UserName: process.env.SMS_API_USERNAME || "wealthassociates",
+      APIKey: process.env.SMS_API_KEY || "88F40D9F-0172-4D25-9CF5-5823211E67E7",
+      MobileNo: MobileNumber,
+      Message: `Welcome to Wealth Associates\nThank you for registering\n\nLogin Details:\nID: ${MobileNumber}\nPassword: ${Password}\nReferral code: ${AddedBy}\nFor Any Query - 7796356789`,
+      SenderName: process.env.SMS_SENDER_NAME || "WTHASC",
+      TemplateId: process.env.SMS_TEMPLATE_ID || "1707173279362715516",
+      MType: 1,
+    };
+
+    const response = await axios.get(apiUrl, { params });
+
+    if (
+      response.data &&
+      response.data.toLowerCase().includes("sms sent successfully")
+    ) {
+      console.log("SMS Sent Successfully:", response.data);
+      return response.data;
+    } else {
+      console.error("SMS API Error:", response.data || response);
+      throw new Error(response.data || "Failed to send SMS");
+    }
+  } catch (error) {
+    console.error("Error in sendSMS function:", error.message);
+    throw new Error("SMS sending failed");
+  }
+};
+
 const registerExpert = async (req, res) => {
   try {
     // Destructure all possible fields from req.body
@@ -119,9 +151,24 @@ const registerExpert = async (req, res) => {
       photo: photoPath
     };
 
+    const expertTypes = [
+      "LEGAL",
+      "REVENUE",
+      "ENGINEERS",
+      "ARCHITECTS",
+      "PLANS & APPROVALS",
+      "VAASTU PANDITS",
+      "LAND SURVEY & VALUERS",
+      "BANKING",
+      "AGRICULTURE",
+      "REGISTRATION & DOCUMENTATION",
+      "AUDITING",
+      "LIAISONING",
+    ];
+
     // Add expert-type-specific fields based on expertType
     switch(expertType) {
-      case 'Legal':
+      case 'LEGAL':
         Object.assign(expertData, {
           specialization,
           barCouncilId,
@@ -130,7 +177,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Revenue':
+      case 'REVENUE':
         Object.assign(expertData, {
           landTypeExpertise,
           revenueSpecialisation,
@@ -141,7 +188,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Engineers':
+      case 'ENGINEERS':
         Object.assign(expertData, {
           engineeringField,
           certifications: engineerCertifications,
@@ -153,7 +200,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Architects':
+      case 'ARCHITECTS':
         Object.assign(expertData, {
           architectureType,
           softwareUsed,
@@ -163,7 +210,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Survey':
+      case 'PLANS & APPROVALS':
         Object.assign(expertData, {
           surveyType,
           govtCertified,
@@ -173,7 +220,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'VaastuPandits':
+      case 'VAASTU PANDITS':
         Object.assign(expertData, {
           vaastuSpecialization,
           vaastuOrganisation,
@@ -183,7 +230,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'LandValuers':
+      case 'LAND SURVEY & VALUERS':
         Object.assign(expertData, {
           valuationType,
           govtApproved,
@@ -193,7 +240,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Banking':
+      case 'BANKING':
         Object.assign(expertData, {
           bankingSpecialisation,
           bankingService,
@@ -203,7 +250,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Agriculture':
+      case 'AGRICULTURE':
         Object.assign(expertData, {
           agricultureType,
           agricultureCertifications,
@@ -213,7 +260,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'RegistrationAndDocumentation':
+      case 'REGISTRATION & DOCUMENTATION':
         Object.assign(expertData, {
           registrationSpecialisation,
           documentType,
@@ -223,7 +270,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Auditing':
+      case 'AUDITING':
         Object.assign(expertData, {
           auditingSpecialisation,
           auditType,
@@ -234,7 +281,7 @@ const registerExpert = async (req, res) => {
         });
         break;
         
-      case 'Licensing':
+      case 'LIAISONING':
         Object.assign(expertData, {
           licensingSpecialisations,
           licensingCertificationNumber,
@@ -245,6 +292,17 @@ const registerExpert = async (req, res) => {
     }
 
     const newExpert = new expertModel(expertData);
+
+    let smsResponse;
+    const Password="wa1234"
+    const AddedBy="WA0000000001"
+
+    try {
+      smsResponse = await sendSMS(mobile, Password, AddedBy);
+    } catch (error) {
+      console.error("Failed to send SMS:", error.message);
+      smsResponse = "SMS sending failed";
+    }
     await newExpert.save();
 
     res.status(201).json({ 
@@ -431,9 +489,37 @@ const deleteExpert = async (req, res) => {
   }
 };
 
+const getAllExperts = async (req, res) => {
+  try {
+    const agents = await expertModel.find(); // Fetch all agents from the database
+    res.status(200).json({ success: true, count: agents.length, data: agents });
+  } catch (error) {
+    console.error("Error fetching agents:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+const callDone = async (req, res) => {
+  try {
+    const agent = await expertModel.findByIdAndUpdate(
+      req.params.id,
+      { CallExecutiveCall: "Done" },
+      { new: true }
+    );
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    res.json({ message: "Agent marked as done", data: agent });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerExpert,
   getExpertsByType,
   modifyExpert,
   deleteExpert,
+  getAllExperts,
+  callDone
 };

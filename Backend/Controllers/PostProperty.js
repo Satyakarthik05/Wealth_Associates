@@ -11,6 +11,7 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
+const ApprovedProperty = require("../Models/ApprovedPropertys")
 
 
 const getReferrerDetails = async (req, res) => {
@@ -186,16 +187,25 @@ const GetAllPropertys = async (req, res) => {
   }
 };
 
-// Get properties posted by the logged-in user
 const GetMyPropertys = async (req, res) => {
   try {
     const mobileNumber = req.mobileNumber;
+    
+    // First check the Property collection
     const properties = await Property.find({ PostedBy: mobileNumber });
 
     if (!properties || properties.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "No properties found for this user", MyPosts: [] });
+      // If not found in Property collection, check ApprovedProperty collection
+      const approvedProperties = await ApprovedProperty.find({ PostedBy: mobileNumber });
+      
+      if (!approvedProperties || approvedProperties.length === 0) {
+        return res.status(200).json({ 
+          message: "No properties found for this user", 
+          MyPosts: [] 
+        });
+      }
+      
+      return res.status(200).json(approvedProperties);
     }
 
     res.status(200).json(properties);
@@ -333,19 +343,33 @@ const getReferredByDetails = async (req, res) => {
   if (!referredBy) {
     return res.status(400).json({ error: "referredBy is required" });
   }
-
+console.log(referredBy)
   try {
-    let result =
+    let referredUser =
       (await AgentSchema.findOne({ MyRefferalCode: referredBy })) ||
       (await CustomerSchema.findOne({ MyRefferalCode: referredBy })) ||
       (await CoreSchema.findOne({ MyRefferalCode: referredBy }));
 
-    if (result) {
+    if (!referredUser) {
+      referredUser =
+        (await AgentSchema.findOne({ MobileNumber: referredBy })) ||
+        (await CustomerSchema.findOne({ MobileNumber: referredBy })) ||
+        (await CoreSchema.findOne({ MobileNumber: referredBy }));
+    }
+
+    if (!referredUser) {
+      referredUser =
+        (await skillSchema.findOne({ MobileNumber: referredBy })) ||
+        (await investorSchema.findOne({ MobileNumber: referredBy })) ||
+        (await nriSchema.findOne({ MobileIN: referredBy }));
+    }
+
+    if (referredUser) {
       return res.status(200).json({
         status: "success",
         referredByDetails: {
-          name: result.FullName,
-          Number: result.MobileNumber, // You can adjust role logic if needed
+          name: referredUser.FullName || "N/A",
+          Number: referredUser.MobileNumber || "N/A",
         },
       });
     } else {
@@ -362,6 +386,7 @@ const getReferredByDetails = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 // const Property = require('../models/propertyModel');
 
 // Update dynamic data

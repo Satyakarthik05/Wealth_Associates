@@ -19,7 +19,9 @@ const upload = multer({
 
 app.post("/registerExpert", upload.single("photo"), ExpertController.registerExpert);
 app.get("/getexpert/:expertType", ExpertController.getExpertsByType);
+app.get("/getallexpert", ExpertController.getAllExperts);
 app.put("/update/:id", ExpertController.modifyExpert);
 app.delete("/delete/:id", ExpertController.deleteExpert);
+app.put("/markasdone/:id", ExpertController.callDone);
 
 module.exports = app;
