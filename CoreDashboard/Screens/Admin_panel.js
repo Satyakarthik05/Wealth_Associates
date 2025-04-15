@@ -52,6 +52,7 @@ import RegisterEx from "./Agent/Rrwa";
 import RegisterValue from "./Agent/RegisterValue";
 import logo from "../../assets/logo.png";
 import AddExpertForm from "./ExpertPanel/AddExpert";
+import ViewAllRequestedProperties from "./Properties/AllrequestedProperties";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -81,6 +82,7 @@ const menuItems = [
       "View Posted Properties",
       "View Requested Properties",
       "View All Properties",
+      "ViewAllRequestedProperties",
     ],
   },
   {
@@ -157,6 +159,8 @@ const Admin_panel = () => {
   const [isRegionVisible, setIsRegionVisible] = useState(false);
   const [isRegiValueVisible, setIsRegiValueVisible] = useState(false);
   const [isAddExpertVisible, setIsAddExpertVisible] = useState(false);
+  const [isViewAllRequestedProperties, setViewAllRequestedProperties] =
+    useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -224,7 +228,8 @@ const Admin_panel = () => {
     setIsRegionVisible(false);
     setIsRegiValueVisible(false);
     setIsAddExpertVisible(false);
-    setAllSkilledLabour(false)
+    setAllSkilledLabour(false);
+    setViewAllRequestedProperties(false);
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -280,6 +285,8 @@ const Admin_panel = () => {
       setIsRegiValueVisible(true);
     } else if (subItem === "Add Expert") {
       setIsAddExpertVisible(true);
+    } else if (subItem === "ViewAllRequestedProperties") {
+      setViewAllRequestedProperties(true);
     }
   };
 
@@ -308,6 +315,7 @@ const Admin_panel = () => {
     setIsRegionVisible(false);
     setIsRegiValueVisible(false);
     setIsAddExpertVisible(false);
+    setViewAllRequestedProperties(false);
   };
 
   const renderContent = () => {
@@ -326,6 +334,7 @@ const Admin_panel = () => {
     if (isViewNriVisible) return <ViewNri />;
     if (isviewAllinvestors) return <ViewAllInvesters />;
     if (isViewInvesters) return <ViewInvesters />;
+    if (isViewAllRequestedProperties) return <ViewAllRequestedProperties />;
 
     return (
       <ScrollView

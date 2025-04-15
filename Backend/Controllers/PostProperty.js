@@ -340,17 +340,31 @@ const getReferredByDetails = async (req, res) => {
   }
 
   try {
-    let result =
+    let referredUser =
       (await AgentSchema.findOne({ MyRefferalCode: referredBy })) ||
       (await CustomerSchema.findOne({ MyRefferalCode: referredBy })) ||
       (await CoreSchema.findOne({ MyRefferalCode: referredBy }));
 
-    if (result) {
+    if (!referredUser) {
+      referredUser =
+        (await AgentSchema.findOne({ MobileNumber: referredBy })) ||
+        (await CustomerSchema.findOne({ MobileNumber: referredBy })) ||
+        (await CoreSchema.findOne({ MobileNumber: referredBy }));
+    }
+
+    if (!referredUser) {
+      referredUser =
+        (await skillSchema.findOne({ MobileNumber: referredBy })) ||
+        (await investorSchema.findOne({ MobileNumber: referredBy })) ||
+        (await nriSchema.findOne({ MobileNumber: referredBy }));
+    }
+
+    if (referredUser) {
       return res.status(200).json({
         status: "success",
         referredByDetails: {
-          name: result.FullName,
-          Number: result.MobileNumber, // You can adjust role logic if needed
+          name: referredUser.FullName || "N/A",
+          Number: referredUser.MobileNumber || "N/A",
         },
       });
     } else {
@@ -367,6 +381,7 @@ const getReferredByDetails = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 // const Property = require('../models/propertyModel');
 
 // Update dynamic data

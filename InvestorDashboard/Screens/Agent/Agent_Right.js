@@ -305,7 +305,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   useEffect(() => {
     const fetchReferredDetails = async () => {
-      if (!Details?.ReferredBy) return;
+      if (!Details?.AddedBy) return;
 
       try {
         const response = await fetch(
@@ -317,7 +317,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               token: (await AsyncStorage.getItem("authToken")) || "",
             },
             body: JSON.stringify({
-              referredBy: Details.ReferredBy,
+              referredBy: Details.AddedBy,
             }),
           }
         );
@@ -339,7 +339,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     };
 
     fetchReferredDetails();
-  }, [Details?.ReferredBy]);
+  }, [Details?.AddedBy]);
 
   const handleShare = (property, closeModal) => {
     const fullImageUri = property.photo ? `${API_URL}${property.photo}` : null;

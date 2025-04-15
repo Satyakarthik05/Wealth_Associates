@@ -132,6 +132,10 @@ const RequestedProperties = () => {
     }
   };
 
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Requested Properties</Text>
@@ -146,6 +150,13 @@ const RequestedProperties = () => {
             <View key={item.id} style={styles.card}>
               <Image source={item.image} style={styles.image} />
               <View style={styles.details}>
+                <View style={styles.idContainer}>
+                  <View style={styles.idBadge}>
+                    <Text style={styles.idText}>
+                      ID: {getLastFourChars(item.id)}
+                    </Text>
+                  </View>
+                </View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
@@ -234,6 +245,21 @@ const styles = StyleSheet.create({
   details: { padding: 10 },
   title: { fontSize: 14, fontWeight: "bold", marginBottom: 5 },
   text: { fontSize: 12, color: "#666" },
+  idContainer: {
+    alignItems: "flex-end",
+    marginBottom: 5,
+  },
+  idBadge: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 12,
+  },
   editButton: {
     marginTop: 10,
     backgroundColor: "#007bff",
