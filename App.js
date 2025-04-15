@@ -15,7 +15,7 @@ import { Linking } from "react-native";
 import * as Updates from "expo-updates";
 import { NavigationIndependentTree } from "@react-navigation/native";
 
-// Screens
+// Screens (import all your screens here)
 import MainScreen from "./Screens/MainScreen";
 import RegisterAsScreen from "./Screens/Register_change";
 import ForgotPassword from "./Screens/ForgetPassword";
@@ -58,13 +58,13 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState("Main Screen");
   const [expoPushToken, setExpoPushToken] = useState("");
 
-  // Enhanced notification handling
+  // Enhanced notification handling with Firebase support
   useEffect(() => {
     const initializeNotifications = async () => {
       const token = await registerForPushNotificationsAsync();
       setExpoPushToken(token);
       if (token) {
-        await sendTokenToBackend(token);
+        await sendTokenToBackend(token, Platform.OS);
       }
     };
 
@@ -108,41 +108,31 @@ export default function App() {
     },
   };
 
+  // App initialization and update checks
   useEffect(() => {
-    async function checkForUpdates() {
+    const initializeApp = async () => {
       try {
+        // Check for updates
         if (!__DEV__) {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
             await Updates.fetchUpdateAsync();
             Alert.alert(
               "Update Available",
-              "A new version of the app is available. Restart to apply the update.",
+              "A new version is available. Restart to update.",
               [
                 {
                   text: "Restart Now",
-                  onPress: async () => {
-                    await Updates.reloadAsync();
-                  },
+                  onPress: async () => await Updates.reloadAsync(),
                 },
               ]
             );
           }
         }
-      } catch (error) {
-        console.log("Error checking for updates:", error);
-      }
-    }
 
-    checkForUpdates();
-  }, []);
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
+        // Check version and auth status
         const storedVersion = await AsyncStorage.getItem("appVersion");
         if (storedVersion !== APP_VERSION) {
-          console.log("New version detected, clearing authToken...");
           await AsyncStorage.removeItem("authToken");
           await AsyncStorage.setItem("appVersion", APP_VERSION);
         }
@@ -151,6 +141,7 @@ export default function App() {
         const userType = await AsyncStorage.getItem("userType");
 
         if (token && userType) {
+          // Set initial route based on user type
           switch (userType) {
             case "WealthAssociate":
               setInitialRoute("Home");
@@ -179,12 +170,15 @@ export default function App() {
             case "Admin":
               setInitialRoute("Admin");
               break;
+            case "Call center":
+              setInitialRoute("CallCenterDashboard");
+              break;
             default:
               setInitialRoute("Main Screen");
           }
         }
       } catch (error) {
-        console.error("Error during app initialization:", error);
+        console.error("App initialization error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -192,26 +186,6 @@ export default function App() {
 
     initializeApp();
   }, []);
-
-  useEffect(() => {
-    async function checkForUpdates() {
-      try {
-        // Check if an update is available
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          // Download the update
-          await Updates.fetchUpdateAsync();
-          // Apply the update and reload the app
-          await Updates.reloadAsync();
-        }
-      } catch (error) {
-        console.log('Error checking for updates:', error);
-      }
-    }
-
-    // Run the update check when the app mounts
-    checkForUpdates();
-  }, []); // Empty dependency array ensures this runs only once on mount
 
   if (isLoading) {
     return (
@@ -227,6 +201,7 @@ export default function App() {
         linking={Platform.OS === "web" ? linking : undefined}
       >
         <Stack.Navigator initialRouteName={initialRoute}>
+          {/* All your screen components */}
           <Stack.Screen
             name="Main Screen"
             component={MainScreen}
@@ -348,6 +323,7 @@ export default function App() {
   );
 }
 
+// Enhanced push notification registration with Firebase support
 async function registerForPushNotificationsAsync() {
   try {
     if (!Device.isDevice) {
@@ -383,6 +359,7 @@ async function registerForPushNotificationsAsync() {
     console.log("Expo Push Token:", token);
     await AsyncStorage.setItem("expoPushToken", token);
 
+    // Android-specific configuration for Firebase
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -394,11 +371,11 @@ async function registerForPushNotificationsAsync() {
       });
     }
 
-    // Send a test notification
+    // Send test notification to verify setup
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Notifications Enabled",
-        body: "You will now receive important updates from WealthAssociate",
+        body: "You will now receive important updates",
         data: { test: "notification_data" },
       },
       trigger: { seconds: 2 },
@@ -406,21 +383,21 @@ async function registerForPushNotificationsAsync() {
 
     return token;
   } catch (error) {
-    console.error("Error registering for push notifications:", error);
+    console.error("Push notification registration error:", error);
     return null;
   }
 }
 
-async function sendTokenToBackend(token) {
+// Send token to backend with device type information
+async function sendTokenToBackend(token, deviceType) {
   try {
     const response = await fetch(`${API_URL}/noti/register-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token,
-        deviceId: Device.modelName || "unknown",
-        platform: Platform.OS,
-        osVersion: Platform.Version,
+        deviceType,
+        appVersion: APP_VERSION,
       }),
     });
 

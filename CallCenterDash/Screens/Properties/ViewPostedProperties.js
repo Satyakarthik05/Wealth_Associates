@@ -34,6 +34,7 @@ const ViewAssignedProperties = () => {
   const [selectedLocationFilter, setSelectedLocationFilter] = useState("");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
@@ -60,6 +61,8 @@ const ViewAssignedProperties = () => {
       throw error;
     }
   };
+
+  // Add this function near your other handler functions (around line 200 in your code)
 
   // Fetch data with error handling
   const fetchData = useCallback(async () => {
@@ -101,13 +104,36 @@ const ViewAssignedProperties = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [API_URL]);
 
-  // Handle manual refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
   }, [fetchData]);
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalVisible(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalVisible(false);
+  };
+
+  useEffect(() => {
+    let intervalId;
+
+    // Only set interval if modals are NOT open
+    if (!isEditModalVisible && !isUpdateModalVisible) {
+      intervalId = setInterval(() => {
+        fetchData();
+      }, 20000);
+    }
+
+    return () => {
+      // Clear interval when component unmounts or modals open
+      clearInterval(intervalId);
+    };
+  }, [isEditModalVisible, isUpdateModalVisible]);
 
   // Initial data fetch
   useEffect(() => {
@@ -150,53 +176,56 @@ const ViewAssignedProperties = () => {
   // Property update handler
   const handleUpdate = (property) => {
     setSelectedProperty(property);
+
     const type = property.propertyType.toLowerCase();
 
-    if (type.includes("commercial")) {
-      Alert.alert(
-        "Commercial Property",
-        "No extra details required for commercial properties. Just approve it.",
-        [{ text: "OK", onPress: () => setIsUpdateModalVisible(false) }]
-      );
-      return;
-    }
-
+    // Handle residential properties
     if (
       type.includes("flat") ||
       type.includes("apartment") ||
       type.includes("individualhouse") ||
-      type.includes("villa")
+      type.includes("villa") ||
+      type.includes("house") ||
+      type.includes("commercial")
     ) {
       setCurrentUpdateModal("house");
-    } else if (type.includes("plot")) {
+    }
+    // Handle plot/land properties
+    else if (type.includes("plot")) {
       setCurrentUpdateModal("land");
-    } else if (type.includes("farmland") || type.includes("agricultural")) {
+    }
+    // Handle agricultural properties
+    else if (type.includes("land") || type.includes("agricultural")) {
       setCurrentUpdateModal("agriculture");
     }
 
     setIsUpdateModalVisible(true);
   };
 
-  // Save updated property details
   const handleUpdateSave = async (updatedData) => {
     try {
-      const token = await getAuthToken();
       const response = await fetch(
         `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            token,
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatedData),
         }
       );
 
       const result = await response.json();
       if (response.ok) {
-        await fetchData();
+        // Clear and restart the refresh interval
+        if (refreshInterval) clearInterval(refreshInterval);
+        setRefreshInterval(setInterval(fetchData, 10000));
+
+        setProperties(
+          properties.map((p) =>
+            p._id === selectedProperty._id ? { ...p, ...updatedData } : p
+          )
+        );
         setIsUpdateModalVisible(false);
+        await fetchData();
         Alert.alert("Success", "Property updated successfully");
       } else {
         Alert.alert("Error", result.message || "Update failed");
@@ -283,10 +312,16 @@ const ViewAssignedProperties = () => {
   // Approve property handler
   const handleApprove = async (id) => {
     const confirm = await new Promise((resolve) => {
-      Alert.alert("Confirm Approval", "Approve this property?", [
-        { text: "Cancel", onPress: () => resolve(false) },
-        { text: "Approve", onPress: () => resolve(true) },
-      ]);
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to approve this property?")
+        );
+      } else {
+        Alert.alert("Confirm Approval", "Approve this property?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Approve", onPress: () => resolve(true) },
+        ]);
+      }
     });
 
     if (!confirm) return;
@@ -580,9 +615,6 @@ const ViewAssignedProperties = () => {
   );
 };
 
-// ... (keep the styles object the same as in your original code)
-
-// export default ViewAssignedProperties;
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,

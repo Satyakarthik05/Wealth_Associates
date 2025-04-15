@@ -47,6 +47,7 @@ import ViewInvesters from "./Investors/ViewInvestors";
 import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
 import RegisterExecutive from "./Agent/Rewa";
+import AllRequestedProperties from "./Properties/AllrequestedProperties";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -90,6 +91,7 @@ const Admin_panel = () => {
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isNriViewVisible, setIsNriViewVisible] = useState(false);
   const [isExecuVisible, setIsExecuVisible] = useState(false);
+  const [isAllRequestedProperties, setAllRequestedProperties] = useState(false);
   // const [isRegisterExecutive, setRegisterExecutive] = useState(false);
 
   const menuItems = [
@@ -118,6 +120,7 @@ const Admin_panel = () => {
         "View Posted Properties",
         "View Requested Properties",
         "View All Properties",
+        "View All Requested Properties",
       ],
     },
     {
@@ -217,6 +220,7 @@ const Admin_panel = () => {
     setIsNriViewVisible(false);
     setIsExecuVisible(false);
     setAllSkilledLabour(false);
+    setAllRequestedProperties(false);
 
     // setRegisterExecutive(false)
 
@@ -270,6 +274,8 @@ const Admin_panel = () => {
       setIsNriViewVisible(true);
     } else if (subItem === "Register Executive WealthAssociate") {
       setIsExecuVisible(true);
+    } else if (subItem === "View All Requested Properties") {
+      setAllRequestedProperties(true);
     }
   };
 
@@ -292,6 +298,7 @@ const Admin_panel = () => {
     setIsNriVisible(false);
     setIsNriViewVisible(false);
     setIsExecuVisible(false);
+    setAllRequestedProperties(false);
   };
 
   const renderContent = () => {
@@ -310,6 +317,7 @@ const Admin_panel = () => {
     if (isExperDetails) return <ExpertDetails expertType={expertType} />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
     if (isNriViewVisible) return <ViewNri />;
+    if (isAllRequestedProperties) return <AllRequestedProperties />;
 
     return (
       <View style={[styles.container]} keyboardShouldPersistTaps="handled">

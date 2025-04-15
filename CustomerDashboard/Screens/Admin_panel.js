@@ -49,6 +49,7 @@ import AddNRIMember from "./NRI/AddNri";
 import ViewNri from "./NRI/ViewNri";
 import AddInvestor from "./Investors/AddInvestors";
 import logo1 from "../../assets/logo.png";
+import ViewAllRequestedProperties from "./Properties/AllrequestedProperties";
 
 const { width, height } = Dimensions.get("window");
 const isWeb = Platform.OS === "web";
@@ -73,6 +74,7 @@ const menuItems = [
       "View Posted Properties",
       "View Requested Properties",
       "View All Properties",
+      "ViewAllRequestedProperties"
     ],
   },
   {
@@ -150,6 +152,7 @@ const Admin_panel = () => {
   const [isAddNriVisible, setIsAddNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isAddInvestVisible, setIsAddInvestVisible] = useState(false);
+  const [isViewAllRequestedProperties,setViewAllRequestedProperties]=useState(false)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -214,6 +217,7 @@ const Admin_panel = () => {
     setIsViewNriVisible(false);
     setIsAddInvestVisible(false);
     setAllSkilledLabour(false);
+    setViewAllRequestedProperties(false)
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -263,6 +267,8 @@ const Admin_panel = () => {
       setIsViewNriVisible(true);
     } else if (subItem === "Add Investor") {
       setIsAddInvestVisible(true);
+    } else if (subItem === "ViewAllRequestedProperties") {
+      setViewAllRequestedProperties(true);
     }
   };
 
@@ -289,6 +295,7 @@ const Admin_panel = () => {
     setIsAddNriVisible(false);
     setIsViewNriVisible(false);
     setIsAddInvestVisible(false);
+    setViewAllRequestedProperties(false)
   };
 
   const renderContent = () => {
@@ -307,6 +314,7 @@ const Admin_panel = () => {
     if (isViewAllInvestersVisible) return <ViewAllInvesters />;
     if (isViewInvestVisible) return <ViewInvesters />;
     if (isViewNriVisible) return <ViewNri />;
+    if(isViewAllRequestedProperties)return<ViewAllRequestedProperties/>
 
     return (
       <ScrollView

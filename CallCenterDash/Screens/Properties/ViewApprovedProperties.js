@@ -202,54 +202,45 @@ const ViewAllProperties = () => {
     }
   };
 
-  const handleApprove = async (id) => {
-    let confirmApprove;
-
-    if (Platform.OS === "web") {
-      confirmApprove = window.confirm(
-        "Are you sure you want to approve this property?"
-      );
-    } else {
-      confirmApprove = await new Promise((resolve) => {
-        Alert.alert(
-          "Confirm",
-          "Are you sure you want to approve this property?",
-          [
-            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-            { text: "Approve", onPress: () => resolve(true) },
-          ]
+  const handleSold = async (id) => {
+    const confirm = await new Promise((resolve) => {
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to mark this property as sold?")
         );
-      });
-    }
+      } else {
+        Alert.alert("Confirm", "Mark this property as sold?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Mark as Sold", onPress: () => resolve(true) },
+        ]);
+      }
+    });
 
-    if (!confirmApprove) return;
+    if (!confirm) return;
 
     try {
-      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+      const response = await fetch(`${API_URL}/properties/sold/${id}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
-      const result = await response.json();
       if (response.ok) {
-        if (Platform.OS === "web") {
-          alert("Property approved successfully.");
-        } else {
-          Alert.alert("Success", "Property approved successfully.");
-        }
+        // Update the local state to reflect sold status
+        setProperties(
+          properties.map((property) =>
+            property._id === id ? { ...property, sold: true } : property
+          )
+        );
+        Alert.alert("Success", "Property marked as sold");
+
+        // If you need to refresh data, call fetchProperties directly
         fetchProperties();
       } else {
-        if (Platform.OS === "web") {
-          alert(result.message || "Failed to approve.");
-        } else {
-          Alert.alert("Error", result.message || "Failed to approve.");
-        }
+        const error = await response.json();
+        Alert.alert("Error", error.message || "Failed to mark as sold");
       }
-    } catch (error) {
-      console.error("Error approving property:", error);
-      Alert.alert("Error", "An error occurred while approving the property.");
+    } catch (err) {
+      console.error("Sold error:", err);
+      Alert.alert("Error", "Failed to mark property as sold");
     }
   };
 
@@ -503,6 +494,12 @@ const ViewAllProperties = () => {
                     >
                       <Text style={styles.buttonText}>Delete</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.deleteButton]}
+                      onPress={() => handleSold(item._id)}
+                    >
+                      <Text style={styles.buttonText}>SoldOut</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               );
@@ -645,12 +642,6 @@ const ViewAllProperties = () => {
                           </Text>
                         </View>
                         <View style={styles.detailRow}>
-                          <Text style={styles.detailLabel}>Constituency:</Text>
-                          <Text style={styles.detailValue}>
-                            {selectedPropertyDetails.Constituency || "N/A"}
-                          </Text>
-                        </View>
-                        <View style={styles.detailRow}>
                           <Text style={styles.detailLabel}>Price:</Text>
                           <Text style={styles.detailValue}>
                             ₹{" "}
@@ -777,13 +768,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
+    flexWrap: "wrap",
   },
   button: {
-    padding: 8,
+    padding: 6,
     borderRadius: 5,
     alignItems: "center",
     flex: 1,
     marginHorizontal: 2,
+    marginBottom: 5,
+    minWidth: 70,
   },
   viewButton: {
     backgroundColor: "#4CAF50",

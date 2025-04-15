@@ -36,6 +36,11 @@ const RequestedProperties = () => {
     Budget: "",
   });
 
+  // Function to get last 4 characters of ID
+  const getLastFourChars = (id) => {
+    return id ? id.slice(-4) : "N/A";
+  };
+
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -151,6 +156,13 @@ const RequestedProperties = () => {
             <View key={item.id} style={styles.card}>
               <Image source={item.image} style={styles.image} />
               <View style={styles.details}>
+                {/* Property ID Display - Added this section */}
+                <View style={styles.idContainer}>
+                  <View style={styles.idBadge}>
+                    <Text style={styles.idText}>ID: {getLastFourChars(item.id)}</Text>
+                  </View>
+                </View>
+                
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.text}>Type: {item.type}</Text>
                 <Text style={styles.text}>Location: {item.location}</Text>
@@ -205,13 +217,13 @@ const RequestedProperties = () => {
               }
               placeholder="Budget"
             />
-            <View style={{display:"flex",width:"100%",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:"4%"}}>
-            <Button title="Save Changes" color="green" onPress={handleSaveEdit} style={{backgroundColor:"green"}} />
-            <Button
-              title="Cancel"
-              color="red"
-              onPress={() => setEditModalVisible(false)}
-            />
+            <View style={styles.modalButtonsContainer}>
+              <Button title="Save Changes" color="green" onPress={handleSaveEdit} />
+              <Button
+                title="Cancel"
+                color="red"
+                onPress={() => setEditModalVisible(false)}
+              />
             </View>
           </View>
         </View>
@@ -227,8 +239,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f8f8",
     alignItems: "center",
   },
-  heading: { fontSize: 20, fontWeight: "bold", marginBottom: 15 },
-  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
+  heading: { 
+    fontSize: 20, 
+    fontWeight: "bold", 
+    marginBottom: 15 
+  },
+  grid: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    justifyContent: "center" 
+  },
   card: {
     backgroundColor: "white",
     borderRadius: 10,
@@ -236,11 +256,43 @@ const styles = StyleSheet.create({
     width: 250,
     padding: 10,
     elevation: 3,
+    position: "relative",
   },
-  image: { width: "100%", height: 120, resizeMode: "cover" },
-  details: { padding: 10 },
-  title: { fontSize: 14, fontWeight: "bold", marginBottom: 5 },
-  text: { fontSize: 12, color: "#666" },
+  image: { 
+    width: "100%", 
+    height: 120, 
+    resizeMode: "cover",
+    borderRadius: 5,
+  },
+  details: { 
+    padding: 10 
+  },
+  // New styles for ID display
+  idContainer: {
+    alignItems: "flex-end",
+    marginBottom: 5,
+  },
+  idBadge: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  title: { 
+    fontSize: 14, 
+    fontWeight: "bold", 
+    marginBottom: 5 
+  },
+  text: { 
+    fontSize: 12, 
+    color: "#666",
+    marginBottom: 3,
+  },
   editButton: {
     marginTop: 10,
     backgroundColor: "#007bff",
@@ -248,7 +300,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
   },
-  editButtonText: { color: "white", fontSize: 14 },
+  editButtonText: { 
+    color: "white", 
+    fontSize: 14 
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -261,8 +316,32 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 300,
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, padding: 8, marginBottom: 10, borderRadius: 5 },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: "bold", 
+    marginBottom: 10 
+  },
+  input: { 
+    borderWidth: 1, 
+    padding: 8, 
+    marginBottom: 10, 
+    borderRadius: 5,
+    borderColor: "#ccc",
+  },
+  modalButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+  },
 });
 
 export default RequestedProperties;

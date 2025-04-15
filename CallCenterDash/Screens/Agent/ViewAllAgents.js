@@ -16,7 +16,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { API_URL } from "../data/ApiUrl";
+import { API_URL } from "../../../data/ApiUrl";
 
 const { width } = Dimensions.get("window");
 
@@ -383,7 +383,7 @@ export default function ViewAgents() {
                 ]}
               >
                 <Image
-                  source={require("../assets/man.png")}
+                  source={require("../../../assets/man.png")}
                   style={styles.avatar}
                 />
                 <View style={styles.infoContainer}>

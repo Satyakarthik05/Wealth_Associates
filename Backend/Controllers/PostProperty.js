@@ -114,7 +114,9 @@ const createProperty = async (req, res) => {
 
     // Validate PostedBy
     if (!PostedBy) {
-      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
+      return res
+        .status(400)
+        .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
     // Validate photo
@@ -126,7 +128,6 @@ const createProperty = async (req, res) => {
     }
 
     // Find the user who posted the property
-   
 
     // Create and save new property
     const newProperty = new Property({
@@ -142,13 +143,15 @@ const createProperty = async (req, res) => {
     await newProperty.save();
 
     // Assign property to call executive (round-robin)
-    const callExecutives = await CallExecutive.find({ 
-      assignedType: "Property"
-    }).sort({ lastAssignedAt: 1 }).limit(1);
+    const callExecutives = await CallExecutive.find({
+      assignedType: "Property",
+    })
+      .sort({ lastAssignedAt: 1 })
+      .limit(1);
 
     if (callExecutives.length > 0) {
       const assignedExecutive = callExecutives[0];
-      
+
       assignedExecutive.assignedUsers.push({
         userType: "Property",
         userId: newProperty._id,
@@ -158,12 +161,14 @@ const createProperty = async (req, res) => {
     }
 
     // Optional: Send data to call center API
-    
 
     return res.status(200).json({
       message: "Property added and assigned successfully",
       newProperty,
-      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
+      assignedTo:
+        callExecutives.length > 0
+          ? callExecutives[0].name
+          : "No executive available",
     });
   } catch (error) {
     console.error("Error in createProperty:", error);
@@ -370,6 +375,8 @@ console.log(referredBy)
         referredByDetails: {
           name: referredUser.FullName || "N/A",
           Number: referredUser.MobileNumber || "N/A",
+          name: referredUser.FullName || "N/A",
+          Number: referredUser.MobileNumber || "N/A",
         },
       });
     } else {
@@ -386,6 +393,7 @@ console.log(referredBy)
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 
 // const Property = require('../models/propertyModel');
 

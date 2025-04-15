@@ -44,13 +44,13 @@ const registerExpert = async (req, res) => {
       location,
       mobile,
       officeAddress,
-      
+
       // Legal Expert fields
       specialization,
       barCouncilId,
       courtAffiliation,
       lawFirmOrganisation,
-      
+
       // Revenue Expert fields
       landTypeExpertise,
       revenueSpecialisation,
@@ -58,7 +58,7 @@ const registerExpert = async (req, res) => {
       certificationLicenseNumber,
       revenueOrganisation,
       keyServicesProvided,
-      
+
       // Engineers fields
       engineeringField,
       engineerCertifications,
@@ -67,56 +67,56 @@ const registerExpert = async (req, res) => {
       specializedSkillsTechnologies,
       majorProjectsWorkedOn,
       govtLicensed,
-      
+
       // Architects fields
       architectureType,
       softwareUsed,
       architectLicenseNumber,
       architectFirm,
       architectMajorProjects,
-      
+
       // Survey fields
       surveyType,
       govtCertified,
       surveyOrganisation,
       surveyLicenseNumber,
       surveyMajorProjects,
-      
+
       // Vaastu Pandits fields
       vaastuSpecialization,
       vaastuOrganisation,
       vaastuCertifications,
       remediesProvided,
       consultationMode,
-      
+
       // Land Valuers fields
       valuationType,
       govtApproved,
       valuerLicenseNumber,
       valuerOrganisation,
       valuationMethods,
-      
+
       // Banking fields
       bankingSpecialisation,
       bankingService,
       registeredWith,
       bankName,
       bankingGovtApproved,
-      
+
       // Agriculture fields
       agricultureType,
       agricultureCertifications,
       agricultureOrganisation,
       servicesProvided,
       typesOfCrops,
-      
+
       // Registration & Documentation fields
       registrationSpecialisation,
       documentType,
       processingTime,
       registrationGovtCertified,
       additionalServices,
-      
+
       // Auditing fields
       auditingSpecialisation,
       auditType,
@@ -124,12 +124,12 @@ const registerExpert = async (req, res) => {
       auditOrganisation,
       auditServices,
       auditGovtCertified,
-      
+
       // Licensing fields
       licensingSpecialisations,
       licensingCertificationNumber,
       licensingOrganisation,
-      licensingServicesProvided
+      licensingServicesProvided,
     } = req.body;
 
     if (!req.file) {
@@ -137,8 +137,7 @@ const registerExpert = async (req, res) => {
     }
 
     const photoPath = `/ExpertMembers/${req.file.filename}`;
-    
-    // Create base expert object with common fields
+
     const expertData = {
       // Common fields
       name,
@@ -148,7 +147,7 @@ const registerExpert = async (req, res) => {
       location,
       mobile,
       officeAddress,
-      photo: photoPath
+      photo: photoPath,
     };
 
     const expertTypes = [
@@ -173,7 +172,7 @@ const registerExpert = async (req, res) => {
           specialization,
           barCouncilId,
           courtAffiliation,
-          lawFirmOrganisation
+          lawFirmOrganisation,
         });
         break;
         
@@ -184,7 +183,7 @@ const registerExpert = async (req, res) => {
           govtApproval,
           certificationLicenseNumber,
           revenueOrganisation,
-          keyServicesProvided
+          keyServicesProvided,
         });
         break;
         
@@ -196,7 +195,7 @@ const registerExpert = async (req, res) => {
           engineerOrganisation,
           specializedSkillsTechnologies,
           majorProjectsWorkedOn,
-          govtLicensed
+          govtLicensed,
         });
         break;
         
@@ -206,7 +205,7 @@ const registerExpert = async (req, res) => {
           softwareUsed,
           architectLicenseNumber,
           architectFirm,
-          architectMajorProjects
+          architectMajorProjects,
         });
         break;
         
@@ -216,7 +215,7 @@ const registerExpert = async (req, res) => {
           govtCertified,
           surveyOrganisation,
           surveyLicenseNumber,
-          surveyMajorProjects
+          surveyMajorProjects,
         });
         break;
         
@@ -226,7 +225,7 @@ const registerExpert = async (req, res) => {
           vaastuOrganisation,
           vaastuCertifications,
           remediesProvided,
-          consultationMode
+          consultationMode,
         });
         break;
         
@@ -236,7 +235,7 @@ const registerExpert = async (req, res) => {
           govtApproved,
           valuerLicenseNumber,
           valuerOrganisation,
-          valuationMethods
+          valuationMethods,
         });
         break;
         
@@ -246,7 +245,7 @@ const registerExpert = async (req, res) => {
           bankingService,
           registeredWith,
           bankName,
-          bankingGovtApproved
+          bankingGovtApproved,
         });
         break;
         
@@ -256,7 +255,7 @@ const registerExpert = async (req, res) => {
           agricultureCertifications,
           agricultureOrganisation,
           servicesProvided,
-          typesOfCrops
+          typesOfCrops,
         });
         break;
         
@@ -266,7 +265,7 @@ const registerExpert = async (req, res) => {
           documentType,
           processingTime,
           registrationGovtCertified,
-          additionalServices
+          additionalServices,
         });
         break;
         
@@ -277,7 +276,7 @@ const registerExpert = async (req, res) => {
           auditCertificationNumber,
           auditOrganisation,
           auditServices,
-          auditGovtCertified
+          auditGovtCertified,
         });
         break;
         
@@ -286,7 +285,7 @@ const registerExpert = async (req, res) => {
           licensingSpecialisations,
           licensingCertificationNumber,
           licensingOrganisation,
-          licensingServicesProvided
+          licensingServicesProvided,
         });
         break;
     }
@@ -305,18 +304,17 @@ const registerExpert = async (req, res) => {
     }
     await newExpert.save();
 
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
       message: "Expert registered successfully",
-      expert: newExpert 
+      expert: newExpert,
     });
-    
   } catch (error) {
     console.error("Expert registration error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Error registering expert",
-      error: error.message 
+      error: error.message,
     });
   }
 };

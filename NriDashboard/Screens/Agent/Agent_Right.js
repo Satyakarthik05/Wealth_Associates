@@ -179,7 +179,11 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         }
       );
       const data = await response.json();
-      const formattedProperties = data.map((item) => ({
+
+      // Filter properties to only include those with status "Done"
+      const doneProperties = data.filter((item) => item.Approved === "Done");
+
+      const formattedProperties = doneProperties.map((item) => ({
         id: item._id,
         title: item.propertyTitle,
         type: item.propertyType,
@@ -188,6 +192,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
         image: getImageByPropertyType(item.propertyType),
         createdAt: item.createdAt,
       }));
+
       setPropertiess(formattedProperties);
       setLoading(false);
     } catch (error) {
@@ -300,7 +305,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
 
   useEffect(() => {
     const fetchReferredDetails = async () => {
-      if (!Details?.ReferredBy) return;
+      if (!Details?.AddedBy) return;
 
       try {
         const response = await fetch(
@@ -312,7 +317,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
               token: (await AsyncStorage.getItem("authToken")) || "",
             },
             body: JSON.stringify({
-              referredBy: Details.ReferredBy,
+              referredBy: Details.AddedBy,
             }),
           }
         );
@@ -334,7 +339,7 @@ const Agent_Right = ({ onViewAllPropertiesClick }) => {
     };
 
     fetchReferredDetails();
-  }, [Details?.ReferredBy]);
+  }, [Details?.AddedBy]);
 
   const handleShare = (property, closeModal) => {
     const fullImageUri = property.photo ? `${API_URL}${property.photo}` : null;

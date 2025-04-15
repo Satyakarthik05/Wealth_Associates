@@ -105,35 +105,55 @@ export default function ViewAgents() {
   const loadReferrerNames = (agents = [], coreMembers = []) => {
     const names = {};
 
+    // Debug: Log input arrays
+    console.log("Agents:", agents);
+    console.log("Core Members:", coreMembers);
+
     agents.forEach((agent) => {
-      if (agent?.ReferredBy && !names[agent.ReferredBy]) {
-        names[agent.ReferredBy] = getReferrerName(
-          agent.ReferredBy,
-          agents,
-          coreMembers
-        );
+      if (agent?.ReferredBy) {
+        const referredByCode = agent.ReferredBy.trim(); // Trim whitespace
+
+        // Only lookup if not already found
+        if (!names[referredByCode]) {
+          names[referredByCode] = getReferrerName(
+            referredByCode,
+            agents,
+            coreMembers
+          );
+
+          // Debug: Log each lookup
+          console.log(`Lookup ${referredByCode}:`, names[referredByCode]);
+        }
       }
     });
 
     setReferrerNames(names);
+    console.log("Final referrer names:", names); // Debug final output
   };
 
   const getReferrerName = (referredByCode, agents = [], coreMembers = []) => {
-    if (!referredByCode) return "N/A";
+    if (!referredByCode || typeof referredByCode !== "string") return "N/A";
+
+    // Clean the input code
+    const cleanCode = referredByCode.trim().toUpperCase();
 
     try {
+      // 1. Check agents
       const agentReferrer = agents.find(
-        (a) => a?.MyRefferalCode === referredByCode
+        (a) => a?.MyRefferalCode?.trim()?.toUpperCase() === cleanCode
       );
       if (agentReferrer) return agentReferrer?.FullName || "Agent";
 
+      // 2. Check core members
       const coreReferrer = coreMembers.find(
-        (m) => m?.MyRefferalCode === referredByCode
+        (m) => m?.MyRefferalCode?.trim()?.toUpperCase() === cleanCode
       );
       if (coreReferrer) return coreReferrer?.FullName || "Core Member";
 
-      if (referredByCode === "WA0000000001") return "Wealth Associate";
+      // 3. Check special cases
+      if (cleanCode === "WA0000000001") return "Wealth Associate";
 
+      // 4. Not found
       return "Referrer not found";
     } catch (error) {
       console.error("Error in getReferrerName:", error);

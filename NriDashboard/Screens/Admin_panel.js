@@ -20,6 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../../Components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
+import ViewAllRequestedProperties from "./Properties/AllrequestedProperties"
 
 // Importing components
 import Agent_Right from "../Screens/Agent/Agent_Right";
@@ -67,6 +68,7 @@ const menuItems = [
       "View Posted Properties",
       "View Requested Properties",
       "View All Properties",
+      "ViewAllRequestedProperties"
     ],
   },
   {
@@ -138,6 +140,7 @@ const Admin_panel = () => {
   const [isNriVisible, setIsNriVisible] = useState(false);
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [isViewInvesters, setViewInvesters] = useState(false);
+  const [isViewAllRequestedProperties,setViewAllRequestedProperties]=useState(false)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android" || Platform.OS === "ios") {
@@ -203,6 +206,7 @@ const Admin_panel = () => {
     setIsViewNriVisible(false);
     setIsviewAllinvestors(false);
     setViewInvesters(false);
+    setViewAllRequestedProperties(false)
 
     if (Platform.OS === "android" || Platform.OS === "ios") {
       setIsSidebarExpanded(false);
@@ -251,6 +255,8 @@ const Admin_panel = () => {
       setIsViewNriVisible(true);
     } else if (subItem === "View Investors") {
       setViewInvesters(true);
+    } else if (subItem === "ViewAllRequestedProperties") {
+      setViewAllRequestedProperties(true);
     }
   };
 
@@ -272,6 +278,7 @@ const Admin_panel = () => {
     setIsviewAllinvestors(false);
     setIsNriVisible(false);
     setIsViewNriVisible(false);
+    setViewAllRequestedProperties(false)
   };
 
   const renderContent = () => {
@@ -290,6 +297,7 @@ const Admin_panel = () => {
     if (isViewNriVisible) return <ViewNri />;
     if (isviewAllinvestors) return <ViewAllInvesters />;
     if (isViewInvesters) return <ViewInvesters />;
+    if(isViewAllRequestedProperties) return<ViewAllRequestedProperties/>
 
     return (
       <ScrollView

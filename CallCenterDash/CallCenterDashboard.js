@@ -16,6 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomModal from "../Components/CustomModal";
 import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
+import Viewallagents from "./Screens/Agent/ViewAllAgents";
+import NewExperts from "./ExpertPanel/NewExperts";
 
 // Importing components
 import Dashboard from "./Screens/Callcentre";
@@ -29,6 +31,7 @@ import ExpertPanelReq from "./ExpertPanel/ExpertReq";
 import ViewAllInvesters from "./Screens/View/ViewAllInvestors";
 import AllSkilledLabours from "./Screens/View/AllSkilledLabours";
 import ViewNri from "./Screens/View/ViewNri";
+import ExpertPanel from "./ExpertPanel/ExpertRoute";
 
 const CallCenterDashboard = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(
@@ -49,6 +52,9 @@ const CallCenterDashboard = () => {
   const [isViewNriVisible, setIsViewNriVisible] = useState(false);
   const [details, setDetails] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
+  const [isViewallagents, setViewallagents] = useState(false);
+  const [isExpertPanel, setExpertPanel] = useState(false);
+  const [isNewExperts,setNewExperts]= useState(false)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -80,6 +86,9 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
+    setExpertPanel(false);
+    setNewExperts(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -119,6 +128,15 @@ const CallCenterDashboard = () => {
       case "View Skilled Resource":
         setIsViewSkillVisible(true);
         break;
+      case "View All Agents":
+        setViewallagents(true);
+        break;
+      case "ExpertPanel":
+        setExpertPanel(true);
+        break;
+      case "NewExperts":
+        setNewExperts(true);
+        break;
       case "View NRI Members":
         setIsViewNriVisible(true);
         break;
@@ -137,6 +155,9 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
+    setExpertPanel(false);
+    setNewExperts(false)
   };
 
   const renderContent = () => {
@@ -151,6 +172,9 @@ const CallCenterDashboard = () => {
     if (isViewSkillVisible) return <AllSkilledLabours />;
     if (isViewNriVisible) return <ViewNri />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
+    if (isViewallagents) return <Viewallagents />;
+    if (isExpertPanel) return <ExpertPanel />;
+    if(isNewExperts)return<NewExperts/>
     return <Dashboard />;
   };
 
@@ -166,6 +190,9 @@ const CallCenterDashboard = () => {
     setIsViewInvestVisible(false);
     setIsViewSkillVisible(false);
     setIsViewNriVisible(false);
+    setViewallagents(false);
+    setExpertPanel(false);
+    setNewExperts(false)
   };
 
   const getDetails = async () => {
@@ -216,7 +243,7 @@ const CallCenterDashboard = () => {
           baseMenuItems.push({
             title: "Expert Panel",
             icon: "cog-outline",
-            subItems: ["Expert Panel Requests"],
+            subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
           });
           break;
         default:
@@ -240,7 +267,7 @@ const CallCenterDashboard = () => {
             {
               title: "Expert Panel",
               icon: "cog-outline",
-              subItems: ["Expert Panel Requests"],
+              subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
             }
           );
       }
@@ -253,6 +280,7 @@ const CallCenterDashboard = () => {
           "View Skilled Resource",
           "View NRI Members",
           "View Investors",
+          "View All Agents",
         ],
       });
 

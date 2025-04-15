@@ -28,7 +28,6 @@ const ViewAllProperties = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
     location: "",
@@ -63,7 +62,7 @@ const ViewAllProperties = () => {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch(`${API_URL}/properties/getApproveProperty`);
+      const response = await fetch(`${API_URL}/properties/getsoldProperty`);
       const data = await response.json();
       if (data && Array.isArray(data)) {
         setProperties(data);
@@ -203,45 +202,54 @@ const ViewAllProperties = () => {
     }
   };
 
-  const handleSold = async (id) => {
-    const confirm = await new Promise((resolve) => {
-      if (Platform.OS === "web") {
-        resolve(
-          window.confirm("Are you sure you want to mark this property as sold?")
-        );
-      } else {
-        Alert.alert("Confirm", "Mark this property as sold?", [
-          { text: "Cancel", onPress: () => resolve(false) },
-          { text: "Mark as Sold", onPress: () => resolve(true) },
-        ]);
-      }
-    });
+  const handleApprove = async (id) => {
+    let confirmApprove;
 
-    if (!confirm) return;
+    if (Platform.OS === "web") {
+      confirmApprove = window.confirm(
+        "Are you sure you want to approve this property?"
+      );
+    } else {
+      confirmApprove = await new Promise((resolve) => {
+        Alert.alert(
+          "Confirm",
+          "Are you sure you want to approve this property?",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Approve", onPress: () => resolve(true) },
+          ]
+        );
+      });
+    }
+
+    if (!confirmApprove) return;
 
     try {
-      const response = await fetch(`${API_URL}/properties/sold/${id}`, {
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
+      const result = await response.json();
       if (response.ok) {
-        // Update the local state to reflect sold status
-        setProperties(
-          properties.map((property) =>
-            property._id === id ? { ...property, sold: true } : property
-          )
-        );
-        Alert.alert("Success", "Property marked as sold");
-
-        // If you need to refresh data, call fetchProperties directly
+        if (Platform.OS === "web") {
+          alert("Property approved successfully.");
+        } else {
+          Alert.alert("Success", "Property approved successfully.");
+        }
         fetchProperties();
       } else {
-        const error = await response.json();
-        Alert.alert("Error", error.message || "Failed to mark as sold");
+        if (Platform.OS === "web") {
+          alert(result.message || "Failed to approve.");
+        } else {
+          Alert.alert("Error", result.message || "Failed to approve.");
+        }
       }
-    } catch (err) {
-      console.error("Sold error:", err);
-      Alert.alert("Error", "Failed to mark property as sold");
+    } catch (error) {
+      console.error("Error approving property:", error);
+      Alert.alert("Error", "An error occurred while approving the property.");
     }
   };
 
@@ -427,7 +435,7 @@ const ViewAllProperties = () => {
       ) : (
         <>
           <View style={styles.header}>
-            <Text style={styles.heading}>All Properties</Text>
+            <Text style={styles.heading}>Solded Properties</Text>
             <View style={styles.filterContainer}>
               <Text style={styles.filterLabel}>Sort by:</Text>
               <View style={styles.pickerWrapper}>
@@ -483,7 +491,7 @@ const ViewAllProperties = () => {
                     >
                       <Text style={styles.buttonText}>View Details</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={[styles.button, styles.editButton]}
                       onPress={() => handleEdit(item)}
                     >
@@ -497,10 +505,10 @@ const ViewAllProperties = () => {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.button, styles.deleteButton]}
-                      onPress={() => handleSold(item._id)}
+                      // onPress={() => handleDelete(item._id)}
                     >
                       <Text style={styles.buttonText}>SoldOut</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                 </View>
               );
