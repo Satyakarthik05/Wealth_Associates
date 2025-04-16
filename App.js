@@ -13,6 +13,7 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Linking } from "react-native";
 import * as Updates from "expo-updates";
+import Constants from "expo-constants";
 import { NavigationIndependentTree } from "@react-navigation/native";
 
 // Screens (import all your screens here)
@@ -61,20 +62,39 @@ export default function App() {
   // Enhanced notification handling with Firebase support
   useEffect(() => {
     const initializeNotifications = async () => {
-      const token = await registerForPushNotificationsAsync();
-      setExpoPushToken(token);
-      if (token) {
-        await sendTokenToBackend(token, Platform.OS);
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (token) {
+          setExpoPushToken(token);
+          await sendTokenToBackend(token, Platform.OS);
+          await AsyncStorage.setItem("expoPushToken", token);
+        }
+      } catch (error) {
+        console.error("Notification initialization error:", error);
       }
     };
 
     initializeNotifications();
 
+    // Handle token refreshes
+    const tokenRefreshSubscription = Notifications.addPushTokenListener(
+      async (newToken) => {
+        console.log("Token refreshed:", newToken);
+        setExpoPushToken(newToken.data);
+        await sendTokenToBackend(newToken.data, Platform.OS);
+        await AsyncStorage.setItem("expoPushToken", newToken.data);
+      }
+    );
+
     // Foreground notification handler
     const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log("Notification received (foreground):", notification);
-        // You can handle the notification here if needed
+        // Show alert for foreground notifications
+        Alert.alert(
+          notification.request.content.title || "Notification",
+          notification.request.content.body
+        );
       }
     );
 
@@ -88,13 +108,16 @@ export default function App() {
         // Handle navigation based on notification
         const data = response.notification.request.content.data;
         if (data?.url) {
-          Linking.openURL(data.url);
+          Linking.canOpenURL(data.url).then((supported) => {
+            if (supported) Linking.openURL(data.url);
+          });
         }
       });
 
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
+      tokenRefreshSubscription.remove();
     };
   }, []);
 
@@ -326,20 +349,24 @@ export default function App() {
 // Enhanced push notification registration with Firebase support
 async function registerForPushNotificationsAsync() {
   try {
+    // Check if running on a physical device
     if (!Device.isDevice) {
       console.log("Must use physical device for Push Notifications");
       return null;
     }
 
+    // Get current permission status
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
+    // Request permission if not already granted
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
+    // If permission still not granted, show alert
     if (finalStatus !== "granted") {
       Alert.alert(
         "Permission required",
@@ -350,16 +377,18 @@ async function registerForPushNotificationsAsync() {
       return null;
     }
 
-    const token = (
-      await Notifications.getExpoPushTokenAsync({
-        projectId: "38b6a11f-476f-46f4-8263-95fe96a6d8ca",
-      })
-    ).data;
+    // Get the Expo push token
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) {
+      console.error("Project ID not found in app config");
+      return null;
+    }
 
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
+      .data;
     console.log("Expo Push Token:", token);
-    await AsyncStorage.setItem("expoPushToken", token);
 
-    // Android-specific configuration for Firebase
+    // Android-specific configuration
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -391,23 +420,36 @@ async function registerForPushNotificationsAsync() {
 // Send token to backend with device type information
 async function sendTokenToBackend(token, deviceType) {
   try {
+    const userId = await AsyncStorage.getItem("userId"); // If you have user auth
+    const appVersion = Constants.expoConfig.version || APP_VERSION;
+
     const response = await fetch(`${API_URL}/noti/register-token`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await AsyncStorage.getItem("authToken")}`,
+      },
       body: JSON.stringify({
         token,
         deviceType,
-        appVersion: APP_VERSION,
+        appVersion,
+        userId,
       }),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to register token");
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || `Failed to register token: ${response.status}`
+      );
     }
 
-    console.log("Token successfully registered with backend");
+    const data = await response.json();
+    console.log("Token registration successful:", data);
+    return true;
   } catch (error) {
-    console.error("Error sending token to backend:", error);
+    console.error("Error sending token to backend:", error.message);
+    return false;
   }
 }
 

@@ -95,21 +95,32 @@
       }
     },
     "plugins": [
-      "expo-notifications",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 33,
-            "targetSdkVersion": 33,
-            "buildToolsVersion": "33.0.0"
-          },
-          "ios": {
-            "deploymentTarget": "15.1"
-          }
-        }
-      ]
-    ],
+  [
+    "expo-notifications",
+    {
+      "icon": "./assets/logo.png",
+      "color": "#FF231F7C",
+      "androidMode": "default",
+      "androidCollapsedTitle": "WealthAssociate",
+      "androidChannelId": "default"
+    }
+  ],
+  [
+    "expo-build-properties",
+    {
+      "android": {
+        "compileSdkVersion": 34,
+        "targetSdkVersion": 34,
+        "buildToolsVersion": "34.0.0",
+        "enableProguardInReleaseBuilds": true,
+        "kotlinVersion": "1.9.0"
+      },
+      "ios": {
+        "deploymentTarget": "15.1"
+      }
+    }
+  ]
+],
     "notification": {
       "icon": "./assets/logo.png",
       "color": "#FF231F7C",
