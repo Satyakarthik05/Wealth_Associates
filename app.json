@@ -29,7 +29,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["wealthassociates"]
+            "CFBundleURLSchemes": [
+              "wealthassociates"
+            ]
           }
         ]
       }
@@ -49,7 +51,6 @@
         "RECEIVE_BOOT_COMPLETED",
         "com.google.android.c2dm.permission.RECEIVE",
         "com.anddoes.launcher.permission.UPDATE_COUNT",
-        "com.google.android.c2dm.permission.RECEIVE",
         "com.sec.android.provider.badge.permission.READ",
         "com.sec.android.provider.badge.permission.WRITE"
       ],
@@ -84,6 +85,11 @@
       "useNextNotificationsApi": true,
       "networkInspector": {
         "usesCleartextTraffic": true
+      },
+      "notification": {
+        "icon": "./assets/logo.png",
+        "color": "#FF231F7C",
+        "defaultNotificationColor": "#FF231F7C"
       }
     },
     "web": {
@@ -95,38 +101,28 @@
       }
     },
     "plugins": [
-  [
-    "expo-notifications",
-    {
-      "icon": "./assets/logo.png",
-      "color": "#FF231F7C",
-      "androidMode": "default",
-      "androidCollapsedTitle": "WealthAssociate",
-      "androidChannelId": "default"
-    }
-  ],
-  [
-    "expo-build-properties",
-    {
-      "android": {
-        "compileSdkVersion": 34,
-        "targetSdkVersion": 34,
-        "buildToolsVersion": "34.0.0",
-        "enableProguardInReleaseBuilds": true,
-        "kotlinVersion": "1.9.0"
-      },
-      "ios": {
-        "deploymentTarget": "15.1"
-      }
-    }
-  ]
-],
-    "notification": {
-      "icon": "./assets/logo.png",
-      "color": "#FF231F7C",
-      "androidMode": "default",
-      "androidCollapsedTitle": "WealthAssociate",
-      "androidChannelId": "default"
-    }
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#FF231F7C",
+          "androidMode": "default",
+          "androidCollapsedTitle": "WealthAssociate",
+          "androidChannelId": "default",
+          "defaultNotificationColor": "#FF231F7C"
+        }
+      ],
+      [
+        "@react-native-firebase/app",
+        {
+          "messagingAndroid": {
+            "notification": {
+              "color": "#FF231F7C"
+            }
+          }
+        }
+      ]
+    ],
+    "owner": "maheshvengala"
   }
 }
