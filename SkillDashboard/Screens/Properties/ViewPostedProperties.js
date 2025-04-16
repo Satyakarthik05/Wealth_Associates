@@ -143,6 +143,11 @@ const ViewPostedProperties = () => {
     }
   };
 
+  const getLastFourCharss = (id) => {
+    if (!id) return "N/A";
+    return id.length > 4 ? id.slice(-4) : id;
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
@@ -158,7 +163,9 @@ const ViewPostedProperties = () => {
                 >
                   <Text style={styles.filterButtonText}>
                     {selectedFilter
-                      ? filterOptions.find((opt) => opt.value === selectedFilter)?.label || "Select filter"
+                      ? filterOptions.find(
+                          (opt) => opt.value === selectedFilter
+                        )?.label || "Select filter"
                       : "Select filter"}
                   </Text>
                   <MaterialIcons
@@ -193,7 +200,9 @@ const ViewPostedProperties = () => {
         <ActivityIndicator size="large" color="#E82E5F" style={styles.loader} />
       ) : properties.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>You have no properties posted yet</Text>
+          <Text style={styles.emptyText}>
+            You have no properties posted yet
+          </Text>
         </View>
       ) : (
         <View style={styles.grid}>
@@ -206,6 +215,11 @@ const ViewPostedProperties = () => {
               <View key={item._id} style={styles.card}>
                 <Image source={imageUri} style={styles.image} />
                 <View style={styles.details}>
+                  <View style={styles.idContainer}>
+                    <Text style={styles.idText}>
+                      ID: {getLastFourCharss(item._id)}
+                    </Text>
+                  </View>
                   <Text style={styles.title}>{item.propertyType}</Text>
                   <Text style={styles.info}>Location: {item.location}</Text>
                   <Text style={styles.budget}>
@@ -274,7 +288,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
+    flexDirection:
+      Platform.OS === "android" || Platform.OS === "ios" ? "column" : "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
@@ -351,7 +366,19 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
   },
   loader: {
-    marginTop: 50
+    marginTop: 50,
+  },
+  idContainer: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: "flex-end",
+    margin: 5,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
   },
   emptyContainer: {
     flex: 1,
@@ -384,10 +411,10 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 150,
-    borderRadius: 8
+    borderRadius: 8,
   },
   details: {
-    marginTop: 10
+    marginTop: 10,
   },
   title: {
     fontSize: 16,
@@ -396,7 +423,7 @@ const styles = StyleSheet.create({
   },
   info: {
     fontSize: 14,
-    color: "#555"
+    color: "#555",
   },
   budget: {
     fontSize: 14,

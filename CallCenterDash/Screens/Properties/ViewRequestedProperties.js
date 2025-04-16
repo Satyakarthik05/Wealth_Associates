@@ -12,6 +12,7 @@ import {
   Alert,
   Modal,
   Pressable,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../data/ApiUrl";
@@ -21,10 +22,12 @@ const numColumns = width > 800 ? 4 : 1;
 
 const RequestedProperties = () => {
   const [properties, setProperties] = useState([]);
+  const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [referralModalVisible, setReferralModalVisible] = useState(false);
   const [referralDetails, setReferralDetails] = useState(null);
   const [referralLoading, setReferralLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchProperties = async () => {
     try {
@@ -63,6 +66,7 @@ const RequestedProperties = () => {
       }));
 
       setProperties(formattedProperties);
+      setFilteredProperties(formattedProperties); // Initialize filtered properties
       setLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -79,6 +83,18 @@ const RequestedProperties = () => {
     // Clean up interval on component unmount
     return () => clearInterval(interval);
   }, []);
+
+  // Filter properties based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredProperties(properties);
+    } else {
+      const filtered = properties.filter((property) =>
+        property.id.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredProperties(filtered);
+    }
+  }, [searchQuery, properties]);
 
   const fetchReferralDetails = async (postedByNumber) => {
     if (!postedByNumber) {
@@ -126,6 +142,9 @@ const RequestedProperties = () => {
         headers: { token: token },
       });
       setProperties(properties.filter((item) => item.id !== id));
+      setFilteredProperties(
+        filteredProperties.filter((item) => item.id !== id)
+      );
     } catch (error) {
       console.error("Error deleting property:", error);
     }
@@ -216,6 +235,19 @@ const RequestedProperties = () => {
     <View style={styles.mainContainer}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.heading}>Requested Properties</Text>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by Property ID..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#e91e63" />
@@ -223,10 +255,14 @@ const RequestedProperties = () => {
           </View>
         ) : (
           <View style={styles.grid}>
-            {properties.length === 0 ? (
-              <Text style={styles.noPropertiesText}>No properties found</Text>
+            {filteredProperties.length === 0 ? (
+              <Text style={styles.noPropertiesText}>
+                {searchQuery
+                  ? "No matching properties found"
+                  : "No properties found"}
+              </Text>
             ) : (
-              properties.map((item) => {
+              filteredProperties.map((item) => {
                 const approvalStatus = getApprovalStatus(item.approved);
                 return (
                   <View key={item.id} style={styles.card}>
@@ -371,6 +407,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: "left",
     width: "100%",
+  },
+  // Search bar styles
+  searchContainer: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    backgroundColor: "white",
   },
   grid: {
     flexDirection: "row",

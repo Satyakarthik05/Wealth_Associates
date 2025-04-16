@@ -249,52 +249,169 @@ const ViewAllProperties = () => {
     details += `*ID:* ${getLastFourChars(property._id)}\n`;
     details += `*Type:* ${property.propertyType}\n`;
     details += `*Location:* ${property.location}\n`;
-    details += `*Constituency:* ${property.Constituency || "N/A"}\n`;
     details += `*Price:* ₹${parseInt(property.price).toLocaleString()}\n`;
     details += `*Details:* ${property.propertyDetails || "N/A"}\n`;
-    details += `*Posted By:* ${property.PostedBy || "N/A"}\n`;
-    details += `*User Type:* ${property.PostedUserType || "N/A"}\n\n`;
+    // details += `*Posted By:* ${property.PostedBy || "N/A"}\n`;
+    // details += `*User Type:* ${property.PostedUserType || "N/A"}\n\n`;
 
     // Add dynamic data
     details += `*Specifications:*\n`;
-    Object.entries(property).forEach(([key, value]) => {
-      if (
-        [
-          "_id",
-          "propertyType",
-          "location",
-          "price",
-          "photo",
-          "propertyDetails",
-          "PostedBy",
-          "PostedUserType",
-          "Constituency",
-        ].includes(key)
-      ) {
-        return;
-      }
 
-      if (value && typeof value === "object" && !Array.isArray(value)) {
-        details += `\n*${key.toUpperCase()}:*\n`;
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          if (subValue !== null && subValue !== undefined && subValue !== "") {
-            const formattedKey = subKey
-              .replace(/([A-Z])/g, " $1")
-              .replace(/^./, (str) => str.toUpperCase());
-            details += `  ${formattedKey}: ${subValue}\n`;
-          }
-        });
-      } else if (value !== null && value !== undefined && value !== "") {
-        const formattedKey = key
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase());
-        details += `${formattedKey}: ${value}\n`;
-      }
-    });
+    const processObject = (obj, indent = "") => {
+      let result = "";
+      Object.entries(obj).forEach(([key, value]) => {
+        // Skip these standard fields
+        if (
+          [
+            "_id",
+            "propertyType",
+            "location",
+            "price",
+            "photo",
+            "propertyDetails",
+            "PostedBy",
+            "PostedUserType",
+            "sold",
+            "approved",
+            "__v",
+            "createdAt",
+            "updatedAt",
+            "Constituency",
+            "Posted By",
+            "User Type",
+          ].includes(key)
+        )
+          return;
 
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          const formattedKey = key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase());
+          result += `${indent}*${formattedKey}:*\n`;
+          result += processObject(value, indent + "  ");
+        } else if (Array.isArray(value)) {
+          const formattedKey = key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase());
+          result += `${indent}*${formattedKey}:*\n`;
+          value.forEach((item, i) => {
+            if (typeof item === "object") {
+              result += `${indent}  - Item ${i + 1}:\n`;
+              result += processObject(item, indent + "    ");
+            } else {
+              result += `${indent}  - ${item}\n`;
+            }
+          });
+        } else if (value !== null && value !== undefined && value !== "") {
+          const formattedKey = key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase());
+          const formattedValue =
+            value.toString() === "true"
+              ? "Yes"
+              : value.toString() === "false"
+              ? "No"
+              : value.toString();
+          result += `${indent}*${formattedKey}:* ${formattedValue}\n`;
+        }
+      });
+      return result;
+    };
+
+    details += processObject(property);
     return details;
   };
 
+  const renderDynamicData = (data) => {
+    if (!data) return null;
+
+    const processData = (obj, level = 0) => {
+      return Object.entries(obj).map(([key, value]) => {
+        // Skip these standard fields
+        if (
+          [
+            "_id",
+            "propertyType",
+            "location",
+            "price",
+            "photo",
+            "propertyDetails",
+            "PostedBy",
+            "PostedUserType",
+            "sold",
+            "approved",
+            "__v",
+            "createdAt",
+            "updatedAt",
+          ].includes(key)
+        )
+          return null;
+
+        if (value === null || value === undefined || value === "") return null;
+
+        // Format key for display
+        const formattedKey = key
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+          .replace(/([a-z])([A-Z])/g, "$1 $2");
+
+        // Handle nested objects
+        if (typeof value === "object" && !Array.isArray(value)) {
+          return (
+            <View
+              key={key}
+              style={[styles.nestedSection, { marginLeft: level * 10 }]}
+            >
+              <Text style={styles.nestedTitle}>{formattedKey}:</Text>
+              {processData(value, level + 1)}
+            </View>
+          );
+        }
+
+        // Handle arrays
+        if (Array.isArray(value)) {
+          return (
+            <View key={key} style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{formattedKey}:</Text>
+              <View style={styles.arrayContainer}>
+                {value.map((item, index) => (
+                  <View key={index}>
+                    {typeof item === "object" ? (
+                      processData(item, level + 1)
+                    ) : (
+                      <Text style={styles.detailValue}>
+                        {item.toString() === "true"
+                          ? "Yes"
+                          : item.toString() === "false"
+                          ? "No"
+                          : item.toString()}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        }
+
+        // Handle primitive values
+        return (
+          <View key={key} style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{formattedKey}:</Text>
+            <Text style={styles.detailValue}>
+              {value.toString() === "true"
+                ? "Yes"
+                : value.toString() === "false"
+                ? "No"
+                : value.toString()}
+            </Text>
+          </View>
+        );
+      });
+    };
+
+    return processData(data);
+  };
   const shareOnWhatsApp = () => {
     if (!selectedPropertyDetails) return;
 
@@ -327,97 +444,96 @@ const ViewAllProperties = () => {
     }
   };
 
-  const renderDynamicData = (data) => {
-    if (!data) return null;
+  // const renderDynamicData = (data) => {
+  //   if (!data) return null;
 
-    // Handle case where data is an array
-    if (Array.isArray(data)) {
-      return (
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Items:</Text>
-          <View style={styles.arrayContainer}>
-            {data.map((item, index) => (
-              <Text key={index} style={styles.detailValue}>
-                {typeof item === "object"
-                  ? JSON.stringify(item)
-                  : item.toString()}
-              </Text>
-            ))}
-          </View>
-        </View>
-      );
-    }
+  //   // Handle case where data is an array
+  //   if (Array.isArray(data)) {
+  //     return (
+  //       <View style={styles.detailRow}>
+  //         <Text style={styles.detailLabel}>Items:</Text>
+  //         <View style={styles.arrayContainer}>
+  //           {data.map((item, index) => (
+  //             <Text key={index} style={styles.detailValue}>
+  //               {typeof item === "object"
+  //                 ? JSON.stringify(item)
+  //                 : item.toString()}
+  //             </Text>
+  //           ))}
+  //         </View>
+  //       </View>
+  //     );
+  //   }
 
-    // Handle case where data is an object
-    return Object.entries(data).map(([key, value]) => {
-      if (value === null || value === undefined || value === "") return null;
+  //   // Handle case where data is an object
+  //   return Object.entries(data).map(([key, value]) => {
+  //     if (value === null || value === undefined || value === "") return null;
 
-      // Skip these fields as they're already displayed in basic info
-      if (
-        [
-          "_id",
-          "propertyType",
-          "location",
-          "price",
-          "photo",
-          "propertyDetails",
-          "PostedBy",
-          "PostedUserType",
-          "Constituency",
-        ].includes(key)
-      ) {
-        return null;
-      }
+  //     // Skip these fields as they're already displayed in basic info
+  //     if (
+  //       [
+  //         "_id",
+  //         "propertyType",
+  //         "location",
+  //         "price",
+  //         "photo",
+  //         "propertyDetails",
+  //         "PostedBy",
+  //         "PostedUserType",
+  //       ].includes(key)
+  //     ) {
+  //       return null;
+  //     }
 
-      // Format key for display
-      const formattedKey = key
-        .replace(/([A-Z])/g, " $1")
-        .replace(/^./, (str) => str.toUpperCase())
-        .replace(/([a-z])([A-Z])/g, "$1 $2");
+  //     // Format key for display
+  //     const formattedKey = key
+  //       .replace(/([A-Z])/g, " $1")
+  //       .replace(/^./, (str) => str.toUpperCase())
+  //       .replace(/([a-z])([A-Z])/g, "$1 $2");
 
-      // Handle nested objects (like agricultureDetails)
-      if (typeof value === "object" && !Array.isArray(value)) {
-        return (
-          <View key={key} style={styles.nestedSection}>
-            <Text style={styles.nestedTitle}>{formattedKey}:</Text>
-            {renderDynamicData(value)}
-          </View>
-        );
-      }
+  //     // Handle nested objects (like agricultureDetails)
+  //     if (typeof value === "object" && !Array.isArray(value)) {
+  //       return (
+  //         <View key={key} style={styles.nestedSection}>
+  //           <Text style={styles.nestedTitle}>{formattedKey}:</Text>
+  //           {renderDynamicData(value)}
+  //         </View>
+  //       );
+  //     }
 
-      // Handle arrays within objects
-      if (Array.isArray(value)) {
-        return (
-          <View key={key} style={styles.detailRow}>
-            <Text style={styles.detailLabel}>{formattedKey}:</Text>
-            <View style={styles.arrayContainer}>
-              {value.map((item, index) => (
-                <Text key={index} style={styles.detailValue}>
-                  {typeof item === "object"
-                    ? JSON.stringify(item)
-                    : item.toString()}
-                </Text>
-              ))}
-            </View>
-          </View>
-        );
-      }
+  //     // Handle arrays within objects
+  //     if (Array.isArray(value)) {
+  //       return (
+  //         <View key={key} style={styles.detailRow}>
+  //           <Text style={styles.detailLabel}>{formattedKey}:</Text>
+  //           <View style={styles.arrayContainer}>
+  //             {value.map((item, index) => (
+  //               <Text key={index} style={styles.detailValue}>
+  //                 {typeof item === "object"
+  //                   ? JSON.stringify(item)
+  //                   : item.toString()}
+  //               </Text>
+  //             ))}
+  //           </View>
+  //         </View>
+  //       );
+  //     }
 
-      // Handle primitive values
-      return (
-        <View key={key} style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{formattedKey}:</Text>
-          <Text style={styles.detailValue}>
-            {value.toString() === "true"
-              ? "Yes"
-              : value.toString() === "false"
-              ? "No"
-              : value.toString()}
-          </Text>
-        </View>
-      );
-    });
-  };
+  //     // Handle primitive values
+  //     return (
+  //       <View key={key} style={styles.detailRow}>
+  //         <Text style={styles.detailLabel}>{formattedKey}:</Text>
+  //         <Text style={styles.detailValue}>
+  //           {value.toString() === "true"
+  //             ? "Yes"
+  //             : value.toString() === "false"
+  //             ? "No"
+  //             : value.toString()}
+  //         </Text>
+  //       </View>
+  //     );
+  //   });
+  // };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
