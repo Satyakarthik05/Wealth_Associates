@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
     width: Platform.OS === "ios" ? "95%" : "100%",
+    maxWidth:600,
     alignSelf: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

@@ -390,25 +390,27 @@ const Register = ({ closeModal }) => {
                   />
                   {showExperienceList && (
                     <View style={styles.dropdownContainer}>
-                      {experienceOptions
-                        .filter((item) =>
-                          item.name
-                            .toLowerCase()
-                            .includes(experienceSearch.toLowerCase())
-                        )
-                        .map((item) => (
-                          <TouchableOpacity
-                            key={item.code}
-                            style={styles.listItem}
-                            onPress={() => {
-                              setExperience(item.name);
-                              setExperienceSearch(item.name);
-                              setShowExperienceList(false);
-                            }}
-                          >
-                            <Text>{item.name}</Text>
-                          </TouchableOpacity>
-                        ))}
+                      <ScrollView style={styles.scrollView}>
+                        {experienceOptions
+                          .filter((item) =>
+                            item.name
+                              .toLowerCase()
+                              .includes(experienceSearch.toLowerCase())
+                          )
+                          .map((item) => (
+                            <TouchableOpacity
+                              key={item.code}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setExperience(item.name);
+                                setExperienceSearch(item.name);
+                                setShowExperienceList(false);
+                              }}
+                            >
+                              <Text>{item.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                      </ScrollView>
                     </View>
                   )}
                 </View>

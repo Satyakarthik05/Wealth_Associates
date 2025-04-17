@@ -157,8 +157,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#5a89cc",
     borderRadius: 10,
     padding: 10,
-    margin: 10,
+    margin: "auto",
     width: "100%",
+    maxWidth: 600,
+    // marginLeft: 400,
   },
   header: {
     flexDirection: "row",

@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#f5f5f5",
     alignItems: "center",
+    marginBottom: 30,
   },
   header: {
     flexDirection:
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   grid: {
-    flexDirection: "column",
+    // flexDirection: "column",
     width: "100%",
     alignItems: "center",
   },
@@ -393,6 +394,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 8,
     width: "90%",
+
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : 300,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 0.25,

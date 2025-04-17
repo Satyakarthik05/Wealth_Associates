@@ -323,6 +323,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    maxWidth: 600,
   },
   viewShotContainer: {
     backgroundColor: "#5a89cc",

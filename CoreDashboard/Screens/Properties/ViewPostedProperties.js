@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#f5f5f5",
     alignItems: "center",
+    marginBottom: 30,
   },
   header: {
     flexDirection:
@@ -305,14 +306,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
+    width: "auto",
   },
   filterLabel: {
     fontSize: 16,
     marginRight: 10,
     color: "#191919",
+    width: "auto",
   },
   inputContainer: {
-    width: Platform.OS === "android" || Platform.OS === "ios" ? "70%" : "30%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "70%" : "50%",
     position: "relative",
     zIndex: 1,
   },
@@ -381,7 +384,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   grid: {
-    flexDirection: "column",
+    // flexDirection: Platform.OS === "android" || Platform.OS === "ios" ? "column":"row",
     width: "100%",
     alignItems: "center",
   },
@@ -390,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginVertical: 8,
-    width: "90%",
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : 300,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 0.25,
