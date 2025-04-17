@@ -7,30 +7,35 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { API_URL } from "../../../data/ApiUrl";
 
 const AgricultureForm = ({ closeModal, propertyId, initialData }) => {
   const [formData, setFormData] = useState({
-    passBook: "No",
-    oneB: "No",
-    rrsr: "No",
-    fmb: "No",
+    passBook: "",
+    oneB: "",
+    rrsr: "",
+    fmb: "",
     surveyNumber: "",
     boundaries: "",
+    extent: "",
+    exactLocation: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with initialData if provided
   useEffect(() => {
     if (initialData) {
       setFormData({
-        passBook: initialData.passBook || "No",
-        oneB: initialData.oneB || "No",
-        rrsr: initialData.rrsr || "No",
-        fmb: initialData.fmb || "No",
+        passBook: initialData.passBook || "",
+        oneB: initialData.oneB || "",
+        rrsr: initialData.rrsr || "",
+        fmb: initialData.fmb || "",
         surveyNumber: initialData.surveyNumber || "",
         boundaries: initialData.boundaries || "",
+        extent: initialData.extent || "",
+        exactLocation: initialData.exactLocation || "",
       });
     }
   }, [initialData]);
@@ -87,109 +92,134 @@ const AgricultureForm = ({ closeModal, propertyId, initialData }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Agriculture Details</Text>
-      <Text style={styles.propertyId}>Property ID: {propertyId}</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.heading}>Agriculture Details</Text>
+        <Text style={styles.propertyId}>Property ID: {propertyId}</Text>
 
-      {/* Yes/No Options */}
-      {["passBook", "oneB", "rrsr", "fmb"].map((item) => (
-        <View key={item} style={styles.optionRow}>
-          <Text style={styles.label}>
-            {item === "oneB"
-              ? "1B"
-              : item === "rrsr"
-              ? "RRSR"
-              : item === "fmb"
-              ? "FMB"
-              : "Pass Book"}
-          </Text>
+        {/* Yes/No Fields */}
+        {["passBook", "oneB", "rrsr", "fmb"].map((item) => (
+          <View key={item} style={styles.optionRow}>
+            <Text style={styles.label}>
+              {item === "oneB"
+                ? "1B"
+                : item === "rrsr"
+                ? "RRSR"
+                : item === "fmb"
+                ? "FMB"
+                : "Pass Book"}
+            </Text>
 
+            <TouchableOpacity
+              style={styles.checkOption}
+              onPress={() => handleOption(item, "Yes")}
+              disabled={isSubmitting}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  formData[item] === "Yes" && styles.checked,
+                ]}
+              >
+                {formData[item] === "Yes" && <Text style={styles.tick}>✓</Text>}
+              </View>
+              <Text>Yes</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.checkOption}
+              onPress={() => handleOption(item, "No")}
+              disabled={isSubmitting}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  formData[item] === "No" && styles.checked,
+                ]}
+              >
+                {formData[item] === "No" && <Text style={styles.tick}>✓</Text>}
+              </View>
+              <Text>No</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        {/* Survey Number */}
+        <Text style={styles.label}>Survey Number</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Survey Number"
+          value={formData.surveyNumber}
+          onChangeText={(text) => handleOption("surveyNumber", text)}
+          editable={!isSubmitting}
+        />
+
+        {/* Boundaries */}
+        <Text style={styles.label}>Boundaries</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Boundaries"
+          value={formData.boundaries}
+          onChangeText={(text) => handleOption("boundaries", text)}
+          editable={!isSubmitting}
+        />
+
+        {/* Extent */}
+        <Text style={styles.label}>Extent (in Sq. Ft or Acres)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Eg: 5000 Sq. Ft or 2 Acres"
+          value={formData.extent}
+          onChangeText={(text) => handleOption("extent", text)}
+          editable={!isSubmitting}
+        />
+
+        {/* Exact Location */}
+        <Text style={styles.label}>Exact Location</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Exact Location"
+          value={formData.exactLocation}
+          onChangeText={(text) => handleOption("exactLocation", text)}
+          editable={!isSubmitting}
+        />
+
+        {/* Buttons */}
+        <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={styles.checkOption}
-            onPress={() => handleOption(item, "Yes")}
+            style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+            onPress={handleSubmit}
             disabled={isSubmitting}
           >
-            <View
-              style={[
-                styles.checkbox,
-                formData[item] === "Yes" && styles.checked,
-              ]}
-            >
-              {formData[item] === "Yes" && <Text style={styles.tick}>✓</Text>}
-            </View>
-            <Text>Yes</Text>
+            {isSubmitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Submit</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.checkOption}
-            onPress={() => handleOption(item, "No")}
+            style={[styles.cancelButton, isSubmitting && styles.disabledButton]}
+            onPress={handleCancel}
             disabled={isSubmitting}
           >
-            <View
-              style={[
-                styles.checkbox,
-                formData[item] === "No" && styles.checked,
-              ]}
-            >
-              {formData[item] === "No" && <Text style={styles.tick}>✓</Text>}
-            </View>
-            <Text>No</Text>
+            <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
-      ))}
-
-      {/* Survey Number */}
-      <Text style={styles.label}>Survey Number</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Survey Number"
-        value={formData.surveyNumber}
-        onChangeText={(text) => handleOption("surveyNumber", text)}
-        editable={!isSubmitting}
-      />
-
-      {/* Boundaries */}
-      <Text style={styles.label}>Boundaries</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Boundaries"
-        value={formData.boundaries}
-        onChangeText={(text) => handleOption("boundaries", text)}
-        editable={!isSubmitting}
-      />
-
-      {/* Buttons */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && styles.disabledButton]}
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Submit</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.cancelButton, isSubmitting && styles.disabledButton]}
-          onPress={handleCancel}
-          disabled={isSubmitting}
-        >
-          <Text style={styles.buttonText}>Cancel</Text>
-        </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 30,
+  },
   container: {
     padding: 20,
-    alignSelf: "center",
-    width: "90%",
-    maxWidth: 400,
+    marginHorizontal: 16,
     backgroundColor: "#E3F2FD",
     borderRadius: 10,
     elevation: 2,
