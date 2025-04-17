@@ -29,6 +29,7 @@ const RequestedProperties = () => {
     propertyType: "",
     location: "",
     Budget: "",
+    islocation:"",
   });
 
   useEffect(() => {
@@ -59,6 +60,7 @@ const RequestedProperties = () => {
         title: item.propertyTitle,
         type: item.propertyType,
         location: item.location,
+        exactlocation:item.islocation,
         budget: `₹${item.Budget.toLocaleString()}`,
         image: getImageByPropertyType(item.propertyType),
       }));
@@ -91,6 +93,7 @@ const RequestedProperties = () => {
       propertyTitle: property.title,
       propertyType: property.type,
       location: property.location,
+      islocation:property.islocation,
       Budget: property.budget.replace("₹", "").replace(/,/g, ""), // Remove ₹ and commas
     });
     setEditModalVisible(true);
@@ -159,7 +162,8 @@ const RequestedProperties = () => {
                 </View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.text}>Type: {item.type}</Text>
-                <Text style={styles.text}>Location: {item.location}</Text>
+                <Text style={styles.text}>Constituency: {item.location}</Text>
+                <Text style={styles.text}>Location: {item.exactlocation}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
                 <TouchableOpacity
                   style={styles.editButton}
@@ -199,6 +203,14 @@ const RequestedProperties = () => {
               value={editedData.location}
               onChangeText={(text) =>
                 setEditedData({ ...editedData, location: text })
+              }
+              placeholder="Constituency"
+            />
+            <TextInput
+              style={styles.input}
+              value={editedData.islocation}
+              onChangeText={(text) =>
+                setEditedData({ ...editedData, islocation: text })
               }
               placeholder="Location"
             />
