@@ -51,7 +51,7 @@ const EXPO_PROJECT_ID = "a7b41893-8484-4ca0-aef0-a61ae92fe285";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false, // Changed to false to prevent sound-related issues
+    shouldPlaySound: false,
     shouldSetBadge: true,
   }),
 });
@@ -108,7 +108,6 @@ export default function App() {
           return;
         }
 
-        // Get push token with error handling
         try {
           const token = (
             await Notifications.getExpoPushTokenAsync({
