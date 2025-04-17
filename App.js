@@ -44,7 +44,7 @@ import SkilledRegister from "./Screens/Rskill";
 import { API_URL } from "./data/ApiUrl";
 
 const Stack = createStackNavigator();
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.2.1";
 const EXPO_PROJECT_ID = "38b6a11f-476f-46f4-8263-95fe96a6d8ca";
 
 // Configure notifications globally
@@ -107,7 +107,6 @@ export default function App() {
         return;
       }
 
-      // Get push token with error handling
       try {
         const token = (
           await Notifications.getExpoPushTokenAsync({
