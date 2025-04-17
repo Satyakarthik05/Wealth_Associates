@@ -77,6 +77,7 @@
       ],
       "allowBackup": true,
       "usesCleartextTraffic": true,
+      "googleServicesFile": "./google-services.json",
       "notification": {
         "icon": "./assets/logo.png",
         "color": "#FF231F7C"
@@ -98,14 +99,16 @@
           "color": "#FF231F7C",
           "androidMode": "default",
           "androidCollapsedTitle": "WealthAssociate",
-          "androidChannelId": "default"
+          "androidChannelId": "default",
+          "sounds": []
         }
       ],
       [
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": true
+            "enableProguardInReleaseBuilds": true,
+            "useNextNotificationsApi": true
           },
           "ios": {
             "useFrameworks": "static"

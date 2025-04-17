@@ -51,42 +51,85 @@ const EXPO_PROJECT_ID = "a7b41893-8484-4ca0-aef0-a61ae92fe285";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: true,
+    shouldPlaySound: false, // Changed to false to prevent sound-related issues
     shouldSetBadge: true,
   }),
 });
+
+// Deep linking configuration
+const linking = {
+  prefixes: ["https://www.wealthassociate.in"],
+  config: {
+    screens: {
+      "Main Screen": "",
+      PrivacyPolicy: "privacy_policy",
+    },
+  },
+};
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState("Main Screen");
   const [expoPushToken, setExpoPushToken] = useState("");
 
-  // Notification setup
+  // Notification setup - Modified to handle Firebase errors gracefully
   useEffect(() => {
     const initializeNotifications = async () => {
       try {
-        const token = await registerForPushNotificationsAsync();
-        if (token) {
+        // Skip if not a physical device
+        if (!Device.isDevice) {
+          console.log("Notifications not supported on simulators");
+          return;
+        }
+
+        // Set up notification channel for Android
+        if (Platform.OS === "android") {
+          await Notifications.setNotificationChannelAsync("default", {
+            name: "default",
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: "#FF231F7C",
+            sound: null, // No sound to prevent issues
+          });
+        }
+
+        // Check and request permissions
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus !== "granted") {
+          console.log("Notification permission not granted");
+          return;
+        }
+
+        // Get push token with error handling
+        try {
+          const token = (
+            await Notifications.getExpoPushTokenAsync({
+              projectId: EXPO_PROJECT_ID,
+            })
+          ).data;
+
           setExpoPushToken(token);
           await sendTokenToBackend(token, Platform.OS);
           await AsyncStorage.setItem("expoPushToken", token);
+        } catch (tokenError) {
+          console.warn("Could not get push token:", tokenError);
         }
       } catch (error) {
-        console.error("Notification error:", error);
+        console.error("Notification setup error:", error);
       }
     };
 
     initializeNotifications();
 
-    const tokenRefreshSub = Notifications.addPushTokenListener(
-      async (newToken) => {
-        console.log("Token refreshed:", newToken.data);
-        setExpoPushToken(newToken.data);
-        await sendTokenToBackend(newToken.data, Platform.OS);
-        await AsyncStorage.setItem("expoPushToken", newToken.data);
-      }
-    );
-
+    // Notification listeners
     const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
         Alert.alert(
@@ -109,25 +152,14 @@ export default function App() {
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
-      tokenRefreshSub.remove();
     };
   }, []);
-
-  // Deep linking
-  const linking = {
-    prefixes: ["https://www.wealthassociate.in"],
-    config: {
-      screens: {
-        "Main Screen": "",
-        PrivacyPolicy: "privacy_policy",
-      },
-    },
-  };
 
   // App startup logic
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Check for updates in production
         if (!__DEV__) {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
@@ -141,12 +173,14 @@ export default function App() {
           }
         }
 
+        // Version check and migration
         const storedVersion = await AsyncStorage.getItem("appVersion");
         if (storedVersion !== APP_VERSION) {
           await AsyncStorage.removeItem("authToken");
           await AsyncStorage.setItem("appVersion", APP_VERSION);
         }
 
+        // Determine initial route based on auth state
         const token = await AsyncStorage.getItem("authToken");
         const userType = await AsyncStorage.getItem("userType");
 
@@ -183,7 +217,7 @@ export default function App() {
           }
         }
       } catch (error) {
-        console.error("App init error:", error);
+        console.error("App initialization error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -327,75 +361,35 @@ export default function App() {
   );
 }
 
-// Register device for push notifications
-async function registerForPushNotificationsAsync() {
-  try {
-    if (!Device.isDevice) {
-      console.log("Physical device required for Push Notifications");
-      return null;
-    }
-
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      Alert.alert("Permission Required", "Enable notifications for updates.");
-      return null;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync({ 
-      projectId: EXPO_PROJECT_ID 
-    })).data;
-
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF231F7C",
-        sound: "default",
-        showBadge: true,
-      });
-    }
-
-    return token;
-  } catch (error) {
-    console.error("Notification registration error:", error);
-    return null;
-  }
-}
-
-// Send token to your backend
+// Helper function to send token to backend
 async function sendTokenToBackend(token, deviceType) {
   try {
     const userId = await AsyncStorage.getItem("userId");
     const appVersion = Constants.expoConfig.version || APP_VERSION;
+    const authToken = await AsyncStorage.getItem("authToken");
 
     const response = await fetch(`${API_URL}/noti/register-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${await AsyncStorage.getItem("authToken")}`,
+        Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ token, deviceType, appVersion, userId }),
+      body: JSON.stringify({
+        token,
+        deviceType,
+        appVersion,
+        userId,
+      }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      console.warn("Failed to register token:", response.status);
+      return false;
     }
 
-    const data = await response.json();
-    console.log("Push token sent successfully:", data);
     return true;
   } catch (error) {
-    console.error("Send token failed:", error.message);
+    console.error("Error sending token:", error);
     return false;
   }
 }
