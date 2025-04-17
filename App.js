@@ -45,6 +45,7 @@ import { API_URL } from "./data/ApiUrl";
 
 const Stack = createStackNavigator();
 const APP_VERSION = "1.0.1";
+const EXPO_PROJECT_ID = "a7b41893-8484-4ca0-aef0-a61ae92fe285";
 
 // Configure notifications globally
 Notifications.setNotificationHandler({
@@ -348,15 +349,9 @@ async function registerForPushNotificationsAsync() {
       return null;
     }
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-    if (!projectId) {
-      console.error("Missing EAS projectId in app config");
-      return null;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
-      .data;
-    console.log("Expo Push Token:", token);
+    const token = (await Notifications.getExpoPushTokenAsync({ 
+      projectId: EXPO_PROJECT_ID 
+    })).data;
 
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {

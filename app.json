@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "WealthAssociate",
-    "slug": "wealthassociates",
+    "slug": "wealthassociate",
     "scheme": "wealthassociates",
     "version": "1.2.0",
     "runtimeVersion": "1.2.0",
@@ -14,7 +14,7 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "url": "https://u.expo.dev/38b6a11f-476f-46f4-8263-95fe96a6d8ca",
+      "url": "https://u.expo.dev/a7b41893-8484-4ca0-aef0-a61ae92fe285",
       "enabled": true,
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"
@@ -34,10 +34,10 @@
             ]
           }
         ]
-      }
+      },
+      "usesAppleSignIn": false
     },
     "android": {
-      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
@@ -47,12 +47,7 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "INTERNET",
-        "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED",
-        "com.google.android.c2dm.permission.RECEIVE",
-        "com.anddoes.launcher.permission.UPDATE_COUNT",
-        "com.sec.android.provider.badge.permission.READ",
-        "com.sec.android.provider.badge.permission.WRITE"
+        "VIBRATE"
       ],
       "package": "com.wealthassociates.alpha",
       "versionCode": 12,
@@ -82,14 +77,9 @@
       ],
       "allowBackup": true,
       "usesCleartextTraffic": true,
-      "useNextNotificationsApi": true,
-      "networkInspector": {
-        "usesCleartextTraffic": true
-      },
       "notification": {
         "icon": "./assets/logo.png",
-        "color": "#FF231F7C",
-        "defaultNotificationColor": "#FF231F7C"
+        "color": "#FF231F7C"
       }
     },
     "web": {
@@ -97,7 +87,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "38b6a11f-476f-46f4-8263-95fe96a6d8ca"
+        "projectId": "a7b41893-8484-4ca0-aef0-a61ae92fe285"
       }
     },
     "plugins": [
@@ -108,21 +98,20 @@
           "color": "#FF231F7C",
           "androidMode": "default",
           "androidCollapsedTitle": "WealthAssociate",
-          "androidChannelId": "default",
-          "defaultNotificationColor": "#FF231F7C"
+          "androidChannelId": "default"
         }
       ],
       [
-        "@react-native-firebase/app",
+        "expo-build-properties",
         {
-          "messagingAndroid": {
-            "notification": {
-              "color": "#FF231F7C"
-            }
+          "android": {
+            "enableProguardInReleaseBuilds": true
+          },
+          "ios": {
+            "useFrameworks": "static"
           }
         }
       ]
-    ],
-    "owner": "maheshvengala"
+    ]
   }
 }
