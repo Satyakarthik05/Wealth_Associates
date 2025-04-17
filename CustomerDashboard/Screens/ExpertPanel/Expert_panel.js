@@ -26,12 +26,12 @@ const data = [
   },
   {
     id: "4",
-    title: "ARCHITECTS",
+    title: "INTERIOR & ARCHITECTS",
     icon: "https://img.icons8.com/ios/100/blueprint.png",
   },
   {
     id: "5",
-    title: "SURVEY",
+    title: "SURVEY & PLANNING",
     icon: "https://img.icons8.com/ios/100/survey.png",
   },
   {
