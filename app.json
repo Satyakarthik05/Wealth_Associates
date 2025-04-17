@@ -47,7 +47,9 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "INTERNET",
-        "VIBRATE"
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
       ],
       "package": "com.wealthassociates.alpha",
       "versionCode": 12,
