@@ -44,14 +44,14 @@ import SkilledRegister from "./Screens/Rskill";
 import { API_URL } from "./data/ApiUrl";
 
 const Stack = createStackNavigator();
-const APP_VERSION = "1.0.1";
-const EXPO_PROJECT_ID = "a7b41893-8484-4ca0-aef0-a61ae92fe285";
+const APP_VERSION = "1.2.0";
+const EXPO_PROJECT_ID = "38b6a11f-476f-46f4-8263-95fe96a6d8ca";
 
 // Configure notifications globally
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false, // Changed to false to prevent sound-related issues
+    shouldPlaySound: false,
     shouldSetBadge: true,
   }),
 });
@@ -72,64 +72,62 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState("Main Screen");
   const [expoPushToken, setExpoPushToken] = useState("");
 
-  // Notification setup - Modified to handle Firebase errors gracefully
-  useEffect(() => {
-    const initializeNotifications = async () => {
-      try {
-        // Skip if not a physical device
-        if (!Device.isDevice) {
-          console.log("Notifications not supported on simulators");
-          return;
-        }
-
-        // Set up notification channel for Android
-        if (Platform.OS === "android") {
-          await Notifications.setNotificationChannelAsync("default", {
-            name: "default",
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: "#FF231F7C",
-            sound: null, // No sound to prevent issues
-          });
-        }
-
-        // Check and request permissions
-        const { status: existingStatus } =
-          await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-
-        if (existingStatus !== "granted") {
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
-        }
-
-        if (finalStatus !== "granted") {
-          console.log("Notification permission not granted");
-          return;
-        }
-
-        // Get push token with error handling
-        try {
-          const token = (
-            await Notifications.getExpoPushTokenAsync({
-              projectId: EXPO_PROJECT_ID,
-            })
-          ).data;
-
-          setExpoPushToken(token);
-          await sendTokenToBackend(token, Platform.OS);
-          await AsyncStorage.setItem("expoPushToken", token);
-        } catch (tokenError) {
-          console.warn("Could not get push token:", tokenError);
-        }
-      } catch (error) {
-        console.error("Notification setup error:", error);
+  // Helper function to handle notification permission
+  const requestNotificationPermission = async () => {
+    try {
+      // Skip if not a physical device
+      if (!Device.isDevice) {
+        console.log("Notifications not supported on simulators");
+        return;
       }
-    };
 
-    initializeNotifications();
+      // Set up notification channel for Android
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "default",
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF231F7C",
+          sound: null,
+        });
+      }
 
-    // Notification listeners
+      // Check and request permissions
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.log("Notification permission not granted");
+        return;
+      }
+
+      // Get push token with error handling
+      try {
+        const token = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId: EXPO_PROJECT_ID,
+          })
+        ).data;
+
+        setExpoPushToken(token);
+        await sendTokenToBackend(token, Platform.OS);
+        await AsyncStorage.setItem("expoPushToken", token);
+      } catch (tokenError) {
+        console.warn("Could not get push token:", tokenError);
+      }
+    } catch (error) {
+      console.error("Notification setup error:", error);
+    }
+  };
+
+  // Notification listeners setup
+  useEffect(() => {
     const notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
         Alert.alert(
@@ -177,7 +175,17 @@ export default function App() {
         const storedVersion = await AsyncStorage.getItem("appVersion");
         if (storedVersion !== APP_VERSION) {
           await AsyncStorage.removeItem("authToken");
+          await AsyncStorage.removeItem("expoPushToken");
           await AsyncStorage.setItem("appVersion", APP_VERSION);
+
+          // Request notification permission when version changes
+          await requestNotificationPermission();
+        } else {
+          // Also request permission if we don't have a token stored
+          const existingToken = await AsyncStorage.getItem("expoPushToken");
+          if (!existingToken) {
+            await requestNotificationPermission();
+          }
         }
 
         // Determine initial route based on auth state
