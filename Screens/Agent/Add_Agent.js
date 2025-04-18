@@ -411,19 +411,21 @@ const Add_Agent = ({ closeModal }) => {
                     />
                     {showExperienceList && (
                       <View style={styles.dropdownContainer}>
-                        {filteredExperience.map((item) => (
-                          <TouchableOpacity
-                            key={item.code}
-                            style={styles.listItem}
-                            onPress={() => {
-                              setExperience(item.name);
-                              setExperienceSearch(item.name);
-                              setShowExperienceList(false);
-                            }}
-                          >
-                            <Text>{item.name}</Text>
-                          </TouchableOpacity>
-                        ))}
+                        <ScrollView style={styles.scrollView}>
+                          {filteredExperience.map((item) => (
+                            <TouchableOpacity
+                              key={item.code}
+                              style={styles.listItem}
+                              onPress={() => {
+                                setExperience(item.name);
+                                setExperienceSearch(item.name);
+                                setShowExperienceList(false);
+                              }}
+                            >
+                              <Text>{item.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
                       </View>
                     )}
                   </View>
