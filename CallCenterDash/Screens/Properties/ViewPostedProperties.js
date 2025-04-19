@@ -102,6 +102,42 @@ const ViewAssignedProperties = () => {
     }
   }, [API_URL]);
 
+  const handleApprove = async (id) => {
+    const confirm = await new Promise((resolve) => {
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to approve this property?")
+        );
+      } else {
+        Alert.alert("Confirm Approval", "Approve this property?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Approve", onPress: () => resolve(true) },
+        ]);
+      }
+    });
+
+    if (!confirm) return;
+
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+        method: "POST",
+        headers: { token },
+      });
+
+      if (response.ok) {
+        await fetchData();
+        Alert.alert("Success", "Property approved successfully");
+      } else {
+        const error = await response.json();
+        Alert.alert("Error", error.message || "Approval failed");
+      }
+    } catch (err) {
+      console.error("Approve error:", err);
+      Alert.alert("Error", "Failed to approve property");
+    }
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
