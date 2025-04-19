@@ -62,9 +62,6 @@ const ViewAssignedProperties = () => {
     }
   };
 
-  // Add this function near your other handler functions (around line 200 in your code)
-
-  // Fetch data with error handling
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -80,7 +77,6 @@ const ViewAssignedProperties = () => {
         throw new Error(result.message || "Failed to fetch properties");
       }
 
-      // Update state with the response data
       setProperties(result.data || []);
       setExecutiveInfo(result.executiveInfo || null);
 
