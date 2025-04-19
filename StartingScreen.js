@@ -96,7 +96,7 @@ const StartingScreen = () => {
             <TouchableOpacity
               key={index}
               style={styles.button}
-              onPress={() => navigation.navigate(option.navigateTo)} // Navigate based on option
+              onPress={() => navigation.navigate(option.navigateTo)}
             >
               {option.icon}
               <Text style={styles.buttonText}>{option.name}</Text>

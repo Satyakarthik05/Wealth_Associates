@@ -51,7 +51,7 @@ const EXPO_PROJECT_ID = "38b6a11f-476f-46f4-8263-95fe96a6d8ca";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
+    shouldPlaySound: true,
     shouldSetBadge: true,
   }),
 });
@@ -92,7 +92,6 @@ export default function App() {
         });
       }
 
-      // Check and request permissions
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
@@ -127,15 +126,6 @@ export default function App() {
 
   // Notification listeners setup
   useEffect(() => {
-    const notificationListener = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        Alert.alert(
-          notification.request.content.title || "Notification",
-          notification.request.content.body
-        );
-      }
-    );
-
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data;

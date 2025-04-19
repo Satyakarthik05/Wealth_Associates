@@ -185,7 +185,8 @@ const ViewAssignedProperties = () => {
       type.includes("apartment") ||
       type.includes("individualhouse") ||
       type.includes("villa") ||
-      type.includes("house")
+      type.includes("house") ||
+      type.includes("commercial property")
     ) {
       setCurrentUpdateModal("house");
     }
@@ -197,7 +198,7 @@ const ViewAssignedProperties = () => {
     else if (
       type.includes("land") ||
       type.includes("agricultural") ||
-      type.includes("commercial")
+      type.includes("commercial land")
     ) {
       setCurrentUpdateModal("agriculture");
     }
