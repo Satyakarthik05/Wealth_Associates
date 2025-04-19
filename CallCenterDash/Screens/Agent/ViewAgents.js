@@ -17,7 +17,10 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../../data/ApiUrl";
+import logo1 from "../../../assets/man.png";
 
 const { width } = Dimensions.get("window");
 
@@ -33,7 +36,12 @@ export default function ViewAgents() {
     Contituency: "",
     MobileNumber: "",
     MyRefferalCode: "",
+    AadhaarNumber: "",
+    PANNumber: "",
+    BankAccountNumber: "",
   });
+  const [photo, setPhoto] = useState(null);
+  const [file, setFile] = useState(null);
   const [districts, setDistricts] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,56 +112,45 @@ export default function ViewAgents() {
 
   const loadReferrerNames = (agents = [], coreMembers = []) => {
     const names = {};
-
-    // Debug: Log input arrays
     console.log("Agents:", agents);
     console.log("Core Members:", coreMembers);
 
     agents.forEach((agent) => {
       if (agent?.ReferredBy) {
-        const referredByCode = agent.ReferredBy.trim(); // Trim whitespace
-
-        // Only lookup if not already found
+        const referredByCode = agent.ReferredBy.trim();
         if (!names[referredByCode]) {
           names[referredByCode] = getReferrerName(
             referredByCode,
             agents,
             coreMembers
           );
-
-          // Debug: Log each lookup
           console.log(`Lookup ${referredByCode}:`, names[referredByCode]);
         }
       }
     });
 
     setReferrerNames(names);
-    console.log("Final referrer names:", names); // Debug final output
+    console.log("Final referrer names:", names);
   };
 
   const getReferrerName = (referredByCode, agents = [], coreMembers = []) => {
     if (!referredByCode || typeof referredByCode !== "string") return "N/A";
 
-    // Clean the input code
     const cleanCode = referredByCode.trim().toUpperCase();
 
     try {
-      // 1. Check agents
       const agentReferrer = agents.find(
         (a) => a?.MyRefferalCode?.trim()?.toUpperCase() === cleanCode
       );
       if (agentReferrer) return agentReferrer?.FullName || "Agent";
 
-      // 2. Check core members
       const coreReferrer = coreMembers.find(
         (m) => m?.MyRefferalCode?.trim()?.toUpperCase() === cleanCode
       );
       if (coreReferrer) return coreReferrer?.FullName || "Core Member";
 
-      // 3. Check special cases
       if (cleanCode === "WA0000000001") return "Wealth Associate";
 
-      // 4. Not found
       return "Referrer not found";
     } catch (error) {
       console.error("Error in getReferrerName:", error);
@@ -259,6 +256,69 @@ export default function ViewAgents() {
     }
   };
 
+  const selectImageFromGallery = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            setPhoto(imageUrl);
+            setFile(file);
+          }
+        };
+        input.click();
+      } else {
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.status !== "granted") {
+          Alert.alert("Permission is required to upload a photo.");
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setPhoto(result.assets[0].uri);
+        }
+      }
+    } catch (error) {
+      console.error("Error selecting image from gallery:", error);
+      Alert.alert("Error", "Failed to select image");
+    }
+  };
+
+  const takePhotoWithCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("Camera permission is required to take a photo.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error opening camera:", error);
+      Alert.alert("Error", "Failed to take photo");
+    }
+  };
+
   const handleEditAgent = (agent) => {
     setSelectedAgent(agent);
     setEditedAgent({
@@ -267,7 +327,11 @@ export default function ViewAgents() {
       Contituency: agent.Contituency,
       MobileNumber: agent.MobileNumber,
       MyRefferalCode: agent.MyRefferalCode,
+      AadhaarNumber: agent.AadhaarNumber || "",
+      PANNumber: agent.PANNumber || "",
+      BankAccountNumber: agent.BankAccountNumber || "",
     });
+    setPhoto(agent.photoUrl || null);
 
     if (agent.District) {
       const district = districts.find((d) => d.parliament === agent.District);
@@ -289,6 +353,40 @@ export default function ViewAgents() {
   const handleSaveEditedAgent = async () => {
     try {
       const token = await getAuthToken();
+      const formData = new FormData();
+
+      formData.append("FullName", editedAgent.FullName);
+      formData.append("District", editedAgent.District);
+      formData.append("Contituency", editedAgent.Contituency);
+      formData.append("MobileNumber", editedAgent.MobileNumber);
+      formData.append("MyRefferalCode", editedAgent.MyRefferalCode);
+      formData.append("AadhaarNumber", editedAgent.AadhaarNumber);
+      formData.append("PANNumber", editedAgent.PANNumber);
+      formData.append("BankAccountNumber", editedAgent.BankAccountNumber);
+
+      if (photo) {
+        if (Platform.OS === "web") {
+          if (file) {
+            formData.append("photo", file);
+          } else if (typeof photo === "string" && photo.startsWith("blob:")) {
+            const response = await fetch(photo);
+            const blob = await response.blob();
+            const file = new File([blob], "photo.jpg", { type: blob.type });
+            formData.append("photo", file);
+          }
+        } else {
+          const localUri = photo;
+          const filename = localUri.split("/").pop();
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image`;
+
+          formData.append("photo", {
+            uri: localUri,
+            name: filename,
+            type,
+          });
+        }
+      }
 
       const response = await fetch(
         `${API_URL}/agent/updateagent/${selectedAgent._id}`,
@@ -296,9 +394,8 @@ export default function ViewAgents() {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
-          body: JSON.stringify(editedAgent),
+          body: formData,
         }
       );
 
@@ -436,7 +533,9 @@ export default function ViewAgents() {
                 ]}
               >
                 <Image
-                  source={require("../../../assets/man.png")}
+                  source={
+                    agent.photo ? { uri: `${API_URL}${agent.photo}` } : logo1
+                  }
                   style={styles.avatar}
                 />
                 <View style={styles.infoContainer}>
@@ -475,6 +574,26 @@ export default function ViewAgents() {
                       <Text style={styles.label}>Referred By</Text>
                       <Text style={styles.value}>
                         : {referrerNames[agent.ReferredBy] || "Loading..."}
+                      </Text>
+                    </View>
+                  )}
+                  {agent.AadhaarNumber && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Aadhaar</Text>
+                      <Text style={styles.value}>: {agent.AadhaarNumber}</Text>
+                    </View>
+                  )}
+                  {agent.PANNumber && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>PAN</Text>
+                      <Text style={styles.value}>: {agent.PANNumber}</Text>
+                    </View>
+                  )}
+                  {agent.BankAccountNumber && (
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Bank Account</Text>
+                      <Text style={styles.value}>
+                        : {agent.BankAccountNumber}
                       </Text>
                     </View>
                   )}
@@ -531,95 +650,174 @@ export default function ViewAgents() {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Edit Agent</Text>
 
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              value={editedAgent.FullName}
-              onChangeText={(text) =>
-                setEditedAgent({ ...editedAgent, FullName: text })
-              }
-            />
+            <ScrollView>
+              <View style={styles.uploadSection}>
+                <Text style={styles.inputLabel}>Passport Size Photo</Text>
+                {photo ? (
+                  <View style={styles.photoContainer}>
+                    <Image
+                      source={{ uri: photo }}
+                      style={styles.uploadedImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => setPhoto(null)}
+                    >
+                      <Text style={styles.removeButtonText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.uploadOptions}>
+                    <TouchableOpacity
+                      style={styles.uploadButton}
+                      onPress={selectImageFromGallery}
+                    >
+                      <MaterialIcons
+                        name="photo-library"
+                        size={24}
+                        color="#555"
+                      />
+                      <Text style={styles.uploadButtonText}>Gallery</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.uploadButton}
+                      onPress={takePhotoWithCamera}
+                    >
+                      <MaterialIcons name="camera-alt" size={24} color="#555" />
+                      <Text style={styles.uploadButtonText}>Camera</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
 
-            <Text style={styles.inputLabel}>District</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={editedAgent.District}
-                onValueChange={handleDistrictChange}
-                style={styles.picker}
-                dropdownIconColor="#000"
-              >
-                <Picker.Item label="Select District" value="" />
-                {districts.map((district) => (
-                  <Picker.Item
-                    key={district.parliament}
-                    label={district.parliament}
-                    value={district.parliament}
-                  />
-                ))}
-              </Picker>
-            </View>
+              <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                value={editedAgent.FullName}
+                onChangeText={(text) =>
+                  setEditedAgent({ ...editedAgent, FullName: text })
+                }
+              />
 
-            <Text style={styles.inputLabel}>Constituency</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={editedAgent.Contituency}
-                onValueChange={(itemValue) => {
+              <Text style={styles.inputLabel}>Aadhaar Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Aadhaar Number"
+                value={editedAgent.AadhaarNumber}
+                onChangeText={(text) =>
+                  setEditedAgent({ ...editedAgent, AadhaarNumber: text })
+                }
+                keyboardType="numeric"
+                maxLength={12}
+              />
+
+              <Text style={styles.inputLabel}>PAN Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="PAN Number"
+                value={editedAgent.PANNumber}
+                onChangeText={(text) =>
                   setEditedAgent({
                     ...editedAgent,
-                    Contituency: itemValue,
-                  });
-                }}
-                style={styles.picker}
-                dropdownIconColor="#000"
-                enabled={!!editedAgent.District}
-              >
-                <Picker.Item label="Select Constituency" value="" />
-                {constituencies.map((constituency) => (
-                  <Picker.Item
-                    key={constituency.name}
-                    label={constituency.name}
-                    value={constituency.name}
-                  />
-                ))}
-              </Picker>
-            </View>
+                    PANNumber: text.toUpperCase(),
+                  })
+                }
+                maxLength={10}
+              />
 
-            <Text style={styles.inputLabel}>Mobile Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Mobile Number"
-              value={editedAgent.MobileNumber}
-              onChangeText={(text) =>
-                setEditedAgent({ ...editedAgent, MobileNumber: text })
-              }
-              keyboardType="phone-pad"
-            />
+              <Text style={styles.inputLabel}>Bank Account Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Bank Account Number"
+                value={editedAgent.BankAccountNumber}
+                onChangeText={(text) =>
+                  setEditedAgent({ ...editedAgent, BankAccountNumber: text })
+                }
+                keyboardType="numeric"
+              />
 
-            <Text style={styles.inputLabel}>Referral Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Referral Code"
-              value={editedAgent.MyRefferalCode}
-              onChangeText={(text) =>
-                setEditedAgent({ ...editedAgent, MyRefferalCode: text })
-              }
-            />
+              <Text style={styles.inputLabel}>Mobile Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Mobile Number"
+                value={editedAgent.MobileNumber}
+                onChangeText={(text) =>
+                  setEditedAgent({ ...editedAgent, MobileNumber: text })
+                }
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
 
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setEditModalVisible(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={handleSaveEditedAgent}
-              >
-                <Text style={styles.modalButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
+              <Text style={styles.inputLabel}>Referral Code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Referral Code"
+                value={editedAgent.MyRefferalCode}
+                onChangeText={(text) =>
+                  setEditedAgent({ ...editedAgent, MyRefferalCode: text })
+                }
+              />
+
+              <Text style={styles.inputLabel}>District</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={editedAgent.District}
+                  onValueChange={handleDistrictChange}
+                  style={styles.picker}
+                  dropdownIconColor="#000"
+                >
+                  <Picker.Item label="Select District" value="" />
+                  {districts.map((district) => (
+                    <Picker.Item
+                      key={district.parliament}
+                      label={district.parliament}
+                      value={district.parliament}
+                    />
+                  ))}
+                </Picker>
+              </View>
+
+              <Text style={styles.inputLabel}>Constituency</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={editedAgent.Contituency}
+                  onValueChange={(itemValue) => {
+                    setEditedAgent({
+                      ...editedAgent,
+                      Contituency: itemValue,
+                    });
+                  }}
+                  style={styles.picker}
+                  dropdownIconColor="#000"
+                  enabled={!!editedAgent.District}
+                >
+                  <Picker.Item label="Select Constituency" value="" />
+                  {constituencies.map((constituency) => (
+                    <Picker.Item
+                      key={constituency.name}
+                      label={constituency.name}
+                      value={constituency.name}
+                    />
+                  ))}
+                </Picker>
+              </View>
+
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setEditModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleSaveEditedAgent}
+                >
+                  <Text style={styles.modalButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -801,6 +999,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    height: "90%",
   },
   modalTitle: {
     fontSize: 20,
@@ -860,5 +1059,46 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  uploadSection: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  photoContainer: {
+    alignItems: "center",
+  },
+  uploadedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#2196F3",
+  },
+  uploadOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  uploadButton: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#f0f0f0",
+    width: "45%",
+  },
+  uploadButtonText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: "#555",
+  },
+  removeButton: {
+    backgroundColor: "#ff4444",
+    padding: 8,
+    borderRadius: 5,
+  },
+  removeButtonText: {
+    color: "white",
+    fontSize: 12,
   },
 });

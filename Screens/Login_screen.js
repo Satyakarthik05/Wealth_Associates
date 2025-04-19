@@ -28,10 +28,9 @@ export default function Login_screen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
   const [adminData, setAdminData] = useState(null);
-  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAdminData();

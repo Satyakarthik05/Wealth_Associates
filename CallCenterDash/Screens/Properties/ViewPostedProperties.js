@@ -62,9 +62,6 @@ const ViewAssignedProperties = () => {
     }
   };
 
-  // Add this function near your other handler functions (around line 200 in your code)
-
-  // Fetch data with error handling
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -80,7 +77,6 @@ const ViewAssignedProperties = () => {
         throw new Error(result.message || "Failed to fetch properties");
       }
 
-      // Update state with the response data
       setProperties(result.data || []);
       setExecutiveInfo(result.executiveInfo || null);
 
@@ -186,7 +182,7 @@ const ViewAssignedProperties = () => {
       type.includes("individualhouse") ||
       type.includes("villa") ||
       type.includes("house") ||
-      type.includes("commercial")
+      type.includes("commercial property")
     ) {
       setCurrentUpdateModal("house");
     }
@@ -195,7 +191,11 @@ const ViewAssignedProperties = () => {
       setCurrentUpdateModal("land");
     }
     // Handle agricultural properties
-    else if (type.includes("land") || type.includes("agricultural")) {
+    else if (
+      type.includes("land") ||
+      type.includes("agricultural") ||
+      type.includes("commercial land")
+    ) {
       setCurrentUpdateModal("agriculture");
     }
 
@@ -278,13 +278,19 @@ const ViewAssignedProperties = () => {
     }
   };
 
-  // Delete property handler
   const handleDelete = async (id) => {
+    // Confirmation dialog
     const confirm = await new Promise((resolve) => {
-      Alert.alert("Confirm", "Delete this property?", [
-        { text: "Cancel", onPress: () => resolve(false) },
-        { text: "Delete", onPress: () => resolve(true) },
-      ]);
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to delete this property?")
+        );
+      } else {
+        Alert.alert("Confirm", "Delete this property?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Delete", onPress: () => resolve(true) },
+        ]);
+      }
     });
 
     if (!confirm) return;
@@ -296,53 +302,35 @@ const ViewAssignedProperties = () => {
         headers: { token },
       });
 
-      if (response.ok) {
+      const responseData = await response.json();
+
+      if (response.status >= 200 && response.status < 300) {
         await fetchData();
-        Alert.alert("Success", "Property deleted");
+        if (Platform.OS === "web") {
+          window.alert("Success: Property deleted successfully");
+        } else {
+          Alert.alert("Success", "Property deleted successfully");
+        }
       } else {
-        const error = await response.json();
-        Alert.alert("Error", error.message || "Delete failed");
+        const message =
+          responseData.message ||
+          `Delete failed with status ${response.status}`;
+        if (Platform.OS === "web") {
+          window.alert(`Error: ${message}`);
+        } else {
+          Alert.alert("Error", message);
+        }
       }
     } catch (err) {
       console.error("Delete error:", err);
-      Alert.alert("Error", "Failed to delete");
-    }
-  };
-
-  // Approve property handler
-  const handleApprove = async (id) => {
-    const confirm = await new Promise((resolve) => {
+      const message =
+        err.message ||
+        "Failed to delete property. Please check your connection.";
       if (Platform.OS === "web") {
-        resolve(
-          window.confirm("Are you sure you want to approve this property?")
-        );
+        window.alert(`Error: ${message}`);
       } else {
-        Alert.alert("Confirm Approval", "Approve this property?", [
-          { text: "Cancel", onPress: () => resolve(false) },
-          { text: "Approve", onPress: () => resolve(true) },
-        ]);
+        Alert.alert("Error", message);
       }
-    });
-
-    if (!confirm) return;
-
-    try {
-      const token = await getAuthToken();
-      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
-        method: "POST",
-        headers: { token },
-      });
-
-      if (response.ok) {
-        await fetchData();
-        Alert.alert("Success", "Property approved successfully");
-      } else {
-        const error = await response.json();
-        Alert.alert("Error", error.message || "Approval failed");
-      }
-    } catch (err) {
-      console.error("Approve error:", err);
-      Alert.alert("Error", "Failed to approve property");
     }
   };
 

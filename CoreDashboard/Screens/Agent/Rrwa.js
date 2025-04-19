@@ -411,6 +411,7 @@ const RegisterEx = ({ closeModal }) => {
                     />
                     {showExperienceList && (
                       <View style={styles.dropdownContainer}>
+                         <ScrollView style={styles.scrollView}>
                         {filteredExperience.map((item) => (
                           <TouchableOpacity
                             key={item.code}
@@ -423,7 +424,7 @@ const RegisterEx = ({ closeModal }) => {
                           >
                             <Text>{item.name}</Text>
                           </TouchableOpacity>
-                        ))}
+                        ))}</ScrollView>
                       </View>
                     )}
                   </View>
@@ -510,7 +511,6 @@ const RegisterEx = ({ closeModal }) => {
                         setShowExperienceList(false);
                       }}
                       value={referralCode}
-                      editable={false}
                     />
                     <MaterialIcons
                       name="card-giftcard"

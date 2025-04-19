@@ -36,19 +36,23 @@ const PlatformCheckbox = ({ label, status, onPress }) => {
 
 const PropertyForm = ({ closeModal, propertyId, initialData }) => {
   const [formData, setFormData] = useState({
+    FlatLocation: "",
     bhk: "",
     area: "",
     carpetArea: "",
     totalArea: "",
+    floors: "",
+    portions: "",
     furnishing: null,
     projectStatus: null,
     facing: null,
     carParking: null,
-    blankLane: null,
+    BankLoanFacility: null,
     facilities: {
       water: false,
       vastu: false,
       documents: false,
+      lift: false,
     },
   });
 
@@ -57,19 +61,23 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
   useEffect(() => {
     if (initialData) {
       setFormData({
+        FlatLocation: initialData.FlatLocation || "",
         bhk: initialData.bhk || "",
         area: initialData.area || "",
         carpetArea: initialData.carpetArea || "",
         totalArea: initialData.totalArea || "",
+        floors: initialData.floors || "",
+        portions: initialData.portions || "",
         furnishing: initialData.furnishing || null,
         projectStatus: initialData.projectStatus || null,
         facing: initialData.facing || null,
         carParking: initialData.carParking || null,
-        blankLane: initialData.blankLane || null,
+        BankLoanFacility: initialData.BankLoanFacility || null,
         facilities: {
           water: initialData.facilities?.water || false,
           vastu: initialData.facilities?.vastu || false,
           documents: initialData.facilities?.documents || false,
+          lift: initialData.lift?.lift || false,
         },
       });
     }
@@ -144,6 +152,22 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
         value={formData.area}
         onChangeText={(text) => handleInputChange("area", text)}
       />
+      <Text style={styles.heading}>No of floors</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="No of floors"
+        keyboardType="numeric"
+        value={formData.floors}
+        onChangeText={(text) => handleInputChange("floors", text)}
+      />
+      <Text style={styles.heading}>No of Portions</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="No of portions"
+        keyboardType="numeric"
+        value={formData.portions}
+        onChangeText={(text) => handleInputChange("portions", text)}
+      />
 
       {/* Furnishing Checkboxes */}
       <Text style={styles.heading}>Furnishing</Text>
@@ -181,23 +205,13 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
         ))}
       </View>
 
-      {/* Property Facing */}
-      <Text style={styles.heading}>Property Facing</Text>
-      <View style={styles.checkboxContainer}>
-        {["East", "West", "North", "South", "Corner"].map((direction) => (
-          <PlatformCheckbox
-            key={direction}
-            label={direction}
-            status={formData.facing === direction ? "checked" : "unchecked"}
-            onPress={() =>
-              handleInputChange(
-                "facing",
-                formData.facing === direction ? null : direction
-              )
-            }
-          />
-        ))}
-      </View>
+      <Text style={styles.heading}>Facing Direction</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Facing Direction"
+        value={formData.direction}
+        onChangeText={(value) => handleInputChange("direction", value)}
+      />
 
       {/* Carpet Area */}
       <Text style={styles.heading}>Carpet Area (sq. ft)</Text>
@@ -234,6 +248,7 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
           { label: "24-hour Water Supply", key: "water" },
           { label: "100% Vastu", key: "vastu" },
           { label: "Clear Title & Documents", key: "documents" },
+          { label: "lift", key: "lift" },
         ].map(({ label, key }) => (
           <PlatformCheckbox
             key={key}
@@ -243,6 +258,13 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
           />
         ))}
       </View>
+      <Text style={styles.heading}>Flat/Apartment Location</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Flat Location"
+        value={formData.FlatLocation}
+        onChangeText={(value) => handleInputChange("FlatLocation", value)}
+      />
 
       {/* Blank Lane Facility */}
       <Text style={styles.heading}>Bank Loan Facility</Text>
@@ -251,11 +273,13 @@ const PropertyForm = ({ closeModal, propertyId, initialData }) => {
           <PlatformCheckbox
             key={option}
             label={option}
-            status={formData.blankLane === option ? "checked" : "unchecked"}
+            status={
+              formData.BankLoanFacility === option ? "checked" : "unchecked"
+            }
             onPress={() =>
               handleInputChange(
-                "blankLane",
-                formData.blankLane === option ? null : option
+                "BankLoanFacility",
+                formData.BankLoanFacility === option ? null : option
               )
             }
           />

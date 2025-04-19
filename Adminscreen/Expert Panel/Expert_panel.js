@@ -26,12 +26,12 @@ const data = [
   },
   {
     id: "4",
-    title: "ARCHITECTS",
+    title: "INTERIOR & ARCHITECTS",
     icon: "https://img.icons8.com/ios/100/blueprint.png",
   },
   {
     id: "5",
-    title: "SURVEY",
+    title: "SURVEY & PLANNING",
     icon: "https://img.icons8.com/ios/100/survey.png",
   },
   {
@@ -61,12 +61,12 @@ const data = [
   },
   {
     id: "11",
-    title: "DESIGNING",
+    title: "AUDITING",
     icon: "https://img.icons8.com/ios/100/paint-brush.png",
   },
   {
     id: "12",
-    title: "MATERIALS &\nCONTRACTS",
+    title: "LIAISONING",
     icon: "https://img.icons8.com/ios/100/handshake.png",
   },
 ];

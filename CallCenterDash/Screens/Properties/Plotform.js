@@ -15,11 +15,15 @@ import { API_URL } from "../../../data/ApiUrl";
 const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
   const [formData, setFormData] = useState({
     plotLocation: "",
+    lpNumber: "",
+    ventureName: "",
+    plotNumber: "",
     area: "",
     plotLength: "",
     plotBreadth: "",
     direction: "",
     approvalStatus: "",
+    bankLoanFacility: "",
     kidsPlayArea: "",
     waterTap: "",
     undergroundDrainage: "",
@@ -34,16 +38,19 @@ const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with initialData if provided
   useEffect(() => {
     if (initialData) {
       setFormData({
         plotLocation: initialData.plotLocation || "",
+        lpNumber: initialData.lpNumber || "",
+        ventureName: initialData.ventureName || "",
+        plotNumber: initialData.plotNumber || "",
         area: initialData.area || "",
         plotLength: initialData.plotLength || "",
         plotBreadth: initialData.plotBreadth || "",
         direction: initialData.direction || "",
         approvalStatus: initialData.approvalStatus || "",
+        bankLoanFacility: initialData.bankLoanFacility || "",
         kidsPlayArea: initialData.kidsPlayArea || "",
         waterTap: initialData.waterTap || "",
         undergroundDrainage: initialData.undergroundDrainage || "",
@@ -116,6 +123,30 @@ const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
         onChangeText={(value) => handleInputChange("plotLocation", value)}
       />
 
+      <Text style={styles.label}>LP Number</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter LP Number"
+        value={formData.lpNumber}
+        onChangeText={(value) => handleInputChange("lpNumber", value)}
+      />
+
+      <Text style={styles.label}>Venture Name</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Venture Name"
+        value={formData.ventureName}
+        onChangeText={(value) => handleInputChange("ventureName", value)}
+      />
+
+      <Text style={styles.label}>Plot Number</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Plot Number"
+        value={formData.plotNumber}
+        onChangeText={(value) => handleInputChange("plotNumber", value)}
+      />
+
       <Text style={styles.label}>Plot Area (sq. ft)</Text>
       <TextInput
         style={styles.input}
@@ -169,6 +200,22 @@ const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
           }
         />
         <Text style={styles.label}>Approved</Text>
+      </View>
+
+      <Text style={styles.label}>Bank Loan Facility</Text>
+      <View style={styles.checkboxContainer}>
+        <CheckBox
+          value={formData.bankLoanFacility === "Yes"}
+          onValueChange={() => handleCheckboxChange("bankLoanFacility", "Yes")}
+        />
+        <Text style={styles.label}>Yes</Text>
+      </View>
+      <View style={styles.checkboxContainer}>
+        <CheckBox
+          value={formData.bankLoanFacility === "No"}
+          onValueChange={() => handleCheckboxChange("bankLoanFacility", "No")}
+        />
+        <Text style={styles.label}>No</Text>
       </View>
 
       <Text style={styles.sectionHeading}>Amenities</Text>
@@ -233,8 +280,11 @@ const PlotInfoForm = ({ closeModal, propertyId, initialData }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    width: 400,
+    width: "100%",
+    maxWidth: 500, // increased from 400
     backgroundColor: "#E3F2FD",
+    alignSelf: "center", // centers the form if width < screen width
+    borderRadius: 10,
   },
   heading: {
     fontSize: 24,

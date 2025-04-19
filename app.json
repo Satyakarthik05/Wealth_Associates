@@ -29,13 +29,15 @@
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["wealthassociates"]
+            "CFBundleURLSchemes": [
+              "wealthassociates"
+            ]
           }
         ]
-      }
+      },
+      "usesAppleSignIn": false
     },
     "android": {
-      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/app_icon.png",
         "backgroundColor": "#FFFFFF"
@@ -47,11 +49,7 @@
         "INTERNET",
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
-        "com.google.android.c2dm.permission.RECEIVE",
-        "com.anddoes.launcher.permission.UPDATE_COUNT",
-        "com.google.android.c2dm.permission.RECEIVE",
-        "com.sec.android.provider.badge.permission.READ",
-        "com.sec.android.provider.badge.permission.WRITE"
+        "WAKE_LOCK"
       ],
       "package": "com.wealthassociates.alpha",
       "versionCode": 12,
@@ -81,9 +79,10 @@
       ],
       "allowBackup": true,
       "usesCleartextTraffic": true,
-      "useNextNotificationsApi": true,
-      "networkInspector": {
-        "usesCleartextTraffic": true
+      "googleServicesFile": "./google-services.json",
+      "notification": {
+        "icon": "./assets/play_store_512.png",
+        "color": "#FF231F7C"
       }
     },
     "web": {
@@ -95,27 +94,29 @@
       }
     },
     "plugins": [
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#FF231F7C",
+          "androidMode": "default",
+          "androidCollapsedTitle": "WealthAssociate",
+          "androidChannelId": "default",
+          "sounds": []
+        }
+      ],
       [
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 33,
-            "targetSdkVersion": 33,
-            "buildToolsVersion": "33.0.0"
+            "enableProguardInReleaseBuilds": true,
+            "useNextNotificationsApi": true
           },
           "ios": {
-            "deploymentTarget": "15.1"
+            "useFrameworks": "static"
           }
         }
       ]
-    ],
-    "notification": {
-      "icon": "./assets/logo.png",
-      "color": "#FF231F7C",
-      "androidMode": "default",
-      "androidCollapsedTitle": "WealthAssociate",
-      "androidChannelId": "default"
-    }
+    ]
   }
 }

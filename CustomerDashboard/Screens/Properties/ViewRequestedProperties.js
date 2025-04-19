@@ -63,6 +63,7 @@ const RequestedProperties = () => {
         id: item._id,
         title: item.propertyTitle,
         type: item.propertyType,
+        ExactLocation:item.islocation,
         location: item.location,
         budget: `₹${item.Budget.toLocaleString()}`,
         image: getImageByPropertyType(item.propertyType),
@@ -164,7 +165,8 @@ const RequestedProperties = () => {
                 </View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.text}>Type: {item.type}</Text>
-                <Text style={styles.text}>Location: {item.location}</Text>
+                <Text style={styles.text}>Constituency: {item.location}</Text>
+                <Text style={styles.text}>ExactLocation: {item.ExactLocation}</Text>
                 <Text style={styles.text}>Budget: {item.budget}</Text>
                 <TouchableOpacity
                   style={styles.editButton}

@@ -23,6 +23,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
   const [constituencies, setConstituencies] = useState([]);
   const [locationSearch, setLocationSearch] = useState("");
   const [showLocationList, setShowLocationList] = useState(false);
+  const [islocation, setlocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] =
     useState(false);
@@ -91,6 +92,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       propertyTitle,
       propertyType,
       location,
+      islocation,
       Budget: budget,
       PostedBy: Details.MobileNumber, // Sending agent's mobile number as PostedBy
     };
@@ -156,7 +158,7 @@ const RequestedPropertyForm = ({ closeModal }) => {
       </View>
 
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Location</Text>
+        <Text style={styles.label}>Select Constituency</Text>
         <TextInput
           style={styles.input}
           placeholder="Ex. Vijayawada"
@@ -184,6 +186,15 @@ const RequestedPropertyForm = ({ closeModal }) => {
             ))}
           </View>
         )}
+      </View>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Property Location</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="BhavaniPuram"
+          value={islocation}
+          onChangeText={setlocation}
+        />
       </View>
 
       <View style={styles.inputContainer}>
@@ -240,7 +251,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 0.5,
     borderColor: "black",
-    marginTop:"30%"
+    marginTop: "30%",
   },
   header: {
     fontSize: 18,

@@ -148,6 +148,11 @@ const ViewPostedProperties = () => {
     }
   };
 
+  const getLastFourCharss = (id) => {
+    if (!id) return "N/A";
+    return id.length > 4 ? id.slice(-4) : id;
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
@@ -206,6 +211,11 @@ const ViewPostedProperties = () => {
               <View key={item._id} style={styles.card}>
                 <Image source={imageUri} style={styles.image} />
                 <View style={styles.details}>
+                  <View style={styles.idContainer}>
+                    <Text style={styles.idText}>
+                      ID: {getLastFourCharss(item._id)}
+                    </Text>
+                  </View>
                   <Text style={styles.title}>{item.propertyType}</Text>
                   <Text style={styles.info}>Location: {item.location}</Text>
                   <Text style={styles.budget}>
@@ -278,6 +288,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#f5f5f5",
     alignItems: "center",
+    marginBottom: 30,
   },
   header: {
     flexDirection:
@@ -292,6 +303,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     color: "#191919",
+  },
+  idContainer: {
+    backgroundColor: "green",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: "flex-end",
+    margin: 5,
+  },
+  idText: {
+    color: "#fff",
+    fontWeight: "600",
   },
   filterContainer: {
     flexDirection: "row",
@@ -361,7 +384,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   grid: {
-    flexDirection: "column",
+    // flexDirection: "column",
     width: "100%",
     alignItems: "center",
   },
@@ -371,6 +394,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 8,
     width: "90%",
+
+    width: Platform.OS === "android" || Platform.OS === "ios" ? "90%" : 300,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 0.25,
