@@ -283,14 +283,20 @@ const deleteAgent = async (req, res) => {
 const updateAgentByadmin = async (req, res) => {
   const { id } = req.params;
   const { FullName, District, Contituency, MobileNumber, MyRefferalCode,
-    ReferredBy } =
+    ReferredBy,AadhaarNumber,PANNumber,BankAccountNumber } =
     req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Photo is required." });
+    }
+
+    const photoPath = `/Agents/${req.file.filename}`;
 
   try {
     const updatedAgent = await AgentSchema.findByIdAndUpdate(
       id,
       { FullName, District, Contituency, MobileNumber, MyRefferalCode,
-        ReferredBy },
+        ReferredBy,AadhaarNumber,PANNumber,BankAccountNumber,photo: photoPath, },
       { new: true }
     );
 

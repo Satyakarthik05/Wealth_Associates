@@ -49,6 +49,10 @@ const AgentScheme = new mongoose.Schema({
   AgentType: {
     type: String,
   },
+  photo: { type: String, },
+  AadhaarNumber: { type: String, },
+  PANNumber: { type: String, },
+  BankAccountNumber: { type: String, },
   CallExecutiveCall: {
     type: String,
     enum: ["Pending", "Done"], // Add this to enforce specific values

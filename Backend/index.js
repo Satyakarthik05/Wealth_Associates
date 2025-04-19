@@ -47,6 +47,10 @@ app.use(
   "/ExpertMembers",
   express.static(path.join(__dirname, "ExpertMembers"))
 );
+app.use(
+  "/Agents",
+  express.static(path.join(__dirname, "Agents"))
+);
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -91,8 +95,8 @@ app.use("/direqexp", ReqExp);
 app.use("/callexe", CallExecuteRoute);
 
 app.get("/admindata", (req, res) => {
-  const UserName = "1234567890";
-  const Password = "1234";
+  const UserName = "9063392872";
+  const Password = "Admin@123open";
 
   res.status(200).json({ UserName, Password });
 });

@@ -5,7 +5,7 @@ const PushToken = require("../Models/NotificationToken");
 
 const PropertyRequest = async (req, res) => {
   try {
-    const { propertyTitle, propertyType, location, Budget, PostedBy } = req.body;
+    const { propertyTitle, propertyType, location, Budget, PostedBy,islocation } = req.body;
 
     if (!PostedBy) {
       return res
@@ -30,6 +30,7 @@ const PropertyRequest = async (req, res) => {
       propertyType,
       location,
       Budget,
+      islocation,
       PostedBy: PostedBy,
     });
 
