@@ -108,34 +108,43 @@ const createProperty = async (req, res) => {
       location,
       price,
       PostedBy,
+      fullName,
+      mobile,
       Constituency,
       propertyDetails,
     } = req.body;
 
-    // Validate PostedBy
+    // Validate required fields
     if (!PostedBy) {
-      return res
-        .status(400)
-        .json({ message: "PostedBy (MobileNumber) is required." });
+      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
     }
 
-    // Validate photo
-    let photoPath = null;
-    if (req.file) {
-      photoPath = `/uploads/${req.file.filename}`;
+    // Handle multiple photos
+    let photoPaths = [];
+    if (req.files && req.files.length > 0) {
+      photoPaths = req.files.map(file => `/uploads/${file.filename}`);
     } else {
-      return res.status(400).json({ message: "Photo is required." });
+      return res.status(400).json({ message: "At least one photo is required." });
     }
 
-    // Find the user who posted the property
+    // Validate photo count (1-6)
+    if (photoPaths.length > 6) {
+      // Clean up uploaded files if over limit
+      req.files.forEach(file => {
+        fs.unlinkSync(file.path); // Make sure to require fs at top
+      });
+      return res.status(400).json({ message: "Maximum 6 photos allowed." });
+    }
 
     // Create and save new property
     const newProperty = new Property({
       propertyType,
       location,
       price,
-      photo: photoPath,
+      photos: photoPaths,
       PostedBy,
+      fullName,
+      mobile,
       propertyDetails,
       Constituency,
     });
@@ -151,7 +160,6 @@ const createProperty = async (req, res) => {
 
     if (callExecutives.length > 0) {
       const assignedExecutive = callExecutives[0];
-
       assignedExecutive.assignedUsers.push({
         userType: "Property",
         userId: newProperty._id,
@@ -165,13 +173,22 @@ const createProperty = async (req, res) => {
     return res.status(200).json({
       message: "Property added and assigned successfully",
       newProperty,
-      assignedTo:
-        callExecutives.length > 0
-          ? callExecutives[0].name
-          : "No executive available",
+      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
     });
   } catch (error) {
     console.error("Error in createProperty:", error);
+    
+    // Clean up uploaded files if error occurs
+    if (req.files) {
+      req.files.forEach(file => {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.error("Error deleting uploaded file:", err);
+        }
+      });
+    }
+
     return res.status(500).json({
       message: "Error adding property",
       error: error.message,

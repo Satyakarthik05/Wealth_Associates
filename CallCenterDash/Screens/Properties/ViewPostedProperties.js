@@ -334,6 +334,54 @@ const ViewAssignedProperties = () => {
     }
   };
 
+  const renderPropertyImage = (property) => {
+    // If 'photos' is an array with more than one image
+    if (Array.isArray(property.photos) && property.photos.length > 0) {
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageScroll}
+        >
+          {property.photos.map((photo, index) => (
+            <Image
+              key={index}
+              source={{
+                uri: photo.startsWith("http") ? photo : `${API_URL}${photo}`,
+              }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ))}
+        </ScrollView>
+      );
+    }
+    // Single image
+    else if (property.photo) {
+      return (
+        <Image
+          source={{
+            uri: property.photo.startsWith("http")
+              ? property.photo
+              : `${API_URL}${property.photo}`,
+          }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      );
+    }
+    // Fallback image
+    else {
+      return (
+        <Image
+          source={require("../../../assets/logo.png")}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      );
+    }
+  };
+
   // Render update modal based on property type
   const renderUpdateModal = () => {
     if (!selectedProperty || !currentUpdateModal) return null;
@@ -445,14 +493,8 @@ const ViewAssignedProperties = () => {
           {filteredProperties.length > 0 ? (
             filteredProperties.map((property) => (
               <View key={property._id} style={styles.card}>
-                <Image
-                  source={
-                    property.photo
-                      ? { uri: `${API_URL}${property.photo}` }
-                      : require("../../../assets/logo.png")
-                  }
-                  style={styles.image}
-                />
+                {renderPropertyImage(property)}
+
                 <View style={styles.details}>
                   <View style={styles.idContainer}>
                     <Text style={styles.idText}>
@@ -633,6 +675,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: Platform.OS === "web" ? 0 : 10,
   },
+  imageScroll: {
+    flexDirection: "row",
+    maxHeight: 200, // adjust as needed
+    marginBottom: 10,
+  },
+
+  image: {
+    width: 180,
+    height: 200,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+
   executiveInfo: {
     fontSize: 14,
     color: "#555",
@@ -687,12 +742,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  image: {
-    width: "100%",
-    height: 150,
-    borderRadius: 8,
-    marginBottom: 10,
   },
   details: {
     marginBottom: 10,

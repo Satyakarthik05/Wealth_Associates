@@ -22,13 +22,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB file size limit
+  limits: { 
+    fileSize: 20 * 1024 * 1024, // 20MB per file
+    files: 6 // Maximum 6 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif)$/)) {
+      return cb(new Error('Only image files (jpeg, jpg, png, gif) are allowed!'), false);
+    }
+    cb(null, true);
+  }
 });
 
-// ✅ **Add Property**
+// ✅ **Add Property with Multiple Photos**
 router.post(
   "/addProperty",
-  upload.single("photo"),
+  upload.array("photos", 6), // Field name "photos" and max 6 files
   PostPropertyController.createProperty
 );
 router.post(
