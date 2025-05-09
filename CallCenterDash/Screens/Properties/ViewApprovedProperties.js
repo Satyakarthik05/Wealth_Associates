@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../../data/ApiUrl";
+import logo1 from "../../../assets/logo.png";
 
 const { width } = Dimensions.get("window");
 
@@ -39,6 +40,97 @@ const ViewAllProperties = () => {
   const [propertyTypeSearch, setPropertyTypeSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
   const [idSearch, setIdSearch] = useState("");
+
+  const formatImages = (property) => {
+    if (!property) return [];
+
+    if (Array.isArray(property.photo) && property.photo.length > 0) {
+      return property.photo.map((photo) => ({
+        uri: photo.startsWith("http") ? photo : `${API_URL}${photo}`,
+      }));
+    }
+
+    if (typeof property.photo === "string") {
+      return [
+        {
+          uri: property.photo.startsWith("http")
+            ? property.photo
+            : `${API_URL}${property.photo}`,
+        },
+      ];
+    }
+
+    return [logo1];
+  };
+
+  const PropertyImageSlider = ({ images }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+      if (images.length <= 1) return;
+
+      const interval = setInterval(() => {
+        const nextIndex = (currentImageIndex + 1) % images.length;
+        setCurrentImageIndex(nextIndex);
+        scrollRef.current?.scrollTo({
+          x: nextIndex * width,
+          animated: true,
+        });
+      }, 3000);
+
+      return () => clearInterval(interval);
+    }, [currentImageIndex, images.length]);
+
+    if (images.length === 0) {
+      return (
+        <Image
+          source={logo1}
+          style={styles.propertyImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    return (
+      <View style={styles.imageSliderContainer}>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const offsetX = e.nativeEvent.contentOffset.x;
+            const newIndex = Math.round(offsetX / width);
+            setCurrentImageIndex(newIndex);
+          }}
+        >
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              source={image}
+              style={styles.propertyImage}
+              resizeMode="cover"
+            />
+          ))}
+        </ScrollView>
+
+        {images.length > 1 && (
+          <View style={styles.pagination}>
+            {images.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  index === currentImageIndex && styles.activeDot,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
 
   const fetchPropertyTypes = async () => {
     try {
@@ -65,7 +157,12 @@ const ViewAllProperties = () => {
       const response = await fetch(`${API_URL}/properties/getApproveProperty`);
       const data = await response.json();
       if (data && Array.isArray(data)) {
-        setProperties(data);
+        setProperties(
+          data.map((property) => ({
+            ...property,
+            images: formatImages(property),
+          }))
+        );
       } else {
         console.warn("API returned empty data.");
       }
@@ -224,15 +321,12 @@ const ViewAllProperties = () => {
       });
 
       if (response.ok) {
-        // Update the local state to reflect sold status
         setProperties(
           properties.map((property) =>
             property._id === id ? { ...property, sold: true } : property
           )
         );
         Alert.alert("Success", "Property marked as sold");
-
-        // If you need to refresh data, call fetchProperties directly
         fetchProperties();
       } else {
         const error = await response.json();
@@ -251,16 +345,10 @@ const ViewAllProperties = () => {
     details += `*Location:* ${property.location}\n`;
     details += `*Price:* ₹${parseInt(property.price).toLocaleString()}\n`;
     details += `*Details:* ${property.propertyDetails || "N/A"}\n`;
-    // details += `*Posted By:* ${property.PostedBy || "N/A"}\n`;
-    // details += `*User Type:* ${property.PostedUserType || "N/A"}\n\n`;
-
-    // Add dynamic data
-    details += `*Specifications:*\n`;
 
     const processObject = (obj, indent = "") => {
       let result = "";
       Object.entries(obj).forEach(([key, value]) => {
-        // Skip these standard fields
         if (
           [
             "_id",
@@ -327,7 +415,6 @@ const ViewAllProperties = () => {
 
     const processData = (obj, level = 0) => {
       return Object.entries(obj).map(([key, value]) => {
-        // Skip these standard fields
         if (
           [
             "_id",
@@ -349,13 +436,11 @@ const ViewAllProperties = () => {
 
         if (value === null || value === undefined || value === "") return null;
 
-        // Format key for display
         const formattedKey = key
           .replace(/([A-Z])/g, " $1")
           .replace(/^./, (str) => str.toUpperCase())
           .replace(/([a-z])([A-Z])/g, "$1 $2");
 
-        // Handle nested objects
         if (typeof value === "object" && !Array.isArray(value)) {
           return (
             <View
@@ -368,7 +453,6 @@ const ViewAllProperties = () => {
           );
         }
 
-        // Handle arrays
         if (Array.isArray(value)) {
           return (
             <View key={key} style={styles.detailRow}>
@@ -394,7 +478,6 @@ const ViewAllProperties = () => {
           );
         }
 
-        // Handle primitive values
         return (
           <View key={key} style={styles.detailRow}>
             <Text style={styles.detailLabel}>{formattedKey}:</Text>
@@ -412,19 +495,18 @@ const ViewAllProperties = () => {
 
     return processData(data);
   };
+
   const shareOnWhatsApp = () => {
     if (!selectedPropertyDetails) return;
 
     const message = formatPropertyDetails(selectedPropertyDetails);
 
     if (Platform.OS === "web") {
-      // Web: Opens WhatsApp Web with recent chats (no way to skip)
       window.open(
         `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
         "_blank"
       );
     } else {
-      // Mobile: Forces "New Chat" screen (works on most devices)
       const url = `whatsapp://send?phone=&text=${encodeURIComponent(message)}`;
 
       Linking.canOpenURL(url)
@@ -432,7 +514,6 @@ const ViewAllProperties = () => {
           if (supported) {
             Linking.openURL(url);
           } else {
-            // Fallback: Open WhatsApp normally if deep link fails
             Linking.openURL(
               `whatsapp://send?text=${encodeURIComponent(message)}`
             ).catch(() => Alert.alert("Error", "WhatsApp not installed"));
@@ -443,97 +524,6 @@ const ViewAllProperties = () => {
         });
     }
   };
-
-  // const renderDynamicData = (data) => {
-  //   if (!data) return null;
-
-  //   // Handle case where data is an array
-  //   if (Array.isArray(data)) {
-  //     return (
-  //       <View style={styles.detailRow}>
-  //         <Text style={styles.detailLabel}>Items:</Text>
-  //         <View style={styles.arrayContainer}>
-  //           {data.map((item, index) => (
-  //             <Text key={index} style={styles.detailValue}>
-  //               {typeof item === "object"
-  //                 ? JSON.stringify(item)
-  //                 : item.toString()}
-  //             </Text>
-  //           ))}
-  //         </View>
-  //       </View>
-  //     );
-  //   }
-
-  //   // Handle case where data is an object
-  //   return Object.entries(data).map(([key, value]) => {
-  //     if (value === null || value === undefined || value === "") return null;
-
-  //     // Skip these fields as they're already displayed in basic info
-  //     if (
-  //       [
-  //         "_id",
-  //         "propertyType",
-  //         "location",
-  //         "price",
-  //         "photo",
-  //         "propertyDetails",
-  //         "PostedBy",
-  //         "PostedUserType",
-  //       ].includes(key)
-  //     ) {
-  //       return null;
-  //     }
-
-  //     // Format key for display
-  //     const formattedKey = key
-  //       .replace(/([A-Z])/g, " $1")
-  //       .replace(/^./, (str) => str.toUpperCase())
-  //       .replace(/([a-z])([A-Z])/g, "$1 $2");
-
-  //     // Handle nested objects (like agricultureDetails)
-  //     if (typeof value === "object" && !Array.isArray(value)) {
-  //       return (
-  //         <View key={key} style={styles.nestedSection}>
-  //           <Text style={styles.nestedTitle}>{formattedKey}:</Text>
-  //           {renderDynamicData(value)}
-  //         </View>
-  //       );
-  //     }
-
-  //     // Handle arrays within objects
-  //     if (Array.isArray(value)) {
-  //       return (
-  //         <View key={key} style={styles.detailRow}>
-  //           <Text style={styles.detailLabel}>{formattedKey}:</Text>
-  //           <View style={styles.arrayContainer}>
-  //             {value.map((item, index) => (
-  //               <Text key={index} style={styles.detailValue}>
-  //                 {typeof item === "object"
-  //                   ? JSON.stringify(item)
-  //                   : item.toString()}
-  //               </Text>
-  //             ))}
-  //           </View>
-  //         </View>
-  //       );
-  //     }
-
-  //     // Handle primitive values
-  //     return (
-  //       <View key={key} style={styles.detailRow}>
-  //         <Text style={styles.detailLabel}>{formattedKey}:</Text>
-  //         <Text style={styles.detailValue}>
-  //           {value.toString() === "true"
-  //             ? "Yes"
-  //             : value.toString() === "false"
-  //             ? "No"
-  //             : value.toString()}
-  //         </Text>
-  //       </View>
-  //     );
-  //   });
-  // };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -571,14 +561,11 @@ const ViewAllProperties = () => {
 
           <View style={styles.grid}>
             {filteredProperties.map((item) => {
-              const imageUri = item.photo
-                ? { uri: `${API_URL}${item.photo}` }
-                : require("../../../assets/logo.png");
               const propertyId = getLastFourChars(item._id);
 
               return (
                 <View key={item._id} style={styles.card}>
-                  <Image source={imageUri} style={styles.image} />
+                  <PropertyImageSlider images={item.images} />
                   <View style={styles.details}>
                     <View style={styles.idContainer}>
                       <Text style={styles.idText}>ID: {propertyId}</Text>
@@ -722,15 +709,8 @@ const ViewAllProperties = () => {
                 {selectedPropertyDetails && (
                   <>
                     <View style={styles.detailImageContainer}>
-                      <Image
-                        source={
-                          selectedPropertyDetails.photo
-                            ? {
-                                uri: `${API_URL}${selectedPropertyDetails.photo}`,
-                              }
-                            : require("../../../assets/logo.png")
-                        }
-                        style={styles.detailImage}
+                      <PropertyImageSlider
+                        images={formatImages(selectedPropertyDetails)}
                       />
                     </View>
 
@@ -863,7 +843,31 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  image: { width: "100%", height: 150, borderRadius: 8 },
+  imageSliderContainer: {
+    position: "relative",
+    marginBottom: 10,
+  },
+  propertyImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+  },
+  pagination: {
+    position: "absolute",
+    bottom: 10,
+    flexDirection: "row",
+    alignSelf: "center",
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    margin: 5,
+  },
+  activeDot: {
+    backgroundColor: "#fff",
+  },
   details: { marginTop: 10 },
   idContainer: {
     backgroundColor: "green",
@@ -1003,11 +1007,6 @@ const styles = StyleSheet.create({
   detailImageContainer: {
     alignItems: "center",
     marginBottom: 15,
-  },
-  detailImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
   },
   detailsScrollView: {
     maxHeight: Platform.OS === "web" ? 400 : 300,

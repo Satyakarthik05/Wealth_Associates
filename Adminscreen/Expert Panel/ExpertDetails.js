@@ -55,46 +55,46 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
     }
   };
 
-  const requestExpert = async (expert) => {
-    try {
-      const response = await fetch(`${API_URL}/requestexpert/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          Name: Details.FullName ? Details.FullName : "name",
-          MobileNumber: Details.MobileNumber
-            ? Details.MobileNumber
-            : "MobileNumber",
-          ExpertType: expertType,
-          ExpertName: expert.name,
-          ExpertNo: expert.mobile,
-          RequestedBy: "WealthAssociate",
-        }),
-      });
+  // const requestExpert = async (expert) => {
+  //   try {
+  //     const response = await fetch(`${API_URL}/requestexpert/register`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         Name: Details.FullName ? Details.FullName : "name",
+  //         MobileNumber: Details.MobileNumber
+  //           ? Details.MobileNumber
+  //           : "MobileNumber",
+  //         ExpertType: expertType,
+  //         ExpertName: expert.name,
+  //         ExpertNo: expert.mobile,
+  //         RequestedBy: "WealthAssociate",
+  //       }),
+  //     });
 
-      const result = await response.json();
-      if (response.ok) {
-        if (Platform.OS === "web") {
-          window.alert("Expert Requested Successfully");
-        } else {
-          Alert.alert("Expert Requested");
-        }
-      } else {
-        Alert.alert(
-          "Request Failed",
-          result.message || "Something went wrong."
-        );
-      }
-    } catch (error) {
-      console.error("Request error:", error);
-      Alert.alert(
-        "Network error",
-        "Please check your internet connection and try again."
-      );
-    }
-  };
+  //     const result = await response.json();
+  //     if (response.ok) {
+  //       if (Platform.OS === "web") {
+  //         window.alert("Expert Requested Successfully");
+  //       } else {
+  //         Alert.alert("Expert Requested");
+  //       }
+  //     } else {
+  //       Alert.alert(
+  //         "Request Failed",
+  //         result.message || "Something went wrong."
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Request error:", error);
+  //     Alert.alert(
+  //       "Network error",
+  //       "Please check your internet connection and try again."
+  //     );
+  //   }
+  // };
 
   const renderField = (label, value) => {
     if (!value) return null;
@@ -280,6 +280,33 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
     }
   };
 
+  // delete expert
+  const deleteExpert = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/expert/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setExperts((prevExperts) =>
+          prevExperts.filter((exp) => exp._id !== id)
+        );
+      } else {
+        const errorData = await response.json();
+        Alert.alert(
+          "Delete Failed",
+          errorData.message || "Something went wrong"
+        );
+      }
+    } catch (error) {
+      Alert.alert("Error", "Could not delete expert. Please try again later.");
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     getDetails();
   }, []);
@@ -324,12 +351,22 @@ const ExpertDetails = ({ expertType, onSwitch }) => {
                 {renderExpertSpecificFields(expert)}
               </View>
 
-              <TouchableOpacity
-                style={styles.requestButton}
-                onPress={() => requestExpert(expert)}
-              >
-                <Text style={styles.requestButtonText}>Request Expert</Text>
-              </TouchableOpacity>
+              {/* New Edit & Delete Buttons */}
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => editExpert(expert)}
+                >
+                  <Text style={styles.buttonText}>Edit</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteExpert(expert._id)}
+                >
+                  <Text style={styles.buttonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </ScrollView>
@@ -349,6 +386,32 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: "10%",
   },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    width: "100%",
+  },
+  editButton: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 5,
+  },
+  deleteButton: {
+    backgroundColor: "#F44336",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginLeft: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+
   backButton: { fontSize: 16, color: "blue", marginBottom: 10 },
   header: {
     fontSize: 22,
