@@ -31,10 +31,10 @@ const admin = require('firebase-admin');
 const { Expo } = require('expo-server-sdk');
 const expo = new Expo();
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());
@@ -260,22 +260,22 @@ async function sendFcmNotifications(messages) {
   
   return results;
 }
-https.createServer(options, app).listen(443, () => {
-  console.log("HTTPS Server running on port 443");
-});
-
-const http = require("http");
-http
-  .createServer((req, res) => {
-    res.writeHead(301, {
-      Location: "https://" + req.headers["host"] + req.url,
-    });
-    res.end();
-  })
-  .listen(80, () => {
-      console.log("Redirecting HTTP to HTTPS");
-    });
-
-//   app.listen("3000", () => {
-//   console.log("Server is running succssfully");
+// https.createServer(options, app).listen(443, () => {
+//   console.log("HTTPS Server running on port 443");
 // });
+
+// const http = require("http");
+// http
+//   .createServer((req, res) => {
+//     res.writeHead(301, {
+//       Location: "https://" + req.headers["host"] + req.url,
+//     });
+//     res.end();
+//   })
+//   .listen(80, () => {
+//       console.log("Redirecting HTTP to HTTPS");
+//     });
+
+  app.listen("3000", () => {
+  console.log("Server is running succssfully");
+});
