@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -42,7 +42,28 @@ const ViewAllProperties = () => {
   const [constituencies, setConstituencies] = useState([]);
   const [idSearch, setIdSearch] = useState("");
   const [currentUpdateModal, setCurrentUpdateModal] = useState(null);
-  // const [refreshInterval, setRefreshInterval] = useState(null);
+
+  const formatImages = (property) => {
+    if (!property) return [];
+
+    if (Array.isArray(property.photo) && property.photo.length > 0) {
+      return property.photo.map((photo) => ({
+        uri: photo.startsWith("http") ? photo : `${API_URL}${photo}`,
+      }));
+    }
+
+    if (typeof property.photo === "string") {
+      return [
+        {
+          uri: property.photo.startsWith("http")
+            ? property.photo
+            : `${API_URL}${property.photo}`,
+        },
+      ];
+    }
+
+    return [require("../assets/logo.png")];
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,7 +78,15 @@ const ViewAllProperties = () => {
       const typesData = await typesRes.json();
       const constituenciesData = await constituenciesRes.json();
 
-      setProperties(propertiesData);
+      // Format images for each property
+      const formattedProperties = Array.isArray(propertiesData)
+        ? propertiesData.map((property) => ({
+            ...property,
+            images: formatImages(property),
+          }))
+        : [];
+
+      setProperties(formattedProperties);
       setPropertyTypes(typesData);
       setConstituencies(constituenciesData);
     } catch (error) {
@@ -118,6 +147,76 @@ const ViewAllProperties = () => {
     ...new Set(properties.map((p) => p.location)),
   ].filter((l) => l);
 
+  // Image slider component
+  const PropertyImageSlider = ({ images }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+      if (images.length <= 1) return;
+
+      const interval = setInterval(() => {
+        const nextIndex = (currentImageIndex + 1) % images.length;
+        setCurrentImageIndex(nextIndex);
+        scrollRef.current?.scrollTo({
+          x: nextIndex * width,
+          animated: true,
+        });
+      }, 3000);
+
+      return () => clearInterval(interval);
+    }, [currentImageIndex, images.length]);
+
+    if (images.length === 0) {
+      return (
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.propertyImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    return (
+      <View style={styles.imageSliderContainer}>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const offsetX = e.nativeEvent.contentOffset.x;
+            const newIndex = Math.round(offsetX / width);
+            setCurrentImageIndex(newIndex);
+          }}
+        >
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              source={image}
+              style={styles.propertyImage}
+              resizeMode="cover"
+            />
+          ))}
+        </ScrollView>
+
+        {images.length > 1 && (
+          <View style={styles.pagination}>
+            {images.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  index === currentImageIndex && styles.activeDot,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   // Modal handlers
   const handleUpdate = (property) => {
     setSelectedProperty(property);
@@ -160,10 +259,6 @@ const ViewAllProperties = () => {
 
       const result = await response.json();
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
         setProperties(
           properties.map((p) =>
             p._id === selectedProperty._id ? { ...p, ...updatedData } : p
@@ -204,10 +299,6 @@ const ViewAllProperties = () => {
       );
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
         setProperties(
           properties.map((p) =>
             p._id === selectedProperty._id ? { ...p, ...editedDetails } : p
@@ -245,10 +336,6 @@ const ViewAllProperties = () => {
       });
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
         setProperties(properties.filter((p) => p._id !== id));
         Alert.alert("Success", "Property deleted");
       } else {
@@ -283,10 +370,6 @@ const ViewAllProperties = () => {
       });
 
       if (response.ok) {
-        // Clear and restart the refresh interval
-        if (refreshInterval) clearInterval(refreshInterval);
-        setRefreshInterval(setInterval(fetchData, 10000));
-
         // Update the local state to reflect approval
         setProperties(
           properties.map((property) =>
@@ -404,14 +487,7 @@ const ViewAllProperties = () => {
           {filteredProperties.length > 0 ? (
             filteredProperties.map((item) => (
               <View key={item._id} style={styles.card}>
-                <Image
-                  source={
-                    item.photo
-                      ? { uri: `${API_URL}${item.photo}` }
-                      : require("../assets/logo.png")
-                  }
-                  style={styles.image}
-                />
+                <PropertyImageSlider images={item.images} />
                 <View style={styles.details}>
                   <View style={styles.idContainer}>
                     <Text style={styles.idText}>
@@ -633,12 +709,33 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  image: {
+  // Image slider styles
+  imageSliderContainer: {
+    position: "relative",
+    marginBottom: 10,
+  },
+  propertyImage: {
     width: "100%",
     height: 150,
     borderRadius: 8,
-    marginBottom: 10,
   },
+  pagination: {
+    position: "absolute",
+    bottom: 10,
+    flexDirection: "row",
+    alignSelf: "center",
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    margin: 5,
+  },
+  activeDot: {
+    backgroundColor: "#fff",
+  },
+  // End image slider styles
   details: {
     marginBottom: 10,
   },
