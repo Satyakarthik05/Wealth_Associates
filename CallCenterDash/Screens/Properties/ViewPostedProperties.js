@@ -102,6 +102,42 @@ const ViewAssignedProperties = () => {
     }
   }, [API_URL]);
 
+  const handleApprove = async (id) => {
+    const confirm = await new Promise((resolve) => {
+      if (Platform.OS === "web") {
+        resolve(
+          window.confirm("Are you sure you want to approve this property?")
+        );
+      } else {
+        Alert.alert("Confirm Approval", "Approve this property?", [
+          { text: "Cancel", onPress: () => resolve(false) },
+          { text: "Approve", onPress: () => resolve(true) },
+        ]);
+      }
+    });
+
+    if (!confirm) return;
+
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(`${API_URL}/properties/approve/${id}`, {
+        method: "POST",
+        headers: { token },
+      });
+
+      if (response.ok) {
+        await fetchData();
+        Alert.alert("Success", "Property approved successfully");
+      } else {
+        const error = await response.json();
+        Alert.alert("Error", error.message || "Approval failed");
+      }
+    } catch (err) {
+      console.error("Approve error:", err);
+      Alert.alert("Error", "Failed to approve property");
+    }
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchData();
@@ -137,7 +173,7 @@ const ViewAssignedProperties = () => {
   }, [fetchData]);
 
   // Helper functions
-  const getLastFourChars = (id) => id?.slice(-4) || "N/A";
+  const getLastFourChars = (id) => (id ? id.slice(-4) : "N/A");
 
   // Filter and sort properties
   const filteredProperties = properties
@@ -149,7 +185,7 @@ const ViewAssignedProperties = () => {
         : true
     )
     .filter((property) =>
-      selectedLocationFilter
+      selectedLocationFilter && property.location
         ? property.location
             .toLowerCase()
             .includes(selectedLocationFilter.toLowerCase())
@@ -157,23 +193,25 @@ const ViewAssignedProperties = () => {
     )
     .sort((a, b) => {
       if (selectedFilter === "highToLow") {
-        return parseInt(b.price) - parseInt(a.price);
+        return parseInt(b.price || 0) - parseInt(a.price || 0);
       } else if (selectedFilter === "lowToHigh") {
-        return parseInt(a.price) - parseInt(b.price);
+        return parseInt(a.price || 0) - parseInt(b.price || 0);
       }
       return 0;
     });
 
   // Get unique locations for filter dropdown
   const uniqueLocations = [
-    ...new Set(properties.map((p) => p.location)),
-  ].filter(Boolean);
+    ...new Set(properties.map((p) => p.location).filter(Boolean)),
+  ];
 
   // Property update handler
   const handleUpdate = (property) => {
     setSelectedProperty(property);
 
-    const type = property.propertyType.toLowerCase();
+    const type = property.propertyType
+      ? property.propertyType.toLowerCase()
+      : "";
 
     // Handle residential properties
     if (
@@ -204,11 +242,15 @@ const ViewAssignedProperties = () => {
 
   const handleUpdateSave = async (updatedData) => {
     try {
+      const token = await getAuthToken();
       const response = await fetch(
         `${API_URL}/properties/update/${selectedProperty._id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            token,
+          },
           body: JSON.stringify(updatedData),
         }
       );
@@ -240,10 +282,10 @@ const ViewAssignedProperties = () => {
   const handleEdit = (property) => {
     setSelectedProperty(property);
     setEditedDetails({
-      propertyType: property.propertyType,
-      location: property.location,
-      price: property.price.toString(),
-      photo: property.photo,
+      propertyType: property.propertyType || "",
+      location: property.location || "",
+      price: property.price ? property.price.toString() : "",
+      photo: property.photo || "",
     });
     setIsEditModalVisible(true);
   };
@@ -336,18 +378,23 @@ const ViewAssignedProperties = () => {
 
   const renderPropertyImage = (property) => {
     // If 'photos' is an array with more than one image
-    if (Array.isArray(property.photos) && property.photos.length > 0) {
+    if (Array.isArray(property.photo) && property.photo.length > 0) {
       return (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.imageScroll}
         >
-          {property.photos.map((photo, index) => (
+          {property.photo.map((photo, index) => (
             <Image
               key={index}
               source={{
-                uri: photo.startsWith("http") ? photo : `${API_URL}${photo}`,
+                uri:
+                  typeof photo === "string"
+                    ? photo.startsWith("http")
+                      ? photo
+                      : `${API_URL}${photo}`
+                    : `${API_URL}${photo?.uri || ""}`,
               }}
               style={styles.image}
               resizeMode="cover"
@@ -357,7 +404,7 @@ const ViewAssignedProperties = () => {
       );
     }
     // Single image
-    else if (property.photo) {
+    else if (property.photo && typeof property.photo === "string") {
       return (
         <Image
           source={{
@@ -437,7 +484,8 @@ const ViewAssignedProperties = () => {
           <Text style={styles.heading}>My Assigned Properties</Text>
           {executiveInfo && (
             <Text style={styles.executiveInfo}>
-              Assigned to: {executiveInfo.name} ({executiveInfo.phone})
+              Assigned to: {executiveInfo.name || "N/A"} (
+              {executiveInfo.phone || "N/A"})
             </Text>
           )}
 
@@ -501,17 +549,26 @@ const ViewAssignedProperties = () => {
                       ID: {getLastFourChars(property._id)}
                     </Text>
                   </View>
-                  <Text style={styles.title}>{property.propertyType}</Text>
-                  <Text style={styles.info}>
-                    Posted by: {property.PostedBy}
+                  <Text style={styles.title}>
+                    {property.propertyType || "N/A"}
                   </Text>
-                  <Text style={styles.info}>Location: {property.location}</Text>
+                  <Text style={styles.info}>
+                    Posted by: {property.PostedBy || "N/A"}
+                  </Text>
+                  <Text style={styles.info}>
+                    Location: {property.location || "N/A"}
+                  </Text>
                   <Text style={styles.budget}>
-                    ₹ {parseInt(property.price).toLocaleString()}
+                    ₹{" "}
+                    {property.price
+                      ? parseInt(property.price).toLocaleString()
+                      : "N/A"}
                   </Text>
                   <Text style={styles.assignedText}>
                     Assigned on:{" "}
-                    {new Date(property.assignedAt).toLocaleDateString()}
+                    {property.assignedAt
+                      ? new Date(property.assignedAt).toLocaleDateString()
+                      : "N/A"}
                   </Text>
                 </View>
                 <View style={styles.buttonContainer}>
@@ -677,17 +734,15 @@ const styles = StyleSheet.create({
   },
   imageScroll: {
     flexDirection: "row",
-    maxHeight: 200, // adjust as needed
+    maxHeight: 200,
     marginBottom: 10,
   },
-
   image: {
-    width: 180,
+    width: 300,
     height: 200,
     borderRadius: 10,
     marginRight: 10,
   },
-
   executiveInfo: {
     fontSize: 14,
     color: "#555",

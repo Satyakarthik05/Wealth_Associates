@@ -31,10 +31,10 @@ const admin = require("firebase-admin");
 const { Expo } = require("expo-server-sdk");
 const expo = new Expo();
 
-const options = {
-  key: fs.readFileSync("privatekey.pem"),
-  cert: fs.readFileSync("certificate.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("privatekey.pem"),
+//   cert: fs.readFileSync("certificate.pem"),
+// };
 
 const app = express();
 app.use(express.json());

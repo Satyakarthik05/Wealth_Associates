@@ -3,7 +3,7 @@
     "name": "WealthAssociate",
     "slug": "wealthassociates",
     "scheme": "wealthassociates",
-    "version": "1.2.0",
+    "version": "1.2.5",
     "runtimeVersion": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -24,7 +24,7 @@
       "deploymentTarget": "15.1",
       "bundleIdentifier": "com.wealthassociates.alpha",
       "jsEngine": "hermes",
-      "buildNumber": "1.2.1",
+      "buildNumber": "1.2.5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
