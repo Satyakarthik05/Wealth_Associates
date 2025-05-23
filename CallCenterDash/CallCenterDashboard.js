@@ -18,6 +18,7 @@ import CustomModal from "../Components/CustomModal";
 import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties";
 import Viewallagents from "./Screens/Agent/ViewAllAgents";
 import NewExperts from "./ExpertPanel/NewExperts";
+import ViewLikedProperties from "./Screens/Properties/LikedProperties";
 
 // Importing components
 import Dashboard from "./Screens/Callcentre";
@@ -44,6 +45,7 @@ const CallCenterDashboard = () => {
   const [isViewRequestedPropVisible, setIsViewRequestedPropVisible] =
     useState(false);
   const [isViewAgentContVsible, setIsViewAgentContVisible] = useState(false);
+  const [isViewLikedProperties, setViewLikedProperties] = useState(false);
   const [isCustCallVisible, setIsCustCallVisible] = useState(false);
   const [isViewApprovedProperties, setViewApprovedProperties] = useState(false);
   const [isExpertPanelReq, setExpertPanelReq] = useState(false);
@@ -54,7 +56,7 @@ const CallCenterDashboard = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [isViewallagents, setViewallagents] = useState(false);
   const [isExpertPanel, setExpertPanel] = useState(false);
-  const [isNewExperts,setNewExperts]= useState(false)
+  const [isNewExperts, setNewExperts] = useState(false);
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -88,7 +90,8 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
-    setNewExperts(false)
+    setNewExperts(false);
+    setViewLikedProperties(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -118,6 +121,9 @@ const CallCenterDashboard = () => {
         break;
       case "ViewApprovedProperties":
         setViewApprovedProperties(true);
+        break;
+      case "View Liked Properties":
+        setViewLikedProperties(true);
         break;
       case "Expert Panel Requests":
         setExpertPanelReq(true);
@@ -157,7 +163,7 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
-    setNewExperts(false)
+    setNewExperts(false);
   };
 
   const renderContent = () => {
@@ -172,9 +178,10 @@ const CallCenterDashboard = () => {
     if (isViewSkillVisible) return <AllSkilledLabours />;
     if (isViewNriVisible) return <ViewNri />;
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
+    if (isViewLikedProperties) return <ViewLikedProperties />;
     if (isViewallagents) return <Viewallagents />;
     if (isExpertPanel) return <ExpertPanel />;
-    if(isNewExperts)return<NewExperts/>
+    if (isNewExperts) return <NewExperts />;
     return <Dashboard />;
   };
 
@@ -192,7 +199,8 @@ const CallCenterDashboard = () => {
     setIsViewNriVisible(false);
     setViewallagents(false);
     setExpertPanel(false);
-    setNewExperts(false)
+    setNewExperts(false);
+    setViewLikedProperties(false);
   };
 
   const getDetails = async () => {
@@ -236,14 +244,18 @@ const CallCenterDashboard = () => {
           baseMenuItems.push({
             title: "Properties",
             icon: "home-outline",
-            subItems: ["View Posted Properties", "View Requested Properties"],
+            subItems: [
+              "View Posted Properties",
+              "View Requested Properties",
+              "View Liked Properties",
+            ],
           });
           break;
         case "ExpertPanel":
           baseMenuItems.push({
             title: "Expert Panel",
             icon: "cog-outline",
-            subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
+            subItems: ["Expert Panel Requests", "ExpertPanel", "NewExperts"],
           });
           break;
         default:
@@ -262,12 +274,16 @@ const CallCenterDashboard = () => {
             {
               title: "Properties",
               icon: "home-outline",
-              subItems: ["View Posted Properties", "View Requested Properties"],
+              subItems: [
+                "View Posted Properties",
+                "View Requested Properties",
+                "View Liked Properties",
+              ],
             },
             {
               title: "Expert Panel",
               icon: "cog-outline",
-              subItems: ["Expert Panel Requests", "ExpertPanel","NewExperts"],
+              subItems: ["Expert Panel Requests", "ExpertPanel", "NewExperts"],
             }
           );
       }

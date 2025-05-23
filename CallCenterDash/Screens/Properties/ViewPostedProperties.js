@@ -543,8 +543,6 @@ const ViewAssignedProperties = () => {
               <View key={property._id} style={styles.card}>
                 {renderPropertyImage(property)}
 
-                {renderPropertyImage(property)}
-
                 <View style={styles.details}>
                   <View style={styles.idContainer}>
                     <Text style={styles.idText}>

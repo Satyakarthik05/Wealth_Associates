@@ -66,6 +66,7 @@ import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
 import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
 import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
 import SoldPropertys from "../Adminscreen/SoldPropertys";
+import AddValueProjects from "../Adminscreen/AddValueProjects";
 
 const menuItems = [
   {
@@ -128,6 +129,7 @@ const menuItems = [
       "Add Core Projects",
       "View Core Clients",
       "View Core Projects",
+      "Add Value Projects",
     ],
   },
   {
@@ -216,6 +218,7 @@ const AdminDashboard = () => {
   const [isViewCallVisible, setIsViewCallVisible] = useState(false);
   const [isAddCallVisible, setIsAddCallVisible] = useState(false);
   const [isSoldPropertys, setSoldPropertys] = useState(false);
+  const [isAddValueProjects, setAddValueProjects] = useState(false);
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -287,6 +290,7 @@ const AdminDashboard = () => {
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
     setSoldPropertys(false);
+    setAddValueProjects(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -351,6 +355,8 @@ const AdminDashboard = () => {
       setIsAddCoreVisible(true);
     } else if (subItem === "Add Core Projects") {
       setIsAddCoreProVisible(true);
+    } else if (subItem === "Add Value Projects") {
+      setAddValueProjects(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
     } else if (subItem === "All Skilled Resources") {
@@ -427,6 +433,7 @@ const AdminDashboard = () => {
     setIsCoreMember(false);
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
+    setAddValueProjects(false);
   };
 
   const renderContent = () => {
@@ -696,6 +703,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCallVisible} closeModal={closeModal}>
         <AddCallExecutive closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddValueProjects} closeModal={closeModal}>
+        <AddValueProjects closeModal={closeModal} />
       </CustomModal>
     </View>
   );
