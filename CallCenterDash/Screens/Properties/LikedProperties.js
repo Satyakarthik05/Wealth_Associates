@@ -311,8 +311,13 @@ const ViewLikedProperties = () => {
                       <Text style={styles.idText}>ID: {propertyId}</Text>
                     </View>
                     <Text style={styles.title}>{item.propertyType}</Text>
-                    <Text style={styles.title}>PostedBy: {item.PostedBy}</Text>
                     <Text style={styles.title}>{item.propertyDetails}</Text>
+                    <Text style={styles.title}>
+                      LikedBy: {item.MobileNumber}
+                    </Text>
+                    <Text style={styles.title}>
+                      LikedByName: {item.FullName}
+                    </Text>
                     <Text style={styles.info}>Location: {item.location}</Text>
                     <Text style={styles.budget}>
                       ₹ {parseInt(item.price).toLocaleString()}
