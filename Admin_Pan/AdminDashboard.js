@@ -221,7 +221,7 @@ const AdminDashboard = () => {
   const [isAddCallVisible, setIsAddCallVisible] = useState(false);
   const [isSoldPropertys, setSoldPropertys] = useState(false);
   const [isAddValueProjects, setAddValueProjects] = useState(false);
-  const [isValueProjects,setValueProjects]=useState(false)
+  const [isValueProjects, setValueProjects] = useState(false);
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -294,7 +294,7 @@ const AdminDashboard = () => {
     setIsViewCallVisible(false);
     setSoldPropertys(false);
     setAddValueProjects(false);
-    setValueProjects(false)
+    setValueProjects(false);
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -440,7 +440,7 @@ const AdminDashboard = () => {
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
     setAddValueProjects(false);
-    setValueProjects(false)
+    setValueProjects(false);
   };
 
   const renderContent = () => {
@@ -453,7 +453,7 @@ const AdminDashboard = () => {
     if (isViewSkillVisible) return <ViewSkilledLabours />;
     if (isViewClientVisible) return <Core_Clients />;
     if (isViewCoreProVisible) return <Core_Projects />;
-    if(isValueProjects)return<ValueProjects/>;
+    if (isValueProjects) return <ValueProjects />;
     if (isExpertReqVisible) return <ExpertList />;
     if (isViewNriVisible) return <ViewNri />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
@@ -468,34 +468,6 @@ const AdminDashboard = () => {
 
     return <Dashboard />;
   };
-
-  //   const getDetails = async () => {
-  //     try {
-  //       // Await the token retrieval from AsyncStorage
-  //       const token = await AsyncStorage.getItem("authToken");
-
-  //       // Make the fetch request
-  //       const response = await fetch(${API_URL}/agent/AgentDetails, {
-  //         method: "GET",
-  //         headers: {
-  //           token: ${token} || "", // Fallback to an empty string if token is null
-  //         },
-  //       });
-
-  //       // Parse the response
-  //       const newDetails = await response.json();
-
-  //       // Update state with the details
-  //       setDetails(newDetails);
-  //       console.log(Details);
-  //     } catch (error) {
-  //       console.error("Error fetching agent details:", error);
-  //     }
-  //   };
-
-  //   useEffect(() => {
-  //     getDetails();
-  //   }, []);
   useEffect(() => {
     AsyncStorage.setItem("userType", "Admin");
     AsyncStorage.setItem("authToken", "Admin");
@@ -602,19 +574,6 @@ const AdminDashboard = () => {
           <View style={styles.container}>
             <ScrollView>
               <View style={styles.userContent}>
-                {/* <Text style={styles.usersContentText}>
-                  Welcome Back:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {" "}
-                    {Details.FullName ? Details.FullName : "yourname"}
-                  </Text>
-                </Text>
-                <Text style={styles.usersContentText}>
-                  YourReferralcode:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
-                  </Text>
-                </Text> */}
                 <ScrollView style={{ height: "auto" }}>
                   {renderContent()}
                 </ScrollView>
