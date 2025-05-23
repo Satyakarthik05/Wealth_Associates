@@ -67,6 +67,7 @@ import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
 import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
 import SoldPropertys from "../Adminscreen/SoldPropertys";
 import AddValueProjects from "../Adminscreen/AddValueProjects";
+import ValueProjects from "../Adminscreen/ViewvalueProjects";
 
 const menuItems = [
   {
@@ -130,6 +131,7 @@ const menuItems = [
       "View Core Clients",
       "View Core Projects",
       "Add Value Projects",
+      "View Value Projects",
     ],
   },
   {
@@ -219,6 +221,7 @@ const AdminDashboard = () => {
   const [isAddCallVisible, setIsAddCallVisible] = useState(false);
   const [isSoldPropertys, setSoldPropertys] = useState(false);
   const [isAddValueProjects, setAddValueProjects] = useState(false);
+  const [isValueProjects,setValueProjects]=useState(false)
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -291,6 +294,7 @@ const AdminDashboard = () => {
     setIsViewCallVisible(false);
     setSoldPropertys(false);
     setAddValueProjects(false);
+    setValueProjects(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -325,6 +329,8 @@ const AdminDashboard = () => {
       setIsViewClientVisible(true);
     } else if (subItem === "View Core Projects") {
       setIsViewCoreProVisible(true);
+    } else if (subItem === "View Value Projects") {
+      setValueProjects(true);
     } else if (subItem === "Add Expert Panel") {
       setIsAddExpertPanelVisible(true);
     } else if (subItem === "Add Roles") {
@@ -434,6 +440,7 @@ const AdminDashboard = () => {
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
     setAddValueProjects(false);
+    setValueProjects(false)
   };
 
   const renderContent = () => {
@@ -446,6 +453,7 @@ const AdminDashboard = () => {
     if (isViewSkillVisible) return <ViewSkilledLabours />;
     if (isViewClientVisible) return <Core_Clients />;
     if (isViewCoreProVisible) return <Core_Projects />;
+    if(isValueProjects)return<ValueProjects/>;
     if (isExpertReqVisible) return <ExpertList />;
     if (isViewNriVisible) return <ViewNri />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
