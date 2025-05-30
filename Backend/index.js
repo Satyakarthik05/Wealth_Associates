@@ -27,6 +27,7 @@ const Constituency = require("./Models/DistrictsConstituencysModel");
 const ReqExp = require("./Routes/ReqExpRoutes");
 const CallExecuteRoute = require("./Routes/CallExecutiveRouts");
 const PushToken = require("./Models/NotificationToken");
+const SuppliersRoutes=require("./Routes/Suppliersroutes")
 const admin = require('firebase-admin');
 const { Expo } = require('expo-server-sdk');
 const expo = new Expo();
@@ -43,6 +44,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
 app.use("/coreProjects", express.static(path.join(__dirname, "coreProjects")));
+app.use("/valueProjects", express.static(path.join(__dirname, "valueProjects")));
 app.use(
   "/ExpertMembers",
   express.static(path.join(__dirname, "ExpertMembers"))
@@ -50,6 +52,10 @@ app.use(
 app.use(
   "/Agents",
   express.static(path.join(__dirname, "Agents"))
+);
+app.use(
+  "/Suppliers",
+  express.static(path.join(__dirname, "Suppliers"))
 );
 
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -93,6 +99,7 @@ app.use("/noti", NotificationToken);
 app.use("/alldiscons", DistrictConstituency);
 app.use("/direqexp", ReqExp);
 app.use("/callexe", CallExecuteRoute);
+app.use("/suppliersvendors",SuppliersRoutes)
 
 app.get("/admindata", (req, res) => {
   const UserName = "9063392872";

@@ -49,13 +49,19 @@ const AgentScheme = new mongoose.Schema({
   AgentType: {
     type: String,
   },
+  valuemember:{
+    type:String,
+    // required:true,
+  },
   photo: { type: String, },
+  CompanyName: { type: String, },
+
   AadhaarNumber: { type: String, },
   PANNumber: { type: String, },
   BankAccountNumber: { type: String, },
   CallExecutiveCall: {
     type: String,
-    enum: ["Pending", "Done"], // Add this to enforce specific values
+    enum: ["Pending", "Done"], 
     default: "Pending",
   },
 });

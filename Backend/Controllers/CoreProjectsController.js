@@ -1,4 +1,5 @@
 const CoreProjects = require("../Models/CoreProjectsModel");
+const ValueProjects = require("../Models/ValueProjects")
 
 const createCoreProjects = async (req, res) => {
   try {
@@ -39,5 +40,44 @@ const GetAllcoreProjects = async (req, res) => {
     res.status(500).json({ message: "Error fetching properties", error });
   }
 };
+const createValueProjects = async (req, res) => {
+  try {
+    const { companyName, officeAddress, city, website, mobile } = req.body;
 
-module.exports = { createCoreProjects, GetAllcoreProjects };
+    let photoPath = null;
+    if (req.file) {
+      photoPath = `/valueProjects/${req.file.filename}`;
+    } else {
+      return res.status(400).json({ message: "Photo is required." });
+    }
+
+    const newProperty = new ValueProjects({
+      companyName,
+      officeAddress,
+      city,
+      website,
+      mobile,
+      photo: photoPath,
+    });
+
+    await newProperty.save();
+    res
+      .status(200)
+      .json({ message: "Property added successfully", newProperty });
+  } catch (error) {
+    console.error("Error in createProperty:", error);
+    res.status(500).json({ message: "Error adding property", error });
+  }
+};
+
+const GetAllValueProjects = async (req, res) => {
+  try {
+    const properties = await ValueProjects.find();
+    res.status(200).json(properties);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Error fetching properties", error });
+  }
+};
+
+module.exports = { createCoreProjects, GetAllcoreProjects,createValueProjects,GetAllValueProjects };

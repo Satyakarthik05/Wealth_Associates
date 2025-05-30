@@ -58,13 +58,30 @@ const AgentSign = async (req, res) => {
     ReferredBy,
     MyRefferalCode,
     AgentType,
+    valuemember,
+    CompanyName
+    
   } = req.body;
+
+  // if (!req.file) {
+  //   return res.status(400).json({ message: "Photo is required." });
+  // }
+  let photoPath = null;
+
+  // Check if file exists and is uploaded
+  if (req.file) {
+    photoPath = `/Agents/${req.file.filename}`;
+  }
+
+  // const photoPath = `/Agents/${req.file.filename}`;
 
   try {
     const existingAgent = await AgentSchema.findOne({ MobileNumber:MobileNumber });
     const referredAgent = await AgentSchema.findOne({
       MyRefferalCode: ReferredBy,
     });
+
+
 
     if (existingAgent) {
       return res.status(400).json({ message: "Mobile number already exists" });
@@ -89,6 +106,9 @@ const AgentSign = async (req, res) => {
       ReferredBy: finalReferredBy,
       MyRefferalCode: refferedby,
       AgentType,
+      valuemember,
+      photo:photoPath,
+      CompanyName
     });
 
     
@@ -221,6 +241,19 @@ const getAgent = async (req, res) => {
     console.log(error);
   }
 };
+const getvalueAgent = async (req, res) => {
+  try {
+    const { referralCode } = req.body;
+    const agentDetails = await AgentSchema.find({valuemember:referralCode});
+    if (!agentDetails) {
+      return res.status(200).json({ message: "Agent not found" });
+    } else {
+      res.status(200).json(agentDetails);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const updateAgentDetails = async (req, res) => {
   const { MobileNumber, FullName, Email, Locations, Expertise, Experience } =
@@ -337,4 +370,5 @@ module.exports = {
   deleteAgent,
   updateAgentByadmin,
   callDone,
+  getvalueAgent
 };

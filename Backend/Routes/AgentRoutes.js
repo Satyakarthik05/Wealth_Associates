@@ -19,9 +19,10 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB file size limit
 });
 
-app.post("/AgentRegister", AgentController.AgentSign);
+app.post("/AgentRegister", upload.single("photo"),AgentController.AgentSign);
 app.post("/AgentLogin", AgentController.AgentLogin);
 app.get("/AgentDetails", verifyAgentToken, AgentController.getAgent);
+app.post("/valueagents",  AgentController.getvalueAgent);
 app.post("/updateAgentDetails", AgentController.updateAgentDetails);
 app.get("/myAgents", verifyAgentToken, AgentController.fetchReferredAgents);
 app.post("/ForgetPassword", ForgetPassword.ForgetPassword);

@@ -22,15 +22,29 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB file size limit
+  limits: { 
+    fileSize: 20 * 1024 * 1024, // 20MB per file
+    files: 6 // Maximum 6 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif)$/)) {
+      return cb(new Error('Only image files (jpeg, jpg, png, gif) are allowed!'), false);
+    }
+    cb(null, true);
+  }
 });
 
-// ✅ **Add Property**
+// ✅ *Add Property with Multiple Photos*
+// Accept both single and multiple under 'photo'
 router.post(
   "/addProperty",
-  upload.single("photo"),
+  (req, res, next) => {
+    upload.any()(req, res, next); // Accept any files
+  },
   PostPropertyController.createProperty
 );
+
 router.post(
   "/addcoreclient",
   upload.single("photo"),
@@ -58,10 +72,16 @@ router.put(
 router.put("/update/:id", PostPropertyController.updatePropertyAdmin);
 router.put("/approveupdate/:id", ApprovedProperty.updatePropertyAdmin);
 router.get("/getApproveProperty", ApprovedProperty.GetAllApprovdPropertys);
+router.post("/getlikedproperties", ApprovedProperty.GetlikedPropertys);
+router.get("/getalllikedproperties", ApprovedProperty.GetAlllikedPropertys);
+router.put("/callDone/:id", ApprovedProperty.callDoneforliked);
+router.delete("/likeddelete/:id", ApprovedProperty.LikedDelete);
 router.get("/getsoldProperty", ApprovedProperty.GetAllSoldedPropertys);
 router.post("/approve/:id", ApprovedProperty.approveProperty);
+router.post("/like", ApprovedProperty.LikeProperty);
 router.post("/sold/:id", ApprovedProperty.SoldProperty);
 router.get("/nearby/:constituency", PostPropertyController.getNearbyProperties);
+router.post('/get-referral-data', PostPropertyController.getReferralAndPostedData);
 router.post(
   "/getPropertyreffered",
   PostPropertyController.getReferredByDetails

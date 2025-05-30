@@ -11,7 +11,55 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
-const ApprovedProperty = require("../Models/ApprovedPropertys")
+const ApprovedProperty = require("../Models/ApprovedPropertys");
+
+const getReferralAndPostedData = async (req, res) => {
+  try {
+    const { mobileNumber, myReferralCode } = req.body;
+
+    if (!mobileNumber || !myReferralCode) {
+      return res.status(400).json({ message: 'Mobile number and referral code are required.' });
+    }
+
+    // Fetch data
+    const agentData = await AgentSchema.find({ ReferredBy: myReferralCode });
+    const customerData = await CustomerSchema.find({ ReferredBy: myReferralCode });
+    const investorData = await investorSchema.find({ AddedBy: mobileNumber });
+    const skilledData = await skillSchema.find({ AddedBy: mobileNumber });
+    const nrisData = await nriSchema.find({ AddedBy: mobileNumber });
+    const propertyData = await Property.find({ PostedBy: mobileNumber });
+    const approvedData = await ApprovedProperty.find({ PostedBy: mobileNumber });
+
+    // Calculate counts
+    const counts = {
+      agentCount: agentData.length,
+      customerCount: customerData.length,
+      investorCount: investorData.length,
+      skilledCount: skilledData.length,
+      nrisCount: nrisData.length,
+      propertyCount: propertyData.length,
+      approvedCount: approvedData.length,
+    };
+
+    // Respond with data and counts
+    return res.status(200).json({
+      data: {
+        agentData,
+        customerData,
+        investorData,
+        skilledData,
+        nrisData,
+        propertyData,
+        approvedData
+      },
+      counts
+    });
+
+  } catch (error) {
+    console.error('Error fetching referral and posted data:', error);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+};
 
 
 const getReferrerDetails = async (req, res) => {
@@ -100,7 +148,6 @@ const getReferrerDetails = async (req, res) => {
 };
 
 
-// Create a new property
 const createProperty = async (req, res) => {
   try {
     let {
@@ -108,50 +155,59 @@ const createProperty = async (req, res) => {
       location,
       price,
       PostedBy,
+      fullName,
+      mobile,
       Constituency,
       propertyDetails,
     } = req.body;
 
-    // Validate PostedBy
     if (!PostedBy) {
-      return res
-        .status(400)
-        .json({ message: "PostedBy (MobileNumber) is required." });
+      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
     }
 
-    // Validate photo
-    let photoPath = null;
-    if (req.file) {
-      photoPath = `/uploads/${req.file.filename}`;
+    
+
+    let photo = null;
+
+    // Handle multiple photos
+    if (req.files && req.files.length > 0) {
+      const photoPaths = req.files.map(file => `/uploads/${file.filename}`);
+
+      if (photoPaths.length > 6) {
+        req.files.forEach(file => fs.unlinkSync(file.path));
+        return res.status(400).json({ message: "Maximum 6 photos allowed." });
+      }
+
+      photo = photoPaths.length === 1 ? photoPaths[0] : photoPaths;
+
+    } else if (req.file) {
+      // Single photo uploaded using .single()
+      photo = `/uploads/${req.file.filename}`;
     } else {
-      return res.status(400).json({ message: "Photo is required." });
+      return res.status(400).json({ message: "At least one photo is required." });
     }
 
-    // Find the user who posted the property
-
-    // Create and save new property
     const newProperty = new Property({
       propertyType,
       location,
       price,
-      photo: photoPath,
+      photo,
       PostedBy,
-      propertyDetails,
+      fullName,
+      mobile,
+      propertyDetails: propertyDetails,
+
       Constituency,
     });
 
     await newProperty.save();
 
-    // Assign property to call executive (round-robin)
-    const callExecutives = await CallExecutive.find({
-      assignedType: "Property",
-    })
+    const callExecutives = await CallExecutive.find({ assignedType: "Property" })
       .sort({ lastAssignedAt: 1 })
       .limit(1);
 
     if (callExecutives.length > 0) {
       const assignedExecutive = callExecutives[0];
-
       assignedExecutive.assignedUsers.push({
         userType: "Property",
         userId: newProperty._id,
@@ -160,18 +216,30 @@ const createProperty = async (req, res) => {
       await assignedExecutive.save();
     }
 
-    // Optional: Send data to call center API
-
     return res.status(200).json({
       message: "Property added and assigned successfully",
       newProperty,
-      assignedTo:
-        callExecutives.length > 0
-          ? callExecutives[0].name
-          : "No executive available",
+      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
     });
   } catch (error) {
     console.error("Error in createProperty:", error);
+
+    if (req.files) {
+      req.files.forEach(file => {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.error("Error deleting uploaded file:", err);
+        }
+      });
+    } else if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Error deleting uploaded file:", err);
+      }
+    }
+
     return res.status(500).json({
       message: "Error adding property",
       error: error.message,
@@ -179,9 +247,7 @@ const createProperty = async (req, res) => {
   }
 };
 
-// module.exports = { createProperty };
 
-// Get all properties
 const GetAllPropertys = async (req, res) => {
   try {
     const properties = await Property.find();
@@ -470,4 +536,5 @@ module.exports = {
   getReferredByDetails,
   updateDynamicData,
   getReferrerDetails,
+  getReferralAndPostedData,
 };
