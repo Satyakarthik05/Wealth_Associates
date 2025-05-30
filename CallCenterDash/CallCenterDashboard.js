@@ -19,6 +19,7 @@ import ViewApprovedProperties from "./Screens/Properties/ViewApprovedProperties"
 import Viewallagents from "./Screens/Agent/ViewAllAgents";
 import NewExperts from "./ExpertPanel/NewExperts";
 import ViewLikedProperties from "./Screens/Properties/LikedProperties";
+import AgentPerformanceData from "./Screens/View/AgentPrformanceData";
 
 // Importing components
 import Dashboard from "./Screens/Callcentre";
@@ -57,6 +58,7 @@ const CallCenterDashboard = () => {
   const [isViewallagents, setViewallagents] = useState(false);
   const [isExpertPanel, setExpertPanel] = useState(false);
   const [isNewExperts, setNewExperts] = useState(false);
+  const [isAgentPerformanceData,setAgentPerformanceData]=useState(false)
 
   const toggleSidebar = () => {
     if (Platform.OS === "android") {
@@ -92,6 +94,7 @@ const CallCenterDashboard = () => {
     setExpertPanel(false);
     setNewExperts(false);
     setViewLikedProperties(false);
+    setAgentPerformanceData(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -146,6 +149,9 @@ const CallCenterDashboard = () => {
       case "View NRI Members":
         setIsViewNriVisible(true);
         break;
+      case "AgentPerformanceData":
+        setAgentPerformanceData(true);
+        break;
       default:
         break;
     }
@@ -182,6 +188,7 @@ const CallCenterDashboard = () => {
     if (isViewallagents) return <Viewallagents />;
     if (isExpertPanel) return <ExpertPanel />;
     if (isNewExperts) return <NewExperts />;
+    if(isAgentPerformanceData)return <AgentPerformanceData/>
     return <Dashboard />;
   };
 
@@ -201,6 +208,7 @@ const CallCenterDashboard = () => {
     setExpertPanel(false);
     setNewExperts(false);
     setViewLikedProperties(false);
+    setAgentPerformanceData(false);
   };
 
   const getDetails = async () => {
@@ -264,7 +272,7 @@ const CallCenterDashboard = () => {
             {
               title: "Agents",
               icon: "person-outline",
-              subItems: ["View Agents"],
+              subItems: ["View Agents","AgentPerformanceData"],
             },
             {
               title: "Customers",
@@ -297,6 +305,7 @@ const CallCenterDashboard = () => {
           "View NRI Members",
           "View Investors",
           "View All Agents",
+          "AgentPerformanceData"
         ],
       });
 

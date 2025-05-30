@@ -68,6 +68,7 @@ import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive"
 import SoldPropertys from "../Adminscreen/SoldPropertys";
 import AddValueProjects from "../Adminscreen/AddValueProjects";
 import ValueProjects from "../Adminscreen/ViewvalueProjects";
+import AgentPerformanceData from "../Adminscreen/AgentPerformanceData";
 
 const menuItems = [
   {
@@ -78,6 +79,7 @@ const menuItems = [
       "Register Executive Wealth Associate",
       "Register Wealth Associate",
       "View Agents",
+      "AgentPerformanceData"
     ],
   },
   {
@@ -222,6 +224,7 @@ const AdminDashboard = () => {
   const [isSoldPropertys, setSoldPropertys] = useState(false);
   const [isAddValueProjects, setAddValueProjects] = useState(false);
   const [isValueProjects, setValueProjects] = useState(false);
+  const [isAgentPerformanceData,setAgentPerformanceData]=useState(false)
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -295,6 +298,7 @@ const AdminDashboard = () => {
     setSoldPropertys(false);
     setAddValueProjects(false);
     setValueProjects(false);
+    setAgentPerformanceData(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -394,6 +398,9 @@ const AdminDashboard = () => {
     } else if (subItem === "View SoldedPropertys") {
       setSoldPropertys(true);
     }
+     else if (subItem === "AgentPerformanceData") {
+      setAgentPerformanceData(true);
+    }
   };
 
   const handleSearch = (text) => {
@@ -441,6 +448,7 @@ const AdminDashboard = () => {
     setIsViewCallVisible(false);
     setAddValueProjects(false);
     setValueProjects(false);
+    setAgentPerformanceData(false)
   };
 
   const renderContent = () => {
@@ -465,6 +473,7 @@ const AdminDashboard = () => {
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     if (isViewCallVisible) return <ViewCallExecutives />;
     if (isSoldPropertys) return <SoldPropertys />;
+    if(isAgentPerformanceData)return <AgentPerformanceData/>
 
     return <Dashboard />;
   };
