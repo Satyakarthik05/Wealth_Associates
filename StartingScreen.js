@@ -57,6 +57,11 @@ const StartingScreen = () => {
       icon: <FontAwesome5 name="user-tie" size={hp("4%")} color="white" />,
       navigateTo: "SkillDashboard",
     },
+    {
+      name: "CaLL Center Login",
+      icon: <Ionicons name="lock-closed" size={hp("4%")} color="white" />,
+      navigateTo: "CallCenterLogin",
+    },
     // Cann Center Login - Visible only on web
     ...(Platform.OS === "web"
       ? [

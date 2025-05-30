@@ -28,8 +28,8 @@ const PostProperty = ({ closeModal }) => {
   const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
-  const [photo, setPhoto] = useState(null);
-  const [file, setFile] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [files, setFiles] = useState([]);
   const [errors, setErrors] = useState({});
   const [Details, setDetails] = useState({});
   const [PostedBy, setPostedBy] = useState("");
@@ -106,7 +106,8 @@ const PostProperty = ({ closeModal }) => {
     if (!propertyType) newErrors.propertyType = "Please select a property type";
     if (!location) newErrors.location = "Location is required";
     if (!price) newErrors.price = "Price is required";
-    if (!photo) newErrors.photo = "Please upload a photo";
+    if (photos.length === 0)
+      newErrors.photo = "Please upload at least one photo";
     if (!propertyDetails) newErrors.propertyDetails = "Details are required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -127,23 +128,19 @@ const PostProperty = ({ closeModal }) => {
         formData.append("Constituency", constituencies);
         formData.append("propertyDetails", propertyDetails);
 
-        if (photo) {
-          if (Platform.OS === "web") {
-            if (file) {
-              formData.append("photo", file);
-            } else if (typeof photo === "string" && photo.startsWith("blob:")) {
-              const response = await fetch(photo);
-              const blob = await response.blob();
-              const file = new File([blob], "photo.jpg", { type: blob.type });
-              formData.append("photo", file);
-            }
-          } else {
-            formData.append("photo", {
-              uri: photo,
-              name: "photo.jpg",
+        // Append all photos
+        if (Platform.OS === "web") {
+          files.forEach((file, index) => {
+            formData.append("photos", file);
+          });
+        } else {
+          photos.forEach((photoUri, index) => {
+            formData.append("photos", {
+              uri: photoUri,
+              name: `photo_${index}.jpg`,
               type: "image/jpeg",
             });
-          }
+          });
         }
 
         const response = await fetch(`${API_URL}/properties/addProperty`, {
@@ -154,7 +151,9 @@ const PostProperty = ({ closeModal }) => {
         const result = await response.json();
         if (response.ok) {
           setPostedProperty({
-            photo: result.photo || photo,
+            // Use the first photo for the card display
+            photo: result.photos?.[0] || photos[0],
+            photos: result.photos || photos,
             location,
             price,
             propertyType,
@@ -182,18 +181,31 @@ const PostProperty = ({ closeModal }) => {
   };
 
   // Image handling functions
-  const selectImageFromGallery = async () => {
+  const selectImagesFromGallery = async () => {
     try {
+      if (photos.length >= 6) {
+        alert("You can upload a maximum of 6 photos");
+        return;
+      }
+
       if (Platform.OS === "web") {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
+        input.multiple = true;
         input.onchange = (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setPhoto(imageUrl);
-            setFile(file);
+          const newFiles = Array.from(event.target.files);
+          const remainingSlots = 6 - photos.length;
+          const filesToAdd = newFiles.slice(0, remainingSlots);
+
+          if (filesToAdd.length > 0) {
+            const newPhotos = filesToAdd.map((file) =>
+              URL.createObjectURL(file)
+            );
+            setPhotos([...photos, ...newPhotos]);
+            setFiles([...files, ...filesToAdd]);
+          } else {
+            alert(`You can only upload ${remainingSlots} more photo(s)`);
           }
         };
         input.click();
@@ -202,26 +214,34 @@ const PostProperty = ({ closeModal }) => {
           await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (permissionResult.status !== "granted") {
-          alert("Permission is required to upload a photo.");
+          alert("Permission is required to upload photos.");
           return;
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           quality: 1,
+          allowsMultipleSelection: true,
+          selectionLimit: 6 - photos.length,
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
-          setPhoto(result.assets[0].uri);
+          const newUris = result.assets.map((asset) => asset.uri);
+          setPhotos([...photos, ...newUris]);
         }
       }
     } catch (error) {
-      console.error("Error selecting image:", error);
+      console.error("Error selecting images:", error);
     }
   };
 
   const takePhotoWithCamera = async () => {
     try {
+      if (photos.length >= 6) {
+        alert("You can upload a maximum of 6 photos");
+        return;
+      }
+
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
       if (status !== "granted") {
@@ -236,7 +256,7 @@ const PostProperty = ({ closeModal }) => {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
+        setPhotos([...photos, result.assets[0].uri]);
       }
     } catch (error) {
       console.error("Error opening camera:", error);
@@ -266,7 +286,7 @@ const PostProperty = ({ closeModal }) => {
       setModalVisible(false);
       setPostedProperty(null);
       setTimeout(() => {
-        alert("property posted successfully");
+        alert("Property posted successfully");
         closeModal();
       }, 100);
     });
@@ -293,24 +313,48 @@ const PostProperty = ({ closeModal }) => {
         <Text style={styles.title}>Post a Property</Text>
         <View style={styles.formContainer}>
           {/* Photo Upload Section */}
-          <Text style={styles.label}>Upload Photo</Text>
+          <Text style={styles.label}>Upload Photos (Max 6)</Text>
           <View style={styles.uploadSection}>
-            {photo ? (
-              <View>
-                <Image source={{ uri: photo }} style={styles.uploadedImage} />
-                <Button
-                  mode="outlined"
-                  style={styles.removeButton}
-                  onPress={() => setPhoto(null)}
-                >
-                  Remove
-                </Button>
+            {photos.length > 0 ? (
+              <View style={styles.photosContainer}>
+                {photos.map((photoUri, index) => (
+                  <View key={index} style={styles.photoWrapper}>
+                    <Image
+                      source={{ uri: photoUri }}
+                      style={styles.uploadedImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.removePhotoButton}
+                      onPress={() => {
+                        const updatedPhotos = [...photos];
+                        updatedPhotos.splice(index, 1);
+                        setPhotos(updatedPhotos);
+                        if (Platform.OS === "web") {
+                          const updatedFiles = [...files];
+                          updatedFiles.splice(index, 1);
+                          setFiles(updatedFiles);
+                        }
+                      }}
+                    >
+                      <MaterialIcons name="close" size={18} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                {photos.length < 6 && (
+                  <TouchableOpacity
+                    style={styles.addPhotoButton}
+                    onPress={selectImagesFromGallery}
+                  >
+                    <MaterialIcons name="add" size={24} color="#555" />
+                    <Text style={styles.uploadPlaceholderText}>Add Photo</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <View style={styles.uploadOptions}>
                 <TouchableOpacity
                   style={styles.uploadPlaceholder}
-                  onPress={selectImageFromGallery}
+                  onPress={selectImagesFromGallery}
                 >
                   <MaterialIcons name="photo-library" size={24} color="#555" />
                   <Text style={styles.uploadPlaceholderText}>Gallery</Text>
@@ -571,12 +615,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  uploadedImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
+  photosContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
     marginBottom: 10,
+  },
+  photoWrapper: {
+    position: "relative",
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  uploadedImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
     resizeMode: "cover",
+  },
+  removePhotoButton: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   uploadOptions: {
     flexDirection: "row",
@@ -592,6 +657,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f9f9f9",
+  },
+  addPhotoButton: {
+    width: 80,
+    height: 80,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+    marginRight: 10,
+    marginBottom: 10,
   },
   uploadPlaceholderText: {
     fontSize: 14,

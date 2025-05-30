@@ -26,6 +26,8 @@ const Dashboard = () => {
   const [Customers, setCustomers] = useState("");
   const [Properties, setProperties] = useState("");
   const [SkilledResource, setSkilledResource] = useState("");
+  const [investors, setinvestors] = useState("");
+  const [approvedproperties, setapproves] = useState("");
   const [data, setData] = useState([]);
 
   // State for properties
@@ -59,8 +61,10 @@ const Dashboard = () => {
           agentsRes,
           customersRes,
           propertiesRes,
+          approvedproprtiesres,
           expertsRes,
           skilledRes,
+          investorsres,
           allPropsRes,
           approvedPropsRes,
           propertyTypesRes,
@@ -69,8 +73,10 @@ const Dashboard = () => {
           fetch(`${API_URL}/count/total-agents`),
           fetch(`${API_URL}/count/total-customers`),
           fetch(`${API_URL}/count/total-properties`),
+          fetch(`${API_URL}/count/total-approvedproperties`),
           fetch(`${API_URL}/count/total-experts`),
           fetch(`${API_URL}/count/total-skilledlabours`),
+          fetch(`${API_URL}/count/total-Investors`),
           fetch(`${API_URL}/properties/getallPropertys`),
           fetch(`${API_URL}/properties/getApproveProperty`),
           fetch(`${API_URL}/discons/propertytype`),
@@ -82,6 +88,8 @@ const Dashboard = () => {
         setProperties((await propertiesRes.json()).totalAgents);
         setExperts((await expertsRes.json()).totalAgents);
         setSkilledResource((await skilledRes.json()).totalAgents);
+        setinvestors((await investorsres.json()).totalAgents);
+        setapproves((await approvedproprtiesres.json()).totalAgents);
 
         const propertiesData = await allPropsRes.json();
         if (propertiesData && Array.isArray(propertiesData)) {
@@ -354,7 +362,7 @@ const Dashboard = () => {
       {
         id: 3,
         title: "Investors & Landlords",
-        count: "125",
+        count: `${investors}` || "0",
         icon: "airplane",
       },
       {
@@ -375,9 +383,15 @@ const Dashboard = () => {
         count: `${SkilledResource}` || "0",
         icon: "human-handsup",
       },
+      {
+        id: 7,
+        title: "Approved Properties",
+        count: `${approvedproperties}` || "0",
+        icon: "human-handsup",
+      },
     ];
     setData(fetchedData);
-  }, [Agents, Experts, Customers, Properties, SkilledResource]);
+  }, [Agents, Experts, Customers, Properties, SkilledResource, investors, approvedproperties]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

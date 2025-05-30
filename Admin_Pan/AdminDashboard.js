@@ -66,6 +66,9 @@ import ViewApprovedProperties from "../Adminscreen/ViewApprovedProperties";
 import AddCallExecutive from "../Adminscreen/Call Executive/AddCallExecutive";
 import ViewCallExecutives from "../Adminscreen/Call Executive/ViewCallExecutive";
 import SoldPropertys from "../Adminscreen/SoldPropertys";
+import AddValueProjects from "../Adminscreen/AddValueProjects";
+import ValueProjects from "../Adminscreen/ViewvalueProjects";
+import AgentPerformanceData from "../Adminscreen/AgentPerformanceData";
 
 const menuItems = [
   {
@@ -76,6 +79,7 @@ const menuItems = [
       "Register Executive Wealth Associate",
       "Register Wealth Associate",
       "View Agents",
+      "AgentPerformanceData"
     ],
   },
   {
@@ -128,6 +132,8 @@ const menuItems = [
       "Add Core Projects",
       "View Core Clients",
       "View Core Projects",
+      "Add Value Projects",
+      "View Value Projects",
     ],
   },
   {
@@ -216,6 +222,9 @@ const AdminDashboard = () => {
   const [isViewCallVisible, setIsViewCallVisible] = useState(false);
   const [isAddCallVisible, setIsAddCallVisible] = useState(false);
   const [isSoldPropertys, setSoldPropertys] = useState(false);
+  const [isAddValueProjects, setAddValueProjects] = useState(false);
+  const [isValueProjects, setValueProjects] = useState(false);
+  const [isAgentPerformanceData,setAgentPerformanceData]=useState(false)
   const navigation = useNavigation();
 
   const toggleSidebar = () => {
@@ -287,6 +296,9 @@ const AdminDashboard = () => {
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
     setSoldPropertys(false);
+    setAddValueProjects(false);
+    setValueProjects(false);
+    setAgentPerformanceData(false)
 
     if (Platform.OS === "android") {
       setIsSidebarExpanded(false);
@@ -321,6 +333,8 @@ const AdminDashboard = () => {
       setIsViewClientVisible(true);
     } else if (subItem === "View Core Projects") {
       setIsViewCoreProVisible(true);
+    } else if (subItem === "View Value Projects") {
+      setValueProjects(true);
     } else if (subItem === "Add Expert Panel") {
       setIsAddExpertPanelVisible(true);
     } else if (subItem === "Add Roles") {
@@ -351,6 +365,8 @@ const AdminDashboard = () => {
       setIsAddCoreVisible(true);
     } else if (subItem === "Add Core Projects") {
       setIsAddCoreProVisible(true);
+    } else if (subItem === "Add Value Projects") {
+      setAddValueProjects(true);
     } else if (subItem === "View NRI Members") {
       setIsViewNriVisible(true);
     } else if (subItem === "All Skilled Resources") {
@@ -381,6 +397,9 @@ const AdminDashboard = () => {
       setIsViewCallVisible(true);
     } else if (subItem === "View SoldedPropertys") {
       setSoldPropertys(true);
+    }
+     else if (subItem === "AgentPerformanceData") {
+      setAgentPerformanceData(true);
     }
   };
 
@@ -427,6 +446,9 @@ const AdminDashboard = () => {
     setIsCoreMember(false);
     setIsAddCallVisible(false);
     setIsViewCallVisible(false);
+    setAddValueProjects(false);
+    setValueProjects(false);
+    setAgentPerformanceData(false)
   };
 
   const renderContent = () => {
@@ -439,6 +461,7 @@ const AdminDashboard = () => {
     if (isViewSkillVisible) return <ViewSkilledLabours />;
     if (isViewClientVisible) return <Core_Clients />;
     if (isViewCoreProVisible) return <Core_Projects />;
+    if (isValueProjects) return <ValueProjects />;
     if (isExpertReqVisible) return <ExpertList />;
     if (isViewNriVisible) return <ViewNri />;
     if (AllSkilledLabour) return <AllSkilledLabours />;
@@ -450,37 +473,10 @@ const AdminDashboard = () => {
     if (isViewApprovedProperties) return <ViewApprovedProperties />;
     if (isViewCallVisible) return <ViewCallExecutives />;
     if (isSoldPropertys) return <SoldPropertys />;
+    if(isAgentPerformanceData)return <AgentPerformanceData/>
 
     return <Dashboard />;
   };
-
-  //   const getDetails = async () => {
-  //     try {
-  //       // Await the token retrieval from AsyncStorage
-  //       const token = await AsyncStorage.getItem("authToken");
-
-  //       // Make the fetch request
-  //       const response = await fetch(${API_URL}/agent/AgentDetails, {
-  //         method: "GET",
-  //         headers: {
-  //           token: ${token} || "", // Fallback to an empty string if token is null
-  //         },
-  //       });
-
-  //       // Parse the response
-  //       const newDetails = await response.json();
-
-  //       // Update state with the details
-  //       setDetails(newDetails);
-  //       console.log(Details);
-  //     } catch (error) {
-  //       console.error("Error fetching agent details:", error);
-  //     }
-  //   };
-
-  //   useEffect(() => {
-  //     getDetails();
-  //   }, []);
   useEffect(() => {
     AsyncStorage.setItem("userType", "Admin");
     AsyncStorage.setItem("authToken", "Admin");
@@ -587,19 +583,6 @@ const AdminDashboard = () => {
           <View style={styles.container}>
             <ScrollView>
               <View style={styles.userContent}>
-                {/* <Text style={styles.usersContentText}>
-                  Welcome Back:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {" "}
-                    {Details.FullName ? Details.FullName : "yourname"}
-                  </Text>
-                </Text>
-                <Text style={styles.usersContentText}>
-                  YourReferralcode:
-                  <Text style={{ color: "#E82E5F" }}>
-                    {Details.MyRefferalCode ? Details.MyRefferalCode : "mycode"}
-                  </Text>
-                </Text> */}
                 <ScrollView style={{ height: "auto" }}>
                   {renderContent()}
                 </ScrollView>
@@ -696,6 +679,9 @@ const AdminDashboard = () => {
       </CustomModal>
       <CustomModal isVisible={isAddCallVisible} closeModal={closeModal}>
         <AddCallExecutive closeModal={closeModal} />
+      </CustomModal>
+      <CustomModal isVisible={isAddValueProjects} closeModal={closeModal}>
+        <AddValueProjects closeModal={closeModal} />
       </CustomModal>
     </View>
   );

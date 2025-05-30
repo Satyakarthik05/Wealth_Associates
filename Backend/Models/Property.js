@@ -28,9 +28,13 @@ const propertySchema = new mongoose.Schema(
     fullName: { type: String },
     mobile: { type: String },
     propertyDetails: { type: String },
+    fullName: { type: String },
+    mobile: { type: String },
+    propertyDetails: { type: String },
     Constituency: { type: String },
     PostedUserType: { type: String },
     editedAt: { type: Date },
+    
     
     // New field to store dynamic data
     dynamicData: {
@@ -43,6 +47,13 @@ const propertySchema = new mongoose.Schema(
     strict: false, // This allows the model to accept any additional fields
   }
 );
+
+// Indexes for better query performance
+propertySchema.index({ propertyType: 1 });
+propertySchema.index({ location: 1 });
+propertySchema.index({ price: 1 });
+propertySchema.index({ PostedBy: 1 });
+propertySchema.index({ createdAt: -1 });
 
 // Indexes for better query performance
 propertySchema.index({ propertyType: 1 });

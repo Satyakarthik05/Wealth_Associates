@@ -157,11 +157,14 @@ const createProperty = async (req, res) => {
       PostedBy,
       fullName,
       mobile,
+      fullName,
+      mobile,
       Constituency,
       propertyDetails,
     } = req.body;
 
     if (!PostedBy) {
+      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
       return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
     }
 
@@ -184,6 +187,7 @@ const createProperty = async (req, res) => {
       // Single photo uploaded using .single()
       photo = `/uploads/${req.file.filename}`;
     } else {
+      return res.status(400).json({ message: "At least one photo is required." });
       return res.status(400).json({ message: "At least one photo is required." });
     }
 
@@ -219,6 +223,7 @@ const createProperty = async (req, res) => {
     return res.status(200).json({
       message: "Property added and assigned successfully",
       newProperty,
+      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
       assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
     });
   } catch (error) {

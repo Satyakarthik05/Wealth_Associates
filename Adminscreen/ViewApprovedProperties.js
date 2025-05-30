@@ -28,7 +28,6 @@ const ViewAllProperties = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [selectedPropertyDetails, setSelectedPropertyDetails] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(null);
   const [editedDetails, setEditedDetails] = useState({
     propertyType: "",
     location: "",
@@ -106,6 +105,60 @@ const ViewAllProperties = () => {
 
     return matchesId;
   });
+
+  // Improved image handling function
+  const renderPropertyImage = (property) => {
+    // If 'photo' is an array with images
+    if (Array.isArray(property.photo) && property.photo.length > 0) {
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageScroll}
+        >
+          {property.photo.map((photo, index) => (
+            <Image
+              key={index}
+              source={{
+                uri:
+                  typeof photo === "string"
+                    ? photo.startsWith("http")
+                      ? photo
+                      : `${API_URL}${photo}`
+                    : `${API_URL}${photo?.uri || ""}`,
+              }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ))}
+        </ScrollView>
+      );
+    }
+    // Single image
+    else if (property.photo && typeof property.photo === "string") {
+      return (
+        <Image
+          source={{
+            uri: property.photo.startsWith("http")
+              ? property.photo
+              : `${API_URL}${property.photo}`,
+          }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      );
+    }
+    // Fallback image
+    else {
+      return (
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      );
+    }
+  };
 
   const handleDelete = async (id) => {
     if (Platform.OS === "web") {
@@ -225,15 +278,12 @@ const ViewAllProperties = () => {
       });
 
       if (response.ok) {
-        // Update the local state to reflect sold status
         setProperties(
           properties.map((property) =>
             property._id === id ? { ...property, sold: true } : property
           )
         );
         Alert.alert("Success", "Property marked as sold");
-
-        // If you need to refresh data, call fetchProperties directly
         fetchProperties();
       } else {
         const error = await response.json();
@@ -302,13 +352,11 @@ const ViewAllProperties = () => {
     const message = formatPropertyDetails(selectedPropertyDetails);
 
     if (Platform.OS === "web") {
-      // Web: Opens WhatsApp Web with recent chats (no way to skip)
       window.open(
         `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
         "_blank"
       );
     } else {
-      // Mobile: Forces "New Chat" screen (works on most devices)
       const url = `whatsapp://send?phone=&text=${encodeURIComponent(message)}`;
 
       Linking.canOpenURL(url)
@@ -316,7 +364,6 @@ const ViewAllProperties = () => {
           if (supported) {
             Linking.openURL(url);
           } else {
-            // Fallback: Open WhatsApp normally if deep link fails
             Linking.openURL(
               `whatsapp://send?text=${encodeURIComponent(message)}`
             ).catch(() => Alert.alert("Error", "WhatsApp not installed"));
@@ -331,7 +378,6 @@ const ViewAllProperties = () => {
   const renderDynamicData = (data) => {
     if (!data) return null;
 
-    // Handle case where data is an array
     if (Array.isArray(data)) {
       return (
         <View style={styles.detailRow}>
@@ -349,11 +395,9 @@ const ViewAllProperties = () => {
       );
     }
 
-    // Handle case where data is an object
     return Object.entries(data).map(([key, value]) => {
       if (value === null || value === undefined || value === "") return null;
 
-      // Skip these fields as they're already displayed in basic info
       if (
         [
           "_id",
@@ -370,13 +414,11 @@ const ViewAllProperties = () => {
         return null;
       }
 
-      // Format key for display
       const formattedKey = key
         .replace(/([A-Z])/g, " $1")
         .replace(/^./, (str) => str.toUpperCase())
         .replace(/([a-z])([A-Z])/g, "$1 $2");
 
-      // Handle nested objects (like agricultureDetails)
       if (typeof value === "object" && !Array.isArray(value)) {
         return (
           <View key={key} style={styles.nestedSection}>
@@ -386,7 +428,6 @@ const ViewAllProperties = () => {
         );
       }
 
-      // Handle arrays within objects
       if (Array.isArray(value)) {
         return (
           <View key={key} style={styles.detailRow}>
@@ -404,7 +445,6 @@ const ViewAllProperties = () => {
         );
       }
 
-      // Handle primitive values
       return (
         <View key={key} style={styles.detailRow}>
           <Text style={styles.detailLabel}>{formattedKey}:</Text>
@@ -456,14 +496,13 @@ const ViewAllProperties = () => {
 
           <View style={styles.grid}>
             {filteredProperties.map((item) => {
-              const imageUri = item.photo
-                ? { uri: `${API_URL}${item.photo}` }
-                : require("../assets/logo.png");
               const propertyId = getLastFourChars(item._id);
 
               return (
                 <View key={item._id} style={styles.card}>
-                  <Image source={imageUri} style={styles.image} />
+                  {/* Updated image rendering */}
+                  {renderPropertyImage(item)}
+
                   <View style={styles.details}>
                     <View style={styles.idContainer}>
                       <Text style={styles.idText}>ID: {propertyId}</Text>
@@ -607,16 +646,8 @@ const ViewAllProperties = () => {
                 {selectedPropertyDetails && (
                   <>
                     <View style={styles.detailImageContainer}>
-                      <Image
-                        source={
-                          selectedPropertyDetails.photo
-                            ? {
-                                uri: `${API_URL}${selectedPropertyDetails.photo}`,
-                              }
-                            : require("../assets/logo.png")
-                        }
-                        style={styles.detailImage}
-                      />
+                      {/* Updated image rendering in details modal */}
+                      {renderPropertyImage(selectedPropertyDetails)}
                     </View>
 
                     <ScrollView style={styles.detailsScrollView}>
@@ -754,7 +785,17 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  image: { width: "100%", height: 150, borderRadius: 8 },
+  imageScroll: {
+    flexDirection: "row",
+    maxHeight: 200,
+    marginBottom: 10,
+  },
+  image: {
+    width: 300,
+    height: 200,
+    borderRadius: 8,
+    marginRight: 10,
+  },
   details: { marginTop: 10 },
   idContainer: {
     backgroundColor: "green",
