@@ -12,6 +12,160 @@ const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
 const ApprovedProperty = require("../Models/ApprovedPropertys");
+const cron = require('node-cron');
+
+
+// The actual function (extracted so it can be called manually or via cron)
+const updateReferralAndPostedData = async () => {
+  try {
+    // Fetch all agents
+    const allAgents = await AgentSchema.find({});
+    
+    // Process each agent
+    for (const agent of allAgents) {
+      const { 
+        MobileNumber, 
+        MyRefferalCode 
+      } = agent;
+
+      if (!MobileNumber || !MyRefferalCode) {
+        console.warn(`Skipping agent with missing mobileNumber or referralCode: ${agent._id}`);
+        continue;
+      }
+
+      try {
+        // Fetch data for the current agent
+        const [
+          agentData,
+          customerData,
+          investorData,
+          skilledData,
+          nrisData,
+          propertyData,
+          approvedData
+        ] = await Promise.all([
+          AgentSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
+          CustomerSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
+          investorSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          skillSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          nriSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          Property.find({ PostedBy: MobileNumber }).catch(() => []),
+          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => [])
+        ]);
+
+        // Prepare counts object
+        const referralStats = {
+          referredAgents: agentData?.length || 0,
+          referredCustomers: customerData?.length || 0,
+          addedInvestors: investorData?.length || 0,
+          addedSkilled: skilledData?.length || 0,
+          addedNRIs: nrisData?.length || 0,
+          postedProperties: propertyData?.length || 0,
+          approvedProperties: approvedData?.length || 0,
+          lastUpdated: new Date()
+        };
+
+        // Update the agent with counts
+        await AgentSchema.findByIdAndUpdate(
+          agent._id,
+          { $set: { referralStats } },
+          { new: true }
+        );
+      } catch (agentError) {
+        console.error(`Error processing agent ${agent._id}:`, agentError);
+        continue;
+      }
+    }
+
+    console.log(`Successfully updated referral and posted counts for ${allAgents.length} agents at ${new Date()}`);
+
+  } catch (error) {
+    console.error('Error processing referral and posted data for agents:', error);
+  }
+};
+
+
+cron.schedule('0 8 * * *', () => {
+  console.log('Running scheduled referral stats update at 2 AM');
+  updateReferralAndPostedData();
+});
+
+
+
+const getReferralAndPostedDatas = async (req, res) => {
+  try {
+    // Fetch all agents
+    const allAgents = await AgentSchema.find({});
+    
+    // Process each agent
+    for (const agent of allAgents) {
+      const { 
+        MobileNumber, 
+        MyRefferalCode 
+      } = agent;
+
+      if (!MobileNumber || !MyRefferalCode) {
+        console.warn(`Skipping agent with missing mobileNumber or referralCode: ${agent._id}`);
+        continue;
+      }
+
+      try {
+        // Fetch data for the current agent
+        const [
+          agentData,
+          customerData,
+          investorData,
+          skilledData,
+          nrisData,
+          propertyData,
+          approvedData
+        ] = await Promise.all([
+          AgentSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
+          CustomerSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
+          investorSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          skillSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          nriSchema.find({ AddedBy: MobileNumber }).catch(() => []),
+          Property.find({ PostedBy: MobileNumber }).catch(() => []),
+          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => [])
+        ]);
+
+        // Prepare counts object
+        const referralStats = {
+          referredAgents: agentData?.length || 0,
+          referredCustomers: customerData?.length || 0,
+          addedInvestors: investorData?.length || 0,
+          addedSkilled: skilledData?.length || 0,
+          addedNRIs: nrisData?.length || 0,
+          postedProperties: propertyData?.length || 0,
+          approvedProperties: approvedData?.length || 0,
+          lastUpdated: new Date()
+        };
+
+        // Update the agent with counts
+        await AgentSchema.findByIdAndUpdate(
+          agent._id,
+          { $set: { referralStats } },
+          { new: true }
+        );
+      } catch (agentError) {
+        console.error(`Error processing agent ${agent._id}:`, agentError);
+        continue;
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Successfully updated referral and posted counts for all agents',
+      totalAgentsProcessed: allAgents.length
+    });
+
+  } catch (error) {
+    console.error('Error processing referral and posted data for agents:', error);
+    return res.status(500).json({ 
+      message: 'Internal server error.',
+      error: error.message 
+    });
+  }
+};
 
 const getReferralAndPostedData = async (req, res) => {
   try {
@@ -155,8 +309,6 @@ const createProperty = async (req, res) => {
       location,
       price,
       PostedBy,
-      fullName,
-      mobile,
       fullName,
       mobile,
       Constituency,
