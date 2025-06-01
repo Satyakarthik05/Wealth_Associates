@@ -64,6 +64,16 @@ const AgentScheme = new mongoose.Schema({
     enum: ["Pending", "Done"], 
     default: "Pending",
   },
+  referralStats: {
+    referredAgents: { type: Number, default: 0 },
+    referredCustomers: { type: Number, default: 0 },
+    addedInvestors: { type: Number, default: 0 },
+    addedSkilled: { type: Number, default: 0 },
+    addedNRIs: { type: Number, default: 0 },
+    postedProperties: { type: Number, default: 0 },
+    approvedProperties: { type: Number, default: 0 },
+    lastUpdated: { type: Date }
+  }
 });
 
 const Agent = mongoose.model("Agent_Wealth_Associate", AgentScheme);

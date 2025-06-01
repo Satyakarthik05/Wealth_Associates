@@ -48,19 +48,19 @@ const propertySchema = new mongoose.Schema(
   }
 );
 
-// Indexes for better query performance
-propertySchema.index({ propertyType: 1 });
-propertySchema.index({ location: 1 });
-propertySchema.index({ price: 1 });
-propertySchema.index({ PostedBy: 1 });
-propertySchema.index({ createdAt: -1 });
+// // Indexes for better query performance
+// propertySchema.index({ propertyType: 1 });
+// propertySchema.index({ location: 1 });
+// propertySchema.index({ price: 1 });
+// propertySchema.index({ PostedBy: 1 });
+// propertySchema.index({ createdAt: -1 });
 
-// Indexes for better query performance
-propertySchema.index({ propertyType: 1 });
-propertySchema.index({ location: 1 });
-propertySchema.index({ price: 1 });
-propertySchema.index({ PostedBy: 1 });
-propertySchema.index({ createdAt: -1 });
+// // Indexes for better query performance
+// propertySchema.index({ propertyType: 1 });
+// propertySchema.index({ location: 1 });
+// propertySchema.index({ price: 1 });
+// propertySchema.index({ PostedBy: 1 });
+// propertySchema.index({ createdAt: -1 });
 
 const Property = mongoose.model("Property", propertySchema);
 
