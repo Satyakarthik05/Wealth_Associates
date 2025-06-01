@@ -18,17 +18,23 @@ const getReferralAndPostedData = async (req, res) => {
     const { mobileNumber, myReferralCode } = req.body;
 
     if (!mobileNumber || !myReferralCode) {
-      return res.status(400).json({ message: 'Mobile number and referral code are required.' });
+      return res
+        .status(400)
+        .json({ message: "Mobile number and referral code are required." });
     }
 
     // Fetch data
     const agentData = await AgentSchema.find({ ReferredBy: myReferralCode });
-    const customerData = await CustomerSchema.find({ ReferredBy: myReferralCode });
+    const customerData = await CustomerSchema.find({
+      ReferredBy: myReferralCode,
+    });
     const investorData = await investorSchema.find({ AddedBy: mobileNumber });
     const skilledData = await skillSchema.find({ AddedBy: mobileNumber });
     const nrisData = await nriSchema.find({ AddedBy: mobileNumber });
     const propertyData = await Property.find({ PostedBy: mobileNumber });
-    const approvedData = await ApprovedProperty.find({ PostedBy: mobileNumber });
+    const approvedData = await ApprovedProperty.find({
+      PostedBy: mobileNumber,
+    });
 
     // Calculate counts
     const counts = {
@@ -50,17 +56,15 @@ const getReferralAndPostedData = async (req, res) => {
         skilledData,
         nrisData,
         propertyData,
-        approvedData
+        approvedData,
       },
-      counts
+      counts,
     });
-
   } catch (error) {
-    console.error('Error fetching referral and posted data:', error);
-    return res.status(500).json({ message: 'Internal server error.' });
+    console.error("Error fetching referral and posted data:", error);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
-
 
 const getReferrerDetails = async (req, res) => {
   const { PostedBy } = req.params;
@@ -147,7 +151,6 @@ const getReferrerDetails = async (req, res) => {
   }
 };
 
-
 const createProperty = async (req, res) => {
   try {
     let {
@@ -157,38 +160,42 @@ const createProperty = async (req, res) => {
       PostedBy,
       fullName,
       mobile,
-      fullName,
-      mobile,
+
       Constituency,
       propertyDetails,
     } = req.body;
 
     if (!PostedBy) {
-      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
-      return res.status(400).json({ message: "PostedBy (MobileNumber) is required." });
+      return res
+        .status(400)
+        .json({ message: "PostedBy (MobileNumber) is required." });
+      return res
+        .status(400)
+        .json({ message: "PostedBy (MobileNumber) is required." });
     }
-
-    
 
     let photo = null;
 
     // Handle multiple photos
     if (req.files && req.files.length > 0) {
-      const photoPaths = req.files.map(file => `/uploads/${file.filename}`);
+      const photoPaths = req.files.map((file) => `/uploads/${file.filename}`);
 
       if (photoPaths.length > 6) {
-        req.files.forEach(file => fs.unlinkSync(file.path));
+        req.files.forEach((file) => fs.unlinkSync(file.path));
         return res.status(400).json({ message: "Maximum 6 photos allowed." });
       }
 
       photo = photoPaths.length === 1 ? photoPaths[0] : photoPaths;
-
     } else if (req.file) {
       // Single photo uploaded using .single()
       photo = `/uploads/${req.file.filename}`;
     } else {
-      return res.status(400).json({ message: "At least one photo is required." });
-      return res.status(400).json({ message: "At least one photo is required." });
+      return res
+        .status(400)
+        .json({ message: "At least one photo is required." });
+      return res
+        .status(400)
+        .json({ message: "At least one photo is required." });
     }
 
     const newProperty = new Property({
@@ -206,7 +213,9 @@ const createProperty = async (req, res) => {
 
     await newProperty.save();
 
-    const callExecutives = await CallExecutive.find({ assignedType: "Property" })
+    const callExecutives = await CallExecutive.find({
+      assignedType: "Property",
+    })
       .sort({ lastAssignedAt: 1 })
       .limit(1);
 
@@ -223,14 +232,20 @@ const createProperty = async (req, res) => {
     return res.status(200).json({
       message: "Property added and assigned successfully",
       newProperty,
-      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
-      assignedTo: callExecutives.length > 0 ? callExecutives[0].name : "No executive available",
+      assignedTo:
+        callExecutives.length > 0
+          ? callExecutives[0].name
+          : "No executive available",
+      assignedTo:
+        callExecutives.length > 0
+          ? callExecutives[0].name
+          : "No executive available",
     });
   } catch (error) {
     console.error("Error in createProperty:", error);
 
     if (req.files) {
-      req.files.forEach(file => {
+      req.files.forEach((file) => {
         try {
           fs.unlinkSync(file.path);
         } catch (err) {
@@ -252,7 +267,6 @@ const createProperty = async (req, res) => {
   }
 };
 
-
 const GetAllPropertys = async (req, res) => {
   try {
     const properties = await Property.find();
@@ -266,21 +280,23 @@ const GetAllPropertys = async (req, res) => {
 const GetMyPropertys = async (req, res) => {
   try {
     const mobileNumber = req.mobileNumber;
-    
+
     // First check the Property collection
     const properties = await Property.find({ PostedBy: mobileNumber });
 
     if (!properties || properties.length === 0) {
       // If not found in Property collection, check ApprovedProperty collection
-      const approvedProperties = await ApprovedProperty.find({ PostedBy: mobileNumber });
-      
+      const approvedProperties = await ApprovedProperty.find({
+        PostedBy: mobileNumber,
+      });
+
       if (!approvedProperties || approvedProperties.length === 0) {
-        return res.status(200).json({ 
-          message: "No properties found for this user", 
-          MyPosts: [] 
+        return res.status(200).json({
+          message: "No properties found for this user",
+          MyPosts: [],
         });
       }
-      
+
       return res.status(200).json(approvedProperties);
     }
 
@@ -419,7 +435,7 @@ const getReferredByDetails = async (req, res) => {
   if (!referredBy) {
     return res.status(400).json({ error: "referredBy is required" });
   }
-console.log(referredBy)
+  console.log(referredBy);
   try {
     let referredUser =
       (await AgentSchema.findOne({ MyRefferalCode: referredBy })) ||
@@ -464,7 +480,6 @@ console.log(referredBy)
     return res.status(500).json({ error: "Server error" });
   }
 };
-
 
 // const Property = require('../models/propertyModel');
 
