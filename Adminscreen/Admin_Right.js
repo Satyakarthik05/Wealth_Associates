@@ -47,6 +47,7 @@ const Dashboard = () => {
     location: "",
     price: "",
     photo: "",
+    newImageUrls: [],
   });
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [constituencies, setConstituencies] = useState([]);
@@ -251,6 +252,7 @@ const Dashboard = () => {
       Alert.alert("Error", "Failed to delete property");
     }
   };
+
   const handleSendNotification = async () => {
     if (!notificationTitle || !notificationMessage) {
       Alert.alert("Error", "Both title and message are required");
@@ -297,6 +299,7 @@ const Dashboard = () => {
       location: property.location,
       price: property.price.toString(),
       photo: property.photo,
+      newImageUrls: property.newImageUrls || [],
     });
     setIsModalVisible(true);
   };
@@ -392,6 +395,130 @@ const Dashboard = () => {
     ];
     setData(fetchedData);
   }, [Agents, Experts, Customers, Properties, SkilledResource, investors, approvedproperties]);
+
+  // PropertyCard component with enhanced image handling
+  const PropertyCard = ({
+    property,
+    onEdit,
+    onDelete,
+    onApprove,
+    getLastFourChars,
+    isApproved,
+  }) => {
+    const renderPropertyImage = () => {
+      // If 'newImageUrls' is an array with images
+      if (
+        Array.isArray(property.newImageUrls) &&
+        property.newImageUrls.length > 0
+      ) {
+        return (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageScroll}
+          >
+            {property.newImageUrls.map((imageUrl, index) => (
+              <Image
+                key={index}
+                source={{ uri: imageUrl }}
+                style={styles.propertyImage}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+        );
+      }
+      // Single image (string)
+      else if (
+        property.newImageUrls &&
+        typeof property.newImageUrls === "string"
+      ) {
+        return (
+          <Image
+            source={{ uri: property.newImageUrls }}
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        );
+      }
+      // Fallback to photo field if newImageUrls doesn't exist
+      else if (property.photo) {
+        return (
+          <Image
+            source={{ uri: `${API_URL}${property.photo}` }}
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        );
+      }
+      // Fallback image
+      else {
+        return (
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.propertyImage}
+            resizeMode="contain"
+          />
+        );
+      }
+    };
+
+    return (
+      <View style={styles.propertyCard}>
+        {renderPropertyImage()}
+        <View style={styles.propertyDetails}>
+          <View style={styles.idContainer}>
+            <Text style={styles.idText}>
+              ID: {getLastFourChars(property._id)}
+            </Text>
+          </View>
+          <Text style={styles.propertyTitle}>{property.propertyType}</Text>
+          {property.propertyDetails && (
+            <Text style={styles.propertyDetailsText}>
+              {property.propertyDetails}
+            </Text>
+          )}
+          <Text style={styles.propertyInfo}>Location: {property.location}</Text>
+          <Text style={styles.propertyPrice}>
+            ₹{parseInt(property.price).toLocaleString()}
+          </Text>
+          <Text style={styles.propertyStatus}>
+            Status: {isApproved ? "Approved" : "Pending"}
+          </Text>
+        </View>
+        <View style={styles.propertyButtons}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => onEdit(property)}
+          >
+            <Text style={styles.buttonText}>Edit</Text>
+          </TouchableOpacity>
+          {!isApproved && (
+            <TouchableOpacity
+              style={styles.approveButton}
+              onPress={() => onApprove(property._id)}
+            >
+              <Text style={styles.buttonText}>Approve</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => onDelete(property._id)}
+          >
+            <Text style={styles.buttonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const DashboardCard = ({ title, count, icon }) => (
+    <View style={styles.card}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.count}>{count}</Text>
+      <Icon name={icon} size={30} color="#E91E63" style={styles.icon} />
+    </View>
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -633,6 +760,7 @@ const Dashboard = () => {
           </View>
         </View>
       </Modal>
+
       {/* Notification Modal */}
       <Modal
         visible={isNotificationModalVisible}
@@ -682,75 +810,6 @@ const Dashboard = () => {
         </View>
       </Modal>
     </ScrollView>
-  );
-};
-
-const DashboardCard = ({ title, count, icon }) => (
-  <View style={styles.card}>
-    <Text style={styles.title}>{title}</Text>
-    <Text style={styles.count}>{count}</Text>
-    <Icon name={icon} size={30} color="#E91E63" style={styles.icon} />
-  </View>
-);
-
-const PropertyCard = ({
-  property,
-  onEdit,
-  onDelete,
-  onApprove,
-  getLastFourChars,
-  isApproved,
-}) => {
-  const imageUri = property.photo
-    ? { uri: `${API_URL}${property.photo}` }
-    : require("../assets/logo.png");
-
-  return (
-    <View style={styles.propertyCard}>
-      <Image source={imageUri} style={styles.propertyImage} />
-      <View style={styles.propertyDetails}>
-        <View style={styles.idContainer}>
-          <Text style={styles.idText}>
-            ID: {getLastFourChars(property._id)}
-          </Text>
-        </View>
-        <Text style={styles.propertyTitle}>{property.propertyType}</Text>
-        {property.propertyDetails && (
-          <Text style={styles.propertyDetailsText}>
-            {property.propertyDetails}
-          </Text>
-        )}
-        <Text style={styles.propertyInfo}>Location: {property.location}</Text>
-        <Text style={styles.propertyPrice}>
-          ₹{parseInt(property.price).toLocaleString()}
-        </Text>
-        <Text style={styles.propertyStatus}>
-          Status: {isApproved ? "Approved" : "Pending"}
-        </Text>
-      </View>
-      <View style={styles.propertyButtons}>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => onEdit(property)}
-        >
-          <Text style={styles.buttonText}>Edit</Text>
-        </TouchableOpacity>
-        {!isApproved && (
-          <TouchableOpacity
-            style={styles.approveButton}
-            onPress={() => onApprove(property._id)}
-          >
-            <Text style={styles.buttonText}>Approve</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => onDelete(property._id)}
-        >
-          <Text style={styles.buttonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
   );
 };
 
@@ -846,10 +905,14 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
+  imageScroll: {
+    height: 150,
+  },
   propertyImage: {
-    width: "100%",
+    width: 260,
     height: 150,
     borderRadius: 8,
+    marginRight: 5,
   },
   propertyDetails: {
     marginTop: 10,
@@ -995,6 +1058,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#3498db",
   },
   modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  buttonText: {
     color: "#fff",
     fontWeight: "bold",
   },

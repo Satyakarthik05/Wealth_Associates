@@ -27,11 +27,12 @@ const Constituency = require("./Models/DistrictsConstituencysModel");
 const ReqExp = require("./Routes/ReqExpRoutes");
 const CallExecuteRoute = require("./Routes/CallExecutiveRouts");
 const PushToken = require("./Models/NotificationToken");
-const SuppliersRoutes=require("./Routes/Suppliersroutes")
-const admin = require('firebase-admin');
-const { Expo } = require('expo-server-sdk');
+const SuppliersRoutes = require("./Routes/Suppliersroutes");
+const admin = require("firebase-admin");
+const { Expo } = require("expo-server-sdk");
 const expo = new Expo();
 const http = require("http");
+const AWS = require("aws-sdk");
 
 const options = {
   key: fs.readFileSync("privatekey.pem"),
@@ -45,19 +46,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 app.use("/coreClients", express.static(path.join(__dirname, "coreClients")));
 app.use("/coreProjects", express.static(path.join(__dirname, "coreProjects")));
-app.use("/valueProjects", express.static(path.join(__dirname, "valueProjects")));
+app.use(
+  "/valueProjects",
+  express.static(path.join(__dirname, "valueProjects"))
+);
 app.use(
   "/ExpertMembers",
   express.static(path.join(__dirname, "ExpertMembers"))
 );
-app.use(
-  "/Agents",
-  express.static(path.join(__dirname, "Agents"))
-);
-app.use(
-  "/Suppliers",
-  express.static(path.join(__dirname, "Suppliers"))
-);
+app.use("/Agents", express.static(path.join(__dirname, "Agents")));
+app.use("/Suppliers", express.static(path.join(__dirname, "Suppliers")));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -100,7 +98,7 @@ app.use("/noti", NotificationToken);
 app.use("/alldiscons", DistrictConstituency);
 app.use("/direqexp", ReqExp);
 app.use("/callexe", CallExecuteRoute);
-app.use("/suppliersvendors",SuppliersRoutes)
+app.use("/suppliersvendors", SuppliersRoutes);
 
 app.get("/admindata", (req, res) => {
   const UserName = "9063392872";
@@ -271,20 +269,89 @@ async function sendFcmNotifications(messages) {
   return results;
 }
 
+// https.createServer(options, app).listen(443, () => {
+//   console.log("HTTPS Server running on port 443");
+// });
 
+// // HTTP server should redirect to HTTPS on port 443
+// http.createServer((req, res) => {
+//   res.writeHead(301, {
+//     Location: "https://" + req.headers["host"] + req.url,
+//   });
+//   res.end();
+// }).listen(80, () => {
+//   console.log("Redirecting HTTP to HTTPS");
+// });
 
+const CoreClient = require("./Models/AgentModel"); // Update path as needed
 
-https.createServer(options, app).listen(443, () => {
-  console.log("HTTPS Server running on port 443");
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+  secretAccessKey: "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",
+  region: "us-east-1",
 });
 
-// HTTP server should redirect to HTTPS on port 443
-http.createServer((req, res) => {
-  res.writeHead(301, {
-    Location: "https://" + req.headers["host"] + req.url,
-  });
-  res.end();
-}).listen(80, () => {
-  console.log("Redirecting HTTP to HTTPS");
-});
+// Upload file to S3 - similar to your CoreClients upload logic
+const uploadFileToS3 = (filePath, fileName) => {
+  const fileContent = fs.readFileSync(filePath);
 
+  // Using the same path structure as your CoreClients upload
+  const s3Key = `agent-profiles/${fileName}`;
+
+  const params = {
+    Bucket: "wealthpropertyimages",
+    Key: s3Key,
+    Body: fileContent,
+    ContentType: "image/jpeg",
+  };
+
+  return s3.upload(params).promise();
+};
+
+// Main migration function for CoreClients
+const migrateCoreClientsToS3 = async () => {
+  try {
+    const clients = await CoreClient.find({});
+
+    for (const client of clients) {
+      if (!client.photo) continue;
+
+      // Skip if already an S3 URL (assuming your new clients are already using S3)
+      if (client.photo.startsWith("http")) {
+        console.log(`Skipping already migrated client: ${client._id}`);
+        continue;
+      }
+
+      const fileName = `${Date.now()}-${path.basename(client.photo)}`;
+      const localFilePath = path.join(__dirname, client.photo);
+
+      if (fs.existsSync(localFilePath)) {
+        console.log(`Uploading: ${localFilePath}...`);
+
+        const result = await uploadFileToS3(localFilePath, fileName);
+        const s3Url = result.Location;
+
+        // Update both photo and newImageUrl fields for consistency
+        client.photo = s3Url;
+        client.newImageUrl = s3Url;
+
+        await client.save();
+        console.log(`Updated client: ${client._id} with URL: ${s3Url}`);
+      } else {
+        console.log(`File not found: ${localFilePath}`);
+      }
+    }
+
+    console.log("✅ CoreClients migration completed!");
+    process.exit(0);
+  } catch (error) {
+    console.error("Error:", error);
+    process.exit(1);
+  }
+};
+
+// migrateCoreClientsToS3();
+
+app.listen("3000", () => {
+  console.log("server running on port 3000");
+});

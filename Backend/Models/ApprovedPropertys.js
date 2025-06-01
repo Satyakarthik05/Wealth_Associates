@@ -24,6 +24,22 @@ const ApprovedpropertySchema = new mongoose.Schema(
          message: "Must have between 1 and 6 photos (or a single photo string)"
        }
      },
+     newImageUrls: {
+      type: mongoose.Schema.Types.Mixed,
+      validate: {
+        validator: function (value) {
+          if (!value) return true; // ✅ allow empty/undefined
+
+          if (Array.isArray(value)) {
+            return value.length > 0 && value.length <= 6;
+          } else if (typeof value === "string") {
+            return value.trim().length > 0;
+          }
+          return false;
+        },
+        message: "Must have between 1 and 6 photos (or a single photo string)",
+      },
+    },
      PostedBy: { type: String, required: true },
      fullName: { type: String },
      mobile: { type: String },

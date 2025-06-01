@@ -1,35 +1,58 @@
 const CoreClient = require("../Models/CoreClientsModel");
+const AWS = require("aws-sdk");
+
+
+
+// Helper function to upload to S3
+const uploadToS3 = async (file) => {
+  const fileName = `core-clients/${Date.now()}-${file.originalname}`;
+
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
+
+  const result = await s3.upload(params).promise();
+  return result.Location;
+};
 
 const createCoreClient = async (req, res) => {
   try {
     const { companyName, officeAddress, city, website, mobile } = req.body;
 
-    let photoPath = null;
-    if (req.file) {
-      photoPath = `/coreClients/${req.file.filename}`;
-    } else {
+    if (!req.file) {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    const newProperty = new CoreClient({
+    // Upload the file to S3
+    const photoUrl = await uploadToS3(req.file);
+
+    const newClient = new CoreClient({
       companyName,
       officeAddress,
       city,
       website,
       mobile,
-      photo: photoPath,
+      photo: photoUrl, // Storing S3 URL
+      newImageUrl: photoUrl, // Additional field if you want consistency with other models
     });
 
-    await newProperty.save();
-    res
-      .status(200)
-      .json({ message: "Property added successfully", newProperty });
+    await newClient.save();
+
+    res.status(200).json({
+      message: "Client added successfully",
+      newClient,
+    });
   } catch (error) {
-    console.error("Error in createProperty:", error);
-    res.status(500).json({ message: "Error adding property", error });
+    console.error("Error in createCoreClient:", error);
+    res.status(500).json({
+      message: "Error adding client",
+      error: error.message,
+    });
   }
 };
-
 const GetAllcoreClients = async (req, res) => {
   try {
     const properties = await CoreClient.find();

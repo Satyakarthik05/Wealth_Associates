@@ -383,9 +383,14 @@ export default function ViewAgents() {
                 ]}
               >
                 <Image
-                  source={require("../assets/man.png")}
+                  source={
+                    agent.photo && agent.photo !== ""
+                      ? { uri: agent.photo }
+                      : require("../assets/man.png")
+                  }
                   style={styles.avatar}
                 />
+
                 <View style={styles.infoContainer}>
                   {agent.FullName && (
                     <View style={styles.row}>

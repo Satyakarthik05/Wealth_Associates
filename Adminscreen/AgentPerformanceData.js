@@ -39,7 +39,6 @@ export default function AgentPerformanceData() {
   const [searchQuery, setSearchQuery] = useState("");
   const [coreMembers, setCoreMembers] = useState([]);
   const [referrerNames, setReferrerNames] = useState({});
-  const [referralData, setReferralData] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
 
   const filterButtons = [
@@ -86,9 +85,6 @@ export default function AgentPerformanceData() {
       setDistricts(districtsData || []);
 
       loadReferrerNames(sortedAgents, coreMembersData.data || []);
-
-      // Fetch referral data for each agent
-      await fetchReferralDataForAgents(sortedAgents);
     } catch (error) {
       console.error("Fetch error:", error);
       Alert.alert("Error", "Failed to load data");
@@ -107,67 +103,29 @@ export default function AgentPerformanceData() {
     }
 
     const filtered = agents.filter((agent) => {
-      const counts = referralData[agent._id]?.counts || {};
+      const stats = agent.referralStats || {};
 
       switch (filterId) {
         case "agents":
-          return (counts.agentCount || 0) < 100;
+          return (stats.referredAgents || 0) < 1;
         case "customers":
-          return (counts.customerCount || 0) < 100;
+          return (stats.referredCustomers || 0) < 1;
         case "investors":
-          return (counts.investorCount || 0) < 100;
+          return (stats.addedInvestors || 0) < 1;
         case "skilled":
-          return (counts.skilledCount || 0) < 100;
+          return (stats.addedSkilled || 0) < 1;
         case "nris":
-          return (counts.nrisCount || 0) < 100;
+          return (stats.addedNRIs || 0) < 1;
         case "properties":
-          return (counts.propertyCount || 0) < 100;
+          return (stats.postedProperties || 0) < 1;
         case "approved":
-          return (counts.approvedCount || 0) < 100;
+          return (stats.approvedProperties || 0) < 1;
         default:
           return true;
       }
     });
 
     setFilteredAgents(filtered);
-  };
-
-  const fetchReferralDataForAgents = async (agents) => {
-    const referralDataMap = {};
-
-    for (const agent of agents) {
-      try {
-        const response = await fetch(
-          "https://api.wealthassociate.in/properties/get-referral-data",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              mobileNumber: agent.MobileNumber,
-              myReferralCode: agent.MyRefferalCode,
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          referralDataMap[agent._id] = data;
-        } else {
-          console.error(`Failed to fetch referral data for agent ${agent._id}`);
-          referralDataMap[agent._id] = null;
-        }
-      } catch (error) {
-        console.error(
-          `Error fetching referral data for agent ${agent._id}:`,
-          error
-        );
-        referralDataMap[agent._id] = null;
-      }
-    }
-
-    setReferralData(referralDataMap);
   };
 
   const loadReferrerNames = (agents = [], coreMembers = []) => {
@@ -413,9 +371,9 @@ export default function AgentPerformanceData() {
     }
   };
 
-  const renderReferralCounts = (agentId) => {
-    const counts = referralData[agentId]?.counts || {};
-    const isFiltered = activeFilter && counts[`${activeFilter}Count`] < 1;
+  const renderReferralCounts = (agent) => {
+    const stats = agent.referralStats || {};
+    const isFiltered = activeFilter && stats[getStatKey(activeFilter)] < 1;
 
     return (
       <>
@@ -425,11 +383,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "agents" &&
-                counts.agentCount < 1 &&
+                (stats.referredAgents || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.agentCount || 0}
+            : {stats.referredAgents || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -438,11 +396,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "customers" &&
-                counts.customerCount < 1 &&
+                (stats.referredCustomers || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.customerCount || 0}
+            : {stats.referredCustomers || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -451,11 +409,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "investors" &&
-                counts.investorCount < 1 &&
+                (stats.addedInvestors || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.investorCount || 0}
+            : {stats.addedInvestors || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -464,11 +422,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "skilled" &&
-                counts.skilledCount < 1 &&
+                (stats.addedSkilled || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.skilledCount || 0}
+            : {stats.addedSkilled || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -477,11 +435,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "nris" &&
-                counts.nrisCount < 1 &&
+                (stats.addedNRIs || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.nrisCount || 0}
+            : {stats.addedNRIs || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -490,11 +448,11 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "properties" &&
-                counts.propertyCount < 1 &&
+                (stats.postedProperties || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.propertyCount || 0}
+            : {stats.postedProperties || 0}
           </Text>
         </View>
         <View style={styles.row}>
@@ -503,15 +461,43 @@ export default function AgentPerformanceData() {
             style={[
               styles.value,
               activeFilter === "approved" &&
-                counts.approvedCount < 1 &&
+                (stats.approvedProperties || 0) < 1 &&
                 styles.highlightedValue,
             ]}
           >
-            : {counts.approvedCount || 0}
+            : {stats.approvedProperties || 0}
           </Text>
         </View>
       </>
     );
+  };
+
+  const getStatKey = (filterId) => {
+    switch (filterId) {
+      case "agents":
+        return "referredAgents";
+      case "customers":
+        return "referredCustomers";
+      case "investors":
+        return "addedInvestors";
+      case "skilled":
+        return "addedSkilled";
+      case "nris":
+        return "addedNRIs";
+      case "properties":
+        return "postedProperties";
+      case "approved":
+        return "approvedProperties";
+      default:
+        return "";
+    }
+  };
+
+  const getImageSource = (agent) => {
+    if (agent.photo) {
+      return { uri: agent.photo };
+    }
+    return require("../assets/man.png");
   };
 
   return (
@@ -528,7 +514,7 @@ export default function AgentPerformanceData() {
           ) : undefined
         }
       >
-        <Text style={styles.heading}>AgentPerformanceData</Text>
+        <Text style={styles.heading}>Agent Performance Data</Text>
 
         <View style={styles.searchContainer}>
           <TextInput
@@ -595,8 +581,11 @@ export default function AgentPerformanceData() {
                 ]}
               >
                 <Image
-                  source={require("../assets/man.png")}
+                  source={getImageSource(agent)}
                   style={styles.avatar}
+                  onError={(e) =>
+                    console.log("Image load error:", e.nativeEvent.error)
+                  }
                 />
                 <View style={styles.infoContainer}>
                   {agent.FullName && (
@@ -646,12 +635,12 @@ export default function AgentPerformanceData() {
                   {agent.AgentType && (
                     <View style={styles.row}>
                       <Text style={styles.label}>AgentType</Text>
-                      <Text style={styles.value}>{agent.AgentType}</Text>
+                      <Text style={styles.value}>: {agent.AgentType}</Text>
                     </View>
                   )}
 
                   {/* Render referral counts */}
-                  {renderReferralCounts(agent._id)}
+                  {renderReferralCounts(agent)}
 
                   <View style={styles.row}>
                     <Text style={styles.label}>Status</Text>

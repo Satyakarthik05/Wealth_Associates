@@ -377,25 +377,20 @@ const ViewAssignedProperties = () => {
   };
 
   const renderPropertyImage = (property) => {
-    // If 'photos' is an array with more than one image
-    if (Array.isArray(property.photo) && property.photo.length > 0) {
+    const images = property.newImageUrls;
+
+    // If 'newImageUrls' is an array with images
+    if (Array.isArray(images) && images.length > 0) {
       return (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.imageScroll}
         >
-          {property.photo.map((photo, index) => (
+          {images.map((url, index) => (
             <Image
               key={index}
-              source={{
-                uri:
-                  typeof photo === "string"
-                    ? photo.startsWith("http")
-                      ? photo
-                      : `${API_URL}${photo}`
-                    : `${API_URL}${photo?.uri || ""}`,
-              }}
+              source={{ uri: url }}
               style={styles.image}
               resizeMode="cover"
             />
@@ -403,15 +398,11 @@ const ViewAssignedProperties = () => {
         </ScrollView>
       );
     }
-    // Single image
-    else if (property.photo && typeof property.photo === "string") {
+    // Single image (if newImageUrls is a single URL string)
+    else if (typeof images === "string" && images.startsWith("http")) {
       return (
         <Image
-          source={{
-            uri: property.photo.startsWith("http")
-              ? property.photo
-              : `${API_URL}${property.photo}`,
-          }}
+          source={{ uri: images }}
           style={styles.image}
           resizeMode="cover"
         />

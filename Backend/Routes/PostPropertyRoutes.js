@@ -11,37 +11,49 @@ const ApprovedProperty = require("../Controllers/ApprovedProprerty");
 const router = express.Router();
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
+const AWS = require("aws-sdk");
 
+// Configure AWS S3
+
+
+// Configure multer for memory storage
 const upload = multer({
-  storage: storage,
-  limits: { 
+  storage: multer.memoryStorage(),
+  limits: {
     fileSize: 20 * 1024 * 1024, // 20MB per file
-    files: 6 // Maximum 6 files
+    files: 6, // Maximum 6 files
   },
   fileFilter: (req, file, cb) => {
-    // Accept images only
     if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif)$/)) {
-      return cb(new Error('Only image files (jpeg, jpg, png, gif) are allowed!'), false);
+      return cb(
+        new Error("Only image files (jpeg, jpg, png, gif) are allowed!"),
+        false
+      );
     }
     cb(null, true);
-  }
+  },
 });
 
-// ✅ *Add Property with Multiple Photos*
-// Accept both single and multiple under 'photo'
+// Upload file to S3 helper function - matches your migration pattern
+const uploadToS3 = async (file) => {
+  const fileName = `Approved_Properties/${Date.now()}-${file.originalname}`;
+
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    ACL: "public-read",
+  };
+
+  const result = await s3.upload(params).promise();
+  return result.Location;
+};
+
+// ✅ Add Property with Multiple Photos (direct to S3)
 router.post(
   "/addProperty",
-  (req, res, next) => {
-    upload.any()(req, res, next); // Accept any files
-  },
+  upload.any(),
   PostPropertyController.createProperty
 );
 
@@ -81,7 +93,10 @@ router.post("/approve/:id", ApprovedProperty.approveProperty);
 router.post("/like", ApprovedProperty.LikeProperty);
 router.post("/sold/:id", ApprovedProperty.SoldProperty);
 router.get("/nearby/:constituency", PostPropertyController.getNearbyProperties);
-router.post('/get-referral-data', PostPropertyController.getReferralAndPostedData);
+router.post(
+  "/get-referral-data",
+  PostPropertyController.getReferralAndPostedData
+);
 router.post(
   "/getPropertyreffered",
   PostPropertyController.getReferredByDetails

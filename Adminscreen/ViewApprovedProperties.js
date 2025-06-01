@@ -108,24 +108,22 @@ const ViewAllProperties = () => {
 
   // Improved image handling function
   const renderPropertyImage = (property) => {
-    // If 'photo' is an array with images
-    if (Array.isArray(property.photo) && property.photo.length > 0) {
+    // If 'newImageUrls' is an array with images
+    if (
+      Array.isArray(property.newImageUrls) &&
+      property.newImageUrls.length > 0
+    ) {
       return (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.imageScroll}
         >
-          {property.photo.map((photo, index) => (
+          {property.newImageUrls.map((imageUrl, index) => (
             <Image
               key={index}
               source={{
-                uri:
-                  typeof photo === "string"
-                    ? photo.startsWith("http")
-                      ? photo
-                      : `${API_URL}${photo}`
-                    : `${API_URL}${photo?.uri || ""}`,
+                uri: imageUrl, // Directly using S3 URLs
               }}
               style={styles.image}
               resizeMode="cover"
@@ -134,20 +132,23 @@ const ViewAllProperties = () => {
         </ScrollView>
       );
     }
-    // Single image
-    else if (property.photo && typeof property.photo === "string") {
+
+    // Single image (string)
+    else if (
+      property.newImageUrls &&
+      typeof property.newImageUrls === "string"
+    ) {
       return (
         <Image
           source={{
-            uri: property.photo.startsWith("http")
-              ? property.photo
-              : `${API_URL}${property.photo}`,
+            uri: property.newImageUrls,
           }}
           style={styles.image}
           resizeMode="cover"
         />
       );
     }
+
     // Fallback image
     else {
       return (

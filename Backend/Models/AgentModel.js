@@ -49,19 +49,20 @@ const AgentScheme = new mongoose.Schema({
   AgentType: {
     type: String,
   },
-  valuemember:{
-    type:String,
+  valuemember: {
+    type: String,
     // required:true,
   },
-  photo: { type: String, },
-  CompanyName: { type: String, },
+  photo: { type: String },
+  imageUrl: { type: String },
+  CompanyName: { type: String },
 
-  AadhaarNumber: { type: String, },
-  PANNumber: { type: String, },
-  BankAccountNumber: { type: String, },
+  AadhaarNumber: { type: String },
+  PANNumber: { type: String },
+  BankAccountNumber: { type: String },
   CallExecutiveCall: {
     type: String,
-    enum: ["Pending", "Done"], 
+    enum: ["Pending", "Done"],
     default: "Pending",
   },
   referralStats: {
@@ -72,8 +73,8 @@ const AgentScheme = new mongoose.Schema({
     addedNRIs: { type: Number, default: 0 },
     postedProperties: { type: Number, default: 0 },
     approvedProperties: { type: Number, default: 0 },
-    lastUpdated: { type: Date }
-  }
+    lastUpdated: { type: Date },
+  },
 });
 
 const Agent = mongoose.model("Agent_Wealth_Associate", AgentScheme);

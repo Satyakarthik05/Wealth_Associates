@@ -4,8 +4,45 @@ const AgentSchema = require("../Models/AgentModel");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const CallExecutive = require("../Models/CallExecutiveModel");
+const AWS = require("aws-sdk");
 
 secret = "Wealth@123";
+
+
+// Helper function to upload to S3
+const uploadToS3 = async (file, folderName) => {
+  const timestamp = Date.now();
+  const fileExtension = file.originalname.split(".").pop();
+  const fileName = `${folderName}/${timestamp}-${file.originalname}`;
+
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
+
+  const result = await s3.upload(params).promise();
+  return result.Location;
+};
+
+// Helper function to delete from S3
+const deleteFromS3 = async (url) => {
+  if (!url) return;
+
+  try {
+    const key = decodeURIComponent(url.split("/").slice(3).join("/"));
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
+      Key: key,
+    };
+
+    await s3.deleteObject(params).promise();
+  } catch (error) {
+    console.error("Error deleting from S3:", error);
+    throw error;
+  }
+};
 
 const sendSMS = async (
   MobileNumber,
@@ -59,125 +96,291 @@ const AgentSign = async (req, res) => {
     MyRefferalCode,
     AgentType,
     valuemember,
-    CompanyName
-    
+    CompanyName,
   } = req.body;
 
-  // if (!req.file) {
-  //   return res.status(400).json({ message: "Photo is required." });
-  // }
-  let photoPath = null;
+  let photoUrl = null;
 
-  // Check if file exists and is uploaded
+  // Check if file exists and upload to S3
   if (req.file) {
-    photoPath = `/Agents/${req.file.filename}`;
+    try {
+      photoUrl = await uploadToS3(req.file, "agent-profiles");
+    } catch (uploadError) {
+      console.error("Error uploading profile image to S3:", uploadError);
+      return res
+        .status(500)
+        .json({ message: "Failed to upload profile image" });
+    }
   }
 
-  // const photoPath = `/Agents/${req.file.filename}`;
-
   try {
-    const existingAgent = await AgentSchema.findOne({ MobileNumber:MobileNumber });
+    const existingAgent = await AgentSchema.findOne({
+      MobileNumber: MobileNumber,
+    });
     const referredAgent = await AgentSchema.findOne({
       MyRefferalCode: ReferredBy,
     });
 
-
-
     if (existingAgent) {
-      return res.status(400).json({ message: "Mobile number already exists" });
-    }else{
-
-    const Password = "wa1234";
-    const random = Math.floor(1000000 + Math.random() * 9000000);
-    const refferedby = `${MyRefferalCode}${random}`;
-    const finalReferredBy = ReferredBy || "WA0000000001";
-
-   
-    const newAgent = new AgentSchema({
-      FullName,
-      MobileNumber,
-      Password,
-      Email,
-      District,
-      Contituency,
-      Locations,
-      Expertise,
-      Experience,
-      ReferredBy: finalReferredBy,
-      MyRefferalCode: refferedby,
-      AgentType,
-      valuemember,
-      photo:photoPath,
-      CompanyName
-    });
-
-    
-    const callExecutives = await CallExecutive.find({ assignedType: "Agent_Wealth_Associate" })
-      .sort({ lastAssignedAt: 1 }) 
-      .limit(1); 
-
-    if (callExecutives.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No call executives available for agent assignment" });
-    }
-
-    const assignedExecutive = callExecutives[0];
-
-    assignedExecutive.assignedUsers.push({
-      userType: "Agent_Wealth_Associate",
-      userId: newAgent._id,
-    });
-    assignedExecutive.lastAssignedAt = new Date();
-    await assignedExecutive.save();
-
-    // 3. Save the new agent
-    await newAgent.save();
-
-    // Send SMS (your existing code)
-    let smsResponse;
-    try {
-      smsResponse = await sendSMS(
-        MobileNumber,
-        FullName,
-        Password,
-        finalReferredBy,
-        refferedby
-      );
-    } catch (error) {
-      console.error("Failed to send SMS:", error.message);
-      smsResponse = "SMS sending failed";
-    }
-
-    // Call center API (your existing code)
-    try {
-      const callCenterResponse = await axios.get(
-        "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/786e00dc-fb5a-4bf1-aaa3-7525277c8bf1/leads",
-        {
-          params: {
-            name: FullName,
-            mobile: MobileNumber,
-            email: Email,
-            detail1: `RefereralCode:${refferedby},ReferredBy:${
-              referredAgent ? referredAgent.FullName : "WealthAssociate"
-            }`,
-          },
+      // If we created an S3 object but found a duplicate, clean it up
+      if (photoUrl) {
+        try {
+          await deleteFromS3(photoUrl);
+        } catch (deleteError) {
+          console.error(
+            "Error cleaning up duplicate agent image:",
+            deleteError
+          );
         }
-      );
-      console.log("Call center API response:", callCenterResponse.data);
-    } catch (error) {
-      console.error("Failed to call call center API:", error.message);
-    }
+      }
+      return res.status(400).json({ message: "Mobile number already exists" });
+    } else {
+      const Password = "wa1234";
+      const random = Math.floor(1000000 + Math.random() * 9000000);
+      const refferedby = `${MyRefferalCode}${random}`;
+      const finalReferredBy = ReferredBy || "WA0000000001";
 
-    res.status(200).json({
-      message: "Registration and assignment successful",
-      smsResponse,
-      assignedTo: assignedExecutive.name,
-      executivePhone: assignedExecutive.phone,
-    });}
+      const newAgent = new AgentSchema({
+        FullName,
+        MobileNumber,
+        Password,
+        Email,
+        District,
+        Contituency,
+        Locations,
+        Expertise,
+        Experience,
+        ReferredBy: finalReferredBy,
+        MyRefferalCode: refferedby,
+        AgentType,
+        valuemember,
+        photo: photoUrl, // Store the S3 URL
+        CompanyName,
+      });
+
+      const callExecutives = await CallExecutive.find({
+        assignedType: "Agent_Wealth_Associate",
+      })
+        .sort({ lastAssignedAt: 1 })
+        .limit(1);
+
+      if (callExecutives.length === 0) {
+        // Clean up the uploaded image if no executives are available
+        if (photoUrl) {
+          try {
+            await deleteFromS3(photoUrl);
+          } catch (deleteError) {
+            console.error(
+              "Error cleaning up image after executive assignment failed:",
+              deleteError
+            );
+          }
+        }
+        return res.status(400).json({
+          message: "No call executives available for agent assignment",
+        });
+      }
+
+      const assignedExecutive = callExecutives[0];
+
+      assignedExecutive.assignedUsers.push({
+        userType: "Agent_Wealth_Associate",
+        userId: newAgent._id,
+      });
+      assignedExecutive.lastAssignedAt = new Date();
+      await assignedExecutive.save();
+
+      await newAgent.save();
+
+      // Send SMS (your existing code)
+      let smsResponse;
+      try {
+        smsResponse = await sendSMS(
+          MobileNumber,
+          FullName,
+          Password,
+          finalReferredBy,
+          refferedby
+        );
+      } catch (error) {
+        console.error("Failed to send SMS:", error.message);
+        smsResponse = "SMS sending failed";
+      }
+
+      // Call center API (your existing code)
+      try {
+        const callCenterResponse = await axios.get(
+          "https://00ce1e10-d2c6-4f0e-a94f-f590280055c6.neodove.com/integration/custom/786e00dc-fb5a-4bf1-aaa3-7525277c8bf1/leads",
+          {
+            params: {
+              name: FullName,
+              mobile: MobileNumber,
+              email: Email,
+              detail1: `RefereralCode:${refferedby},ReferredBy:${
+                referredAgent ? referredAgent.FullName : "WealthAssociate"
+              }`,
+            },
+          }
+        );
+        console.log("Call center API response:", callCenterResponse.data);
+      } catch (error) {
+        console.error("Failed to call call center API:", error.message);
+      }
+
+      res.status(200).json({
+        message: "Registration and assignment successful",
+        smsResponse,
+        assignedTo: assignedExecutive.name,
+        executivePhone: assignedExecutive.phone,
+      });
+    }
   } catch (error) {
+    // Clean up any uploaded image if there was an error
+    if (photoUrl) {
+      try {
+        await deleteFromS3(photoUrl);
+      } catch (deleteError) {
+        console.error(
+          "Error cleaning up image after registration failed:",
+          deleteError
+        );
+      }
+    }
     console.error("Error during registration:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const updateProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No image provided",
+      });
+    }
+
+    // Extract agentId from FormData
+    const { agentId } = req.body; // Multer stores non-file fields in `req.body`
+
+    if (!agentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Agent ID is required",
+      });
+    }
+
+    const agent = await AgentSchema.findById(agentId);
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent not found",
+      });
+    }
+
+    // Delete old image if exists
+    if (agent.photo) {
+      try {
+        await deleteFromS3(agent.photo);
+      } catch (deleteError) {
+        console.error("Warning: Could not delete old image:", deleteError);
+      }
+    }
+
+    // Upload new image
+    const imageUrl = await uploadToS3(req.file, "agent-profiles");
+
+    // Update agent record
+    agent.photo = imageUrl;
+    await agent.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile image updated successfully",
+      imageUrl,
+    });
+  } catch (error) {
+    console.error("Error updating profile image:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile image",
+      error: error.message,
+    });
+  }
+};
+
+const deleteProfileImage = async (req, res) => {
+  try {
+    // 1. Verify JWT token
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token required",
+      });
+    }
+
+    // 2. Decode token to get AgentId
+    const decoded = jwt.verify(token, secret);
+    const agentId = decoded.AgentId;
+
+    // 3. Find agent in database
+    const agent = await AgentSchema.findById(agentId);
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: "Agent not found",
+      });
+    }
+
+    // 4. Check if profile image exists
+    if (!agent.photo) {
+      return res.status(400).json({
+        success: false,
+        message: "No profile image to delete",
+      });
+    }
+
+    // 5. Delete from storage (S3 or local)
+    try {
+      await deleteFromS3(agent.photo);
+    } catch (storageError) {
+      console.error("Storage deletion error:", storageError);
+      // Continue with database update even if storage deletion fails
+    }
+
+    // 6. Update agent record
+    agent.photo = null;
+    await agent.save();
+
+    // 7. Return success response
+    return res.status(200).json({
+      success: true,
+      message: "Profile image deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting profile image:", error);
+
+    // Handle specific JWT errors
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token expired",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -244,7 +447,7 @@ const getAgent = async (req, res) => {
 const getvalueAgent = async (req, res) => {
   try {
     const { referralCode } = req.body;
-    const agentDetails = await AgentSchema.find({valuemember:referralCode});
+    const agentDetails = await AgentSchema.find({ valuemember: referralCode });
     if (!agentDetails) {
       return res.status(200).json({ message: "Agent not found" });
     } else {
@@ -315,23 +518,40 @@ const deleteAgent = async (req, res) => {
 
 const updateAgentByadmin = async (req, res) => {
   const { id } = req.params;
-  const { FullName, District, Contituency, MobileNumber, MyRefferalCode,
-    ReferredBy,AadhaarNumber,PANNumber,BankAccountNumber } =
-    req.body;
+  const {
+    FullName,
+    District,
+    Contituency,
+    MobileNumber,
+    MyRefferalCode,
+    ReferredBy,
+    AadhaarNumber,
+    PANNumber,
+    BankAccountNumber,
+  } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Photo is required." });
-    }
+  // Build the update object with the fields to update
+  const updateFields = {
+    FullName,
+    District,
+    Contituency,
+    MobileNumber,
+    MyRefferalCode,
+    ReferredBy,
+    AadhaarNumber,
+    PANNumber,
+    BankAccountNumber,
+  };
 
-    const photoPath = `/Agents/${req.file.filename}`;
+  // If a new photo was uploaded, add it to the update object
+  if (req.file) {
+    updateFields.photo = `/Agents/${req.file.filename}`;
+  }
 
   try {
-    const updatedAgent = await AgentSchema.findByIdAndUpdate(
-      id,
-      { FullName, District, Contituency, MobileNumber, MyRefferalCode,
-        ReferredBy,AadhaarNumber,PANNumber,BankAccountNumber,photo: photoPath, },
-      { new: true }
-    );
+    const updatedAgent = await AgentSchema.findByIdAndUpdate(id, updateFields, {
+      new: true,
+    });
 
     if (!updatedAgent) {
       return res.status(404).json({ message: "Agent not found" });
@@ -345,6 +565,7 @@ const updateAgentByadmin = async (req, res) => {
     res.status(500).json({ message: "Failed to update agent" });
   }
 };
+
 const callDone = async (req, res) => {
   try {
     const agent = await AgentSchema.findByIdAndUpdate(
@@ -370,5 +591,7 @@ module.exports = {
   deleteAgent,
   updateAgentByadmin,
   callDone,
-  getvalueAgent
+  getvalueAgent,
+  updateProfileImage,
+  deleteProfileImage,
 };

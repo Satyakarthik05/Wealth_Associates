@@ -12,24 +12,23 @@ const axios = require("axios");
 const getNearbyProperty = require("../Models/ApprovedPropertys");
 const CallExecutive = require("../Models/CallExecutiveModel");
 const ApprovedProperty = require("../Models/ApprovedPropertys");
-const cron = require('node-cron');
-
+const cron = require("node-cron");
+const AWS = require("aws-sdk");
 
 // The actual function (extracted so it can be called manually or via cron)
 const updateReferralAndPostedData = async () => {
   try {
     // Fetch all agents
     const allAgents = await AgentSchema.find({});
-    
+
     // Process each agent
     for (const agent of allAgents) {
-      const { 
-        MobileNumber, 
-        MyRefferalCode 
-      } = agent;
+      const { MobileNumber, MyRefferalCode } = agent;
 
       if (!MobileNumber || !MyRefferalCode) {
-        console.warn(`Skipping agent with missing mobileNumber or referralCode: ${agent._id}`);
+        console.warn(
+          `Skipping agent with missing mobileNumber or referralCode: ${agent._id}`
+        );
         continue;
       }
 
@@ -42,7 +41,7 @@ const updateReferralAndPostedData = async () => {
           skilledData,
           nrisData,
           propertyData,
-          approvedData
+          approvedData,
         ] = await Promise.all([
           AgentSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
           CustomerSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
@@ -50,7 +49,7 @@ const updateReferralAndPostedData = async () => {
           skillSchema.find({ AddedBy: MobileNumber }).catch(() => []),
           nriSchema.find({ AddedBy: MobileNumber }).catch(() => []),
           Property.find({ PostedBy: MobileNumber }).catch(() => []),
-          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => [])
+          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => []),
         ]);
 
         // Prepare counts object
@@ -62,7 +61,7 @@ const updateReferralAndPostedData = async () => {
           addedNRIs: nrisData?.length || 0,
           postedProperties: propertyData?.length || 0,
           approvedProperties: approvedData?.length || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
 
         // Update the agent with counts
@@ -77,35 +76,37 @@ const updateReferralAndPostedData = async () => {
       }
     }
 
-    console.log(`Successfully updated referral and posted counts for ${allAgents.length} agents at ${new Date()}`);
-
+    console.log(
+      `Successfully updated referral and posted counts for ${
+        allAgents.length
+      } agents at ${new Date()}`
+    );
   } catch (error) {
-    console.error('Error processing referral and posted data for agents:', error);
+    console.error(
+      "Error processing referral and posted data for agents:",
+      error
+    );
   }
 };
 
-
-cron.schedule('0 8 * * *', () => {
-  console.log('Running scheduled referral stats update at 2 AM');
+cron.schedule("0 8 * * *", () => {
+  console.log("Running scheduled referral stats update at 2 AM");
   updateReferralAndPostedData();
 });
-
-
 
 const getReferralAndPostedDatas = async (req, res) => {
   try {
     // Fetch all agents
     const allAgents = await AgentSchema.find({});
-    
+
     // Process each agent
     for (const agent of allAgents) {
-      const { 
-        MobileNumber, 
-        MyRefferalCode 
-      } = agent;
+      const { MobileNumber, MyRefferalCode } = agent;
 
       if (!MobileNumber || !MyRefferalCode) {
-        console.warn(`Skipping agent with missing mobileNumber or referralCode: ${agent._id}`);
+        console.warn(
+          `Skipping agent with missing mobileNumber or referralCode: ${agent._id}`
+        );
         continue;
       }
 
@@ -118,7 +119,7 @@ const getReferralAndPostedDatas = async (req, res) => {
           skilledData,
           nrisData,
           propertyData,
-          approvedData
+          approvedData,
         ] = await Promise.all([
           AgentSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
           CustomerSchema.find({ ReferredBy: MyRefferalCode }).catch(() => []),
@@ -126,7 +127,7 @@ const getReferralAndPostedDatas = async (req, res) => {
           skillSchema.find({ AddedBy: MobileNumber }).catch(() => []),
           nriSchema.find({ AddedBy: MobileNumber }).catch(() => []),
           Property.find({ PostedBy: MobileNumber }).catch(() => []),
-          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => [])
+          ApprovedProperty.find({ PostedBy: MobileNumber }).catch(() => []),
         ]);
 
         // Prepare counts object
@@ -138,7 +139,7 @@ const getReferralAndPostedDatas = async (req, res) => {
           addedNRIs: nrisData?.length || 0,
           postedProperties: propertyData?.length || 0,
           approvedProperties: approvedData?.length || 0,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         };
 
         // Update the agent with counts
@@ -154,15 +155,17 @@ const getReferralAndPostedDatas = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: 'Successfully updated referral and posted counts for all agents',
-      totalAgentsProcessed: allAgents.length
+      message: "Successfully updated referral and posted counts for all agents",
+      totalAgentsProcessed: allAgents.length,
     });
-
   } catch (error) {
-    console.error('Error processing referral and posted data for agents:', error);
-    return res.status(500).json({ 
-      message: 'Internal server error.',
-      error: error.message 
+    console.error(
+      "Error processing referral and posted data for agents:",
+      error
+    );
+    return res.status(500).json({
+      message: "Internal server error.",
+      error: error.message,
     });
   }
 };
@@ -306,6 +309,20 @@ const getReferrerDetails = async (req, res) => {
 };
 
 const createProperty = async (req, res) => {
+  const uploadToS3 = async (file) => {
+
+    const fileName = `Approved_Properties/${Date.now()}-${file.originalname}`;
+
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    const result = await s3.upload(params).promise();
+    return result.Location;
+  };
   try {
     let {
       propertyType,
@@ -322,50 +339,44 @@ const createProperty = async (req, res) => {
       return res
         .status(400)
         .json({ message: "PostedBy (MobileNumber) is required." });
-      return res
-        .status(400)
-        .json({ message: "PostedBy (MobileNumber) is required." });
     }
 
-    let photo = null;
-
-    // Handle multiple photos
-    if (req.files && req.files.length > 0) {
-      const photoPaths = req.files.map((file) => `/uploads/${file.filename}`);
-
-      if (photoPaths.length > 6) {
-        req.files.forEach((file) => fs.unlinkSync(file.path));
-        return res.status(400).json({ message: "Maximum 6 photos allowed." });
-      }
-
-      photo = photoPaths.length === 1 ? photoPaths[0] : photoPaths;
-    } else if (req.file) {
-      // Single photo uploaded using .single()
-      photo = `/uploads/${req.file.filename}`;
-    } else {
-      return res
-        .status(400)
-        .json({ message: "At least one photo is required." });
+    if (!req.files || req.files.length === 0) {
       return res
         .status(400)
         .json({ message: "At least one photo is required." });
     }
+
+    if (req.files.length > 6) {
+      return res.status(400).json({ message: "Maximum 6 photos allowed." });
+    }
+
+    // Upload all files to S3 (following your migration pattern)
+    const uploadPromises = req.files.map((file) => uploadToS3(file));
+    const s3Urls = await Promise.all(uploadPromises);
+
+    // Format the URLs exactly like your migration script
+    const newImageUrls = s3Urls.length === 1 ? s3Urls[0] : s3Urls;
+
+    // For backward compatibility, we'll also store in photo field
+    const photo = newImageUrls;
 
     const newProperty = new Property({
       propertyType,
       location,
       price,
-      photo,
+      photo, // maintaining backward compatibility
+      newImageUrls, // storing in the new field as per your migration
       PostedBy,
       fullName,
       mobile,
-      propertyDetails: propertyDetails,
-
+      propertyDetails,
       Constituency,
     });
 
     await newProperty.save();
 
+    // Executive assignment logic remains the same
     const callExecutives = await CallExecutive.find({
       assignedType: "Property",
     })
@@ -389,30 +400,9 @@ const createProperty = async (req, res) => {
         callExecutives.length > 0
           ? callExecutives[0].name
           : "No executive available",
-      assignedTo:
-        callExecutives.length > 0
-          ? callExecutives[0].name
-          : "No executive available",
     });
   } catch (error) {
     console.error("Error in createProperty:", error);
-
-    if (req.files) {
-      req.files.forEach((file) => {
-        try {
-          fs.unlinkSync(file.path);
-        } catch (err) {
-          console.error("Error deleting uploaded file:", err);
-        }
-      });
-    } else if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.error("Error deleting uploaded file:", err);
-      }
-    }
-
     return res.status(500).json({
       message: "Error adding property",
       error: error.message,
