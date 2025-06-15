@@ -2,7 +2,11 @@ const CoreProjects = require("../Models/CoreProjectsModel");
 const ValueProjects = require("../Models/ValueProjects");
 const AWS = require("aws-sdk");
 
-
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+  secretAccessKey: "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",
+  region: "us-east-1",
+});
 
 const uploadToS3 = async (file, folderName) => {
   const fileName = `${folderName}/${Date.now()}-${file.originalname}`;
@@ -15,7 +19,13 @@ const uploadToS3 = async (file, folderName) => {
   };
 
   const result = await s3.upload(params).promise();
-  return result.Location;
+  
+  // Convert S3 URL to CloudFront URL
+  const cloudFrontDomain = "d2xj2qzllg3mnf.cloudfront.net";
+  const s3Url = new URL(result.Location);
+  const cloudFrontUrl = `https://${cloudFrontDomain}/${s3Url.pathname.split('/').slice(2).join('/')}`;
+  
+  return cloudFrontUrl;
 };
 
 const createCoreProjects = async (req, res) => {
@@ -26,7 +36,7 @@ const createCoreProjects = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Upload to S3 with 'core-projects' folder
+    // Upload to S3 with 'core-projects' folder and get CloudFront URL
     const photoUrl = await uploadToS3(req.file, "core-projects");
 
     const newProject = new CoreProjects({
@@ -36,7 +46,7 @@ const createCoreProjects = async (req, res) => {
       website,
       mobile,
       photo: photoUrl,
-      newImageUrl: photoUrl, // Consistent with other models
+      newImageUrl: photoUrl,
     });
 
     await newProject.save();
@@ -72,7 +82,7 @@ const createValueProjects = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Upload to S3 with 'value-projects' folder
+    // Upload to S3 with 'value-projects' folder and get CloudFront URL
     const photoUrl = await uploadToS3(req.file, "value-projects");
 
     const newProject = new ValueProjects({
@@ -82,7 +92,7 @@ const createValueProjects = async (req, res) => {
       website,
       mobile,
       photo: photoUrl,
-      newImageUrl: photoUrl, // Consistent with other models
+      newImageUrl: photoUrl,
     });
 
     await newProject.save();

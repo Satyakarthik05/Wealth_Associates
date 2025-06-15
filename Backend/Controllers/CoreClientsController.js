@@ -1,9 +1,13 @@
 const CoreClient = require("../Models/CoreClientsModel");
 const AWS = require("aws-sdk");
 
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+  secretAccessKey: "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",
+  region: "us-east-1",
+});
 
-
-// Helper function to upload to S3
+// Helper function to upload to S3 and return CloudFront URL
 const uploadToS3 = async (file) => {
   const fileName = `core-clients/${Date.now()}-${file.originalname}`;
 
@@ -15,7 +19,13 @@ const uploadToS3 = async (file) => {
   };
 
   const result = await s3.upload(params).promise();
-  return result.Location;
+  
+  // Convert S3 URL to CloudFront URL
+  const cloudFrontDomain = "d2xj2qzllg3mnf.cloudfront.net";
+  const s3Url = new URL(result.Location);
+  const cloudFrontUrl = `https://${cloudFrontDomain}/${s3Url.pathname.split('/').slice(2).join('/')}`;
+  
+  return cloudFrontUrl;
 };
 
 const createCoreClient = async (req, res) => {
@@ -26,7 +36,7 @@ const createCoreClient = async (req, res) => {
       return res.status(400).json({ message: "Photo is required." });
     }
 
-    // Upload the file to S3
+    // Upload the file to S3 and get CloudFront URL
     const photoUrl = await uploadToS3(req.file);
 
     const newClient = new CoreClient({
@@ -35,8 +45,8 @@ const createCoreClient = async (req, res) => {
       city,
       website,
       mobile,
-      photo: photoUrl, // Storing S3 URL
-      newImageUrl: photoUrl, // Additional field if you want consistency with other models
+      photo: photoUrl, // Storing CloudFront URL
+      newImageUrl: photoUrl, // Additional field with CloudFront URL
     });
 
     await newClient.save();
@@ -53,6 +63,7 @@ const createCoreClient = async (req, res) => {
     });
   }
 };
+
 const GetAllcoreClients = async (req, res) => {
   try {
     const properties = await CoreClient.find();

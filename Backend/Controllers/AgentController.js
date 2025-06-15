@@ -8,8 +8,13 @@ const AWS = require("aws-sdk");
 
 secret = "Wealth@123";
 
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+  secretAccessKey: "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",
+  region: "us-east-1",
+});
 
-// Helper function to upload to S3
+// Helper function to upload to S3 and return CloudFront URL
 const uploadToS3 = async (file, folderName) => {
   const timestamp = Date.now();
   const fileExtension = file.originalname.split(".").pop();
@@ -23,7 +28,13 @@ const uploadToS3 = async (file, folderName) => {
   };
 
   const result = await s3.upload(params).promise();
-  return result.Location;
+  
+  // Convert S3 URL to CloudFront URL
+  const cloudFrontDomain = "d2xj2qzllg3mnf.cloudfront.net";
+  const s3Url = new URL(result.Location);
+  const cloudFrontUrl = `https://${cloudFrontDomain}/${s3Url.pathname.split('/').slice(2).join('/')}`;
+  
+  return cloudFrontUrl;
 };
 
 // Helper function to delete from S3
@@ -31,7 +42,8 @@ const deleteFromS3 = async (url) => {
   if (!url) return;
 
   try {
-    const key = decodeURIComponent(url.split("/").slice(3).join("/"));
+    // Extract key from CloudFront URL (remove domain and leading slash)
+    const key = decodeURIComponent(url.replace(`https://d2xj2qzllg3mnf.cloudfront.net/`, ''));
     const params = {
       Bucket: process.env.S3_BUCKET_NAME || "wealthpropertyimages",
       Key: key,
@@ -104,7 +116,7 @@ const AgentSign = async (req, res) => {
   // Check if file exists and upload to S3
   if (req.file) {
     try {
-      photoUrl = await uploadToS3(req.file, "agent-profiles");
+      photoUrl = await uploadToS3(req.file, "agent-profiles"); // This now returns CloudFront URL
     } catch (uploadError) {
       console.error("Error uploading profile image to S3:", uploadError);
       return res
@@ -250,7 +262,6 @@ const AgentSign = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 const updateProfileImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -260,8 +271,7 @@ const updateProfileImage = async (req, res) => {
       });
     }
 
-    // Extract agentId from FormData
-    const { agentId } = req.body; // Multer stores non-file fields in `req.body`
+    const { agentId } = req.body;
 
     if (!agentId) {
       return res.status(400).json({
@@ -287,10 +297,10 @@ const updateProfileImage = async (req, res) => {
       }
     }
 
-    // Upload new image
+    // Upload new image (returns CloudFront URL)
     const imageUrl = await uploadToS3(req.file, "agent-profiles");
 
-    // Update agent record
+    // Update agent record with CloudFront URL
     agent.photo = imageUrl;
     await agent.save();
 
@@ -308,6 +318,7 @@ const updateProfileImage = async (req, res) => {
     });
   }
 };
+
 
 const deleteProfileImage = async (req, res) => {
   try {
@@ -581,6 +592,7 @@ const callDone = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 module.exports = {
   AgentSign,
   AgentLogin,

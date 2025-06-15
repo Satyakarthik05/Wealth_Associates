@@ -269,89 +269,89 @@ async function sendFcmNotifications(messages) {
   return results;
 }
 
-// https.createServer(options, app).listen(443, () => {
-//   console.log("HTTPS Server running on port 443");
-// });
-
-// // HTTP server should redirect to HTTPS on port 443
-// http.createServer((req, res) => {
-//   res.writeHead(301, {
-//     Location: "https://" + req.headers["host"] + req.url,
-//   });
-//   res.end();
-// }).listen(80, () => {
-//   console.log("Redirecting HTTP to HTTPS");
-// });
-
-const CoreClient = require("./Models/AgentModel"); // Update path as needed
-
-const s3 = new AWS.S3({
-  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
-  secretAccessKey: "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",
-  region: "us-east-1",
+https.createServer(options, app).listen(443, () => {
+  console.log("HTTPS Server running on port 443");
 });
 
-// Upload file to S3 - similar to your CoreClients upload logic
-const uploadFileToS3 = (filePath, fileName) => {
-  const fileContent = fs.readFileSync(filePath);
+// HTTP server should redirect to HTTPS on port 443
+http.createServer((req, res) => {
+  res.writeHead(301, {
+    Location: "https://" + req.headers["host"] + req.url,
+  });
+  res.end();
+}).listen(80, () => {
+  console.log("Redirecting HTTP to HTTPS");
+});
 
-  // Using the same path structure as your CoreClients upload
-  const s3Key = `agent-profiles/${fileName}`;
+// const CoreClient = require("./Models/AgentModel"); // Update path as needed
 
-  const params = {
-    Bucket: "wealthpropertyimages",
-    Key: s3Key,
-    Body: fileContent,
-    ContentType: "image/jpeg",
-  };
+// const s3 = new AWS.S3({
+//   accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+//   secretAccessKey: "iR3LmdccytT8oLlEOfJmFjh6A7dIgngDltCnsYV8",
+//   region: "us-east-1",
+// });
 
-  return s3.upload(params).promise();
-};
+// // Upload file to S3 - similar to your CoreClients upload logic
+// const uploadFileToS3 = (filePath, fileName) => {
+//   const fileContent = fs.readFileSync(filePath);
 
-// Main migration function for CoreClients
-const migrateCoreClientsToS3 = async () => {
-  try {
-    const clients = await CoreClient.find({});
+//   // Using the same path structure as your CoreClients upload
+//   const s3Key = `agent-profiles/${fileName}`;
 
-    for (const client of clients) {
-      if (!client.photo) continue;
+//   const params = {
+//     Bucket: "wealthpropertyimages",
+//     Key: s3Key,
+//     Body: fileContent,
+//     ContentType: "image/jpeg",
+//   };
 
-      // Skip if already an S3 URL (assuming your new clients are already using S3)
-      if (client.photo.startsWith("http")) {
-        console.log(`Skipping already migrated client: ${client._id}`);
-        continue;
-      }
+//   return s3.upload(params).promise();
+// };
 
-      const fileName = `${Date.now()}-${path.basename(client.photo)}`;
-      const localFilePath = path.join(__dirname, client.photo);
+// // Main migration function for CoreClients
+// const migrateCoreClientsToS3 = async () => {
+//   try {
+//     const clients = await CoreClient.find({});
 
-      if (fs.existsSync(localFilePath)) {
-        console.log(`Uploading: ${localFilePath}...`);
+//     for (const client of clients) {
+//       if (!client.photo) continue;
 
-        const result = await uploadFileToS3(localFilePath, fileName);
-        const s3Url = result.Location;
+//       // Skip if already an S3 URL (assuming your new clients are already using S3)
+//       if (client.photo.startsWith("http")) {
+//         console.log(`Skipping already migrated client: ${client._id}`);
+//         continue;
+//       }
 
-        // Update both photo and newImageUrl fields for consistency
-        client.photo = s3Url;
-        client.newImageUrl = s3Url;
+//       const fileName = `${Date.now()}-${path.basename(client.photo)}`;
+//       const localFilePath = path.join(__dirname, client.photo);
 
-        await client.save();
-        console.log(`Updated client: ${client._id} with URL: ${s3Url}`);
-      } else {
-        console.log(`File not found: ${localFilePath}`);
-      }
-    }
+//       if (fs.existsSync(localFilePath)) {
+//         console.log(`Uploading: ${localFilePath}...`);
 
-    console.log("✅ CoreClients migration completed!");
-    process.exit(0);
-  } catch (error) {
-    console.error("Error:", error);
-    process.exit(1);
-  }
-};
+//         const result = await uploadFileToS3(localFilePath, fileName);
+//         const s3Url = result.Location;
+
+//         // Update both photo and newImageUrl fields for consistency
+//         client.photo = s3Url;
+//         client.newImageUrl = s3Url;
+
+//         await client.save();
+//         console.log(`Updated client: ${client._id} with URL: ${s3Url}`);
+//       } else {
+//         console.log(`File not found: ${localFilePath}`);
+//       }
+//     }
+
+//     console.log("✅ CoreClients migration completed!");
+//     process.exit(0);
+//   } catch (error) {
+//     console.error("Error:", error);
+//     process.exit(1);
+//   }
+// };
 
 // migrateCoreClientsToS3();
 
-app.listen("3000", () => {
-  console.log("server running on port 3000");
-});
+// app.listen("3000", () => {
+//   console.log("server running on port 3000");
+// });

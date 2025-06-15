@@ -14,6 +14,11 @@ const router = express.Router();
 const AWS = require("aws-sdk");
 
 // Configure AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+  secretAccessKey: "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",
+  region: "us-east-1",
+});
 
 
 // Configure multer for memory storage

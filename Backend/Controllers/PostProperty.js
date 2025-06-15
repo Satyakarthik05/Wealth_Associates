@@ -307,9 +307,19 @@ const getReferrerDetails = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
-
 const createProperty = async (req, res) => {
+  const s3 = new AWS.S3({
+    accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+    secretAccessKey: "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",
+    region: "us-east-1",
+  });
+
   const uploadToS3 = async (file) => {
+    const s3 = new AWS.S3({
+      accessKeyId: "AKIAWX2IFPZYF2O4O3FG",
+      secretAccessKey: "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",
+      region: "us-east-1",
+    });
 
     const fileName = `Approved_Properties/${Date.now()}-${file.originalname}`;
 
@@ -321,8 +331,15 @@ const createProperty = async (req, res) => {
     };
 
     const result = await s3.upload(params).promise();
-    return result.Location;
+    
+    // Convert S3 URL to CloudFront URL
+    const cloudFrontDomain = "d2xj2qzllg3mnf.cloudfront.net";
+    const s3Url = new URL(result.Location);
+    const cloudFrontUrl = `https://${cloudFrontDomain}/Approved_Properties/${s3Url.pathname.split('/').slice(2).join('/')}`;
+    
+    return cloudFrontUrl;
   };
+
   try {
     let {
       propertyType,
@@ -351,12 +368,12 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "Maximum 6 photos allowed." });
     }
 
-    // Upload all files to S3 (following your migration pattern)
+    // Upload all files to S3 and get CloudFront URLs
     const uploadPromises = req.files.map((file) => uploadToS3(file));
-    const s3Urls = await Promise.all(uploadPromises);
+    const cloudFrontUrls = await Promise.all(uploadPromises);
 
     // Format the URLs exactly like your migration script
-    const newImageUrls = s3Urls.length === 1 ? s3Urls[0] : s3Urls;
+    const newImageUrls = cloudFrontUrls.length === 1 ? cloudFrontUrls[0] : cloudFrontUrls;
 
     // For backward compatibility, we'll also store in photo field
     const photo = newImageUrls;
@@ -366,7 +383,7 @@ const createProperty = async (req, res) => {
       location,
       price,
       photo, // maintaining backward compatibility
-      newImageUrls, // storing in the new field as per your migration
+      newImageUrls, // storing in the new field with CloudFront URLs
       PostedBy,
       fullName,
       mobile,
